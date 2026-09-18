@@ -4,6 +4,7 @@
 *.lo
 .deps
 .libs
+.DS_Store
 
 CMakeFiles
 CMakeCache.txt
