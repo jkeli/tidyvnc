@@ -6,9 +6,9 @@ local desktop scaling and high-density display support. Project and support:
 https://github.com/jkeli/tidyvnc and https://github.com/jkeli/tidyvnc/issues.
 
 Build the current macOS application using BUILD-MACOS.md. Rebrand status and
-validation gaps are tracked in plans/rebrand/TODO.md. Windows, Linux/server and
-Java packaging/state migration are deferred; they are not yet released as fully
-rebranded TidyVNC flavors. Existing copyrights and upstream history remain intact.
+validation gaps are tracked in plans/rebrand/TODO.md. TidyVNC is native only;
+the Java viewer has been removed. Windows and Linux/server rebranding remain
+deferred. Existing copyrights and upstream history remain intact.
 
 New native connection files use .tidyvnc; existing .tigervnc files remain readable.
 The macOS connection dialog offers separate legacy preference/history import.
