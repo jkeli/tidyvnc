@@ -31,7 +31,7 @@
 #import <ApplicationServices/ApplicationServices.h>
 
 #include "cocoa.h"
-#include "DesktopLayout.h"
+#include <viewer/core/DesktopLayout.h>
 
 static CFMachPortRef event_tap;
 static CFRunLoopSourceRef tap_source;

@@ -56,7 +56,7 @@
 #include "Fl_Monitor_Arrangement.h"
 #include <core/i18n.h>
 #ifdef __APPLE__
-#include "../DesktopLayout.h"
+#include <viewer/core/DesktopLayout.h>
 #include "../cocoa.h"
 #endif
 

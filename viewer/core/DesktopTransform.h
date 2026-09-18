@@ -4,8 +4,9 @@
 
 #include <string>
 #include <core/Rect.h>
+#include <viewer/platform/DisplayMetrics.h>
 
-// R: remote pixels, L: FLTK logical units, B: window backing pixels.
+// R: remote pixels, L: host logical units, B: window backing pixels.
 // Native screen coordinates are deliberately absent from this model.
 struct ScalingSettings {
   enum Mode { Unscaled, Auto, FixedRatio, FitWidth, FitHeight, Exact, Percent, Independent };
@@ -18,12 +19,6 @@ struct ScalingSettings {
   bool fits() const;
 };
 
-struct DisplayMetrics {
-  double pixelsPerUnitX = 1, pixelsPerUnitY = 1;
-  int screen = 0;
-  unsigned long generation = 0;
-  bool valid() const;
-};
 
 class DesktopTransform {
 public:

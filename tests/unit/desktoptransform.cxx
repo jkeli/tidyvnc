@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
 #include <gtest/gtest.h>
-#include "DesktopTransform.h"
+#include <viewer/core/DesktopTransform.h>
 #include <limits>
 #include <stdexcept>
 

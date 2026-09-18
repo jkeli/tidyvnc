@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
-#include "DesktopResampler.h"
-#include "DesktopTileCache.h"
+#include <viewer/core/DesktopResampler.h>
+#include <viewer/core/DesktopTileCache.h>
 #include <algorithm>
 #include <chrono>
 #include <cstdio>

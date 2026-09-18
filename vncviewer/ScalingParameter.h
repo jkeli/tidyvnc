@@ -2,7 +2,7 @@
 #ifndef TIDYVNC_SCALING_PARAMETER_H
 #define TIDYVNC_SCALING_PARAMETER_H
 #include <core/Configuration.h>
-#include "DesktopTransform.h"
+#include <viewer/core/DesktopTransform.h>
 #include <stdexcept>
 class ScalingParameter : public core::StringParameter {
 public:

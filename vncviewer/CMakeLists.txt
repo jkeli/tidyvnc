@@ -16,17 +16,12 @@ add_executable(vncviewer
   DesktopWindow.cxx
   DesktopView.cxx
   DesktopSession.cxx
-  DesktopLayout.cxx
   EmulateMB.cxx
   ServerDialog.cxx
   ShortcutHandler.cxx
   Surface.cxx
   OptionsDialog.cxx
   PlatformPixelBuffer.cxx
-  DesktopTransform.cxx
-  CursorRenderer.cxx
-  DesktopTileCache.cxx
-  DesktopResampler.cxx
   DisplayMetrics.cxx
   Viewport.cxx
   LegacyImport.cxx
@@ -80,7 +75,7 @@ if(HAVE_AUDIO)
 endif()
 
 target_include_directories(vncviewer SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
-target_link_libraries(vncviewer rfbclient rfb network rdr core)
+target_link_libraries(vncviewer tidyvnc_viewer_core)
 target_link_libraries(vncviewer ${TIDYVNC_FLTK_TARGET})
 
 if(GNUTLS_FOUND)

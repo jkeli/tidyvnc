@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
 #include <gtest/gtest.h>
-#include "DesktopLayout.h"
+#include <viewer/core/DesktopLayout.h>
 #include <algorithm>
 #include <stdexcept>
 
