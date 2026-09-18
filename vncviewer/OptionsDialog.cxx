@@ -478,7 +478,7 @@ void OptionsDialog::storeOptions(void)
     security.EnableSecType(rfb::secTypeRA256);
   }
 #endif
-  rfb::SecurityClient::secTypes.setParam(security.ToString());
+  rfb::SecurityClient::secTypes.setParam(security.ToString().c_str());
 #endif
 
   /* Input */

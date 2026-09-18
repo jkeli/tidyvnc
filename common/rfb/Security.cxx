@@ -114,24 +114,19 @@ bool Security::IsSupported(uint32_t secType)
   return false;
 }
 
-char *Security::ToString(void)
+std::string Security::ToString() const
 {
-  static char out[128]; /* Should be enough */
-  bool firstpass = true;
+  std::string out;
   const char *name;
-
-  memset(out, 0, sizeof(out));
 
   for (uint32_t type : enabledSecTypes) {
     name = secTypeName(type);
     if (name[0] == '[') /* Unknown security type */
       continue;
 
-    if (!firstpass)
-      strncat(out, ",", sizeof(out) - 1);
-    else
-      firstpass = false;
-    strncat(out, name, sizeof(out) - 1);
+    if (!out.empty())
+      out += ',';
+    out += name;
   }
 
   return out;

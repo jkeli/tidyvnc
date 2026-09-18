@@ -106,7 +106,7 @@ policy construction on the host thread, not read later during handshake.
 Explicit policies never inherit legacy TLS values. Concurrent in-memory X509
 handshakes verify independent CA/revocation policy and encrypted data exchange;
 see [TODO.md](TODO.md). Global crypto initialization, legacy static path helpers,
-trust-store callbacks, prompt cancellation and `Security::ToString` remain open.
+trust-store callbacks and prompt cancellation remain open.
 
 JPEG negotiation now uses an instance flag for both standalone JPEG and Tight
 quality hints. The default constructor captures legacy `NoJPEG`; explicit-policy
@@ -125,6 +125,13 @@ expanded format use the snapshot. Tests exercise real RFB 3.8/None negotiation,
 concurrent distinct limits and alignment after discarded updates. This preserves
 the existing per-format semantics, not an aggregate transport/decompression
 budget; reader buffering and clipboard service ownership remain separate work.
+
+Security-policy serialization now returns an owned `std::string` from the const
+`Security::ToString` method. Both configuration callers consume it synchronously.
+This removes shared output storage and the fixed-buffer overflow for long type
+lists; independent or shared read-only policies can be formatted concurrently.
+Mutation of the same policy still requires its owning executor. The Windows
+registry caller was updated and inspected, but not built on the macOS host.
 
 ## Baseline verification
 

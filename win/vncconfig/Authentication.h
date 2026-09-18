@@ -123,7 +123,7 @@ namespace rfb {
         }
 #endif
 
-        regKey.setString("SecurityTypes", security->ToString());
+        regKey.setString("SecurityTypes", security->ToString().c_str());
         regKey.setBool("QueryConnect", isItemChecked(IDC_QUERY_CONNECT));
         regKey.setBool("QueryOnlyIfLoggedOn", isItemChecked(IDC_QUERY_LOGGED_ON));
 

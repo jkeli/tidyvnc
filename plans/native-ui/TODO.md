@@ -35,7 +35,8 @@ may disappear merely because it is absent from an initial mockup.
   - Completed prerequisites: caller-owned DES schedules for client/server VNC
     authentication/password-file helpers, invocation-owned Tight gradient
     scratch rows, explicit per-connection authentication/TLS policies, and
-    session-owned JPEG negotiation and incoming clipboard limits;
+    session-owned JPEG negotiation and incoming clipboard limits, plus owned
+    security-policy serialization;
     see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
@@ -476,6 +477,39 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   transport buffering or aggregate decompression work, implement clipboard
   services, or prove full session lifecycle isolation. N1.4 remains open for
   timers, reconnect credentials and other audited globals.
+
+### N1.4 prerequisite — owned security-policy strings — 2026-09-18
+
+- Commit: `fix(rfb): return owned security policy strings`.
+- `Security::ToString` now returns `std::string` and is const. It preserves
+  ordering, comma separation and omission of unknown IDs without shared output
+  storage or a fixed capacity. The old repeated `strncat` calls used the whole
+  buffer capacity rather than the remaining space; the full recognized type
+  list exceeds that buffer. Updated both callers (FLTK Options and Windows
+  authentication registry settings) to pass the temporary string to synchronous
+  consumers. This changes the internal C++ return type; it is not a C ABI.
+- Four tests cover empty/unknown/ordered/deduplicated types, the complete list
+  and parseable names, result lifetime across other calls/mutation/destruction,
+  and concurrent formatting of distinct and shared read-only policies.
+- Retained FLTK Release: **343/343** tests passed in 16.00 seconds. A final
+  explicit standard-header include was followed by a rebuild and focused run.
+  Viewer-disabled/TLS-disabled Debug: **4/4** formatting tests passed under
+  ASan/UBSan (0.11 seconds) and ThreadSanitizer (0.25 seconds).
+  `git diff --check` passed. Same macOS 27 arm64 / CLT / SDK environment as the
+  baseline. Windows registry call lifetime was inspected; Windows compilation
+  and interactive configuration dialogs were not exercised.
+- Reproduce: build `build/tidyvnc-release` with
+  `DEVELOPER_DIR=/Library/Developer/CommandLineTools cmake --build
+  build/tidyvnc-release --parallel 8`, then run unit CTest with
+  `--output-on-failure --no-tests=error`. For existing
+  `build/native-ui-sanitized` and `build/native-ui-tsan`, build target `security`
+  and run unit CTest with `-R '^Security\.'`.
+- Logs: `/tmp/tidyvnc-security-string-{build,tests}.log`,
+  `/tmp/tidyvnc-security-string-final-{build,tests}.log`, and
+  `/tmp/tidyvnc-security-string-{sanitized,tsan}-{build,tests}.log` (ephemeral).
+- N1.4 remains open. This removes formatting scratch state; it does not make
+  concurrent mutation of one policy safe, isolate timers/credentials, or
+  implement the native session engine or UI.
 
 ### Implementation evidence template
 
