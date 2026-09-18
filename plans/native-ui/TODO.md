@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts and N1.11 real authentication/cancellation proof. N1.4 is in progress.** Check an item only after
+**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts and N1.11 real authentication/cancellation proof. N1.4 and N1.12 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -46,6 +46,11 @@ may disappear merely because it is absent from an initial mockup.
 - [x] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. Implemented by `PromptAuthentication`; see evidence below. Real TLS/socket cancellation is verified by N1.11 below.
 - [x] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect. Loopback TCP/GnuTLS proof at the core/host boundary; see evidence below. Production reactor and native close/quit wiring remain separate items.
 - [ ] N1.12 Implement bounded input/event queues, coalescing rules and release-all on focus loss/overflow/disconnect; keep view-only enforcement in core.
+  - [x] Bounded keyboard/pointer mailbox and held state, motion coalescing, core
+    view-only enforcement, release barriers, reconnect invalidation and RFB wire
+    tests. See the N1.12 input evidence below.
+  - [ ] General ordered event/completion queues, statistics coalescing and their
+    overflow rules alongside the N1.5 lifecycle/event contract.
 - [ ] N1.13 Implement disconnect/drain with cancelled IO/prompts/timers/subscriptions and joined decoder work; repeated close and partial construction failure are safe.
 - [ ] N1.14 Test two simultaneous sessions with different security/settings, one awaiting credentials while the other continues; no secret, modifier, clipboard or option leakage.
 - [ ] N1.15 Run existing applicable unit suites plus deterministic core/service tests with fake stores, transport, scheduler and event sink; run supported sanitizers and record limitations.
@@ -803,6 +808,63 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   adapter: N1.5/N1.6/N1.13 and native close/quit wiring remain open. Other security
   modes/TLS versions and N1.14's full settings/input/clipboard isolation matrix
   remain separate work. No native UI or full application-quit claim is made.
+
+### N1.12 — bounded input queue and release behavior — 2026-09-18
+
+- Commit: `feat(viewer): deliver bounded keyboard and pointer input`.
+- Completed the input portion of N1.12. `ProtocolSession::inputQueue()` returns
+  a retained thread-safe mailbox; producers submit generation-tagged physical key
+  IDs/RFB symbols/QEMU codes and pointer state. Only worker `drainInput()` writes
+  protocol messages. Core rejects disconnected, stale, unfocused, view-only and
+  invalid input. Mapping native keyboard/shortcut semantics remains host work;
+  this path does not repeat the legacy platform-specific keysym normalization.
+- Queue count defaults to 256 (configurable 1–65536) and held keys to 64
+  (1–1024). Drain work is capped at queue capacity plus one entry per call.
+  Adjacent motion with unchanged buttons coalesces, including drag motion; key
+  events and button transitions keep order and original transition coordinates.
+  Existing RFB writing handles position clamping and negotiated extended input.
+- Release-all uses a flag outside normal queue capacity. Focus loss and enabling
+  view-only discard unsent input and place release ahead of future input. Queue
+  capacity/allocation exhaustion returns `Overflow`, increments the status counter,
+  releases held state on drain and suspends input until explicit focus reactivation.
+  Held-key exhaustion reports false from drain and releases in that same call.
+  Repeat/release uses the original physical key's mapping; chords unwind in
+  reverse press order, and pointer buttons are explicitly released.
+- Close and protocol/write error invalidate queued input, attempt held-key/button
+  release and finish local cleanup even if release writes fail. Reconnect retains
+  focus/view-only policy, with a new generation and no old queued/held state.
+  Retained mailboxes are safe and disconnected after session destruction. A command
+  already dequeued may finish before concurrent policy changes; the next dequeue
+  processes the release barrier.
+- Fifteen RFB wire tests cover rejection/generation changes, transition/motion
+  ordering, repeated keys, QEMU keycodes/extended buttons, coalescing at capacity,
+  focus loss, core view-only, queue and held-key overflow/recovery, disconnect,
+  retained lifetime, failed writes/protocol errors, input validation/clamping and
+  a concurrent producer alongside a session with different input policy.
+- Focused Debug **39/39** input/session/prompt tests (0.62 seconds), ASan/UBSan
+  **39/39** (0.85 seconds), ThreadSanitizer **39/39** (1.59 seconds). Full retained
+  FLTK Release **413/413** unit tests (18.14 seconds), **1/1** smoke (0.16 seconds).
+  Full existing headless Debug **398/398** unit tests (16.12 seconds), **1/1** smoke
+  (0.09 seconds). Branding/attribution audit and `git diff --check` passed.
+  Strict Debug caught a new member shadowing a stream parameter and incorrect
+  underrun/EOF assumptions in the new test parser; both were corrected before
+  the passing runs.
+- Reproduce by building `sessioninput`, `protocolsession`, `promptauthentication`
+  and running unit CTest with
+  `-R '^(SessionInput|ProtocolSession|PromptAuthentication)\.' --output-on-failure --no-tests=error`.
+  Local configurations: `build/native-ui-prompts-final`, `build/native-ui-sanitized`,
+  `build/native-ui-tsan`, `build/tidyvnc-release`. Ephemeral logs:
+  `/tmp/tidyvnc-input-native-ui-{prompts-final,sanitized,tsan}-{build,tests}.log`
+  and `/tmp/tidyvnc-input-{release,headless}-{tests,smoke}.log`.
+- Same macOS 27 arm64 / AppleClang 21 CLT environment. Focused sanitizer builds
+  disable TLS; full regression builds retain it, including the loopback suite.
+  Project code is instrumented, not every external library. No native UI or
+  Windows/Linux execution claim. Queue/held-state bounds do not cover transport
+  buffers or whole-process memory; a dead transport cannot guarantee remote
+  release delivery. Worker wakeup/writable readiness and asynchronous flush/drain
+  remain N1.6/N1.13. Native mapping/multi-view focus and general ordered
+  event/completion queues/statistics coalescing remain pending. The parent N1.12
+  checkbox stays open until that remaining event contract is implemented.
 
 ### Implementation evidence template
 

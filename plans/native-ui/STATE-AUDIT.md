@@ -218,6 +218,24 @@ socket watcher are not production lifecycle/reactor adapters. N1.5/N1.6/N1.13,
 native close/quit UI, Windows sockets and N1.14's full settings/input/clipboard
 isolation matrix remain open. See the TODO evidence for builds and sanitizers.
 
+## Bounded input ownership (N1.12 input portion)
+
+`ProtocolSession` owns a retainable `InputQueue`, per-attempt held-key state and
+pointer buttons. Producers enqueue generation-tagged commands without touching
+RFB streams. The worker drains a bounded number of commands and uses the existing
+RFB writer. Only adjacent motion coalesces; key/button transitions retain order.
+Core policy rejects view-only/unfocused/disconnected/stale input. A release flag
+outside normal queue capacity clears remote held state on focus loss, policy
+changes or overflow; overflow suspends input until explicit focus reactivation.
+Close invalidates queued commands and attempts release before protocol teardown.
+A transport failure cannot guarantee remote release delivery, but cleanup proceeds.
+
+Input command capacity and held-key count are independently bounded. Retained
+mailboxes become disconnected on session destruction. Wire tests cover basic and
+extended input, failures, concurrent production and per-session policy isolation.
+General event/completion queues, worker readiness/flush, full lifecycle drain,
+native input mapping and multi-view focus ownership remain unchecked work.
+
 ## Baseline verification
 
 On 2026-09-18, before code changes, the retained Release build passed **304/304**
