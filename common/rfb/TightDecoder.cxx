@@ -594,8 +594,11 @@ void TightDecoder::FilterGradient(const uint8_t* inbuf,
                                   int stride, const core::Rect& r)
 {
   int x, y, c;
-  static uint8_t prevRow[TIGHT_MAX_WIDTH*3];
-  static uint8_t thisRow[TIGHT_MAX_WIDTH*3];
+  // Different sessions (and independent Tight streams) can decode gradients
+  // concurrently. Scratch rows belong to this invocation, not the decoder or
+  // the template specialization.
+  uint8_t prevRow[TIGHT_MAX_WIDTH*3];
+  uint8_t thisRow[TIGHT_MAX_WIDTH*3];
   uint8_t pix[3]; 
   int est[3]; 
 

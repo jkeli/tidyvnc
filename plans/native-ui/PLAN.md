@@ -1,7 +1,7 @@
 # Native UI architecture and macOS SwiftUI migration
 
-Status: started; N0 source audit, baseline validation and the first session
-isolation prerequisite (caller-owned DES schedules) are recorded in
+Status: started; N0 source audit, baseline validation and initial session
+isolation prerequisites (DES schedules and Tight gradient scratch) are recorded in
 [STATE-AUDIT.md](STATE-AUDIT.md). Baseline: `4e07cc16`,
 inspected 2026-09-18. Track delivery in [TODO.md](TODO.md). Existing source paths
 are repository-relative; proposed directories and API names are marked below.

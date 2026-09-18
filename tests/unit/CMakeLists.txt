@@ -28,6 +28,10 @@ add_executable(vncauth vncauth.cxx)
 target_link_libraries(vncauth rfbclient GTest::gtest_main)
 gtest_discover_tests(vncauth)
 
+add_executable(tightdecoder tightdecoder.cxx)
+target_link_libraries(tightdecoder rfbclient GTest::gtest_main Threads::Threads)
+gtest_discover_tests(tightdecoder)
+
 add_executable(convertlf convertlf.cxx)
 target_link_libraries(convertlf core GTest::gtest_main)
 gtest_discover_tests(convertlf)
