@@ -1,6 +1,8 @@
 # TigerVNC client scaling implementation plan
 
-Status: proposed implementation; no viewer code has been changed.
+Status: native implementation in progress alongside [HiDPI support](../hidpi/TODO.md). The shared implementation lives in `DesktopTransform` and `DesktopResampler`; Java parity and the remaining validation gates are unfinished.
+
+The HiDPI plan supersedes this document's original FLTK-upgrade non-goal and integer-only pan assumptions. Fixed sizes and percentages now use `DesktopPixelUnits=Logical|Device`; fit modes remain independent of this setting. Identity means the complete remote-to-backing transform is aligned and 1:1.
 
 Repository baseline: `f885b340`, inspected on 2026-09-17. Track implementation in [TODO.md](TODO.md). Paths below are relative to the repository root. Names of new classes, files, and settings are proposals.
 

@@ -1,39 +1,39 @@
 # TigerVNC client scaling checklist
 
-Implementation tracker for [PLAN.md](PLAN.md), based on repository `f885b340`. All items are initially unchecked because this deliverable is a plan, not an implementation. Complete phases in dependency order; attach test output, screenshots, benchmark data, or review references as work finishes.
+Implementation tracker for [PLAN.md](PLAN.md), based on repository `f885b340`. Shared native work is tracked in [the HiDPI checklist](../hidpi/TODO.md); only implemented items below are checked. Complete phases in dependency order; attach test output, screenshots, benchmark data, or review references as work finishes.
 
 ## P1 — Contract, configuration model, and geometry
 
-- [ ] Implement typed `ScalingSettings`, mode enum, parser, and canonical serializer in `vncviewer/Scaling.h` and `.cxx`.
-- [ ] Support no scaling (`100`, alias `None`).
-- [ ] Support automatic fit/stretch (`Auto`).
-- [ ] Support aspect-preserving fit (`FixedRatio`).
-- [ ] Support aspect-preserving fit width (`FitWidth`).
-- [ ] Support aspect-preserving fit height (`FitHeight`).
-- [ ] Support exact displayed pixel dimensions (`1920x1080`).
-- [ ] Support arbitrary uniform percentages, including decimals (`137.5`, `137.5%`).
-- [ ] Support independent horizontal/vertical percentages (`125%x80%`).
-- [ ] Implement `ScalingQuality=Nearest|Bilinear|Area`, default Bilinear.
-- [ ] Implement lexical rules, numeric limits, overflow checks, and error messages from PLAN §3.
+- [x] Implement typed `ScalingSettings`, mode enum, parser, and canonical serializer in `vncviewer/DesktopTransform.h` and `.cxx`.
+- [x] Support no scaling (`100`, alias `None`).
+- [x] Support automatic fit/stretch (`Auto`).
+- [x] Support aspect-preserving fit (`FixedRatio`).
+- [x] Support aspect-preserving fit width (`FitWidth`).
+- [x] Support aspect-preserving fit height (`FitHeight`).
+- [x] Support exact displayed pixel dimensions (`1920x1080`).
+- [x] Support arbitrary uniform percentages, including decimals (`137.5`, `137.5%`).
+- [x] Support independent horizontal/vertical percentages (`125%x80%`).
+- [x] Implement `ScalingQuality=Nearest|Bilinear|Area`, default Bilinear.
+- [x] Implement lexical rules, numeric limits, overflow checks, and error messages from PLAN §3.
 - [ ] Implement atomic validation and saved-setting fallback policy.
 - [ ] Implement immutable transform/layout output with distinct source, display, available-area, and origin fields.
-- [ ] Implement rounding rules, effective ratios, and minimum-one-pixel output.
+- [x] Implement rounding rules, effective ratios, and minimum-one-pixel output.
 - [ ] Implement stable scrollbar resolution for fit and fixed modes.
 - [ ] Implement centering, pan clamping, and center-anchor preservation.
 - [ ] Handle zero-area/minimized windows and runtime dimension-limit fallback/recovery.
-- [ ] Define coordinate units and document platform DPI conversion boundaries.
+- [x] Define coordinate units and document platform DPI conversion boundaries.
 - [ ] Add parser, serialization, geometry, scrollbar, and transform unit tests.
-- [ ] Create shared native/Java contract fixtures.
-- [ ] Register sources and GoogleTest targets in CMake; verify test discovery.
+- [x] Create shared native/Java contract fixtures.
+- [x] Register sources and GoogleTest targets in CMake; verify test discovery.
 
 P1 exit evidence:
 
 ## P2 — Decouple framebuffer storage and display geometry
 
-- [ ] Add explicit `Viewport::resizeFramebuffer()` using existing connection ownership.
-- [ ] Make `Viewport::resize()` affect only local presentation.
+- [x] Add explicit `Viewport::resizeFramebuffer()` using existing connection ownership.
+- [x] Make `Viewport::resize()` affect only local presentation.
 - [ ] Replace remote-size assumptions in `DesktopWindow::resizeFramebuffer()`.
-- [ ] Preserve source contents and initialization through `CConnection::setFramebuffer()`.
+- [x] Preserve source contents and initialization through `CConnection::setFramebuffer()`.
 - [ ] Audit all uses of viewport width/height and classify source versus displayed dimensions.
 - [ ] Centralize layout recomputation and pass one transform to rendering/input/cursors.
 - [ ] Retain existing no-scaling window auto-size behavior.
@@ -45,25 +45,25 @@ P2 exit evidence:
 
 - [ ] Implement a headless `Resampler` and viewer `ScalingRenderer`.
 - [ ] Retain the original identity draw path in both `Viewport::draw()` overloads.
-- [ ] Implement clipped visible-tile rendering with absolute sampling coordinates.
-- [ ] Reuse bounded scratch `PlatformPixelBuffer` tiles without attaching them to the connection.
+- [x] Implement clipped visible-tile rendering with absolute sampling coordinates.
+- [x] Reuse bounded scratch `PlatformPixelBuffer` tiles without attaching them to the connection.
 - [ ] Support both direct window drawing and offscreen composition.
-- [ ] Implement nearest-neighbor pixel-center sampling.
-- [ ] Implement separable bilinear interpolation and edge clamping.
-- [ ] Implement area downsampling and linear upsampling per axis, including mixed-axis transforms.
+- [x] Implement nearest-neighbor pixel-center sampling.
+- [x] Implement separable bilinear interpolation and edge clamping.
+- [x] Implement area downsampling and linear upsampling per axis, including mixed-axis transforms.
 - [ ] Handle source pixel format/stride, opaque desktop output, and premultiplied cursor alpha.
 - [ ] Implement reusable weight tables and bounded intermediate buffers.
-- [ ] Add the narrow decoder-flush hook and viewer wrapper.
+- [x] Add the narrow decoder-flush hook and viewer wrapper.
 - [ ] Make exposure, option-change, and slow-update rendering safe against decoder writes.
 - [ ] Harvest newly committed damage after synchronization and invalidate cache tiles before drawing.
 - [ ] Verify synchronization does not reenter protocol dispatch or introduce deadlock.
 - [ ] Implement bounded tile caching, generation keys, eviction, and allocation-failure recovery.
-- [ ] Map source damage through filter support with outward rounding and clipping.
+- [x] Map source damage through filter support with outward rounding and clipping.
 - [ ] Invalidate affected tiles for source changes and all relevant generations for settings/size changes.
 - [ ] Repaint exposed background and old/new image bounds after layout changes.
 - [ ] Preserve CopyRect and X11 source/tile upload correctness.
 - [ ] Verify GDI drawing, macOS orientation/CTM handling, and X11 upload paths.
-- [ ] Keep viewer overlays and statistics at normal UI size.
+- [x] Keep viewer overlays and statistics at normal UI size.
 - [ ] Add golden resampler, tile-seam, incremental-versus-full-repaint, and cache lifecycle tests.
 - [ ] Add decoder-concurrency and allocation-failure tests.
 
@@ -71,7 +71,7 @@ P3 exit evidence:
 
 ## P4 — Input, cursors, resizing, and fullscreen
 
-- [ ] Map pointer coordinates once, before emulation/throttling, using the shared inverse transform.
+- [x] Map pointer coordinates once, before emulation/throttling, using the shared inverse transform.
 - [ ] Keep pending pointer positions in remote coordinates; clamp after server resizing.
 - [ ] Verify motion, button press/release, dragging, wheel pairs, and leave events.
 - [ ] Ignore interactions initiated in letterboxes or viewer controls.
@@ -101,7 +101,7 @@ P4 exit evidence:
 - [ ] Validate before changing any options; OK applies once and Cancel preserves live state.
 - [ ] Apply changes during a connection without reconnecting.
 - [ ] Verify quality-only changes preserve window size, pan position, and remote resolution.
-- [ ] Register native parameter declarations and persisted `parameterArray` entries.
+- [x] Register native parameter declarations and persisted `parameterArray` entries.
 - [ ] Test connection files, saved defaults, Windows registry, and startup argument precedence.
 - [ ] Verify old configuration files and invalid saved-value recovery.
 - [ ] Update native man page, parameter help, and translation extraction inputs as needed.
@@ -109,7 +109,7 @@ P4 exit evidence:
 
 P5 exit evidence:
 
-## P6 — Java feature parity and compatibility
+## P6 — Java feature parity and compatibility (excluded by user)
 
 - [ ] Add typed Java scaling settings and transform classes using the same contract.
 - [ ] Replace string/regex assumptions in Parameters, OptionsDialog, Viewport, and DesktopWindow.
@@ -167,3 +167,13 @@ P7 exit evidence:
 - Performance and memory evidence:
 - Deferred optimizations:
 - Remaining required work:
+
+## Shared macOS continuation — 2026-09-17
+
+See [HiDPI TODO](../hidpi/TODO.md) for the active macOS scope and evidence. Java parity
+is excluded by the user; Windows/X11 work is deferred. Shared additions include the
+bounded tile cache, fractional backing-pixel pan, tiled oversized cursors, session
+source/damage ownership, per-monitor canvas transforms and native fullscreen views.
+The opt-in macOS protocol smoke test covers all eight modes × three filters × two
+unit policies, plus oversized cursors and resize-policy checks. Interactive input,
+physical mixed-monitor checks and end-to-end performance remain release gates.
