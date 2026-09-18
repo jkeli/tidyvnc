@@ -50,3 +50,13 @@ gtest_discover_tests(unicode)
 add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
 target_link_libraries(emulatemb core GTest::gtest_main)
 gtest_discover_tests(emulatemb)
+
+add_executable(desktoptransform desktoptransform.cxx ../../vncviewer/DesktopTransform.cxx)
+target_link_libraries(desktoptransform core GTest::gtest_main)
+gtest_discover_tests(desktoptransform)
+
+add_executable(desktoplayout desktoplayout.cxx ../../vncviewer/DesktopLayout.cxx ../../vncviewer/DesktopTransform.cxx)
+target_link_libraries(desktoplayout core GTest::gtest_main)
+gtest_discover_tests(desktoplayout)
+target_compile_definitions(desktoptransform PRIVATE
+  DESKTOP_SCALING_FIXTURES="${CMAKE_SOURCE_DIR}/tests/fixtures/desktop-scaling.tsv")
