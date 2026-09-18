@@ -48,6 +48,10 @@ add_executable(clientclipboard clientclipboard.cxx)
 target_link_libraries(clientclipboard rfbclient GTest::gtest_main Threads::Threads)
 gtest_discover_tests(clientclipboard)
 
+add_executable(clientcredentials clientcredentials.cxx)
+target_link_libraries(clientcredentials rfb GTest::gtest_main Threads::Threads)
+gtest_discover_tests(clientcredentials)
+
 if(GNUTLS_FOUND AND NOT WIN32)
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)

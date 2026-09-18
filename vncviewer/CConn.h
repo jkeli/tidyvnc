@@ -25,6 +25,7 @@
 #include <core/Timer.h>
 
 #include <rfb/CConnection.h>
+#include <rfb/ClientCredentialCache.h>
 
 namespace network { class Socket; }
 
@@ -34,7 +35,8 @@ class DesktopWindow;
 class CConn : public rfb::CConnection
 {
 public:
-  CConn();
+  // The cache belongs to the logical session and must outlive each attempt.
+  explicit CConn(rfb::ClientCredentialCache& credentials);
   ~CConn();
 
   void connect(const char* vncServerName, network::Socket* sock=nullptr);
@@ -124,8 +126,7 @@ private:
   size_t updateStartPos;
   unsigned long long bpsEstimate;
 
-  static std::string savedUsername;
-  static std::string savedPassword;
+  rfb::ClientCredentialCache& credentials;
 };
 
 #endif
