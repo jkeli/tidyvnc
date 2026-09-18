@@ -260,7 +260,7 @@ class ServerDialog extends Dialog implements Runnable {
         new JOptionPane(msg, JOptionPane.QUESTION_MESSAGE,
                         JOptionPane.OK_CANCEL_OPTION, null, options, options[1]);
       JDialog dlg = op.createDialog(this, "TigerVNC");
-      dlg.setIconImage(VncViewer.frameIcon);
+      dlg.setIconImages(VncViewer.frameIcons);
       dlg.setAlwaysOnTop(true);
       dlg.setVisible(true);
       if (op.getValue() == options[0])

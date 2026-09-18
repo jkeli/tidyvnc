@@ -57,7 +57,7 @@ public final class DesktopWindow extends JFrame
     setFocusTraversalKeysEnabled(false);
     getToolkit().setDynamicLayout(false);
     if (!VncViewer.os.startsWith("mac os x"))
-      setIconImage(VncViewer.frameIcon);
+      setIconImages(VncViewer.frameIcons);
     UIManager.getDefaults().put("ScrollPane.ancestorInputMap",
       new UIDefaults.LazyInputMap(new Object[]{}));
     scroll = new JScrollPane(new Viewport(w, h, serverPF, cc));

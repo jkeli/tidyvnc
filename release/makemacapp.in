@@ -1,60 +1,33 @@
 #!/bin/sh
-
-set -u
-set -e
-trap onexit INT
-trap onexit TERM
-trap onexit EXIT
-
-TMPDIR=
-
-onexit()
-{
-	if [ ! "$TMPDIR" = "" ]; then
-		rm -rf $TMPDIR
-	fi
-}
-
-usage()
-{
-	echo "$0"
-	exit 1
-}
-
-UNIVERSAL=0
-
-PACKAGE_NAME=TigerVNC
-VERSION=@VERSION@
-BUILD=@BUILD@
-SRCDIR=@CMAKE_SOURCE_DIR@
-BINDIR=@CMAKE_BINARY_DIR@
-
-if [ -f $PACKAGE_NAME.dmg ]; then
-	rm -f $PACKAGE_NAME.dmg
-fi
-
-umask 022
-TMPDIR=`mktemp -d /tmp/$PACKAGE_NAME-build.XXXXXX`
-APPROOT="$TMPDIR/dmg/TigerVNC.app"
-mkdir -p "$APPROOT/Contents/MacOS"
-mkdir -p "$APPROOT/Contents/Resources"
-
-install -m 755 $BINDIR/vncviewer/vncviewer "$APPROOT/Contents/MacOS/"
-install -m 644 $SRCDIR/media/icons/tigervnc.icns "$APPROOT/Contents/Resources/"
-install -m 644 $BINDIR/release/Info.plist "$APPROOT/Contents/"
-
-for lang in `cat "$SRCDIR/po/LINGUAS"`; do
-	mkdir -p "$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES"
-	install -m 644 $BINDIR/po/$lang.mo \
-		"$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES/tidyvnc.mo"
+# Stage and package the same viewer, catalogs and reviewed icon.
+set -eu
+PACKAGE_NAME=TidyVNC
+VERSION='@VERSION@'
+SRCDIR='@CMAKE_SOURCE_DIR@'
+BINDIR='@CMAKE_BINARY_DIR@'
+STAGING=$(mktemp -d "$BINDIR/release/tidyvnc-stage.XXXXXX")
+trap 'rm -rf "$STAGING"' EXIT
+trap 'exit 1' INT TERM
+APPROOT="$STAGING/dmg/$PACKAGE_NAME.app"
+mkdir -p "$APPROOT/Contents/MacOS" "$APPROOT/Contents/Resources"
+install -m 755 "$BINDIR/vncviewer/vncviewer" "$APPROOT/Contents/MacOS/"
+install -m 644 "$SRCDIR/media/icons/tidyvnc.icns" "$APPROOT/Contents/Resources/"
+install -m 644 "$BINDIR/release/Info.plist" "$APPROOT/Contents/"
+for lang in @MACAPP_LANGUAGES@; do
+  mkdir -p "$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES"
+  install -m 644 "$BINDIR/po/$lang.mo" \
+    "$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES/tidyvnc.mo"
 done
-
-install -m 644 $SRCDIR/LICENCE.TXT $TMPDIR/dmg/
-install -m 644 $SRCDIR/README.rst $TMPDIR/dmg/
-
-hdiutil create -fs HFS+ -volname $PACKAGE_NAME-$VERSION \
-	-srcfolder "$TMPDIR/dmg" \
-	$TMPDIR/$PACKAGE_NAME-$VERSION.dmg 
-cp $TMPDIR/$PACKAGE_NAME-$VERSION.dmg . 
-
-exit
+install -m 644 "$SRCDIR/LICENCE.TXT" "$SRCDIR/README.rst" "$STAGING/dmg/"
+# Keep a persistent app for inspection and loopback tests.
+FINALAPP="$BINDIR/$PACKAGE_NAME.app"
+if [ -L "$FINALAPP" ]; then
+  echo "Refusing to replace a symlink at $FINALAPP" >&2
+  exit 1
+fi
+rm -rf "$FINALAPP"
+ditto "$APPROOT" "$FINALAPP"
+if [ "${1:-}" = '--stage-only' ]; then exit 0; fi
+hdiutil create -fs HFS+ -volname "$PACKAGE_NAME-$VERSION" \
+  -srcfolder "$STAGING/dmg" "$STAGING/$PACKAGE_NAME-$VERSION.dmg"
+mv -f "$STAGING/$PACKAGE_NAME-$VERSION.dmg" "$BINDIR/release/$PACKAGE_NAME-$VERSION.dmg"

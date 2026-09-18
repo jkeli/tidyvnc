@@ -54,30 +54,30 @@ parity remains excluded. Deferred items do not count as completed.
 
 ## R3 — Original HiDPI artwork and reproducible exports
 
-- [ ] Create the original editable TidyVNC vector master and optically adjusted small variants as needed.
-- [ ] Record creator/provenance, license, palette and export commands in `media/README.md`.
-- [ ] Replace native tiger-eye SVG/PNG/ICO/ICNS files and matching Java image resources.
-- [ ] Replace any branded Windows tray/configuration/bitmap graphics while preserving connected/disconnected state distinctions.
-- [ ] Audit generic padlocks; retain unbranded assets and the existing native vector-rendering path where appropriate.
-- [ ] Generate complete macOS iconset slots at 1×/2× through 512 logical pixels / 1024 physical pixels, then build `tidyvnc.icns`.
-- [ ] Generate the Windows multi-resolution ICO and needed fractional-DPI/tray representations.
-- [ ] Generate scalable Linux SVG and raster sizes through 512 pixels with consistent install names.
+- [x] Create the original editable TidyVNC vector master and optically adjusted small variants as needed.
+- [x] Record creator/provenance, license, palette and export commands in `media/README.md`.
+- [x] Replace native tiger-eye SVG/PNG/ICO/ICNS files and matching Java image resources.
+- [x] Replace any branded Windows tray/configuration/bitmap graphics while preserving connected/disconnected state distinctions.
+- [x] Audit generic padlocks; retain unbranded assets and the existing native vector-rendering path where appropriate.
+- [x] Generate complete macOS iconset slots at 1×/2× through 512 logical pixels / 1024 physical pixels, then build `tidyvnc.icns`.
+- [x] Generate the Windows multi-resolution ICO and needed fractional-DPI/tray representations.
+- [x] Generate scalable Linux SVG and raster sizes through 512 pixels with consistent install names.
 - [ ] Provide density-aware in-app/Java image selection without changing logical dimensions or requiring a new Java baseline.
-- [ ] Refactor media export rules: deduplicate sizes, declare dependencies and generate into the build tree.
-- [ ] Provide explicit regeneration/verification tooling and keep ordinary offline builds independent of optional graphics tools.
-- [ ] Update all icon/resource consumers atomically with filenames; remove stale active asset references.
+- [x] Refactor media export rules: deduplicate sizes, declare dependencies and generate into the build tree.
+- [x] Provide explicit regeneration/verification tooling and keep ordinary offline builds independent of optional graphics tools.
+- [x] Update all icon/resource consumers atomically with filenames; remove stale active asset references.
 - [ ] Inspect final ICNS/ICO/JAR representations, dimensions, alpha and reproducibility.
 - [ ] Review light/dark backgrounds, small/large sizes, 1×/2× and fractional density for blur, halos, clipping and state contrast.
 - [ ] Replace branded screenshots with actual high-resolution TidyVNC captures; verify captions and image URLs.
 
 ## R4 — Native macOS app and packaging
 
-- [ ] Update plist display/name/version branding, icon reference and bundle identity; preserve copyright and Retina capability.
-- [ ] Update app directory, DMG/volume names and all packaging inputs to TidyVNC.
-- [ ] Make packaging depend on required compiled translations and icon assets.
-- [ ] Build from a fresh `build/tidyvnc-release` directory without borrowing stale generated resources.
-- [ ] Stage `TidyVNC.app` and produce `TidyVNC-<version>.dmg` from the same binary.
-- [ ] Validate plist, embedded ICNS, locale resources and executable identity/version output.
+- [x] Update plist display/name/version branding, icon reference and bundle identity; preserve copyright and Retina capability.
+- [x] Update app directory, DMG/volume names and all packaging inputs to TidyVNC.
+- [x] Make packaging depend on required compiled translations and icon assets.
+- [x] Build from a fresh `build/tidyvnc-release` directory without borrowing stale generated resources.
+- [x] Stage `TidyVNC.app` and produce `TidyVNC-<version>.dmg` from the same binary.
+- [x] Validate plist, embedded ICNS, locale resources and executable identity/version output.
 - [ ] Test new bundle identity, applicable file-open associations and input/accessibility permission behavior.
 - [ ] Review Finder, Dock, app switcher, app menus, About and all dialogs for TidyVNC text/artwork.
 - [ ] Review normal/error paths, grabbed-keyboard titles, file import/save and translated UI in the packaged app.
@@ -196,3 +196,23 @@ parity remains excluded. Deferred items do not count as completed.
   Regenerated/merged catalogs for file/import dialogs; GUI review still open.
 - Visually classified Windows icons/bitmap and all three legacy screenshots as
   tiger-branded; generic padlocks are unbranded.
+
+### 2026-09-18 — R3 artwork and R4 packaging
+
+- Original paired-display SVG replaces tiger-eye native/Java assets; Windows
+  tray variants use green/check and red/slash badges. All resource consumers
+  moved with assets. Java window icon lists and a 48-logical-pixel logo use Java 8
+  APIs; no JRE is installed here, so Java compilation/runtime remains open.
+- Qt 6.11.0/Pillow 12.3.0 exports reproduce exactly; PNG alpha/dimensions and ICO
+  pixels pass. iconutil extraction of the packaged ICNS confirms all ten 1x/2x
+  representations, including 1024 pixels. No ordinary build requires these tools.
+- Fresh native Release/Debug builds pass. macapp and dmg targets depend on
+  compiled translations and reviewed icons; app and image use the same binary.
+- Plist validates; bundle is io.github.jkeli.tidyvnc, Retina enabled, .tidyvnc
+  document type registered. Copyright fields retained. DMG mounted read-only
+  and contains TidyVNC.app, README.rst and LICENCE.TXT; hdiutil checksum valid.
+- Computer Use blocked pending Accessibility/Screen Recording permission.
+  Packaged UI/Finder/Dock/screenshots, translated visual layout, launch association
+  behavior and physical 1x/2x/mixed-display tests remain explicitly open.
+- Local builds still depend on Homebrew dylibs; no signing, notarization or
+  distribution-portability claim. Final artifact digest recorded after doc updates.

@@ -786,7 +786,7 @@ class Viewport extends JPanel implements ActionListener {
                                        JOptionPane.PLAIN_MESSAGE,
                                        JOptionPane.DEFAULT_OPTION);
       JDialog dlg = op.createDialog(window(), "VNC connection info");
-      dlg.setIconImage(VncViewer.frameIcon);
+      dlg.setIconImages(VncViewer.frameIcons);
       dlg.setAlwaysOnTop(true);
       dlg.setVisible(true);
       if (fullScreenWindow != null)

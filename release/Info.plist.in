@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>TigerVNC</string>
+	<string>TidyVNC</string>
 	<key>CFBundleExecutable</key>
 	<string>vncviewer</string>
 	<key>NSHighResolutionCapable</key>
@@ -13,15 +13,15 @@
 	<key>CFBundleGetInfoString</key>
 	<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>
 	<key>CFBundleIconFile</key>
-	<string>tigervnc.icns</string>
+	<string>tidyvnc.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.tigervnc.tigervnc</string>
+	<string>io.github.jkeli.tidyvnc</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>
-	<string>TigerVNC @VERSION@</string>
+	<string>TidyVNC @VERSION@</string>
 	<key>CFBundleName</key>
-	<string>TigerVNC</string>
+	<string>TidyVNC</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -32,5 +32,12 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>
+	<key>CFBundleDocumentTypes</key>
+	<array><dict>
+		<key>CFBundleTypeName</key><string>TidyVNC connection</string>
+		<key>CFBundleTypeRole</key><string>Viewer</string>
+		<key>LSHandlerRank</key><string>Owner</string>
+		<key>CFBundleTypeExtensions</key><array><string>tidyvnc</string></array>
+	</dict></array>
 </dict>
 </plist>

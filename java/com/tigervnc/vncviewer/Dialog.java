@@ -46,7 +46,7 @@ class Dialog extends JDialog implements ActionListener,
   static double LIGHT = 0.0;
 
   public Dialog(boolean modal) {
-    setIconImage(VncViewer.frameIcon);
+    setIconImages(VncViewer.frameIcons);
     if (modal) {
       setModalityType(ModalityType.APPLICATION_MODAL);
     } else {
