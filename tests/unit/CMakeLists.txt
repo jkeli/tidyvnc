@@ -87,3 +87,15 @@ if(BUILD_VIEWER AND (APPLE OR WIN32))
   endif()
   gtest_discover_tests(surface)
 endif()
+
+if(BUILD_VIEWER AND NOT WIN32)
+  add_executable(viewerstate viewerstate.cxx
+    ../../vncviewer/parameters.cxx ../../vncviewer/LegacyImport.cxx
+    ../../vncviewer/MonitorIndicesParameter.cxx ../../vncviewer/DesktopTransform.cxx)
+  target_include_directories(viewerstate SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
+  target_link_libraries(viewerstate rfbclient rfb network rdr core ${TIDYVNC_FLTK_TARGET} GTest::gtest_main)
+  if(GNUTLS_FOUND)
+    target_include_directories(viewerstate SYSTEM PRIVATE ${GNUTLS_INCLUDE_DIR})
+  endif()
+  gtest_discover_tests(viewerstate)
+endif()

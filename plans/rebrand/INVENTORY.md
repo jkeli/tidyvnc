@@ -415,3 +415,14 @@ Counts below include branded paths. Exact strings and reasons are in the ledger.
 | `win/winvnc/winvnc4.exe.manifest` | replace: 1 |
 | `win/winvnc/winvnc4.exe.manifest64` | replace: 1 |
 | `win/wm_hooks/wm_hooks.rc` | replace: 4, preserve-attribution: 1 |
+
+## Visual classification (2026-09-18)
+
+Inspected a contact sheet of all Windows ICO/BMP files, all three AppStream
+screenshots, native/Java app icons and Java padlocks. Every Windows ICO and
+`winvnc.bmp` depicts the tiger eye; tray variants distinguish states with colored
+borders. All three screenshots show the legacy application, icon and dialogs;
+they are unsuitable as TidyVNC product screenshots. Native and Java app icons
+are tiger-eye duplicates. Java secure/insecure images are generic padlocks and
+can be retained. Native padlock SVGs and vector-drawn authentication controls
+are unbranded. Deferred Windows/Java outputs remain tracked until their rollout.

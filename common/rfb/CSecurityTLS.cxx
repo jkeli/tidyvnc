@@ -69,7 +69,7 @@ static const char* configdirfn(const char* fn)
   static char full_path[PATH_MAX];
   const char* configdir;
 
-  configdir = core::getvncconfigdir();
+  configdir = core::gettidyvncconfigdir();
   if (configdir == nullptr)
     return "";
 

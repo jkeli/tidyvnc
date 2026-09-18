@@ -508,7 +508,7 @@ bool CConn::verifyCertificate(unsigned int status,
 
   /* Certificate has some user overridable problems, so TOFU time */
 
-  hostsDir = core::getvncstatedir();
+  hostsDir = core::gettidyvncstatedir();
   if (hostsDir == nullptr) {
     throw std::runtime_error(_("Could not determine VNC state "
                                "directory path"));

@@ -17,7 +17,7 @@ parity remains excluded. Deferred items do not count as completed.
 - [x] Finalize the proposed `io.github.jkeli.tidyvnc` application identity before packaging.
 - [x] Confirm actual publisher/maintainer identity and available fork support URLs; avoid invented domains, companies or email addresses.
 - [x] Record baseline license/copyright/author/translator notices and historical upstream references for later diff review.
-- [ ] Visually classify Windows ICO/BMP resources and all screenshots, including graphics whose filenames do not mention TigerVNC.
+- [x] Visually classify Windows ICO/BMP resources and all screenshots, including graphics whose filenames do not mention TigerVNC.
 - [x] Record the original artwork direction, asset provenance requirements and expected platform outputs.
 
 ## R1 — Product strings, build identity and localization
@@ -36,21 +36,21 @@ parity remains excluded. Deferred items do not count as completed.
 
 ## R2 — Connection files, settings and compatibility
 
-- [ ] Add `.tidyvnc` and the TidyVNC configuration header for new saves.
-- [ ] Read both legacy and new headers without changing option semantics; reject unknown versions and malformed files.
-- [ ] Update default file filters, Save As behavior, CLI documentation and applicable file-open dispatch.
-- [ ] Preserve explicit legacy import and avoid unprompted overwrites of imported files.
-- [ ] Record whether legacy export is included; if implemented, label it explicitly and validate the legacy header with the upstream parser.
-- [ ] Separate writable TidyVNC destinations from legacy import candidates in shared directory helpers.
+- [x] Add `.tidyvnc` and the TidyVNC configuration header for new saves.
+- [x] Read both legacy and new headers without changing option semantics; reject unknown versions and malformed files.
+- [x] Update default file filters, Save As behavior, CLI documentation and applicable file-open dispatch.
+- [x] Preserve explicit legacy import and avoid unprompted overwrites of imported files.
+- [x] Record whether legacy export is included; if implemented, label it explicitly and validate the legacy header with the upstream parser.
+- [x] Separate writable TidyVNC destinations from legacy import candidates in shared directory helpers.
 - [ ] Introduce `default.tidyvnc` and `tidyvnc.history` under TidyVNC-owned state directories.
 - [ ] Implement selected preferences/history import with new-state precedence, atomic writes and permission preservation.
-- [ ] Verify malformed new state does not silently revert to old settings.
-- [ ] Verify repeat import does not duplicate data and upstream files remain untouched.
+- [x] Verify malformed new state does not silently revert to old settings.
+- [x] Verify repeat import does not duplicate data and upstream files remain untouched.
 - [ ] Handle passwords, trust/CA/CRL files, credentials and tunnel/script settings separately with explicit import selection.
-- [ ] Preserve explicit user-supplied legacy paths and certificate verification behavior.
+- [x] Preserve explicit user-supplied legacy paths and certificate verification behavior.
 - [ ] Inventory `.vnc`, XDG overrides, Windows registry and Java preferences; implement each platform's migration with its rollout.
 - [ ] Classify X extension, selection, IPC and wire identifiers; retain externally consumed names only with documented exceptions.
-- [ ] Test new/old file round trips, precedence, malformed input, permission failures and coexistence with isolated test state.
+- [x] Test new/old file round trips, precedence, malformed input, permission failures and coexistence with isolated test state.
 
 ## R3 — Original HiDPI artwork and reproducible exports
 
@@ -175,3 +175,24 @@ parity remains excluded. Deferred items do not count as completed.
 - Fresh arm64 Release build (static FLTK 1.4.5, gettext, TLS, RSA-AES) passed;
   all 293 unit tests passed in 14.37 seconds. Viewer-off configuration passed.
 - File labels/state migration and artwork are subsequent commits.
+
+### 2026-09-18 — R2 native file/state migration
+
+- New native saves use the exact TidyVNC v1 header and .tidyvnc extension; both
+  exact v1 headers load, with malformed/unknown versions rejected. No legacy
+  export is provided. Save As appends .tidyvnc and confirms existing destinations.
+- POSIX viewer config/state/trust destinations use isolated tidyvnc XDG paths;
+  shared upstream server helpers retain their original behavior. Explicit paths
+  remain supported. TLS verification is unchanged; no trust files are imported.
+- Connection dialog offers separate preference/history imports when corresponding
+  new files are absent; checks modern legacy roots then .vnc. Existing/malformed
+  state never falls back. Preferences omit server addresses and all security
+  parameters; passwords, commands, CA/CRL and trust files are not copied. Users
+  select security file paths explicitly in Options. Registry/Java migration deferred.
+- Atomic private writes preserve existing destination permissions, reject symlink
+  replacement, clean up failed temporaries, and use no-overwrite import commits.
+- Ten isolated ViewerState tests passed (headers, round trips, malformed/permission
+  failures, rollback, precedence, repeat import, .vnc, history and untouched source).
+  Regenerated/merged catalogs for file/import dialogs; GUI review still open.
+- Visually classified Windows icons/bitmap and all three legacy screenshots as
+  tiger-branded; generic padlocks are unbranded.

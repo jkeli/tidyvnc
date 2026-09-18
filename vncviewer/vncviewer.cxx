@@ -402,7 +402,7 @@ static void usage(const char *programName)
           "       %s [parameters] [unix socket]\n"
 #endif
           "       %s [parameters] -listen [port]\n"
-          "       %s [parameters] [.tigervnc file]\n"),
+          "       %s [parameters] [.tidyvnc or .tigervnc file]\n"),
           programName, programName,
 #ifndef WIN32
           programName,
@@ -473,47 +473,37 @@ create_base_dirs()
 {
   const char *dir;
 
-  dir = core::getvncconfigdir();
+  dir = core::gettidyvncconfigdir();
   if (dir == nullptr) {
     vlog.error(_("Could not determine VNC config directory path"));
     return;
   }
 
-#ifndef WIN32
-  const char *dotdir = strrchr(dir, '.');
-  if (dotdir != nullptr && strcmp(dotdir, ".vnc") == 0)
-    vlog.info(_("~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."));
-#else
-  const char *vncdir = strrchr(dir, '\\');
-  if (vncdir != nullptr && strcmp(vncdir, "vnc") == 0)
-    vlog.info(_("%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."));
-#endif
-
-  if (core::mkdir_p(dir, 0755) == -1) {
+  if (core::mkdir_p(dir, 0700) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC config directory \"%s\": %s"),
                  dir, strerror(errno));
   }
 
-  dir = core::getvncdatadir();
+  dir = core::gettidyvncdatadir();
   if (dir == nullptr) {
     vlog.error(_("Could not determine VNC data directory path"));
     return;
   }
 
-  if (core::mkdir_p(dir, 0755) == -1) {
+  if (core::mkdir_p(dir, 0700) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC data directory \"%s\": %s"),
                  dir, strerror(errno));
   }
 
-  dir = core::getvncstatedir();
+  dir = core::gettidyvncstatedir();
   if (dir == nullptr) {
     vlog.error(_("Could not determine VNC state directory path"));
     return;
   }
 
-  if (core::mkdir_p(dir, 0755) == -1) {
+  if (core::mkdir_p(dir, 0700) == -1) {
     if (errno != EEXIST)
       vlog.error(_("Could not create VNC state directory \"%s\": %s"),
                  dir, strerror(errno));

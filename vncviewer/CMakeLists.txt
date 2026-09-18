@@ -29,6 +29,7 @@ add_executable(vncviewer
   DesktopResampler.cxx
   DisplayMetrics.cxx
   Viewport.cxx
+  LegacyImport.cxx
   parameters.cxx
   touch.cxx
   MonitorIndicesParameter.cxx

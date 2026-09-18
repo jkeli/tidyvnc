@@ -55,10 +55,12 @@
 #include "OptionsDialog.h"
 #include "vncviewer.h"
 #include "parameters.h"
+#include "LegacyImport.h"
+#include <core/AtomicFile.h>
 
 static core::LogWriter vlog("ServerDialog");
 
-const char* SERVER_HISTORY="tigervnc.history";
+const char* SERVER_HISTORY="tidyvnc.history";
 
 ServerDialog::ServerDialog()
   : Fl_Window(450, 0, "TidyVNC")
@@ -137,6 +139,26 @@ void ServerDialog::run(const char* servername, char *newservername)
   dialog.serverName->value(servername);
 
   dialog.show();
+#ifndef _WIN32
+  try {
+    std::string preferences = legacyViewerFile(false);
+    std::string history = legacyViewerFile(true);
+    if (!preferences.empty() && fl_choice(
+          _("Import display and input preferences from TigerVNC?\n\n"
+            "Security settings, passwords, certificate/trust files, server addresses "
+            "and tunnel commands are not imported. Select security paths explicitly "
+            "in Options if needed."), _("Skip"), _("Import preferences"), nullptr) == 1) {
+      importLegacyPreferences(preferences);
+      loadViewerParameters(nullptr);
+    }
+    if (!history.empty() && fl_choice(
+          _("Import recent server addresses from TigerVNC?"),
+          _("Skip"), _("Import history"), nullptr) == 1)
+      importLegacyHistory(history);
+  } catch (std::exception& e) {
+    fl_alert(_("Unable to import legacy settings:\n\n%s"), e.what());
+  }
+#endif
 
   try {
     dialog.loadServerHistory();
@@ -170,8 +192,8 @@ void ServerDialog::handleLoad(Fl_Widget* /*widget*/, void* data)
     dialog->usedDir = core::getuserhomedir();
 
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
-                                                      _("TigerVNC configuration (*.tigervnc)"),
-                                                      0, _("Select a TigerVNC configuration file"));
+                                                      _("TidyVNC configuration (*.tidyvnc)\tLegacy TigerVNC configuration (*.tigervnc)"),
+                                                      0, _("Select a TidyVNC configuration file"));
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
   file_chooser->show();
@@ -206,12 +228,13 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
   ServerDialog *dialog = (ServerDialog*)data;
   const char* servername = dialog->serverName->value();
   const char* filename;
+  std::string savePath;
   if (dialog->usedDir.empty())
     dialog->usedDir = core::getuserhomedir();
   
   Fl_File_Chooser* file_chooser = new Fl_File_Chooser(dialog->usedDir.c_str(),
-                                                      _("TigerVNC configuration (*.tigervnc)"),
-                                                      2, _("Save the TigerVNC configuration to file"));
+                                                      _("TidyVNC configuration (*.tidyvnc)"),
+                                                      2, _("Save the TidyVNC configuration to file"));
   
   file_chooser->preview(0);
   file_chooser->previewButton->hide();
@@ -229,7 +252,10 @@ void ServerDialog::handleSaveAs(Fl_Widget* /*widget*/, void* data)
       return;
     }
     
-    filename = file_chooser->value();
+    savePath = file_chooser->value();
+    if (savePath.size() < 8 || savePath.compare(savePath.size()-8, 8, ".tidyvnc") != 0)
+      savePath += ".tidyvnc";
+    filename = savePath.c_str();
     dialog->updateUsedDir(filename);
     
     FILE* f = fopen(filename, "r");
@@ -341,7 +367,7 @@ void ServerDialog::loadServerHistory()
   rawHistory = loadHistoryFromRegKey();
 #else
 
-  const char* stateDir = core::getvncstatedir();
+  const char* stateDir = core::gettidyvncstatedir();
   if (stateDir == nullptr)
     throw std::runtime_error(_("Could not determine VNC state directory path"));
 
@@ -423,7 +449,7 @@ void ServerDialog::saveServerHistory()
   return;
 #endif
 
-  const char* stateDir = core::getvncstatedir();
+  const char* stateDir = core::gettidyvncstatedir();
   if (stateDir == nullptr)
     throw std::runtime_error(_("Could not determine VNC state directory path"));
 
@@ -431,7 +457,12 @@ void ServerDialog::saveServerHistory()
   snprintf(filepath, sizeof(filepath), "%s/%s", stateDir, SERVER_HISTORY);
 
   /* Write server history to file */
+#ifndef _WIN32
+  core::AtomicFile output(filepath);
+  FILE* f = output.stream();
+#else
   FILE* f = fopen(filepath, "w+");
+#endif
   if (!f) {
     std::string msg = core::format(_("Failed to open \"%s\""), filepath);
     throw core::posix_error(msg.c_str(), errno);
@@ -445,7 +476,11 @@ void ServerDialog::saveServerHistory()
     fprintf(f, "%s\n", entry.c_str());
   }
 
+#ifndef _WIN32
+  output.commit();
+#else
   fclose(f);
+#endif
 }
 
 void ServerDialog::updateUsedDir(const char* filename)
