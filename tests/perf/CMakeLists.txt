@@ -42,3 +42,7 @@ if (BUILD_VIEWER)
     target_link_libraries(fbperf "-framework IOKit")
   endif()
 endif()
+
+add_executable(scalingperf scalingperf.cxx ../../vncviewer/DesktopResampler.cxx ../../vncviewer/DesktopTileCache.cxx)
+target_include_directories(scalingperf PRIVATE ${CMAKE_SOURCE_DIR}/vncviewer)
+target_link_libraries(scalingperf core)

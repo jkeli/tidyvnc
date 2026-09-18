@@ -55,6 +55,16 @@ add_executable(desktoptransform desktoptransform.cxx ../../vncviewer/DesktopTran
 target_link_libraries(desktoptransform core GTest::gtest_main)
 gtest_discover_tests(desktoptransform)
 
+add_executable(desktopresampler desktopresampler.cxx ../../vncviewer/DesktopResampler.cxx)
+target_link_libraries(desktopresampler core GTest::gtest_main)
+gtest_discover_tests(desktopresampler)
+
+add_executable(desktoptilecache desktoptilecache.cxx ../../vncviewer/DesktopTileCache.cxx ../../vncviewer/DesktopResampler.cxx)
+target_link_libraries(desktoptilecache core GTest::gtest_main)
+gtest_discover_tests(desktoptilecache)
+add_executable(cursorrenderer cursorrenderer.cxx ../../vncviewer/CursorRenderer.cxx ../../vncviewer/DesktopResampler.cxx)
+target_link_libraries(cursorrenderer core GTest::gtest_main)
+gtest_discover_tests(cursorrenderer)
 add_executable(desktoplayout desktoplayout.cxx ../../vncviewer/DesktopLayout.cxx ../../vncviewer/DesktopTransform.cxx)
 target_link_libraries(desktoplayout core GTest::gtest_main)
 gtest_discover_tests(desktoplayout)
