@@ -1,6 +1,6 @@
 # Rebrand the TigerVNC fork as TidyVNC
 
-Status: planned; implementation has not started. Baseline: `33556c96`, inspected
+Status: implementation in progress; see TODO.md for evidence and open gates. Baseline: `33556c96`, inspected
 2026-09-18. Track implementation and validation in [TODO.md](TODO.md).
 Paths below are repository-relative unless stated otherwise.
 

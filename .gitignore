@@ -14,3 +14,6 @@ config.h
 cmake_install.cmake
 cmake_uninstall.cmake
 install_manifest.txt
+
+# Out-of-tree local builds and dependencies
+/build/
