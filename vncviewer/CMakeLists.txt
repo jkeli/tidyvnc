@@ -26,6 +26,10 @@ add_executable(vncviewer
   MonitorIndicesParameter.cxx
   vncviewer.cxx)
 
+if(WIN32)
+  target_compile_definitions(vncviewer PRIVATE NOMINMAX)
+endif()
+
 if(WIN32 AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   set_target_properties(vncviewer PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
@@ -66,9 +70,9 @@ if(HAVE_AUDIO)
   endif()
 endif()
 
-target_include_directories(vncviewer SYSTEM PUBLIC ${FLTK_INCLUDE_DIR})
+target_include_directories(vncviewer SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
 target_link_libraries(vncviewer rfbclient rfb network rdr core)
-target_link_libraries(vncviewer ${FLTK_LIBRARIES})
+target_link_libraries(vncviewer ${TIGERVNC_FLTK_TARGET})
 
 if(GNUTLS_FOUND)
   target_include_directories(vncviewer SYSTEM PUBLIC ${GNUTLS_INCLUDE_DIR})

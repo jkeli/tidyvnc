@@ -7,7 +7,7 @@
 Build requirements (all systems)
 ================================
 
--- CMake (http://www.cmake.org) v3.10 or later
+-- CMake (http://www.cmake.org) v3.15 or later
 
 -- gcc
 
@@ -17,7 +17,7 @@ Development kits for the following packages:
 
 -- pixman
 
--- FLTK 1.3.3 or later
+-- FLTK 1.4.5 or later in the 1.4 series (CMake config package)
 
 -- If building TLS support:
    * GnuTLS 3.x
@@ -389,3 +389,33 @@ Distribution-specific packaging
 
 Configuration for building packages for current versions of RHEL/CentOS
 and Ubuntu LTS can be found under contrib/packages.
+
+Building the viewer with FLTK 1.4
+--------------------------------
+
+The viewer requires FLTK >= 1.4.5 and < 1.5, installed with its CMake config
+package. The default linkage is static FLTK; set TIGERVNC_FLTK_SHARED=ON to
+select exported shared targets. BUILD_STATIC requires static FLTK.
+
+A separate checksum-pinned dependency build is provided for systems whose
+packages do not meet this floor. It does not run implicitly in the main build:
+
+  cmake -S cmake/FLTK -B build-fltk -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/absolute/path/to/fltk-install
+  cmake --build build-fltk --parallel
+  cmake -S . -B build -DFLTK_DIR=/absolute/path/to/fltk-install/share/fltk
+
+FLTK_ARCHIVE can name a previously downloaded archive for offline builds;
+its checksum is always checked. FLTK_SHARED=ON in the dependency project
+builds shared libraries as well. Use the same architecture, compiler and
+macOS deployment target as the application. On MSYS2, pass the "MSYS Makefiles"
+generator to both configuration commands.
+
+The Unix viewer requires FLTK's X11 backend and forces X11 when a hybrid
+X11/Wayland FLTK is supplied. ENABLE_WAYLAND controls the server only.
+XWayland may apply compositor scaling after rendering. BUILD_VIEWER=OFF
+continues to work without any FLTK dependency.
+
+Distribution package builders must provide FLTK 1.4.5 or a newer 1.4 release;
+older distribution repositories may need a dependency backport before the
+package build. The native CI jobs build the pinned dependency from source.

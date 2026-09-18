@@ -40,9 +40,8 @@ BuildRequires:  libXfont2-devel
 BuildRequires:  libselinux-devel, selinux-policy-devel
 BuildRequires:  systemd-devel
 
-# TigerVNC 1.4.x requires fltk 1.3.3 for keyboard handling support
-# See https://github.com/TigerVNC/tigervnc/issues/8, also bug #1208814
-BuildRequires:  fltk-devel >= 1.3.3
+# The native viewer requires the HiDPI-capable FLTK 1.4 baseline.
+BuildRequires:  fltk-devel >= 1.4.5
 BuildRequires:  xorg-x11-server-devel
 
 Requires:       tigervnc-common

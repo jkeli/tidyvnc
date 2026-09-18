@@ -24,7 +24,7 @@ Build-Depends:
  libpng-dev,
  libxrandr-dev,
  libxdamage-dev,
- libfltk1.3-dev,
+ libfltk1.4-dev (>= 1.4.5),
  xorg-server-source,
  xserver-xorg-dev,
  openjdk-8-jdk,

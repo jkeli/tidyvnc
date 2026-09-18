@@ -26,9 +26,17 @@
 #include <stdexcept>
 
 #include <FL/Fl_RGB_Image.H>
+#include <FL/fl_draw.H>
+#include <cmath>
 #include <FL/x.H>
 
 #include "Surface.h"
+
+#ifndef FLTK_USE_X11
+#error "TigerVNC requires FLTK's X11 backend (Wayland-only FLTK is unsupported)"
+#endif
+// Applies to both the viewer and fbperf when FLTK provides both backends.
+FL_EXPORT bool fl_disable_wayland = true;
 
 void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {

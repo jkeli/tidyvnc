@@ -2,7 +2,7 @@
 # Setup
 #
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.15)
 
 # Internal cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -269,56 +269,33 @@ endif()
 
 trioption(BUILD_VIEWER "Build TigerVNC viewer")
 if(BUILD_VIEWER)
-  # Check for FLTK
-  set(FLTK_SKIP_FLUID TRUE)
-  set(FLTK_SKIP_OPENGL TRUE)
-  set(FLTK_SKIP_FORMS TRUE)
+  # FLTK 1.4 provides DPI-aware layout and public native-platform accessors.
+  # Use its exported targets; FindFLTK's 1.3 variables lose transitive links.
+  option(TIGERVNC_FLTK_SHARED "Use shared FLTK libraries" OFF)
   if(BUILD_VIEWER STREQUAL "AUTO")
-    find_package(FLTK)
+    find_package(FLTK 1.4.5 CONFIG QUIET)
   else()
-    find_package(FLTK REQUIRED)
+    find_package(FLTK 1.4.5 CONFIG REQUIRED)
   endif()
-
   if(NOT FLTK_FOUND)
-    message(WARNING "FLTK NOT found. TigerVNC viewer disabled.")
+    message(WARNING "FLTK 1.4.5 not found; viewer disabled (set FLTK_DIR)")
     set(BUILD_VIEWER 0)
-  endif()
-
-  if(UNIX AND NOT APPLE)
-    # No proper handling for extra X11 libs that FLTK might need...
-    if(X11_Xft_FOUND)
-      # Xft headers include references to fontconfig, so we need
-      # to link to that as well
-      find_library(FONTCONFIG_LIB fontconfig)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xft_LIB} ${FONTCONFIG_LIB})
+  else()
+    if(NOT FLTK_VERSION VERSION_LESS 1.5)
+      message(FATAL_ERROR "The viewer requires the tested FLTK 1.4 series")
     endif()
-    if(X11_Xinerama_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xinerama_LIB})
+    if(TIGERVNC_FLTK_SHARED)
+      if(BUILD_STATIC)
+        message(FATAL_ERROR "BUILD_STATIC requires static FLTK")
+      endif()
+      set(TIGERVNC_FLTK_TARGET fltk::images-shared)
+    else()
+      set(TIGERVNC_FLTK_TARGET fltk::images)
     endif()
-    if(X11_Xfixes_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xfixes_LIB})
+    if(NOT TARGET ${TIGERVNC_FLTK_TARGET})
+      message(FATAL_ERROR "FLTK package does not provide ${TIGERVNC_FLTK_TARGET}")
     endif()
-    if(X11_Xcursor_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xcursor_LIB})
-    endif()
-    if(X11_Xrender_FOUND)
-      set(FLTK_LIBRARIES ${FLTK_LIBRARIES} ${X11_Xrender_LIB})
-    endif()
-  endif()
-
-  if(FLTK_FOUND)
-    set(CMAKE_REQUIRED_FLAGS "-Wno-error")
-    set(CMAKE_REQUIRED_INCLUDES ${FLTK_INCLUDE_DIR})
-    set(CMAKE_REQUIRED_LIBRARIES ${FLTK_LIBRARIES})
-
-    check_cxx_source_compiles("#include <FL/Fl.H>\n#if FL_MAJOR_VERSION != 1 || FL_MINOR_VERSION != 3\n#error Wrong FLTK version\n#endif\nint main(int, char**) { return 0; }" OK_FLTK_VERSION)
-    if(NOT OK_FLTK_VERSION)
-      message(FATAL_ERROR "Incompatible version of FLTK")
-    endif()
-
-    set(CMAKE_REQUIRED_FLAGS)
-    set(CMAKE_REQUIRED_INCLUDES)
-    set(CMAKE_REQUIRED_LIBRARIES)
+    message(STATUS "Viewer FLTK ${FLTK_VERSION}: ${TIGERVNC_FLTK_TARGET} (${FLTK_DIR})")
   endif()
 endif()
 

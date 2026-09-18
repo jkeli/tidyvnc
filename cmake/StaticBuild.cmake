@@ -143,27 +143,8 @@ if(BUILD_STATIC)
     set(HOGWEED_LIBRARIES "-Wl,-Bstatic -lhogweed -lnettle -lgmp -Wl,-Bdynamic")
   endif()
 
-  if(DEFINED FLTK_LIBRARIES)
-    set(FLTK_LIBRARIES "-Wl,-Bstatic -lfltk_images -lpng -ljpeg -lfltk -Wl,-Bdynamic")
-
-    if(WIN32)
-      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lcomctl32")
-    elseif(APPLE)
-      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -framework Cocoa")
-    else()
-      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lm -ldl")
-    endif()
-
-    if(X11_FOUND AND NOT APPLE)
-      if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} ${X11_Xcursor_LIB} ${X11_Xfixes_LIB} -Wl,-Bstatic -lXft -Wl,-Bdynamic -lfontconfig -lXrender -lXext -R/usr/sfw/lib -L=/usr/sfw/lib -lfreetype -lsocket -lnsl")
-      else()
-        set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -Wl,-Bstatic -lXcursor -lXfixes -lXft -lfontconfig -lexpat -lfreetype -lpng -lbz2 -luuid -lXrender -lXext -lXinerama -Wl,-Bdynamic")
-      endif()
-
-      set(FLTK_LIBRARIES "${FLTK_LIBRARIES} -lX11")
-    endif()
-  endif()
+  # FLTK static/shared selection and transitive dependencies come from
+  # its imported targets in the top-level CMakeLists.txt.
 
   # X11 libraries change constantly on Linux systems so we have to link
   # them statically, even libXext. libX11 is somewhat stable, although

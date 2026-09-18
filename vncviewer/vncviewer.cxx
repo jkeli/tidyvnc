@@ -57,6 +57,9 @@
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/fl_ask.H>
+#ifdef __APPLE__
+#include <FL/platform.H>
+#endif
 
 #include "fltk/theme.h"
 #include "fltk/util.h"
@@ -359,7 +362,7 @@ static void init_fltk()
   Fl_Mac_App_Menu::show = _("Show all");
   Fl_Mac_App_Menu::quit = _("Quit TigerVNC");
 
-  fl_mac_set_about(about_callback, nullptr);
+  Fl_Sys_Menu_Bar::about(about_callback, nullptr);
 
   Fl_Sys_Menu_Bar *menubar;
   menubar = new Fl_Sys_Menu_Bar(0, 0, 500, 25);
@@ -558,8 +561,10 @@ static void mktunnel()
 }
 #endif /* !WIN32 */
 
+
 int main(int argc, char** argv)
 {
+  Fl::keyboard_screen_scaling(0);
   argv0 = argv[0];
 
   setlocale(LC_ALL, "");
