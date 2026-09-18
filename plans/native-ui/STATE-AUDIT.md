@@ -100,8 +100,13 @@ Authentication-method selection now also has an explicit value-list constructor
 and a `CConnection` policy-copy constructor. Native callers can avoid reading
 the legacy `SecurityTypes` parameter; existing callers still use their current
 defaults. Compiled capabilities are available independently of global settings.
-TLS priority/CA/CRL are **not** isolated by this change. See the explicit-policy
-evidence in [TODO.md](TODO.md) for negotiation and sanitizer results.
+The subsequent TLS-policy change adds value-owned priority/CA/CRL fields and
+passes them through every TLS factory branch. Legacy defaults are captured at
+policy construction on the host thread, not read later during handshake.
+Explicit policies never inherit legacy TLS values. Concurrent in-memory X509
+handshakes verify independent CA/revocation policy and encrypted data exchange;
+see [TODO.md](TODO.md). Global crypto initialization, legacy static path helpers,
+trust-store callbacks, prompt cancellation and `Security::ToString` remain open.
 
 ## Baseline verification
 

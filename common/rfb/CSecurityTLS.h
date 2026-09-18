@@ -28,6 +28,7 @@
 #endif
 
 #include <rfb/CSecurity.h>
+#include <rfb/ClientTLSOptions.h>
 #include <rfb/Security.h>
 
 #include <gnutls/gnutls.h>
@@ -42,6 +43,10 @@ namespace rfb {
   class CSecurityTLS : public CSecurity {
   public:
     CSecurityTLS(CConnection* cc, bool _anon);
+    CSecurityTLS(CConnection* cc, bool _anon, const ClientTLSOptions& options);
+    // Only the legacy host adapter reads process-global parameters. Call this
+    // on the host thread before workers; explicit options never use it.
+    static ClientTLSOptions legacyOptions();
     virtual ~CSecurityTLS();
     bool processMsg() override;
     int getType() const override { return anon ? secTypeTLSNone : secTypeX509None; }
@@ -58,6 +63,7 @@ namespace rfb {
     CConnection *client;
 
   private:
+    const ClientTLSOptions options;
     gnutls_session_t session;
     gnutls_anon_client_credentials_t anon_cred;
     gnutls_certificate_credentials_t cert_cred;

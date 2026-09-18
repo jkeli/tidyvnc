@@ -34,7 +34,7 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races.
   - Completed prerequisites: caller-owned DES schedules for client/server VNC
     authentication/password-file helpers, invocation-owned Tight gradient
-    scratch rows, and explicit per-connection authentication allow-lists;
+    scratch rows, and explicit per-connection authentication/TLS policies;
     see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
@@ -355,6 +355,55 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   globals, and prompt ownership, trust, credentials and runtime initialization
   remain open. No real TLS authentication, prompt cancellation or complete
   concurrent session lifecycle is claimed. N1.2/N1.4/N1.14 remain unchecked.
+
+### N1.4 prerequisite — connection-owned TLS options — 2026-09-18
+
+- Commit: `feat(rfb): snapshot TLS configuration per connection`.
+- Added `ClientTLSOptions` with owned priority/CA/CRL strings and no GnuTLS,
+  GUI or OS types. Explicit `SecurityClient` policies copy these values and
+  every TLS factory branch passes them to `CSecurityTLS`, which retains a
+  const snapshot. Embedded NULs are rejected before C-string API use.
+- Legacy constructors still use the current CLI/FLTK defaults, now captured
+  when the policy/connection is constructed. Editing defaults afterwards no
+  longer changes that connection's pending handshake. Explicit allow-list-only
+  construction uses library-default TLS priority and no extra CA/CRL files;
+  it does not implicitly import legacy paths. Empty file paths skip the file
+  loader, while system trust and nonempty-file error handling remain unchanged.
+  Server TLS configuration and certificate verification policy are unchanged.
+- Added five real in-memory GnuTLS/X509 handshake tests and a TLS-option NUL
+  validation test. Fixtures generate a private temporary CA, leaf and CRL;
+  private keys stay in memory and temporary public fixtures are removed.
+  They never install system trust or read user credentials/trust exceptions.
+- Tests verify a successful TLS 1.2 handshake and encrypted application byte,
+  caller/global mutation after snapshots, explicit empty-CA rejection,
+  invalid-priority failure without fallback, and concurrent connections where
+  one succeeds and the other rejects a revoked certificate. The tests exercise
+  `SecurityClient`'s factory and `CSecurityTLS`, not just copies of struct fields.
+- Full retained FLTK Release build: **329/329** unit tests passed in 15.98
+  seconds. New viewer-disabled TLS-enabled Debug builds: **15/15** policy/TLS
+  tests passed under ASan/UBSan (0.83 seconds) and ThreadSanitizer (1.46 seconds).
+  Existing TLS-disabled ASan/UBSan build: **10/10** policy tests passed in 0.30
+  seconds. `git diff --check` passed. Same macOS 27.0 arm64/CLT environment;
+  GnuTLS/nettle, GoogleTest and other external dependencies remain uninstrumented.
+- The first fixture run expected `tls_error` for rejected trust callbacks;
+  the existing API correctly reports `auth_cancelled`. Corrected the test
+  expectation and retained assertions on signer-not-found/revoked status bits.
+- Reproduce the TLS sanitizer configurations using the earlier sanitizer
+  commands with build directories `build/native-ui-tls-sanitized` and
+  `build/native-ui-tls-tsan`, respectively, and `ENABLE_GNUTLS=ON` /
+  `ENABLE_NETTLE=ON`. Build targets `clienttls securityclient`, then run unit
+  CTest with `-R '^(ClientTLS|SecurityClient)\.' --output-on-failure
+  --no-tests=error`. `clienttls` is conditional on GnuTLS and non-Windows
+  because its private temporary-directory fixture uses `mkdtemp`.
+- Logs: `/tmp/tidyvnc-tls-{build,focused,tests}.log`,
+  `/tmp/tidyvnc-tls-{sanitized,tsan}-{configure,build,tests}.log` and
+  `/tmp/tidyvnc-tls-disabled-{build,tests}.log` (ephemeral).
+- Fixture APIs checked against the [GnuTLS X509 API reference](https://www.gnutls.org/manual/html_node/X509-certificate-API.html).
+- N1.4/N1.11/N1.14 remain open: this does not implement async prompts, real
+  TLS+password authentication, full session teardown, portable trust stores or
+  process crypto lifetime ownership. Tests use the existing rejecting trust
+  callback and memory transport, not a live socket or native UI. Other mutable
+  settings, timers and reconnect credentials still need scoped ownership.
 
 ### Implementation evidence template
 

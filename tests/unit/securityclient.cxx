@@ -96,6 +96,17 @@ TEST(SecurityClient, RejectsUnsupportedExplicitTypes)
     EXPECT_NO_THROW(rfb::SecurityClient(std::list<uint32_t>{type}));
 }
 
+TEST(SecurityClient, RejectsEmbeddedNullInTLSOptions)
+{
+  for (int field = 0; field < 3; ++field) {
+    rfb::ClientTLSOptions options;
+    std::string* value = field == 0 ? &options.priority : field == 1 ? &options.caFile : &options.crlFile;
+    *value = std::string("prefix\0suffix", 13);
+    EXPECT_THROW(rfb::SecurityClient(std::list<uint32_t>{rfb::secTypeVncAuth}, options),
+                 std::invalid_argument);
+  }
+}
+
 TEST(SecurityClient, CompiledCapabilitiesAreIndependentOfLegacyPolicy)
 {
   LegacyPolicyGuard restore;
