@@ -70,7 +70,12 @@ core::BoolParameter
                       false);
 
 CConnection::CConnection()
-  : csecurity(nullptr),
+  : CConnection(SecurityClient())
+{
+}
+
+CConnection::CConnection(const SecurityClient& securityPolicy)
+  : csecurity(nullptr), security(securityPolicy),
     supportsLocalCursor(false), supportsCursorPosition(false),
     supportsDesktopResize(false), supportsLEDState(false),
     supportsAudio(false),

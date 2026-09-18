@@ -49,6 +49,10 @@ namespace rfb {
   public:
 
     CConnection();
+    // Snapshot the supplied authentication allow-list. The default constructor
+    // retains legacy SecurityTypes behavior. TLS priority/CA/CRL configuration
+    // is still legacy global state and is not isolated by this overload.
+    explicit CConnection(const SecurityClient& securityPolicy);
     virtual ~CConnection();
 
     // Settings that control the connection

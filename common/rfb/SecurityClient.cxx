@@ -23,6 +23,7 @@
 
 #include <assert.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 #include <core/Configuration.h>
@@ -76,6 +77,32 @@ core::EnumListParameter SecurityClient::secTypes
  "RA2", "RA2ne", "RA2_256", "RA2ne_256", "DH", "MSLogonII",
 #endif
  });
+
+const std::list<uint32_t>& SecurityClient::supportedTypes()
+{
+  static const std::list<uint32_t> types = {
+    secTypeNone, secTypeVncAuth, secTypePlain,
+#ifdef HAVE_GNUTLS
+    secTypeTLSNone, secTypeTLSVnc, secTypeTLSPlain,
+    secTypeX509None, secTypeX509Vnc, secTypeX509Plain,
+#endif
+#ifdef HAVE_NETTLE
+    secTypeRA2, secTypeRA2ne, secTypeRA256, secTypeRAne256,
+    secTypeDH, secTypeMSLogonII,
+#endif
+  };
+  return types;
+}
+
+SecurityClient::SecurityClient(const std::list<uint32_t>& types)
+{
+  const auto& supported = supportedTypes();
+  for (uint32_t type : types) {
+    if (std::find(supported.begin(), supported.end(), type) == supported.end())
+      throw std::invalid_argument("Security type not supported");
+    EnableSecType(type);
+  }
+}
 
 CSecurity* SecurityClient::GetCSecurity(CConnection* cc, uint32_t secType)
 {
