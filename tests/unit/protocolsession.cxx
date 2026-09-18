@@ -281,3 +281,126 @@ TEST(ProtocolSession, RejectsDimensionsThatOverflowUnderlyingRfbAllocation)
   EXPECT_FALSE(session.desktop().active);
   EXPECT_EQ(session.publicationBytesInUse(),0u);
 }
+
+TEST(ProtocolSession, EventSubscriptionStartsWithCurrentConnectedSnapshot)
+{
+  rdr::MemOutStream wire,output; handshake(wire);
+  rdr::MemInStream input(wire.data(),wire.length());
+  ProtocolSession session(rfb::SecurityClient({rfb::secTypeNone}));
+  session.start("fixture",input,output); ready(session);
+  auto events=session.subscribeEvents();
+  SessionEvent event; ASSERT_TRUE(events->take(event));
+  EXPECT_EQ(event.kind,SessionEventKind::Snapshot);
+  EXPECT_EQ(event.snapshot.state,SessionState::Connected); EXPECT_EQ(event.snapshot.width,2u);
+  EXPECT_THROW(session.subscribeEvents(),std::logic_error);
+  session.close(); ASSERT_TRUE(events->take(event));
+  EXPECT_EQ(event.snapshot.state,SessionState::Closed);
+}
+TEST(ProtocolSession, RefreshCompletionIsReservedAndDeliveredExactlyOnce)
+{
+  rdr::MemOutStream wire,output; handshake(wire);
+  rdr::MemInStream input(wire.data(),wire.length());
+  ProtocolSession session(rfb::SecurityClient({rfb::secTypeNone}));
+  EXPECT_EQ(session.requestRefresh(),0u);
+  session.start("fixture",input,output); ready(session);
+  auto events=session.subscribeEvents(2); // Snapshot plus one completion.
+  auto operation=session.requestRefresh(); ASSERT_NE(operation,0u);
+  EXPECT_EQ(session.requestRefresh(),0u);
+  SessionEvent event; ASSERT_TRUE(events->take(event)); ASSERT_TRUE(events->take(event));
+  EXPECT_EQ(event.kind,SessionEventKind::Completion); EXPECT_EQ(event.operation,operation);
+  EXPECT_EQ(event.result,OperationResult::Succeeded); EXPECT_FALSE(events->take(event));
+  EXPECT_GT(session.requestRefresh(),operation);
+}
+TEST(ProtocolSession, EventOverflowClosesAttemptAndReleasesHeldInput)
+{
+  rdr::MemOutStream wire,output; handshake(wire); bell(wire); bell(wire);
+  rdr::MemInStream input(wire.data(),wire.length());
+  ProtocolSession session(rfb::SecurityClient({rfb::secTypeNone}));
+  session.start("fixture",input,output); ready(session);
+  auto events=session.subscribeEvents(2);
+  auto queue=session.inputQueue(); queue->key(1,1,'a',0,true); session.drainInput();
+  const auto before=output.length();
+  ASSERT_TRUE(session.processMessage()); // First bell fills the queue.
+  EXPECT_THROW(session.processMessage(),std::runtime_error);
+  EXPECT_FALSE(session.desktop().active); EXPECT_FALSE(queue->status().connected);
+  ASSERT_EQ(output.length()-before,8u); EXPECT_EQ(output.data()[before],4);
+  EXPECT_EQ(output.data()[before+1],0); // Real RFB key release during teardown.
+  SessionEvent event; ASSERT_TRUE(events->take(event)); ASSERT_TRUE(events->take(event));
+  ASSERT_TRUE(events->take(event)); EXPECT_EQ(event.kind,SessionEventKind::Overflow);
+  EXPECT_FALSE(events->take(event));
+}
+TEST(ProtocolSession, EventStreamSurvivesReconnectWithOrderedGenerations)
+{
+  rdr::MemOutStream wire,output; handshake(wire);
+  ProtocolSession session(rfb::SecurityClient({rfb::secTypeNone}));
+  auto events=session.subscribeEvents();
+  for (int i=0;i<2;++i) {
+    rdr::MemInStream input(wire.data(),wire.length());
+    session.start("fixture",input,output); ready(session); session.close();
+  }
+  SessionEvent event; uint64_t sequence=0,generation=0; unsigned connected=0,closed=0;
+  while (events->take(event)) {
+    EXPECT_GT(event.sequence,sequence); EXPECT_GE(event.snapshot.generation,generation);
+    sequence=event.sequence; generation=event.snapshot.generation;
+    connected += event.snapshot.state==SessionState::Connected;
+    closed += event.snapshot.state==SessionState::Closed;
+  }
+  EXPECT_EQ(connected,2u); EXPECT_EQ(closed,2u); EXPECT_EQ(generation,2u);
+}
+TEST(ProtocolSession, FrameStatisticsCoalesceAndRetainedEventsSealOnDestruction)
+{
+  std::shared_ptr<SessionEvents> events;
+  rdr::MemOutStream wire,output; handshake(wire);
+  for (int i=0;i<10;++i) { update(wire,1); raw(wire,0,0,1,1,i); }
+  bell(wire);
+  rdr::MemInStream input(wire.data(),wire.length());
+  {
+    ProtocolSession session(rfb::SecurityClient({rfb::secTypeNone}));
+    session.start("fixture",input,output); ready(session);
+    events=session.subscribeEvents(4); throughBell(session,1);
+    EXPECT_EQ(events->snapshot().frames,10u);
+  }
+  EXPECT_TRUE(events->sealed());
+  SessionEvent event; unsigned statistics=0,closed=0;
+  while (events->take(event)) {
+    if (event.kind==SessionEventKind::Statistics) { ++statistics; EXPECT_EQ(event.snapshot.frames,10u); }
+    closed += event.snapshot.state==SessionState::Closed;
+  }
+  EXPECT_EQ(statistics,1u); EXPECT_EQ(closed,1u);
+}
+
+TEST(ProtocolSession, DesktopEventCarriesResizedDimensionsAndQueueCanBeReplacedAfterSeal)
+{
+  rdr::MemOutStream wire,output; handshake(wire);
+  update(wire,1); rect(wire,0,0,3,4,rfb::pseudoEncodingDesktopSize); bell(wire);
+  rdr::MemInStream input(wire.data(),wire.length());
+  ProtocolSession session(rfb::SecurityClient({rfb::secTypeNone}));
+  session.start("fixture",input,output); ready(session);
+  auto events=session.subscribeEvents(2);
+  SessionEvent event; ASSERT_TRUE(events->take(event));
+  throughBell(session,1); // Desktop + Bell; obsolete statistics can be reclaimed.
+  ASSERT_TRUE(events->take(event)); EXPECT_EQ(event.kind,SessionEventKind::Desktop);
+  EXPECT_EQ(event.snapshot.width,3u); EXPECT_EQ(event.snapshot.height,4u);
+  ASSERT_TRUE(events->take(event)); EXPECT_EQ(event.kind,SessionEventKind::Bell);
+  // Release the coordinator on its owning executor. Existing data stays readable.
+  events->seal(OperationResult::Cancelled);
+  auto replacement=session.subscribeEvents();
+  ASSERT_TRUE(replacement->take(event)); EXPECT_EQ(event.kind,SessionEventKind::Snapshot);
+  EXPECT_EQ(event.snapshot.width,3u); EXPECT_EQ(event.snapshot.bells,1u);
+}
+TEST(ProtocolSession, EventAdmissionFailureDuringStartLeavesNoLiveAttempt)
+{
+  rdr::MemOutStream wire,output; handshake(wire);
+  rdr::MemInStream input(wire.data(),wire.length());
+  ProtocolSession session(rfb::SecurityClient({rfb::secTypeNone}));
+  auto events=session.subscribeEvents(2);
+  ASSERT_NE(events->reserve(1),0u); // Snapshot and promised completion occupy the stream.
+  EXPECT_THROW(session.start("fixture",input,output),std::runtime_error);
+  EXPECT_FALSE(session.desktop().active); EXPECT_TRUE(events->sealed());
+  EXPECT_FALSE(session.inputQueue()->status().connected);
+  SessionEvent event; ASSERT_TRUE(events->take(event)); ASSERT_TRUE(events->take(event));
+  EXPECT_EQ(event.kind,SessionEventKind::Completion); EXPECT_EQ(event.result,OperationResult::Failed);
+  ASSERT_TRUE(events->take(event)); EXPECT_EQ(event.kind,SessionEventKind::Overflow);
+  auto replacement=session.subscribeEvents();
+  ASSERT_TRUE(replacement->take(event)); EXPECT_EQ(event.snapshot.state,SessionState::Failed);
+}

@@ -4,6 +4,7 @@
 
 #include <viewer/core/FramePublisher.h>
 #include <viewer/core/InputQueue.h>
+#include <viewer/core/SessionEvents.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/ClientMessageLimits.h>
 #include <memory>
@@ -70,8 +71,16 @@ public:
   // Returns false after held-key overflow; the mailbox records the fault and
   // requires explicit focus reactivation before accepting more input.
   bool drainInput();
+  // Worker-only subscription: one lifecycle coordinator, independent of views.
+  // Starts with the current snapshot. Retain and take events on any thread.
+  std::shared_ptr<SessionEvents> subscribeEvents(size_t capacity = 128);
+  // Requires a connected session and event subscriber. Zero rejects without
+  // changing protocol state; completion means the refresh request was scheduled.
+  uint64_t requestRefresh();
 
 private:
+  bool emit(SessionEventKind kind);
+  void finish(bool failed);
   class Connection;
   rfb::SecurityClient security;
   const rfb::ClientMessageLimits messages;
@@ -81,6 +90,8 @@ private:
   const std::shared_ptr<InputQueue> inputMailbox;
   std::unique_ptr<Connection> connection;
   bool processing = false;
+  SessionSnapshot eventState;
+  std::weak_ptr<SessionEvents> eventObserver;
 };
 }
 #endif

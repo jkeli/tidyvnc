@@ -2,9 +2,10 @@
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,
-and N1.11 real authentication/cancellation proof are complete (see [viewer/README.md](../../viewer/README.md)).
-N1.12 bounded keyboard/pointer input and release behavior are implemented; its
-general lifecycle/event queues remain open. N0 source audit, baseline validation and initial session
+N1.11 real authentication/cancellation proof, and N1.12 bounded input/event queues
+are complete (see [viewer/README.md](../../viewer/README.md)).
+The full session/listener lifecycle and command catalog remain N1.5.
+N0 source audit, baseline validation and initial session
 isolation prerequisites (DES schedules, Tight gradient scratch and explicit
 authentication/TLS policies, session-owned JPEG negotiation and clipboard limits,
 owned security-policy strings and session-scoped reconnect credentials)

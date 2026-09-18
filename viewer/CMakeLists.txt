@@ -7,6 +7,7 @@ add_library(tidyvnc_viewer_core STATIC
   core/ProtocolSession.cxx
   core/PromptAuthentication.cxx
   core/InputQueue.cxx
+  core/SessionEvents.cxx
   core/DesktopTransform.cxx
   core/DesktopLayout.cxx
   core/DesktopResampler.cxx
