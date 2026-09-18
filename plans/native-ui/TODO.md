@@ -1,8 +1,8 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Planning complete; implementation has not started.** All delivery items remain
-unchecked. Check an item only after its code and stated validation are complete;
+**Started: N0 source audit and baseline validation.** Check an item only after
+its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
 
@@ -14,7 +14,7 @@ Windows/Linux FLTK builds. The Java client remains removed.
 
 - [ ] N0.1 Create an exhaustive parity inventory mapping each dialog/control/menu/shortcut/launch path to source, option, native replacement and acceptance test; include every row of PLAN §9.
 - [ ] N0.2 Record actual security/encoding/audio/H.264 capabilities, compiled defaults, aliases, validation ranges and live-change versus reconnect semantics.
-- [ ] N0.3 Audit reachable global configuration, static credentials, timer lists, logging and crypto initialization; identify per-session ownership and compatibility obligations to server/FLTK consumers.
+- [x] N0.3 Audit reachable global configuration, static credentials, timer lists, logging and crypto initialization; identify per-session ownership and compatibility obligations to server/FLTK consumers. See [STATE-AUDIT.md](STATE-AUDIT.md).
 - [ ] N0.4 Capture baseline native FLTK screenshots and keyboard/focus behavior; record hardware, OS, SDK, dependency versions, build flags, test totals and protocol results.
 - [ ] N0.5 Capture matched performance workloads and budgets: idle/scrolling/1080p/4K/multi-view, p50/p95 latency, CPU, memory, copies and damage. Record existing scaling budget requirements and provisional 10% regression threshold.
 - [ ] N0.6 Validate provisional macOS 14 deployment floor, Xcode/Swift/C++ versions, architecture matrix and dependency targets; record final supported configurations.
@@ -177,6 +177,19 @@ These are boundaries, not implementation checkboxes for this milestone:
   policies, full SwiftUI replacement inventory, phased delivery and test gates.
 - Platform references are linked in PLAN §14. No app/core code was changed and
   no implementation, native UI, permission or Keychain test is claimed here.
+
+### N0.3 — source audit and baseline — 2026-09-18
+
+- Commit: `docs(native-ui): audit session isolation and capture build baseline`.
+- [STATE-AUDIT.md](STATE-AUDIT.md) maps mutable configuration, credentials,
+  crypto/decoder scratch, timers, logging and runtime initialization to owners
+  and compatibility obligations. Found additional DES schedule and Tight
+  gradient scratch hazards beyond the original plan's named globals.
+- Retained FLTK Release build and 304/304 unit tests passed with explicit CLT
+  selection; an initial mixed Xcode/CLT link failure and its resolution are
+  documented. No application behavior changed in this commit.
+- N0.4–N0.6 remain open: screenshots/focus, matched full performance workloads
+  and minimum-OS/dependency validation have not been performed.
 
 ### Implementation evidence template
 

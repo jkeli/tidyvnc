@@ -1,6 +1,7 @@
 # Native UI architecture and macOS SwiftUI migration
 
-Status: planning only; implementation has not started. Baseline: `4e07cc16`,
+Status: started; N0 source audit and baseline validation are recorded in
+[STATE-AUDIT.md](STATE-AUDIT.md). Baseline: `4e07cc16`,
 inspected 2026-09-18. Track delivery in [TODO.md](TODO.md). Existing source paths
 are repository-relative; proposed directories and API names are marked below.
 
