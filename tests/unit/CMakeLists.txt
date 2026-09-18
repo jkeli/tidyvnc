@@ -56,6 +56,10 @@ add_executable(framepublisher framepublisher.cxx)
 target_link_libraries(framepublisher tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
 gtest_discover_tests(framepublisher)
 
+add_executable(protocolsession protocolsession.cxx)
+target_link_libraries(protocolsession tidyvnc_viewer_core GTest::gtest_main)
+gtest_discover_tests(protocolsession)
+
 if(GNUTLS_FOUND AND NOT WIN32)
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)

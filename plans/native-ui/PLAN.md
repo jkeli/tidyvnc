@@ -1,6 +1,7 @@
 # Native UI architecture and macOS SwiftUI migration
 
-Status: N1.1 headless build boundary and N1.8 retained frame/cursor contract are complete (see [viewer/README.md](../../viewer/README.md)).
+Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
+and N1.8 retained frame/cursor contract are complete (see [viewer/README.md](../../viewer/README.md)).
 N0 source audit, baseline validation and initial session
 isolation prerequisites (DES schedules, Tight gradient scratch and explicit
 authentication/TLS policies, session-owned JPEG negotiation and clipboard limits,
@@ -89,8 +90,9 @@ Important traps to address before building screens:
 ## 3. Layering and proposed source structure
 
 The `viewer/core`, `viewer/platform` and `tests/viewer` build boundary is now
-implemented for shared rendering, display-metrics values and headless validation.
-The session engine and remaining directories below are still proposed:
+implemented for shared rendering, display-metrics values, retained publication,
+a window-independent protocol session and headless validation. Full command/event
+lifecycle and the remaining directories below are still proposed:
 
 ```text
 common/{rfb,network,rdr,core}/    Existing protocol foundation

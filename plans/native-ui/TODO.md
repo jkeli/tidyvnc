@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Completed: N0.3 audit, N1.1 headless build boundary and N1.8 retained publication contract. N1.4 is in progress.** Check an item only after
+**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session and N1.8 retained publication contract. N1.4 is in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -40,7 +40,7 @@ may disappear merely because it is absent from an initial mockup.
     see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
-- [ ] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership.
+- [x] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership. Implemented by the portable `ProtocolSession`; see evidence below. Retained FLTK remains a comparison adapter.
 - [x] N1.8 Implement retained frame/cursor leases, explicit pixel format/stride/origin, damage and size generations; bound memory and merge skipped damage correctly. See N1.8 evidence below; session/frontend integration remains in N1.7/N2.
 - [ ] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors.
 - [ ] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. If pausing is unsafe, implement/test resumable security states first.
@@ -646,6 +646,62 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   teardown validation is claimed. Feeding leases from the future session engine,
   C ABI mapping, native presentation and retry scheduling remain N1.7/N2/N1.6;
   the retained FLTK renderer does not incur these snapshot copies.
+
+### N1.7 — window-independent protocol session — 2026-09-18
+
+- Commit: `feat(viewer): connect the protocol session to retained views`.
+- Added `viewer::ProtocolSession`, which owns each RFB connection attempt,
+  authoritative `ManagedPixelBuffer`, decoder lifetime and retained publisher.
+  It has no window/widget/native-surface ownership or GUI loop. The host supplies
+  borrowed streams and drives protocol processing on a serialized executor;
+  explicit security/TLS, message and buffer policies are copied at construction.
+- The source buffer is canonical BGRA32 with opaque alpha semantics. The session
+  requests that wire format and uses the existing RFB decoding/conversion path.
+  End-of-update joins decoding before publication. Resize preserves overlap,
+  zeros exposed pixels and publishes full damage. Cursor callbacks publish
+  straight-RGBA leases or explicit hide; retained protocol cursor data supports
+  retries without borrowing callback storage.
+- Attach returns a current-state subscription; dropping its last reference
+  detaches without stopping the session or other views. Publication backpressure
+  retains source/damage and can be retried without more network input. Partial
+  updates are never published by retry. Close drains on the worker and advances
+  the generation/queues clears, while old leases remain valid. Repeated close is
+  harmless; reconnect creates a fresh RFB object while retaining subscriptions.
+  Processing errors close/invalidate the attempt before propagating.
+- Injectable synchronous authentication callbacks are retained by the session.
+  Missing handlers cancel credentials/reject trust, and processing/close/retry
+  reentry is rejected. This is the seam for N1.10, not an async prompt solution.
+- Enforce a per-source-frame byte limit before allocation (64 MiB default) and
+  the existing RFB allocator's signed arithmetic limit even with an oversized
+  configured budget. Resize temporarily holds old/new source buffers separately
+  from the publication budget (128 MiB default), decoder scratch and protocol
+  state; these are buffer limits, not a whole-process memory claim.
+- Ten tests drive actual RFB client processing via fixture streams: None
+  negotiation, raw/CopyRect pixels and independent/detached/late views, resize,
+  cursor shape/hide, backpressure retry, close/reconnect/destruction with retained
+  leases, oversized allocation, complete-update boundaries, credential rejection
+  and the VNC challenge callback path/reentry guard. The VNC fixture supplies a
+  successful SecurityResult; it is not a server-side password-verification test
+  and does not satisfy N1.11. The headless smoke now consumes `ProtocolSession`
+  directly instead of defining its own `CConnection` subclass.
+- Retained FLTK Release: **368/368** unit tests passed in 16.51 seconds, plus
+  **1/1** smoke (0.09 seconds). Fresh headless Debug with TLS/nettle/GoogleTest:
+  **353/353** unit tests (14.69 seconds), **1/1** smoke and dependency audit passed.
+  Viewer-disabled/TLS-disabled Debug: **10/10** tests passed under ASan/UBSan
+  (0.33 seconds) and ThreadSanitizer (0.69 seconds). `git diff --check` passed.
+- Reproduce using [viewer/README.md](../../viewer/README.md) and the headless
+  driver with a new directory (local: `build/native-ui-protocol-session`). For
+  existing sanitizer builds, build `protocolsession` and run unit CTest with
+  `-R '^ProtocolSession\.' --output-on-failure --no-tests=error`.
+  Logs: `/tmp/tidyvnc-session-headless.log`,
+  `/tmp/tidyvnc-session-fltk-{build,tests,smoke}.log`, and
+  `/tmp/tidyvnc-session-{sanitized,tsan}-{build,tests}.log` (ephemeral).
+- Same macOS 27 arm64 / AppleClang 21 CLT environment. The retained FLTK adapter
+  remains on its existing rendering path for comparison. Socket readiness,
+  asynchronous lifecycle/commands/events, prompt rendezvous, input/clipboard
+  services, native UI/ABI and asynchronous close/drain remain their own unchecked
+  items. No interactive GUI, physical-display, real TLS/password-server or
+  Windows/Linux execution result is claimed by this milestone.
 
 ### Implementation evidence template
 
