@@ -3,6 +3,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 endif()
 
 add_library(core STATIC
+  AtomicFile.cxx
   Configuration.cxx
   Exception.cxx
   Logger.cxx

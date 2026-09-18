@@ -64,6 +64,11 @@ namespace core {
    */
   const char* getvncstatedir();
 
+  // Viewer-owned destinations; no legacy fallback, even if old state exists.
+  const char* gettidyvncconfigdir();
+  const char* gettidyvncdatadir();
+  const char* gettidyvncstatedir();
+
   /*
    * Create directory recursively. Useful to create the nested directory
    * structures needed for the above directories.

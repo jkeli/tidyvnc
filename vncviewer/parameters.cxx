@@ -31,8 +31,13 @@
 #endif
 
 #include "parameters.h"
+#include "LegacyImport.h"
+#include <vector>
+#include <utility>
+#include <sys/stat.h>
 
 #include <core/Exception.h>
+#include <core/AtomicFile.h>
 #include <core/LogWriter.h>
 #include <core/i18n.h>
 #include <core/string.h>
@@ -263,7 +268,8 @@ core::StringParameter
   via("via", _("SSH gateway to tunnel the connection via"), "");
 #endif
 
-static const char* IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
+static const char* IDENTIFIER_STRING = "TidyVNC Configuration file Version 1.0";
+static const char* LEGACY_IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
 
 /*
  * We only save the sub set of parameters that can be modified from
@@ -319,6 +325,22 @@ static core::VoidParameter* readOnlyParameterArray[] = {
   &dotWhenNoCursor
 };
 
+// Parsing and import are transactional: malformed files never leave partial
+// settings in memory. Also used to validate an import without adopting secrets.
+class ParameterSnapshot {
+public:
+  ParameterSnapshot() : keep(false) {
+    for (auto* p : parameterArray) values.emplace_back(p, p->getValueStr());
+    for (auto* p : readOnlyParameterArray) values.emplace_back(p, p->getValueStr());
+  }
+  ~ParameterSnapshot() {
+    if (!keep) for (auto& entry : values) entry.first->setParam(entry.second.c_str());
+  }
+  bool keep;
+private:
+  std::vector<std::pair<core::VoidParameter*, std::string>> values;
+};
+
 // Encoding Table
 static const struct EscapeMap {
   const char first;
@@ -331,7 +353,7 @@ static bool encodeValue(const char* val, char* dest, size_t destSize) {
 
   size_t pos = 0;
 
-  for (size_t i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
+  for (size_t i = 0; val[i] != '\0'; i++) {
     bool normalCharacter;
     
     // Check for sequences which will need encoding
@@ -368,7 +390,7 @@ static bool decodeValue(const char* val, char* dest, size_t destSize) {
 
   size_t pos = 0;
   
-  for (size_t i = 0; (val[i] != '\0') && (i < (destSize - 1)); i++) {
+  for (size_t i = 0; val[i] != '\0'; i++) {
     
     // Check for escape sequences
     if (val[i] == '\\') {
@@ -771,17 +793,22 @@ void saveViewerParameters(const char *filename, const char *servername) {
     return;
 #endif
     
-    const char* configDir = core::getvncconfigdir();
+    const char* configDir = core::gettidyvncconfigdir();
     if (configDir == nullptr)
       throw std::runtime_error(_("Could not determine VNC config directory path"));
 
-    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
+    snprintf(filepath, sizeof(filepath), "%s/default.tidyvnc", configDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
 
   /* Write parameters to file */
+#ifndef _WIN32
+  core::AtomicFile output(filepath);
+  FILE* f = output.stream();
+#else
   FILE* f = fopen(filepath, "w+");
+#endif
   if (!f)
     throw core::posix_error(
       core::format(_("Failed to open \"%s\""), filepath), errno);
@@ -789,8 +816,10 @@ void saveViewerParameters(const char *filename, const char *servername) {
   fprintf(f, "%s\n", IDENTIFIER_STRING);
   fprintf(f, "\n");
 
-  if (!encodeValue(servername, encodingBuffer, buffersize)) {
+  if (!encodeValue(servername ? servername : "", encodingBuffer, buffersize)) {
+#ifdef _WIN32
     fclose(f);
+#endif
     throw std::runtime_error(
       core::format(_("Failed to save \"%s\": %s"), "ServerName",
                    _("Could not encode parameter")));
@@ -802,14 +831,21 @@ void saveViewerParameters(const char *filename, const char *servername) {
       continue;
     if (!encodeValue(param->getValueStr().c_str(),
                      encodingBuffer, buffersize)) {
+#ifdef _WIN32
       fclose(f);
+#endif
       throw std::runtime_error(
         core::format(_("Failed to save \"%s\": %s"), param->getName(),
                      _("Could not encode parameter")));
     }
     fprintf(f, "%s=%s\n", param->getName(), encodingBuffer);
   }
-  fclose(f);
+#ifndef _WIN32
+  output.commit();
+#else
+  if (ferror(f) || fclose(f) != 0)
+    throw core::posix_error("Write settings file", errno);
+#endif
 }
 
 static bool findAndSetViewerParameterFromValue(
@@ -824,7 +860,8 @@ static bool findAndSetViewerParameterFromValue(
     if (strcasecmp(line, parameters[i]->getName()) == 0) {
       if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
         throw std::runtime_error(_("Invalid format or too large value"));
-      parameters[i]->setParam(decodingBuffer);
+      if (!parameters[i]->setParam(decodingBuffer))
+        throw std::runtime_error(_("Invalid parameter value"));
       return false;
     }
   }
@@ -833,6 +870,7 @@ static bool findAndSetViewerParameterFromValue(
 }
 
 char* loadViewerParameters(const char *filename) {
+  ParameterSnapshot snapshot;
 
   const size_t buffersize = 256;
   char filepath[PATH_MAX];
@@ -846,14 +884,16 @@ char* loadViewerParameters(const char *filename) {
   if(filename == nullptr) {
 
 #ifdef _WIN32
-    return loadFromReg();
+    char* result = loadFromReg();
+    snapshot.keep = true;
+    return result;
 #endif
 
-    const char* configDir = core::getvncconfigdir();
+    const char* configDir = core::gettidyvncconfigdir();
     if (configDir == nullptr)
       throw std::runtime_error(_("Could not determine VNC config directory path"));
 
-    snprintf(filepath, sizeof(filepath), "%s/default.tigervnc", configDir);
+    snprintf(filepath, sizeof(filepath), "%s/default.tidyvnc", configDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
@@ -861,13 +901,14 @@ char* loadViewerParameters(const char *filename) {
   /* Read parameters from file */
   FILE* f = fopen(filepath, "r");
   if (!f) {
-    if (!filename)
-      return nullptr; // Use defaults.
+    if (!filename && errno == ENOENT)
+      return nullptr; // Only absent state uses defaults; errors never import old state.
     throw core::posix_error(
       core::format(_("Failed to open \"%s\""), filepath), errno);
   }
 
   int lineNr = 0;
+  bool validHeader = false;
   while (!feof(f)) {
 
     // Read the next line
@@ -894,8 +935,14 @@ char* loadViewerParameters(const char *filename) {
 
     // Make sure that the first line of the file has the file identifier string
     if(lineNr == 1) {
-      if(strncmp(line, IDENTIFIER_STRING, strlen(IDENTIFIER_STRING)) == 0)
+      size_t headerLength = strlen(line);
+      while (headerLength && (line[headerLength-1] == '\n' || line[headerLength-1] == '\r'))
+        line[--headerLength] = '\0';
+      if(strcmp(line, IDENTIFIER_STRING) == 0 ||
+         strcmp(line, LEGACY_IDENTIFIER_STRING) == 0) {
+        validHeader = true;
         continue;
+      }
 
       fclose(f);
       throw std::runtime_error(core::format(
@@ -922,8 +969,8 @@ char* loadViewerParameters(const char *filename) {
       std::string msg = core::format(_("Failed to read line %d in "
                                        "file \"%s\""),
                                      lineNr, filepath);
-      vlog.error("%s: %s", msg.c_str(), _("Invalid format"));
-      continue;
+      fclose(f);
+      throw std::runtime_error(msg + ": " + _("Invalid format"));
     }
     *value = '\0'; // line only contains the parameter name below.
     value++;
@@ -958,8 +1005,8 @@ char* loadViewerParameters(const char *filename) {
       std::string msg = core::format(_("Failed to read line %d in "
                                        "file \"%s\""),
                                      lineNr, filepath);
-      vlog.error("%s: %s", msg.c_str(), e.what());
-      continue;
+      fclose(f);
+      throw std::runtime_error(msg + ": " + e.what());
     }
 
     if (invalidParameterName) {
@@ -971,9 +1018,11 @@ char* loadViewerParameters(const char *filename) {
   }
   fclose(f);
   f = nullptr;
+  if (!validHeader) throw std::runtime_error(_("Empty configuration file"));
 
   migrateDeprecatedOptions();
 
+  snapshot.keep = true;
   return servername;
 }
 
@@ -991,3 +1040,35 @@ void migrateDeprecatedOptions()
     cursorType.setParam("Dot");
   }
 }
+
+#ifndef _WIN32
+void importLegacyPreferences(const std::string& source)
+{
+  const char* dir = core::gettidyvncconfigdir();
+  if (!dir) throw std::runtime_error("Cannot determine viewer configuration directory");
+  std::string destination = std::string(dir) + "/default.tidyvnc";
+  struct stat st;
+  if (lstat(destination.c_str(), &st) == 0) return;
+  if (errno != ENOENT) throw core::posix_error("Inspect viewer preferences", errno);
+  ParameterSnapshot restore;
+  // Reset ordinary options before reading so imported values do not inherit
+  // unrelated process-local preferences. Restore everything on return/failure.
+  for (auto* p : parameterArray) p->setParam(p->getDefaultStr().c_str());
+  for (auto* p : readOnlyParameterArray) p->setParam(p->getDefaultStr().c_str());
+  loadViewerParameters(source.c_str());
+  core::AtomicFile file(destination.c_str());
+  fprintf(file.stream(), "%s\n", IDENTIFIER_STRING);
+  char encoded[256];
+  for (auto* p : parameterArray) {
+    std::string name(p->getName());
+    // These require a separate, explicit user decision in the Options dialog.
+    // No passwords, server addresses, commands or trust databases are copied.
+    if (name == "X509CA" || name == "X509CRL" || name == "SecurityTypes") continue;
+    if (p->isDefault()) continue;
+    if (!encodeValue(p->getValueStr().c_str(), encoded, sizeof(encoded)))
+      throw std::runtime_error("Cannot encode imported preference");
+    fprintf(file.stream(), "%s=%s\n", p->getName(), encoded);
+  }
+  file.commit(false);
+}
+#endif

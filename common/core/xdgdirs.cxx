@@ -43,7 +43,7 @@
 
 #include <core/xdgdirs.h>
 
-static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_def)
+static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_def, bool tidy = false)
 {
   static char dir[PATH_MAX], legacy[PATH_MAX];
   struct stat st;
@@ -73,9 +73,9 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
 
   xdgdir = getenv(xdg_env);
   if (xdgdir != nullptr && xdgdir[0] == '/')
-    snprintf(dir, sizeof(dir), "%s/tigervnc", xdgdir);
+    snprintf(dir, sizeof(dir), "%s/%s", xdgdir, tidy ? "tidyvnc" : "tigervnc");
   else
-    snprintf(dir, sizeof(dir), "%s/%s/tigervnc", homedir, xdg_def);
+    snprintf(dir, sizeof(dir), "%s/%s/%s", homedir, xdg_def, tidy ? "tidyvnc" : "tigervnc");
 
   snprintf(legacy, sizeof(legacy), "%s/.vnc", homedir);
 #else
@@ -103,10 +103,10 @@ static const char* getvncdir(bool userDir, const char *xdg_env, const char *xdg_
   if (strlen(legacy) + strlen("\\vnc") >= sizeof(legacy))
     return nullptr;
 
-  strcat(dir, "\\TigerVNC");
+  strcat(dir, tidy ? "\\TidyVNC" : "\\TigerVNC");
   strcat(legacy, "\\vnc");
 #endif
-  return (stat(dir, &st) != 0 && stat(legacy, &st) == 0) ? legacy : dir;
+  return (!tidy && stat(dir, &st) != 0 && stat(legacy, &st) == 0) ? legacy : dir;
 }
 
 const char* core::getuserhomedir()
@@ -127,6 +127,22 @@ const char* core::getvncdatadir()
 const char* core::getvncstatedir()
 {
   return getvncdir(false, "XDG_STATE_HOME", ".local/state");
+}
+
+// Writable viewer paths never fall back to an upstream directory.
+const char* core::gettidyvncconfigdir()
+{
+  return getvncdir(false, "XDG_CONFIG_HOME", ".config", true);
+}
+
+const char* core::gettidyvncdatadir()
+{
+  return getvncdir(false, "XDG_DATA_HOME", ".local/share", true);
+}
+
+const char* core::gettidyvncstatedir()
+{
+  return getvncdir(false, "XDG_STATE_HOME", ".local/state", true);
 }
 
 int core::mkdir_p(const char *path_, mode_t mode)
