@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Completed: N0.3 audit and N1.1 headless build boundary. N1.4 is in progress.** Check an item only after
+**Completed: N0.3 audit, N1.1 headless build boundary and N1.8 retained publication contract. N1.4 is in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -41,7 +41,7 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
 - [ ] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership.
-- [ ] N1.8 Implement retained frame/cursor leases, explicit pixel format/stride/origin, damage and size generations; bound memory and merge skipped damage correctly.
+- [x] N1.8 Implement retained frame/cursor leases, explicit pixel format/stride/origin, damage and size generations; bound memory and merge skipped damage correctly. See N1.8 evidence below; session/frontend integration remains in N1.7/N2.
 - [ ] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors.
 - [ ] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. If pausing is unsafe, implement/test resumable security states first.
 - [ ] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect.
@@ -598,6 +598,54 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   remain unverified. This completes the N1.1 build/dependency boundary only;
   service implementations, session lifecycle, C ABI and native UI remain their
   own unchecked items. No full N1 phase completion is claimed.
+
+### N1.8 — retained frame/cursor publication — 2026-09-18
+
+- Commit: `feat(viewer): add bounded retained frame and cursor publication`.
+- Added `viewer::FramePublisher` and immutable frame/cursor leases to the portable
+  viewer core. Input spans specify byte length/stride, dimensions, BGRA8/RGBA8,
+  alpha mode and row origin. Copies normalize row origin to top-left, exclude
+  padding and preserve channel/alpha representation. Damage/hotspots are always
+  top-left remote pixels. Bounds/stride overflow/truncation/layout/hotspot checks
+  happen before data access. The producer must synchronize decoder writes first.
+- Payloads survive source-buffer destruction, resize, reconnect and publisher
+  teardown. Each frame has session, size/layout and sequence generations;
+  cursor leases have session/sequence and hotspot metadata. Generation reset
+  clears queued old data and publishes explicit clears. Stale publishers are
+  rejected; already-delivered leases keep their original generation for the
+  eventual UI bridge to reject when inappropriate.
+- Per-view mailboxes retain at most one pending frame/cursor update, union skipped
+  damage independently and force full damage on layout change. New subscriptions
+  receive current state. Subscriber count is capped; pixel budget includes every
+  retained payload, including external/old-generation leases and cursor data.
+  Exhaustion returns backpressure without waiting for consumers. Frame damage
+  survives failed allocation/reservation until the next successful publication;
+  skipped resize also forces full invalidation. Cursor publication requires retry.
+- Nine tests cover padded/bottom-up input and lease lifetime, independent fast/
+  slow/late consumers, retained-frame backpressure/recovery, resize/format changes,
+  skipped resize/reconnect invalidation, cursor alpha/hotspot/shared budget,
+  malformed spans and subscriber limits, publication from an RFB pixel buffer,
+  and concurrent consumption/release during generation reset. The independent
+  headless smoke consumer now also exercises publication/retention/reset.
+- Retained FLTK Release: **358/358** unit tests (16.50 seconds) and **1/1** smoke
+  (0.09 seconds) passed. Fresh headless Debug build with TLS/nettle and GoogleTest:
+  **343/343** tests (14.65 seconds), **1/1** smoke and dependency audit passed.
+  Viewer-disabled/TLS-disabled Debug: **9/9** focused tests passed under ASan/UBSan
+  (0.34 seconds) and ThreadSanitizer (0.54 seconds). `git diff --check` passed.
+- Reproduce with the headless driver in [viewer/README.md](../../viewer/README.md),
+  using a new directory (local evidence: `build/native-ui-frames-headless`). For
+  existing sanitizer configurations build `framepublisher` then run unit CTest
+  with `-R '^FramePublisher\.' --output-on-failure --no-tests=error`.
+  Logs: `/tmp/tidyvnc-frames-headless.log`,
+  `/tmp/tidyvnc-frames-fltk-{build,tests}.log`, `/tmp/tidyvnc-frames-smoke.log`, and
+  `/tmp/tidyvnc-frames-{sanitized,tsan}-{build,tests}.log` (ephemeral).
+- Same macOS 27 arm64 / AppleClang 21 CLT environment. The payload budget excludes
+  decoder source buffers, allocator metadata and native surfaces. A complete
+  snapshot currently copies full pixels; production performance needs its own
+  measurement gate. No physical-display/native-renderer or real socket/session
+  teardown validation is claimed. Feeding leases from the future session engine,
+  C ABI mapping, native presentation and retry scheduling remain N1.7/N2/N1.6;
+  the retained FLTK renderer does not incur these snapshot copies.
 
 ### Implementation evidence template
 
