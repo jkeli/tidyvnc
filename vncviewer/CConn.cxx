@@ -1089,6 +1089,7 @@ void CConn::handleOptions(void *data)
 {
   CConn *self = (CConn*)data;
 
+  self->setJpegAllowed(!rfb::CConnection::noJpeg);
   self->updateEncoding();
   self->updateCompressLevel();
   self->updateQualityLevel();

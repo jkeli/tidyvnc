@@ -57,6 +57,7 @@ namespace rfb {
 
     // Settings that control the connection
 
+    // Legacy host-thread default, captured by the default constructor only.
     static core::BoolParameter noJpeg;
 
     // Methods to initialise the connection
@@ -149,6 +150,10 @@ namespace rfb {
     int getCompressLevel();
     void setQualityLevel(int level);
     int getQualityLevel();
+    // Controls standalone JPEG and Tight JPEG negotiation for this session.
+    // Like other encoding setters, call on the connection's executor. Explicit
+    // policy construction allows JPEG by default, independent of legacy globals.
+    void setJpegAllowed(bool allowed);
     // setPF() controls the pixel format requested from the server.
     // server.pf() will automatically be adjusted once the new format
     // is active.
@@ -355,6 +360,7 @@ namespace rfb {
     int preferredEncoding;
     int compressLevel;
     int qualityLevel;
+    bool jpegAllowed;
 
     bool formatChange;
     rfb::PixelFormat nextPF;
