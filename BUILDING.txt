@@ -4,7 +4,7 @@
 
 
 Current macOS fork instructions and actual app/DMG names are in BUILD-MACOS.md.
-The platform-specific sections below retain upstream Windows/Linux/Java build
+The platform-specific sections below retain upstream Windows/Linux build
 references while those rollout phases are deferred; they are not validation of
 TidyVNC installers or side-by-side installation on those platforms.
 
@@ -89,15 +89,6 @@ Build requirements (Windows)
    Add the directory containing iscc.exe (for instance, 
    C:\Program Files\Inno Setup 5) to the system or user PATH environment
    variable prior to building TigerVNC.
-
-
-=========================
-Build requirements (Java)
-=========================
-
--- Sun/Oracle JDK 1.7 or later or OpenJDK 7 or later
-
--- See "Building Java support" below.
 
 
 ==================
@@ -213,59 +204,6 @@ to the CMake command line.
 Note that the method used to achieve this is very fragile and it may be
 necessary to tweak cmake/StaticBuild.cmake to make things work on your
 specific system.
-
-
-=====================
-Building Java support
-=====================
-
-TigerVNC includes a Java version of the TigerVNC Viewer, which can be used on
-any platform that has a Java Runtime Environment (JRE) installed.  The Java
-viewer works similarly to the native viewer, but with lower performance.
-
-To build the Java TigerVNC Viewer, add
-
-  -DBUILD_JAVA=1
-
-to the CMake or build-xorg command line.  The build system will attempt to find
-an installed Java Development Kit (JDK) and determine the appropriate paths for
-the Java compiler (javac) and the JAR creation utility (jar).  You can override
-these paths by setting the Java_JAVAC_EXECUTABLE and Java_JAR_EXECUTABLE CMake
-variables.  You can also override the default flags that are passed to javac
-by setting the JAVACFLAGS CMake variable.  The build system will look for
-keytool and jarsigner in the same directory as Java_JAR_EXECUTABLE.  These
-tools are needed to sign the JAR file, which is necessary to enable certain
-functionality (such as clipboard transfers) when the Java viewer is used as an
-applet.
-
-If the Java viewer is built along with the Windows TigerVNC server (WinVNC),
-then the build system will embed the Java viewer into WinVNC4.exe so that it
-will automatically be served up using WinVNC's built-in HTTP server.
-Similarly, if the Java viewer is built along with the Unix TigerVNC server
-(Xvnc), then the build system will include the Java viewer in the server
-tarball.
-
-By default, a self-signed certificate will be generated and used to sign the
-jar file.  By specifying the following command line arguments to the CMake
-command line, an alternate certificate may be used for signing.
-
-  -DJAVA_KEYSTORE=${keystore_location_or_url}
-  -DJAVA_KEYSTORE_TYPE=${keystore_type} (Default: "jks")
-  -DJAVA_KEY_ALIAS=${keytore_key_alias}
-  -DJAVA_STOREPASS=${keystore_password}
-  -DJAVA_KEYPASS=${keystore_entry_password}
-  -DJAVA_TSA_URL=${url_of_timestamping_authority}
-
-The values of the JAVA_STOREPASS and JAVA_KEYPASS arguments may optionally be
-read from file or environment variables by prefixing the value with ":env " 
-or ":file " (see the jarsigner documentation for more info): 
-
-  export StorePass=tigervnc
-  export KeyPass=tigervnc
-  cmake \
-    ...
-    -DJAVA_STOREPASS=":env StorePass"
-    -DJAVA_KEYPASS=":env KeyPass"
 
 
 ======================================

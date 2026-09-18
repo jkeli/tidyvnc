@@ -5,8 +5,9 @@ Implementation is in progress; unresolved and deferred work stays unchecked. Che
 are complete, and record evidence in the log at the end.
 
 The native macOS viewer is first. Windows/Linux execution remains deferred;
-Java branding is included in the eventual rebrand, while Java HiDPI feature
-parity remains excluded. Deferred items do not count as completed.
+TidyVNC is native only as of 2026-09-18. Java work is cancelled; the viewer
+and its bundled dependencies have been removed. Deferred native items do not
+count as completed.
 
 ## R0 — Inventory, naming and attribution
 
@@ -43,12 +44,12 @@ parity remains excluded. Deferred items do not count as completed.
 - [x] Record whether legacy export is included; if implemented, label it explicitly and validate the legacy header with the upstream parser.
 - [x] Separate writable TidyVNC destinations from legacy import candidates in shared directory helpers.
 - [x] Introduce `default.tidyvnc` and `tidyvnc.history` under TidyVNC-owned macOS/POSIX state directories; Windows registry rollout remains R5.
-- [x] Implement macOS/POSIX selected preferences/history import with new-state precedence, atomic writes and permission preservation; Windows/Java remain R5.
+- [x] Implement macOS/POSIX selected preferences/history import with new-state precedence, atomic writes and permission preservation; Windows remains R5.
 - [x] Verify malformed new state does not silently revert to old settings.
 - [x] Verify repeat import does not duplicate data and upstream files remain untouched.
 - [x] Handle sensitive state separately: do not copy passwords, trust/CA/CRL files, credentials or commands; require explicit security-path selection in Options. Automated sensitive-state import is unavailable.
 - [x] Preserve explicit user-supplied legacy paths and certificate verification behavior.
-- [ ] Inventory `.vnc`, XDG overrides, Windows registry and Java preferences; implement each platform's migration with its rollout.
+- [ ] Inventory `.vnc`, XDG overrides, Windows registry; implement each platform's migration with its rollout.
 - [x] Classify X extension, selection, IPC and wire identifiers; retain externally consumed names only with documented exceptions.
 - [x] Test new/old file round trips, precedence, malformed input, permission failures and coexistence with isolated test state.
 
@@ -62,7 +63,7 @@ parity remains excluded. Deferred items do not count as completed.
 - [x] Generate complete macOS iconset slots at 1×/2× through 512 logical pixels / 1024 physical pixels, then build `tidyvnc.icns`.
 - [x] Generate the Windows multi-resolution ICO and needed fractional-DPI/tray representations.
 - [x] Generate scalable Linux SVG and raster sizes through 512 pixels with consistent install names.
-- [ ] Provide density-aware in-app/Java image selection without changing logical dimensions or requiring a new Java baseline.
+- [ ] Provide density-aware in-app image selection without changing logical dimensions.
 - [x] Refactor media export rules: deduplicate sizes, declare dependencies and generate into the build tree.
 - [x] Provide explicit regeneration/verification tooling and keep ordinary offline builds independent of optional graphics tools.
 - [x] Update all icon/resource consumers atomically with filenames; remove stale active asset references.
@@ -98,9 +99,6 @@ parity remains excluded. Deferred items do not count as completed.
 - [ ] Packaging: validate alternatives, installed-path collisions and Provides/Replaces/Conflicts without rewriting historical maintainers/changelogs.
 - [ ] Servers: coordinate system configuration, PAM, systemd, SELinux and logs while retaining appropriate external protocol interfaces.
 - [ ] Servers: rebrand visible banners/manuals and verify renamed packaging patches still apply.
-- [ ] Java: update UI, manifest Application-Name, banners, docs, asset names and resource loaders.
-- [ ] Java: retain and document `com.tigervnc` namespaces/Main-Class as compatibility exceptions; preserve bundled third-party notices.
-- [ ] Java: implement new state/import behavior and verify high-density icon loading on the supported runtime before shipping that flavor.
 - [ ] Run each platform's build/package/branding checks when it becomes available; retain explicit deferred status until then.
 
 ## R6 — Documentation, support and delivery
@@ -300,3 +298,18 @@ parity remains excluded. Deferred items do not count as completed.
 
 Updated DMG SHA-256: `b6c922da890c2385472b42446605803f18a12a9d06b52ad73d940bc0feeffa8a`.
 The earlier artifact digest above remains historical evidence.
+
+### Native-only scope (2026-09-18)
+
+- [x] Remove the Java viewer, bundled Java dependencies, JAR signing scripts
+  and duplicate artwork (377 tracked files). Original source and notices remain
+  in Git history; attribution records for retained native code are unchanged.
+- [x] Remove Java CMake targets, release dependency, CI job, Debian package
+  declarations and obsolete rules, and Java icon export/verification steps.
+- [x] Update current documentation and cancel Java rollout/migration gates.
+  Earlier inventory and build evidence remain historical records. The CI
+  `java-junit` reporter remains because native tests produce that XML format.
+- [x] Native Release configure and full build passed; all 304 unit tests passed
+  (15.04s). Packaged identity/signature/code/catalog checks and native icon
+  regeneration verification passed. Branding/attribution audit passed.
+  Windows/Linux package execution remains untested on this Mac.

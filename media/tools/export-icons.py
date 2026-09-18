@@ -26,13 +26,7 @@ if shutil.which('iconutil'):
     subprocess.run(['iconutil','-c','icns','-o',str(a.output/'tidyvnc.icns'),str(iconset)], check=True)
 else:
     raise SystemExit('macOS iconutil is required for the complete ICNS export')
-# Export Java duplicates and Windows resources from the same reviewed sources.
-java = a.output/'java'
-java.mkdir(exist_ok=True)
-for size in [16,32,64,128,256]:
-    shutil.copyfile(a.output/f'tidyvnc_{size}.png', java/f'tidyvnc_{size}.png')
-shutil.copyfile(a.output/'tidyvnc_48.png', java/'tidyvnc.png')
-shutil.copyfile(a.output/'tidyvnc.ico', java/'tidyvnc.ico')
+# Export Windows resources from the same reviewed sources.
 windows = a.output/'windows'
 windows.mkdir(exist_ok=True)
 for name in ['winvnc.ico', 'vncconfig.ico']:
@@ -66,8 +60,6 @@ if a.verify:
                 assert source.read_bytes() == generated.read_bytes(), source
     print('Exports match checked-in assets')
 
-    for generated in java.iterdir():
-        assert generated.read_bytes() == (media.parent/'java/com/tigervnc/vncviewer'/generated.name).read_bytes(), generated
     for name in ['winvnc.ico','connecte.ico','connected.ico','icon_dis.ico','winvnc.bmp']:
         assert (windows/name).read_bytes() == (media.parent/'win/winvnc'/name).read_bytes(), name
     assert (windows/'vncconfig.ico').read_bytes() == (media.parent/'win/vncconfig/vncconfig.ico').read_bytes()

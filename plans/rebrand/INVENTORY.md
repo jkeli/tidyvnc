@@ -1,5 +1,10 @@
 # Rebrand inventory
 
+> Historical inventory: the Java viewer and its bundled dependencies were
+> removed on 2026-09-18 when TidyVNC became native only. Java entries below
+> describe the original baseline, not current files or remaining rollout work.
+
+
 Canonical identity: **TidyVNC**, `tidyvnc`, `TIDYVNC`. Generic binaries remain
 `vncviewer`, `vncpasswd`, `Xvnc`, etc. Application ID: `io.github.jkeli.tidyvnc`.
 Publisher description: `jkeli/tidyvnc project` (repository identity, not a legal

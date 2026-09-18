@@ -17,7 +17,7 @@ cmake -S . -B build/tidyvnc-release -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DFLTK_DIR="$PWD/build/fltk-install/share/fltk" \
   -DCMAKE_PREFIX_PATH="$PWD/build/test-deps/install;/opt/homebrew/opt/gettext;/opt/homebrew" \
-  -DBUILD_VIEWER=ON -DBUILD_JAVA=OFF -DENABLE_NLS=ON \
+  -DBUILD_VIEWER=ON -DENABLE_NLS=ON \
   -DENABLE_GNUTLS=ON -DENABLE_NETTLE=ON -DENABLE_H264=OFF -DENABLE_AUDIO=OFF
 cmake --build build/tidyvnc-release --parallel 8
 ctest --test-dir build/tidyvnc-release/tests/unit --output-on-failure --no-tests=error

@@ -1,5 +1,11 @@
 # Rebrand the TigerVNC fork as TidyVNC
 
+> Scope update (2026-09-18): TidyVNC is native only. The Java viewer and
+> its dependencies have been removed at the user's request. All Java branding,
+> migration, packaging and runtime requirements below are superseded; original
+> discovery notes remain historical evidence. Native requirements still apply.
+
+
 Status: implementation in progress; see TODO.md for evidence and open gates. Baseline: `33556c96`, inspected
 2026-09-18. Track implementation and validation in [TODO.md](TODO.md).
 Paths below are repository-relative unless stated otherwise.

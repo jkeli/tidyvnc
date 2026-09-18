@@ -262,11 +262,6 @@ if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "Warning: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
-option(BUILD_JAVA "Build Java version of the TigerVNC Viewer" FALSE)
-if(BUILD_JAVA)
-  add_subdirectory(java)
-endif()
-
 trioption(BUILD_VIEWER "Build TidyVNC viewer")
 if(BUILD_VIEWER)
   # FLTK 1.4 provides DPI-aware layout and public native-platform accessors.

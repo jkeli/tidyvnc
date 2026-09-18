@@ -14,8 +14,8 @@ On macOS/POSIX, writable paths are:
 | CA/CRL | `$XDG_CONFIG_HOME/tidyvnc/x509_{ca,crl}.pem` | `~/.config/tidyvnc/x509_{ca,crl}.pem` |
 
 Relative XDG overrides are ignored, as before. The shared legacy server path
-helpers have not been redirected. Registry and Java preferences migration remain
-part of their deferred platform rollout.
+helpers have not been redirected. Registry migration remains part of the deferred Windows rollout.
+The Java viewer has been removed; no Java preferences migration is planned.
 
 The connection dialog offers preferences and history separately when the
 corresponding new file is absent. Legacy candidates are the corresponding
