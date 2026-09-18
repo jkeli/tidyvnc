@@ -1,5 +1,10 @@
 # Full HiDPI support and FLTK upgrade
 
+Rebrand update (2026-09-18): the native fork is now identified as TidyVNC.
+See [the rebrand checklist](../rebrand/TODO.md) for implementation and open
+migration/packaging/visual gates. Earlier TigerVNC build evidence below remains
+historically accurate.
+
 Scope update (2026-09-17): the user has excluded Java parity and deferred Windows/Linux work. Continue implementation and validation for macOS. Cross-platform and Java checkboxes below are retained as deferred history, not gates for this macOS effort. macOS mixed-density fullscreen remains in scope.
 
 Status: implementation in progress; see TODO.md for completed code, evidence, and remaining release requirements. Baseline: `9cb71cda`, inspected 2026-09-17. Track work in [TODO.md](TODO.md). Repository paths below are relative to the repository root; proposed filenames and parameters are identified as such.

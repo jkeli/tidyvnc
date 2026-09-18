@@ -1,4 +1,4 @@
-.TH vncviewer 1 "" "TigerVNC" "Virtual Network Computing"
+.TH vncviewer 1 "" "TidyVNC" "Virtual Network Computing"
 .SH NAME
 vncviewer \- VNC viewer for X
 .SH SYNOPSIS
@@ -21,7 +21,7 @@ vncviewer \- VNC viewer for X
 .br
 .B vncviewer
 .RI [ options ]
-.RI [ .tigervnc\ file ]
+.RI [ .tidyvnc\ file ]
 .SH DESCRIPTION
 .B vncviewer
 is a viewer (client) for Virtual Network Computing.  This manual page documents
@@ -276,7 +276,7 @@ Disable lossy JPEG compression. Default is off.
 .B \-passwd, \-PasswordFile \fIpassword-file\fP
 If you are on a filesystem which gives you access to the password file used by
 the server, you can specify it here to avoid typing it in.  It will usually be
-\fI$XDG_CONFIG_HOME/tigervnc/passwd\fP, or \fI~/.config/tigervnc/passwd\fP
+\fI$XDG_CONFIG_HOME/tidyvnc/passwd\fP, or \fI~/.config/tidyvnc/passwd\fP
 if the former is unset.
 .
 .TP
@@ -377,53 +377,62 @@ combined with
 .B \-X509CA \fIpath\fP
 Path to CA certificate to use when authenticating remote servers using any
 of the X509 security schemes (X509None, X509Vnc, etc.). Must be in PEM
-format. Default is \fI$XDG_CONFIG_HOME/tigervnc/x509_ca.pem\fP, or
-\fI~/.config/tigervnc/x509_ca.pem\fP.
+format. Default is \fI$XDG_CONFIG_HOME/tidyvnc/x509_ca.pem\fP, or
+\fI~/.config/tidyvnc/x509_ca.pem\fP.
 .
 .TP
 .B \-X509CRL \fIpath\fP
 Path to certificate revocation list to use in conjunction with
 \fB-X509CA\fP. Must also be in PEM format. Default is
-\fI$XDG_CONFIG_HOME/tigervnc/x509_crl.pem\fP, or
-\fI~/.config/tigervnc/x509_crl.pem\fP.
+\fI$XDG_CONFIG_HOME/tidyvnc/x509_crl.pem\fP, or
+\fI~/.config/tidyvnc/x509_crl.pem\fP.
 
 .SH FILES
 .TP
-\fI$XDG_CONFIG_HOME/tigervnc/default.tigervnc\fP
+\fI$XDG_CONFIG_HOME/tidyvnc/default.tidyvnc\fP
 .TQ
-\fI$HOME/.config/tigervnc/default.tigervnc\fP
+\fI$HOME/.config/tidyvnc/default.tidyvnc\fP
 Default configuration options. This file must have a "magic" first line of
-"TigerVNC Configuration file Version 1.0" (without quotes), followed by simple
+"TidyVNC Configuration file Version 1.0" (without quotes), followed by simple
 <setting>=<value> pairs of your choosing. The available settings are those
 shown in this man page.
 .TP
-\fI$XDG_CONFIG_HOME/tigervnc/x509_ca.pem\fP
+\fI$XDG_CONFIG_HOME/tidyvnc/x509_ca.pem\fP
 .TQ
-\fI$HOME/.config/tigervnc/x509_ca.pem\fP
+\fI$HOME/.config/tidyvnc/x509_ca.pem\fP
 Default CA certificate for authenticating servers.
 .TP
-\fI$XDG_CONFIG_HOME/tigervnc/x509_crl.pem\fP
+\fI$XDG_CONFIG_HOME/tidyvnc/x509_crl.pem\fP
 .TQ
-\fI$HOME/.config/tigervnc/x509_crl.pem\fP
+\fI$HOME/.config/tidyvnc/x509_crl.pem\fP
 Default certificate revocation list.
 .TP
-\fI$XDG_DATA_HOME/tigervnc/x509_known_hosts\fP
+\fI$XDG_STATE_HOME/tidyvnc/x509_known_hosts\fP
 .TQ
-\fI$HOME/.local/share/tigervnc/x509_known_hosts\fP
+\fI$HOME/.local/state/tidyvnc/x509_known_hosts\fP
 Known hosts database for certificate-based authentication.
 .TP
-\fI$XDG_STATE_HOME/tigervnc/tigervnc.history\fP
+\fI$XDG_STATE_HOME/tidyvnc/tidyvnc.history\fP
 .TQ
-\fI$HOME/.local/state/tigervnc/tigervnc.history\fP
+\fI$HOME/.local/state/tidyvnc/tidyvnc.history\fP
 History file for hostnames that have been recently connected to.
 
+.SH LEGACY IMPORT
+Files with the exact "TigerVNC Configuration file Version 1.0" header remain
+readable, including explicit .tigervnc paths. New saves use .tidyvnc; no legacy
+export is provided. On macOS/POSIX, the connection dialog separately offers
+ordinary preference and server-history import if the corresponding new file is
+absent. It checks legacy XDG roots and then ~/.vnc, never changes upstream files,
+and never replaces existing new state. Invalid new state is reported.
+Security types, passwords, CA/CRL files, known-host trust and tunnel commands are
+not imported. Select explicit certificate paths in Options when required.
 .SH SEE ALSO
 .BR Xvnc (1),
 .BR vncpasswd (1),
 .BR vncconfig (1),
 .BR vncsession (8)
 .br
-https://www.tigervnc.org
+https://github.com/jkeli/tidyvnc
 
 .SH AUTHOR
 Tristan Richardson, RealVNC Ltd. and others.
@@ -432,7 +441,7 @@ VNC was originally developed by the RealVNC team while at Olivetti
 Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
 implemented by Constantin Kaplinsky. Many other people have since
 participated in development, testing and support. This manual is part
-of the TigerVNC software suite.
+of TidyVNC and is derived from the TigerVNC software suite.
 
 .SH DESKTOP SCALING
 .TP

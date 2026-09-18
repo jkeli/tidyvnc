@@ -1,7 +1,12 @@
 *******************************************************************************
-**     Building TigerVNC
+**     Building TidyVNC
 *******************************************************************************
 
+
+Current macOS fork instructions and actual app/DMG names are in BUILD-MACOS.md.
+The platform-specific sections below retain upstream Windows/Linux/Java build
+references while those rollout phases are deferred; they are not validation of
+TidyVNC installers or side-by-side installation on those platforms.
 
 ================================
 Build requirements (all systems)
@@ -394,7 +399,7 @@ Building the viewer with FLTK 1.4
 --------------------------------
 
 The viewer requires FLTK >= 1.4.5 and < 1.5, installed with its CMake config
-package. The default linkage is static FLTK; set TIGERVNC_FLTK_SHARED=ON to
+package. The default linkage is static FLTK; set TIDYVNC_FLTK_SHARED=ON to
 select exported shared targets. BUILD_STATIC requires static FLTK.
 
 A separate checksum-pinned dependency build is provided for systems whose

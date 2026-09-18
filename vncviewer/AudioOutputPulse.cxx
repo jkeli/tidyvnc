@@ -131,11 +131,11 @@ bool AudioOutputPulse::connect()
   // The application id is how PulseAudio finds our .desktop file, and
   // the icon name is what it falls back on when it cannot
   proplist = pa_proplist_new();
-  pa_proplist_sets(proplist, PA_PROP_APPLICATION_NAME, "TigerVNC");
+  pa_proplist_sets(proplist, PA_PROP_APPLICATION_NAME, "TidyVNC");
   pa_proplist_sets(proplist, PA_PROP_APPLICATION_ID, "vncviewer");
-  pa_proplist_sets(proplist, PA_PROP_APPLICATION_ICON_NAME, "tigervnc");
+  pa_proplist_sets(proplist, PA_PROP_APPLICATION_ICON_NAME, "tidyvnc");
 
-  context = pa_context_new_with_proplist(api, "TigerVNC", proplist);
+  context = pa_context_new_with_proplist(api, "TidyVNC", proplist);
 
   pa_proplist_free(proplist);
 

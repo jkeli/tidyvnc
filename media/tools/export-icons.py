@@ -11,7 +11,7 @@ media = pathlib.Path(__file__).resolve().parents[1]
 a.output.mkdir(parents=True, exist_ok=True)
 sizes = [16,20,22,24,32,40,48,64,96,128,256,512,1024]
 for size in sizes:
-    subprocess.run([str(a.renderer.resolve()), str(media/'tidyvnc.svg'), str(size), str(a.output/f'tidyvnc_{size}.png')], check=True)
+    subprocess.run([str(a.renderer.resolve()), str(media/('tidyvnc-small.svg' if size <= 24 else 'tidyvnc.svg')), str(size), str(a.output/f'tidyvnc_{size}.png')], check=True)
 shutil.copyfile(media/'tidyvnc.svg', a.output/'tidyvnc.svg')
 ico_sizes = [(s,s) for s in sizes if s <= 256 and s != 22]
 im = Image.open(a.output/'tidyvnc_256.png')

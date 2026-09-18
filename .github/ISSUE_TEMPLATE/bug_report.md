@@ -22,8 +22,8 @@ If applicable, add screenshots to help explain your problem.
 
 **Client (please complete the following information):**
  - OS: [e.g. Windows 8.1]
- - VNC client: [e.g. TigerVNC, or UltraVNC]
- - VNC client version: [e.g. 1.8.0]
+ - VNC client: [e.g. TidyVNC; include the build commit]
+ - VNC client version: [include version and build timestamp]
  - Client downloaded from: [e.g. my Linux distribution]
 
 **Server (please complete the following information):**

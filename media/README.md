@@ -13,7 +13,8 @@ remote display. Native padlocks remain unchanged; they are generic security
 symbols and retain their existing provenance. Windows state badges use green
 for connected and red/slash for disconnected, in addition to shape differences.
 
-`tidyvnc.svg` is the editable master. Reviewed distribution resources are in
+`tidyvnc.svg` is the editable master; `tidyvnc-small.svg` provides pixel-aligned
+strokes for exports through 24 pixels. Reviewed distribution resources are in
 `icons/`; builds do not need graphics tools. All PNG sizes are rendered directly
 from vector, including the 1024-pixel ICNS source. Java uses multiple native
 window sizes and draws a 256-pixel source into its original 48-pixel logo layout

@@ -11,6 +11,8 @@ mixed-display/Spaces and interactive input checks remain separate.
 import argparse
 import itertools
 import math
+import os
+import tempfile
 import re
 import select
 import socket
@@ -30,7 +32,7 @@ def layout(w, h, reason=0, result=0):
 
 
 def run_case(viewer, mode, quality, units, remote_resize=False, explicit=False):
-    with socket.socket() as listener:
+    with socket.socket() as listener, tempfile.TemporaryDirectory(prefix='tidyvnc-smoke-') as state:
         listener.bind(('127.0.0.1', 0))
         listener.listen(1)
         listener.settimeout(10)
@@ -41,7 +43,12 @@ def run_case(viewer, mode, quality, units, remote_resize=False, explicit=False):
                 f'-ScalingQuality={quality}', f'-DesktopPixelUnits={units}',
                 '-DesktopSize=123x97' if explicit else '-DesktopSize=',
                 f'127.0.0.1::{listener.getsockname()[1]}']
-        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        env = os.environ.copy()
+        for name in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME']:
+            directory = Path(state) / name
+            directory.mkdir()
+            env[name] = str(directory)
+        process = subprocess.Popen(args, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             client, _ = listener.accept()
             with client:

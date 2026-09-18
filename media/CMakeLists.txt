@@ -22,11 +22,11 @@ if(TIDYVNC_REGENERATE_ICONS)
   add_custom_target(icons_regenerate
     COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/export-icons.py"
       --renderer $<TARGET_FILE:render-svg> --output "${EXPORT_DIR}"
-    DEPENDS render-svg tidyvnc.svg tools/export-icons.py
+    DEPENDS render-svg tidyvnc.svg tidyvnc-small.svg tools/export-icons.py
     VERBATIM)
   add_custom_target(icons_verify
     COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/export-icons.py"
       --renderer $<TARGET_FILE:render-svg> --output "${EXPORT_DIR}" --verify
-    DEPENDS render-svg tidyvnc.svg tools/export-icons.py ${ICON_FILES}
+    DEPENDS render-svg tidyvnc.svg tidyvnc-small.svg tools/export-icons.py ${ICON_FILES}
     VERBATIM)
 endif()
