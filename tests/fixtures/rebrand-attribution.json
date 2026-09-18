@@ -2686,32 +2686,32 @@
       " * Copyright 2009-2014 Pierre Ossman for Cendio AB"
     ]
   },
-  "vncviewer/CursorRenderer.cxx": {
+  "viewer/core/CursorRenderer.cxx": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/CursorRenderer.h": {
+  "viewer/core/CursorRenderer.h": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopLayout.cxx": {
+  "viewer/core/DesktopLayout.cxx": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopLayout.h": {
+  "viewer/core/DesktopLayout.h": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopResampler.cxx": {
+  "viewer/core/DesktopResampler.cxx": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopResampler.h": {
+  "viewer/core/DesktopResampler.h": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
@@ -2726,22 +2726,22 @@
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopTileCache.cxx": {
+  "viewer/core/DesktopTileCache.cxx": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopTileCache.h": {
+  "viewer/core/DesktopTileCache.h": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopTransform.cxx": {
+  "viewer/core/DesktopTransform.cxx": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]
   },
-  "vncviewer/DesktopTransform.h": {
+  "viewer/core/DesktopTransform.h": {
     "copyright_lines": [
       "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */"
     ]

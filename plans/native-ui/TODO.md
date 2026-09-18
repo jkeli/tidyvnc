@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Started: N0 source audit and first N1.4 isolation prerequisite.** Check an item only after
+**Completed: N0.3 audit and N1.1 headless build boundary. N1.4 is in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -28,7 +28,7 @@ may disappear merely because it is absent from an initial mockup.
 
 ## N1 — Portable session engine and services
 
-- [ ] N1.1 Create GUI-independent core/service targets with clear dependency direction; prove clean configure/build without FLTK, SwiftUI, AppKit or WinUI.
+- [x] N1.1 Create GUI-independent core/service targets with clear dependency direction; prove clean configure/build without FLTK, SwiftUI, AppKit or WinUI. See the N1.1 evidence below and [build instructions](../../viewer/README.md).
 - [ ] N1.2 Extract endpoint parsing/normalization, typed options, capabilities, structured errors and settings schema; preserve endpoint syntax, option aliases/ranges and precedence.
 - [ ] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs.
 - [ ] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races.
@@ -548,6 +548,56 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   cancellation, credential stores and protocol secret copies still need native
   ownership contracts; timers and other audited globals remain shared. The
   cache requires serialized access within one logical session.
+
+### N1.1 — portable viewer targets and clean headless build — 2026-09-18
+
+- Commit: `refactor(viewer): establish and verify the headless core build`.
+- Created `tidyvnc_viewer_core` with the existing transform, monitor layout,
+  resampling, tile-cache and cursor code extracted into `viewer/core`.
+  Created `tidyvnc_viewer_platform` with the host display-metrics value contract
+  and validation. The former depends on the latter and existing RFB/client
+  transport libraries; neither depends on FLTK or platform UI implementations.
+  FLTK, rendering tests and scaling benchmarks now link the same shared targets.
+- `BUILD_PLATFORM_APPS=OFF` skips platform server/configuration directories and
+  their dependency discovery. Combined with `BUILD_VIEWER=OFF`, Linux no longer
+  requires X11. NLS-disabled macOS core no longer links Carbon. Defaults preserve
+  retained application builds and NLS-enabled bundle-localization behavior.
+- Added a non-GoogleTest headless consumer exercising RFB connection construction
+  and teardown, transport parsing, display metrics, scaling/resampling and the
+  credential cache. Added a clean-build driver that refuses existing build
+  directories, disables FLTK/X11 discovery, audits the generated transitive
+  CMake graph/public headers and runs the smoke and available unit suites.
+  Added Linux/macOS CI jobs with protocol/test dependencies only.
+- Clean Release with TLS/nettle and GoogleTest: **334/334** headless unit tests
+  passed in 14.52 seconds and **1/1** smoke passed in 0.07 seconds. A second
+  clean Release without TLS/nettle or GoogleTest passed **1/1** smoke in 0.07
+  seconds. Both generated graphs contain only the consumer, two viewer targets,
+  `rfbclient`, `network`, `rfb`, `rdr` and `core`; no server or GUI target.
+- A third fresh headless Debug build (`build/native-ui-n1-final`) passed
+  **334/334** unit tests in 14.46 seconds and **1/1** smoke test, with the
+  dependency audit passing. Log: `/tmp/tidyvnc-n1-final.log`.
+- Retained FLTK Release rebuild: **349/349** tests passed in 16.37 seconds,
+  plus **1/1** smoke in 0.09 seconds. `otool -L` of the headless executable
+  confirms no FLTK/Carbon/Cocoa/AppKit/SwiftUI dependency. Branding/attribution
+  audit and all seven build-option compatibility checks passed. Attribution
+  fixture paths were migrated with the sources; copyright lines were preserved.
+- Initial builds found leftover include paths in the monitor widget and missing
+  target dependencies for EmulateMB and Cocoa-based test/benchmark consumers.
+  Those were corrected before successful validation. CMake's unused-variable
+  notices for disabled FLTK/X11 find switches are expected: discovery is skipped.
+- Reproduce with `tests/viewer/headless.py` and the commands in
+  [viewer/README.md](../../viewer/README.md). Local fresh build directories:
+  `build/native-ui-headless-verified` (TLS + tests),
+  `build/native-ui-headless-minimal` (no TLS/GoogleTest).
+  Logs: `/tmp/tidyvnc-n1-headless-{verified,minimal}.log`,
+  `/tmp/tidyvnc-n1-fltk-{build,tests,smoke}.log` and
+  `/tmp/tidyvnc-n1-brand-audit.log` (ephemeral).
+- Host: macOS 27.0 arm64, AppleClang 21 / CLT SDK 27, Homebrew protocol
+  dependencies and local GoogleTest. Linux/macOS CI is added but has not been
+  run remotely. Windows builds, minimum-OS compatibility and UI interactions
+  remain unverified. This completes the N1.1 build/dependency boundary only;
+  service implementations, session lifecycle, C ABI and native UI remain their
+  own unchecked items. No full N1 phase completion is claimed.
 
 ### Implementation evidence template
 

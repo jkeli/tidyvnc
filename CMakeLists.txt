@@ -128,8 +128,11 @@ macro(trioption VAR DESC)
   set_property(CACHE ${VAR} PROPERTY STRINGS AUTO ON OFF)
 endmacro()
 
+trioption(BUILD_VIEWER "Build TidyVNC viewer")
+option(BUILD_PLATFORM_APPS "Build platform servers and configuration tools" ON)
+
 # X11 stuff. It's in a if() so that we can say REQUIRED
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND (BUILD_VIEWER OR BUILD_PLATFORM_APPS))
   find_package(X11 REQUIRED)
   if(X11_Xdamage_LIB)
     set(HAVE_XDAMAGE 1)
@@ -202,7 +205,7 @@ if(ENABLE_H264)
 endif()
 
 trioption(ENABLE_AUDIO "Enable audio playback in the viewer")
-if(ENABLE_AUDIO)
+if(ENABLE_AUDIO AND BUILD_VIEWER)
   if(WIN32)
     # waveOut comes with the OS
     set(HAVE_AUDIO 1)
@@ -262,7 +265,6 @@ if(NOT FOUND_LIBJPEG_TURBO)
   message(STATUS "Warning: You are not using libjpeg-turbo. Performance will suffer.")
 endif()
 
-trioption(BUILD_VIEWER "Build TidyVNC viewer")
 if(BUILD_VIEWER)
   # FLTK 1.4 provides DPI-aware layout and public native-platform accessors.
   # Use its exported targets; FindFLTK's 1.3 variables lose transitive links.
@@ -320,7 +322,7 @@ if (ENABLE_NETTLE)
 endif()
 
 # Check for PAM library
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND BUILD_PLATFORM_APPS)
   trioption(ENABLE_PAM "Enable authentication using PAM")
   if(ENABLE_PAM)
     if(ENABLE_PAM STREQUAL "AUTO")
@@ -337,7 +339,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # Check for SELinux library
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND BUILD_PLATFORM_APPS)
   trioption(ENABLE_SELINUX "Enable SELinux support")
   if(ENABLE_SELINUX)
     if(ENABLE_SELINUX STREQUAL "AUTO")
@@ -352,7 +354,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # check for systemd support (socket activation)
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND BUILD_PLATFORM_APPS)
   trioption(ENABLE_SYSTEMD "Enable systemd support")
   if(ENABLE_SYSTEMD)
     if(ENABLE_SYSTEMD STREQUAL "AUTO")
@@ -367,7 +369,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # check for password pwquality check support
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND BUILD_PLATFORM_APPS)
   trioption(ENABLE_PWQUALITY "Enable password pwquality check")
   if(ENABLE_PWQUALITY)
     if(ENABLE_PWQUALITY STREQUAL "AUTO")
@@ -382,7 +384,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # check for libraries needed for wayland support
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND BUILD_PLATFORM_APPS)
   trioption(ENABLE_WAYLAND "Enable wayland support")
   if(ENABLE_WAYLAND)
     if(ENABLE_WAYLAND STREQUAL "AUTO")
@@ -428,12 +430,13 @@ include_directories(${CMAKE_BINARY_DIR})
 include(cmake/StaticBuild.cmake)
 
 add_subdirectory(common)
+add_subdirectory(viewer)
 
-if(WIN32)
-  add_subdirectory(win)
-else()
-  # No interest in building x related parts on Apple
-  if(NOT APPLE)
+if(BUILD_PLATFORM_APPS)
+  if(WIN32)
+    add_subdirectory(win)
+  elseif(NOT APPLE)
+    # No interest in building x related parts on Apple
     add_subdirectory(unix)
   endif()
 endif()

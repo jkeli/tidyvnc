@@ -100,12 +100,7 @@ std::string ScalingSettings::serialize() const
 }
 bool ScalingSettings::fits() const
 { return mode == Auto || mode == FixedRatio || mode == FitWidth || mode == FitHeight; }
-bool DisplayMetrics::valid() const
-{
-  return std::isfinite(pixelsPerUnitX) && std::isfinite(pixelsPerUnitY) &&
-         pixelsPerUnitX >= 1.0/16 && pixelsPerUnitY >= 1.0/16 &&
-         pixelsPerUnitX <= 16 && pixelsPerUnitY <= 16;
-}
+
 DesktopTransform::DesktopTransform(int rw, int rh, double aw, double ah,
   const DisplayMetrics& m, const ScalingSettings& s, ScalingSettings::Units units,
   double ox, double oy)

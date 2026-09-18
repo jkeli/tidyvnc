@@ -51,8 +51,8 @@
 #include "fltk/util.h"
 #include "Viewport.h"
 #include "DisplayMetrics.h"
-#include "DesktopResampler.h"
-#include "CursorRenderer.h"
+#include <viewer/core/DesktopResampler.h>
+#include <viewer/core/CursorRenderer.h>
 #include <cmath>
 #include <vector>
 #include <memory>

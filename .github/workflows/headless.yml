@@ -1,0 +1,29 @@
+name: Headless viewer core
+
+on: [push, pull_request]
+
+jobs:
+  headless:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Linux protocol and test dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libpixman-1-dev libjpeg-turbo8-dev zlib1g-dev libgnutls28-dev nettle-dev libgtest-dev
+      - name: Install macOS protocol and test dependencies
+        if: runner.os == 'macOS'
+        run: brew install ninja pixman jpeg-turbo gnutls nettle googletest
+      - name: Configure without GUI discovery, build, audit and test
+        run: |
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            export CMAKE_PREFIX_PATH="$(brew --prefix)"
+          fi
+          python3 tests/viewer/headless.py --build-dir build/headless \
+            --cmake-arg=-GNinja --cmake-arg=-DENABLE_GNUTLS=ON --cmake-arg=-DENABLE_NETTLE=ON \
+            --cmake-arg=-DCMAKE_REQUIRE_FIND_PACKAGE_GTest=TRUE

@@ -17195,42 +17195,42 @@
       "count": 1
     },
     {
-      "path": "vncviewer/CursorRenderer.cxx",
+      "path": "viewer/core/CursorRenderer.cxx",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/CursorRenderer.h",
+      "path": "viewer/core/CursorRenderer.h",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopLayout.cxx",
+      "path": "viewer/core/DesktopLayout.cxx",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopLayout.h",
+      "path": "viewer/core/DesktopLayout.h",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopResampler.cxx",
+      "path": "viewer/core/DesktopResampler.cxx",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopResampler.h",
+      "path": "viewer/core/DesktopResampler.h",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
@@ -17251,28 +17251,28 @@
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopTileCache.cxx",
+      "path": "viewer/core/DesktopTileCache.cxx",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopTileCache.h",
+      "path": "viewer/core/DesktopTileCache.h",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopTransform.cxx",
+      "path": "viewer/core/DesktopTransform.cxx",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
-      "path": "vncviewer/DesktopTransform.h",
+      "path": "viewer/core/DesktopTransform.h",
       "text": "/* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",

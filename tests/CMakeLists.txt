@@ -5,6 +5,9 @@ endif()
 # Benchmarking tools
 add_subdirectory(perf)
 
+# Always build the independent consumer; no GoogleTest or GUI is required.
+add_subdirectory(viewer)
+
 # Unit tests
 if(GTest_FOUND)
   add_subdirectory(unit)

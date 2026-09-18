@@ -31,7 +31,7 @@ if (BUILD_VIEWER)
   # Prefer the selected FLTK headers over another installation in a generic
   # system include directory (e.g. Homebrew's prefix).
   target_include_directories(fbperf SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
-  target_link_libraries(fbperf test_util core rfb ${TIDYVNC_FLTK_TARGET})
+  target_link_libraries(fbperf test_util tidyvnc_viewer_core ${TIDYVNC_FLTK_TARGET})
   if(WIN32)
     target_compile_definitions(fbperf PRIVATE NOMINMAX)
     target_link_libraries(fbperf msimg32)
@@ -43,6 +43,5 @@ if (BUILD_VIEWER)
   endif()
 endif()
 
-add_executable(scalingperf scalingperf.cxx ../../vncviewer/DesktopResampler.cxx ../../vncviewer/DesktopTileCache.cxx)
-target_include_directories(scalingperf PRIVATE ${CMAKE_SOURCE_DIR}/vncviewer)
-target_link_libraries(scalingperf core)
+add_executable(scalingperf scalingperf.cxx)
+target_link_libraries(scalingperf tidyvnc_viewer_core)

@@ -2,7 +2,7 @@
 #ifndef TIDYVNC_DESKTOP_VIEW_H
 #define TIDYVNC_DESKTOP_VIEW_H
 #include <FL/Fl_Window.H>
-#include "DesktopLayout.h"
+#include <viewer/core/DesktopLayout.h>
 #include <memory>
 class DesktopWindow;
 class DesktopSession;

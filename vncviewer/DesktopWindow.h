@@ -31,7 +31,7 @@
 #include <FL/Fl_Window.H>
 
 #include <rfb/ScreenSet.h>
-#include "DesktopTransform.h"
+#include <viewer/core/DesktopTransform.h>
 
 namespace rfb { class ModifiablePixelBuffer; class PixelFormat; }
 

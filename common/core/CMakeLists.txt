@@ -32,7 +32,7 @@ endif()
 
 if(WIN32)
   target_link_libraries(core ws2_32)
-elseif(APPLE)
+elseif(APPLE AND ENABLE_NLS)
   target_link_libraries(core "-framework Carbon")
 endif()
 

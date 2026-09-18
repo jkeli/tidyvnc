@@ -25,8 +25,8 @@
 
 #include <FL/Fl_Widget.H>
 
-#include "DesktopTransform.h"
-#include "DesktopTileCache.h"
+#include <viewer/core/DesktopTransform.h>
+#include <viewer/core/DesktopTileCache.h>
 #include "EmulateMB.h"
 #include "Keyboard.h"
 #include "ShortcutHandler.h"

@@ -144,6 +144,18 @@ file inputs still require explicit native invocation snapshots; prompt/service
 ownership and clearing protocol/dialog copies are not solved by this cache.
 No interactive retry or full native authentication lifecycle is claimed.
 
+## Build-boundary extraction (N1.1)
+
+Shared rendering sources have moved from `vncviewer` to `viewer/core` and are
+compiled once into `tidyvnc_viewer_core`. Display-metrics values/validation live
+in `tidyvnc_viewer_platform`; obtaining them from FLTK/Cocoa remains in the
+frontend adapter. Core links down to these contracts and the existing protocol
+libraries, never back to the frontend. The clean headless driver checks that
+generated dependency graph and public includes, then builds/runs a separate
+consumer and the available unit suites. See [viewer/README.md](../../viewer/README.md)
+and the N1.1 evidence in TODO. This boundary does not resolve the outstanding
+shared-state and session-lifecycle issues above.
+
 ## Baseline verification
 
 On 2026-09-18, before code changes, the retained Release build passed **304/304**
