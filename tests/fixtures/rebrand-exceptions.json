@@ -17998,6 +17998,13 @@
       "action": "replace",
       "reason": "Active product identity; implement in owning phase",
       "count": 1
+    },
+    {
+      "path": "plans/native-ui/PLAN.md",
+      "text": "- Preserve `.tidyvnc` and legacy `.tigervnc` import, option meanings, security",
+      "count": 1,
+      "action": "retain-interface",
+      "reason": "Explicit legacy connection-file compatibility requirement in native UI migration plan"
     }
   ]
 }
