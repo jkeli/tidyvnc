@@ -18,6 +18,12 @@ for lang in @MACAPP_LANGUAGES@; do
   install -m 644 "$BINDIR/po/$lang.mo" \
     "$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES/tidyvnc.mo"
 done
+# Sign only after all bundle resources are present. No sandbox/network bypass
+# entitlement: macOS still asks the user for Local Network access.
+SIGN_IDENTITY='@MACAPP_SIGN_IDENTITY_SHELL@'
+codesign --force --sign "$SIGN_IDENTITY" --identifier io.github.jkeli.tidyvnc \
+  --timestamp=none "$APPROOT"
+codesign --verify --strict "$APPROOT"
 install -m 644 "$SRCDIR/LICENCE.TXT" "$SRCDIR/README.rst" "$STAGING/dmg/"
 # Keep a persistent app for inspection and loopback tests.
 FINALAPP="$BINDIR/$PACKAGE_NAME.app"

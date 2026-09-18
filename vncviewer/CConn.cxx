@@ -31,6 +31,8 @@
 #include <gnutls/x509.h>
 #endif
 
+#include <errno.h>
+
 #include <core/Exception.h>
 #include <core/LogWriter.h>
 #include <core/Timer.h>
@@ -194,6 +196,24 @@ void CConn::connect(const char* vncServerName, network::Socket* socket)
         vlog.info(_("Connected to host %s port %d"),
                   serverHost.c_str(), serverPort);
       }
+#ifdef __APPLE__
+    } catch (core::socket_error& e) {
+      vlog.error("%s", e.what());
+      if (strchr(vncServerName, '/') == nullptr &&
+          (e.err == EHOSTUNREACH || e.err == ENETUNREACH ||
+           e.err == EACCES || e.err == EPERM)) {
+        abort_connection(_("Failed to connect to \"%s\":\n\n%s\n\n"
+                           "macOS may be blocking local network access. Allow TidyVNC "
+                           "in the Local Network permission prompt, or in System Settings "
+                           "> Privacy & Security > Local Network, then retry.\n\n"
+                           "If access is already allowed, check the host address, "
+                           "network connection and firewall."), vncServerName, e.what());
+      } else {
+        abort_connection(_("Failed to connect to \"%s\":\n\n%s"),
+                         vncServerName, e.what());
+      }
+      return;
+#endif
     } catch (std::exception& e) {
       vlog.error("%s", e.what());
       abort_connection(_("Failed to connect to \"%s\":\n\n%s"),

@@ -42,6 +42,28 @@ These are local development artifacts with Homebrew dylib dependencies, without
 distribution signing or notarization. Packaged visual review and physical display
 checks remain open; a passing build is not a portability or visual-quality claim.
 
+### Local Network permission
+
+The packaged app includes `NSLocalNetworkUsageDescription` and is signed after
+its plist and resources are assembled, using `io.github.jkeli.tidyvnc` as its
+signing identifier. `TIDYVNC_MACOS_SIGN_IDENTITY` defaults to `-` (ad hoc) for
+local builds. For reliable privacy identity across updates, configure an
+Apple-issued code-signing identity with
+`-DTIDYVNC_MACOS_SIGN_IDENTITY="Your signing identity"`. This does not add
+notarization or make the Homebrew-dependent app distributable.
+
+Launch the installed `.app` from Finder and connect to a local VNC server.
+macOS requests consent when that connection requires it. Allow TidyVNC in the
+prompt, then retry if the first connection failed while consent was pending.
+If previously denied, enable TidyVNC under System Settings > Privacy & Security
+> Local Network and reconnect. If already enabled, check the address, routing
+and firewall; “No route to host” alone does not establish a privacy denial.
+
+See [Apple's Local Network privacy guidance](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy).
+Shell-launched loopback tests do not verify Finder-launched consent behavior.
+The local machine currently has no valid signing identity; ad hoc builds still
+need interactive consent and permission-persistence validation.
+
 ---
 
 ## Historical TigerVNC build evidence
