@@ -108,6 +108,15 @@ handshakes verify independent CA/revocation policy and encrypted data exchange;
 see [TODO.md](TODO.md). Global crypto initialization, legacy static path helpers,
 trust-store callbacks, prompt cancellation and `Security::ToString` remain open.
 
+JPEG negotiation now uses an instance flag for both standalone JPEG and Tight
+quality hints. The default constructor captures legacy `NoJPEG`; explicit-policy
+construction uses a documented JPEG-enabled default, with `setJpegAllowed` for
+session settings. The FLTK Options callback translates the legacy parameter into
+that setter, including scheduling renegotiation when only JPEG changes. Encoding
+updates no longer read the global parameter. Wire-message tests cover legacy
+snapshots, explicit defaults, live toggles and concurrent independent sessions.
+This does not isolate the remaining viewer parameters or validate native UI.
+
 ## Baseline verification
 
 On 2026-09-18, before code changes, the retained Release build passed **304/304**

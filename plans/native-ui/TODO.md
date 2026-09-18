@@ -34,7 +34,8 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races.
   - Completed prerequisites: caller-owned DES schedules for client/server VNC
     authentication/password-file helpers, invocation-owned Tight gradient
-    scratch rows, and explicit per-connection authentication/TLS policies;
+    scratch rows, explicit per-connection authentication/TLS policies, and
+    session-owned JPEG negotiation;
     see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
@@ -404,6 +405,41 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   process crypto lifetime ownership. Tests use the existing rejecting trust
   callback and memory transport, not a live socket or native UI. Other mutable
   settings, timers and reconnect credentials still need scoped ownership.
+
+### N1.4 prerequisite — session-owned JPEG negotiation — 2026-09-18
+
+- Commit: `feat(rfb): isolate JPEG negotiation per connection`.
+- Added `CConnection::setJpegAllowed`, controlling both standalone JPEG and
+  Tight quality hints. Changes schedule a new encoding list at the next update
+  boundary; repeated values do not resend it. The saved quality level survives
+  disabling/re-enabling JPEG. All encoding negotiation reads instance state.
+- The default constructor captures legacy `NoJPEG` on the host thread.
+  Explicit-policy construction allows JPEG without consulting that global;
+  session callers can set their own value before connecting or during updates.
+  The FLTK Options callback applies the legacy value to its connection, fixing
+  missing renegotiation when only the JPEG checkbox changes.
+- Four tests parse real `SetEncodings` / framebuffer-request wire messages from
+  normal connection update callbacks: constructor snapshots, explicit defaults,
+  live toggles/quality restoration/no redundant list, and 100 updates each on
+  two concurrent sessions with opposing policies. Both preferred JPEG and JPEG
+  in the fallback list are covered. Authentication and sockets are outside this
+  fixture; the Options dialog itself was not exercised interactively.
+- Retained FLTK Release build and **333/333** unit tests passed in 15.96 seconds.
+  Viewer-disabled, TLS-disabled Debug builds passed **4/4** new tests under
+  ASan/UBSan (0.12 seconds) and ThreadSanitizer (0.24 seconds).
+  `git diff --check` passed. Same macOS 27 arm64 / CLT / SDK environment as the
+  baseline; no minimum-OS or native UI validation is claimed.
+- Reproduce: build `build/tidyvnc-release` with
+  `DEVELOPER_DIR=/Library/Developer/CommandLineTools cmake --build
+  build/tidyvnc-release --parallel 8`, then run
+  `ctest --test-dir build/tidyvnc-release/tests/unit --output-on-failure
+  --no-tests=error`. For the existing sanitizer configurations, build target
+  `connectionencoding` and run CTest with `-R '^ConnectionEncoding\.'`.
+- Logs: `/tmp/tidyvnc-jpeg-{build,tests}.log` and
+  `/tmp/tidyvnc-jpeg-{sanitized,tsan}-{build,tests}.log` (ephemeral).
+- N1.4 remains open: timers, reconnect credentials and other viewer globals
+  still require scoped ownership. This is not a complete session settings
+  contract, native frontend, or full concurrent connection lifecycle test.
 
 ### Implementation evidence template
 

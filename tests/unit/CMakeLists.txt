@@ -36,6 +36,10 @@ add_executable(securityclient securityclient.cxx)
 target_link_libraries(securityclient rfbclient GTest::gtest_main Threads::Threads)
 gtest_discover_tests(securityclient)
 
+add_executable(connectionencoding connectionencoding.cxx)
+target_link_libraries(connectionencoding rfbclient GTest::gtest_main Threads::Threads)
+gtest_discover_tests(connectionencoding)
+
 if(GNUTLS_FOUND AND NOT WIN32)
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)

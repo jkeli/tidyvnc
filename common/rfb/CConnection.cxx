@@ -72,6 +72,7 @@ core::BoolParameter
 CConnection::CConnection()
   : CConnection(SecurityClient())
 {
+  setJpegAllowed(!noJpeg);
 }
 
 CConnection::CConnection(const SecurityClient& securityPolicy)
@@ -83,7 +84,7 @@ CConnection::CConnection(const SecurityClient& securityPolicy)
     shared(false),
     state_(RFBSTATE_UNINITIALISED),
     pendingPFChange(false), preferredEncoding(encodingTight),
-    compressLevel(2), qualityLevel(-1),
+    compressLevel(2), qualityLevel(-1), jpegAllowed(true),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
@@ -1018,6 +1019,15 @@ int CConnection::getQualityLevel()
   return qualityLevel;
 }
 
+void CConnection::setJpegAllowed(bool allowed)
+{
+  if (jpegAllowed == allowed)
+    return;
+
+  jpegAllowed = allowed;
+  encodingChange = true;
+}
+
 void CConnection::setPF(const PixelFormat& pf)
 {
   if (server.pf() == pf && !formatChange)
@@ -1115,7 +1125,7 @@ void CConnection::updateEncodings()
   encodings.push_back(pseudoEncodingExtendedMouseButtons);
 
   if (Decoder::supported(preferredEncoding)) {
-    if (!noJpeg || preferredEncoding != encodingJPEG)
+    if (jpegAllowed || preferredEncoding != encodingJPEG)
       encodings.push_back(preferredEncoding);
   }
 
@@ -1123,7 +1133,7 @@ void CConnection::updateEncodings()
 
   for (int i = encodingMax; i >= 0; i--) {
     if ((i != preferredEncoding) && Decoder::supported(i)) {
-      if (noJpeg && i == encodingJPEG)
+      if (!jpegAllowed && i == encodingJPEG)
         continue;
       encodings.push_back(i);
     }
@@ -1132,7 +1142,7 @@ void CConnection::updateEncodings()
   if (compressLevel >= 0 && compressLevel <= 9)
       encodings.push_back(pseudoEncodingCompressLevel0 + compressLevel);
   // Tight JPEG is enabled by setting a quality level
-  if (!noJpeg) {
+  if (jpegAllowed) {
     if (qualityLevel >= 0 && qualityLevel <= 9)
       encodings.push_back(pseudoEncodingQualityLevel0 + qualityLevel);
   }
