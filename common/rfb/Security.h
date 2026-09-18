@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include <list>
+#include <string>
 
 namespace core {
   class EnumListParameter;
@@ -105,8 +106,9 @@ namespace rfb {
     /* Get list of enabled VeNCrypt subtypes */
     const std::list<uint32_t> GetEnabledExtSecTypes(void);
 
-    /* Output char* is stored in static array */
-    char *ToString(void);
+    // Caller-owned serialization; valid after another policy is formatted or
+    // this policy changes. Concurrent reads require no concurrent mutation.
+    std::string ToString() const;
 
 #ifdef HAVE_GNUTLS
     static core::StringParameter GnuTLSPriority;

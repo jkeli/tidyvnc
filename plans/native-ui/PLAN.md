@@ -2,8 +2,8 @@
 
 Status: started; N0 source audit, baseline validation and initial session
 isolation prerequisites (DES schedules, Tight gradient scratch and explicit
-authentication/TLS policies, session-owned JPEG negotiation and clipboard limits)
-are recorded in
+authentication/TLS policies, session-owned JPEG negotiation and clipboard limits,
+and owned security-policy strings) are recorded in
 [STATE-AUDIT.md](STATE-AUDIT.md). Baseline: `4e07cc16`,
 inspected 2026-09-18. Track delivery in [TODO.md](TODO.md). Existing source paths
 are repository-relative; proposed directories and API names are marked below.

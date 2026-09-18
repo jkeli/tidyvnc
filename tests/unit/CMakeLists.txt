@@ -36,6 +36,10 @@ add_executable(securityclient securityclient.cxx)
 target_link_libraries(securityclient rfbclient GTest::gtest_main Threads::Threads)
 gtest_discover_tests(securityclient)
 
+add_executable(security security.cxx)
+target_link_libraries(security rfb GTest::gtest_main Threads::Threads)
+gtest_discover_tests(security)
+
 add_executable(connectionencoding connectionencoding.cxx)
 target_link_libraries(connectionencoding rfbclient GTest::gtest_main Threads::Threads)
 gtest_discover_tests(connectionencoding)
