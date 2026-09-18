@@ -36,7 +36,7 @@ may disappear merely because it is absent from an initial mockup.
     authentication/password-file helpers, invocation-owned Tight gradient
     scratch rows, explicit per-connection authentication/TLS policies, and
     session-owned JPEG negotiation and incoming clipboard limits, plus owned
-    security-policy serialization;
+    security-policy serialization and session-scoped reconnect credentials;
     see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
@@ -510,6 +510,44 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
 - N1.4 remains open. This removes formatting scratch state; it does not make
   concurrent mutation of one policy safe, isolate timers/credentials, or
   implement the native session engine or UI.
+
+### N1.4 prerequisite — session-scoped reconnect credentials — 2026-09-18
+
+- Commit: `feat(rfb): scope reconnect credentials to the logical session`.
+- Added GUI-independent `ClientCredentialCache` with explicit recall, retention
+  and clear operations. It is noncopyable/nonmovable and owned by the outer
+  FLTK reconnect loop; each newly created `CConn` borrows that same session's
+  cache. Removed static username/password storage. Authentication failure clears
+  only the affected cache, while normal retry keeps it until the host loop ends.
+- Cache-owned bytes are overwritten using volatile stores before replacement,
+  clear or destruction. Vector storage avoids small-string-buffer remnants in
+  this owner. Caller, dialog and protocol copies have separate lifetimes and
+  are not covered by this wipe. The cache never reads environment/files/stores.
+- Preserve the legacy nonempty username/password reuse rules and credential
+  source precedence. Explicit retention opt-out now drops earlier cached values;
+  a password-only replacement cannot pair a new password with an old username.
+  No Keychain persistence or implicit retention was introduced.
+- Six GUI-independent tests cover copied input ownership, repeated retry reuse,
+  retention opt-out, pair/password-only replacement, empty values, independent
+  failure/teardown and concurrent sessions with distinct credentials. Compile
+  assertions enforce stable, noncopyable ownership. Tests do not interact with
+  real credentials or claim full authentication/prompt lifecycle validation.
+- Retained FLTK Release build: **349/349** tests passed in 15.94 seconds.
+  Viewer-disabled/TLS-disabled Debug: **6/6** cache tests passed under ASan/UBSan
+  (0.29 seconds) and ThreadSanitizer (0.48 seconds). `git diff --check` passed.
+  Same macOS 27 arm64 / CLT / SDK environment as the baseline; interactive retry
+  dialogs, Windows/Linux builds and minimum-OS compatibility were not tested.
+- Reproduce: `DEVELOPER_DIR=/Library/Developer/CommandLineTools cmake --build
+  build/tidyvnc-release --parallel 8`, then run unit CTest with
+  `--output-on-failure --no-tests=error`. In existing `build/native-ui-sanitized`
+  and `build/native-ui-tsan`, build `clientcredentials` and run unit CTest with
+  `-R '^ClientCredentials\.'`.
+- Logs: `/tmp/tidyvnc-credentials-{build,tests}.log` and
+  `/tmp/tidyvnc-credentials-{sanitized,tsan}-{build,tests}.log` (ephemeral).
+- N1.4/N1.9/N1.11 remain open. Environment and password-file inputs, prompt
+  cancellation, credential stores and protocol secret copies still need native
+  ownership contracts; timers and other audited globals remain shared. The
+  cache requires serialized access within one logical session.
 
 ### Implementation evidence template
 

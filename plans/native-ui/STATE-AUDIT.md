@@ -133,6 +133,17 @@ lists; independent or shared read-only policies can be formatted concurrently.
 Mutation of the same policy still requires its owning executor. The Windows
 registry caller was updated and inspected, but not built on the macOS host.
 
+Reconnect credentials now live in a noncopyable `ClientCredentialCache` owned
+by the FLTK host's logical-session/reconnect loop. Each `CConn` attempt receives
+a reference; authentication errors clear that cache alone, and returning from
+the loop destroys it. Owned bytes are overwritten before replacement, clear or
+destruction. Password-only replacement drops any old username; opting out of
+retention clears prior values. Legacy nonempty reuse rules and environment →
+cache → password-file → dialog precedence are preserved. Environment/password
+file inputs still require explicit native invocation snapshots; prompt/service
+ownership and clearing protocol/dialog copies are not solved by this cache.
+No interactive retry or full native authentication lifecycle is claimed.
+
 ## Baseline verification
 
 On 2026-09-18, before code changes, the retained Release build passed **304/304**

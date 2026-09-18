@@ -165,12 +165,13 @@ void about_vncviewer()
 
 static void mainloop(const char* vncserver, network::Socket* sock)
 {
+  rfb::ClientCredentialCache credentials;
   while (true) {
     CConn *cc;
 
     exitMainloop = false;
 
-    cc = new CConn();
+    cc = new CConn(credentials);
     cc->connect(vncserver, sock);
 
     while (!exitMainloop) {

@@ -72,9 +72,6 @@
 #include "parameters.h"
 #include "vncviewer.h"
 
-std::string CConn::savedUsername;
-std::string CConn::savedPassword;
-
 #ifdef WIN32
 #include "win32.h"
 #endif
@@ -94,12 +91,13 @@ static const rfb::PixelFormat mediumColourPF(8, 8, false, true,
 // Time new bandwidth estimates are weighted against (in ms)
 static const unsigned bpsEstimateWindow = 1000;
 
-CConn::CConn()
+CConn::CConn(rfb::ClientCredentialCache& credentials_)
   : serverPort(0), sock(nullptr),
     msgTimer(this, &CConn::processNextMsg), desktop(nullptr),
     audioOutput(nullptr),
     updateCount(0), pixelCount(0),
-    lastServerEncoding((unsigned int)-1), bpsEstimate(20000000)
+    lastServerEncoding((unsigned int)-1), bpsEstimate(20000000),
+    credentials(credentials_)
 {
   setShared(::shared);
 
@@ -338,8 +336,7 @@ void CConn::processNextMsg(core::Timer*)
     vlog.info("%s", e.what());
     disconnect();
   } catch (rfb::auth_error& e) {
-    savedUsername.clear();
-    savedPassword.clear();
+    credentials.clear();
     vlog.error(_("Authentication failed: %s"), e.what());
     abort_connection(_("Failed to authenticate with the server. Reason "
                        "given by the server:\n\n%s"), e.what());
@@ -389,14 +386,7 @@ void CConn::getUserPasswd(bool secure, std::string *user,
     return;
   }
 
-  if (user && !savedUsername.empty() && !savedPassword.empty()) {
-    *user = savedUsername;
-    *password = savedPassword;
-    return;
-  }
-
-  if (!user && !savedPassword.empty()) {
-    *password = savedPassword;
+  if (credentials.recall(user, *password)) {
     return;
   }
 
@@ -434,12 +424,9 @@ void CConn::getUserPasswd(bool secure, std::string *user,
 
     if (user) {
       *user = d.getUser();
-      if (keepPasswd)
-        savedUsername = d.getUser();
     }
     *password = d.getPassword();
-    if (keepPasswd)
-      savedPassword = d.getPassword();
+    credentials.remember(user, *password, keepPasswd);
   }
 
   if (ret_val != 1)
