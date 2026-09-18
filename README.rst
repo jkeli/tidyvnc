@@ -1,5 +1,19 @@
-About TigerVNC
-==============
+About TidyVNC
+=============
+
+TidyVNC is a fork of TigerVNC, currently focused on the native macOS viewer,
+local desktop scaling and high-density display support. Project and support:
+https://github.com/jkeli/tidyvnc and https://github.com/jkeli/tidyvnc/issues.
+
+Build the current macOS application using BUILD-MACOS.md. Rebrand status and
+validation gaps are tracked in plans/rebrand/TODO.md. Windows, Linux/server and
+Java packaging/state migration are deferred; they are not yet released as fully
+rebranded TidyVNC flavors. Existing copyrights and upstream history remain intact.
+
+New native connection files use .tidyvnc; existing .tigervnc files remain readable.
+The macOS connection dialog offers separate legacy preference/history import.
+New state is isolated under tidyvnc XDG roots; security settings and trust files
+are not copied automatically. See plans/rebrand/MIGRATION.md.
 
 Virtual Network Computing (VNC) is a remote display system which allows you to
 view and interact with a virtual desktop environment that is running on another
@@ -48,9 +62,9 @@ available.
 All Platforms
 =============
 
-All versions of TigerVNC contain the following programs:
+The current native TidyVNC build contains the following program:
 
-* vncviewer - the cross-platform TigerVNC Viewer, written using FLTK.
+* vncviewer - the TidyVNC viewer, written using FLTK.
               vncviewer connects to a VNC server and allows you to interact
               with the remote desktop being displayed by the VNC server.  The
               VNC server can be running on a Windows or a Unix/Linux machine.
@@ -59,7 +73,8 @@ All versions of TigerVNC contain the following programs:
 Windows-specific
 ================
 
-The Windows version of TigerVNC contains the following programs:
+The inherited TigerVNC Windows sources contain the following programs
+(the TidyVNC Windows rollout is deferred):
 
 * winvnc - the TigerVNC server for Windows.  winvnc allows a Windows desktop to
            be accessed remotely using a VNC viewer.
@@ -73,7 +88,8 @@ in use.
 Unix/Linux-specific (not Mac)
 =============================
 
-The Unix/Linux version of TigerVNC contains the following programs:
+The inherited TigerVNC Unix/Linux sources contain the following programs
+(the TidyVNC server and distro-package rollout is deferred):
 
 * Xvnc - the TigerVNC server for Unix.  Xvnc is both a VNC server and an X
          server with a "virtual" framebuffer.  You should normally use the

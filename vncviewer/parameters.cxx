@@ -35,6 +35,9 @@
 #include <vector>
 #include <utility>
 #include <sys/stat.h>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include <core/Exception.h>
 #include <core/AtomicFile.h>
@@ -334,7 +337,10 @@ public:
     for (auto* p : readOnlyParameterArray) values.emplace_back(p, p->getValueStr());
   }
   ~ParameterSnapshot() {
-    if (!keep) for (auto& entry : values) entry.first->setParam(entry.second.c_str());
+    if (!keep) for (auto& entry : values) {
+      if (entry.first->getValueStr() != entry.second)
+        entry.first->setParam(entry.second.c_str());
+    }
   }
   bool keep;
 private:
@@ -843,8 +849,9 @@ void saveViewerParameters(const char *filename, const char *servername) {
 #ifndef _WIN32
   output.commit();
 #else
-  if (ferror(f) || fclose(f) != 0)
-    throw core::posix_error("Write settings file", errno);
+  bool writeError = ferror(f) != 0;
+  if (fclose(f) != 0 || writeError)
+    throw core::posix_error("Write settings file", errno ? errno : EIO);
 #endif
 }
 
@@ -899,7 +906,7 @@ char* loadViewerParameters(const char *filename) {
   }
 
   /* Read parameters from file */
-  FILE* f = fopen(filepath, "r");
+  FILE* f = fopen(filepath, "rb");
   if (!f) {
     if (!filename && errno == ENOENT)
       return nullptr; // Only absent state uses defaults; errors never import old state.
@@ -913,6 +920,7 @@ char* loadViewerParameters(const char *filename) {
 
     // Read the next line
     lineNr++;
+    long beforeRead = ftell(f);
     if (!fgets(line, sizeof(line), f)) {
       if (feof(f))
         break;
@@ -922,6 +930,13 @@ char* loadViewerParameters(const char *filename) {
         core::format(_("Failed to read line %d in file \"%s\""),
                      lineNr, filepath),
         errno);
+    }
+
+    long afterRead = ftell(f);
+    if (beforeRead >= 0 && afterRead >= 0 &&
+        afterRead - beforeRead > static_cast<long>(strlen(line))) {
+      fclose(f);
+      throw std::runtime_error(_("Configuration file contains a null byte"));
     }
 
     if (strlen(line) == (sizeof(line) - 1)) {
@@ -1053,8 +1068,10 @@ void importLegacyPreferences(const std::string& source)
   ParameterSnapshot restore;
   // Reset ordinary options before reading so imported values do not inherit
   // unrelated process-local preferences. Restore everything on return/failure.
-  for (auto* p : parameterArray) p->setParam(p->getDefaultStr().c_str());
-  for (auto* p : readOnlyParameterArray) p->setParam(p->getDefaultStr().c_str());
+  for (auto* p : parameterArray)
+    if (!p->isDefault()) p->setParam(p->getDefaultStr().c_str());
+  for (auto* p : readOnlyParameterArray)
+    if (!p->isDefault()) p->setParam(p->getDefaultStr().c_str());
   loadViewerParameters(source.c_str());
   core::AtomicFile file(destination.c_str());
   fprintf(file.stream(), "%s\n", IDENTIFIER_STRING);
@@ -1069,6 +1086,10 @@ void importLegacyPreferences(const std::string& source)
       throw std::runtime_error("Cannot encode imported preference");
     fprintf(file.stream(), "%s=%s\n", p->getName(), encoded);
   }
+  struct stat sourceMode;
+  if (stat(source.c_str(), &sourceMode) != 0 ||
+      fchmod(fileno(file.stream()), sourceMode.st_mode & 0600) != 0)
+    throw core::posix_error("Preserve private import permissions", errno);
   file.commit(false);
 }
 #endif

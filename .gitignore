@@ -17,3 +17,6 @@ install_manifest.txt
 
 # Out-of-tree local builds and dependencies
 /build/
+
+# Python validation helpers
+__pycache__/

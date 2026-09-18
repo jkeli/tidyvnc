@@ -1,5 +1,10 @@
 # TigerVNC client scaling implementation plan
 
+Rebrand update (2026-09-18): the native fork is now identified as TidyVNC.
+See [the rebrand checklist](../rebrand/TODO.md) for implementation and open
+migration/packaging/visual gates. Earlier TigerVNC build evidence below remains
+historically accurate.
+
 Status: native implementation in progress alongside [HiDPI support](../hidpi/TODO.md). The shared implementation lives in `DesktopTransform` and `DesktopResampler`; Java parity and the remaining validation gates are unfinished.
 
 The HiDPI plan supersedes this document's original FLTK-upgrade non-goal and integer-only pan assumptions. Fixed sizes and percentages now use `DesktopPixelUnits=Logical|Device`; fit modes remain independent of this setting. Identity means the complete remote-to-backing transform is aligned and 1:1.

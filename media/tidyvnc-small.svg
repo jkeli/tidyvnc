@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <title>TidyVNC — small connected displays</title>
+  <desc>Original optically adjusted vector by OpenAI Codex for jkeli/tidyvnc, 2026. GPL-2.0-or-later. Pixel-aligned strokes at 16 pixels.</desc>
+  <rect x="1" y="1" width="14" height="14" rx="3" fill="#142f43"/>
+  <rect x="6.5" y="3.5" width="6" height="4" rx="0.7" fill="none" stroke="#51d9ca"/>
+  <rect x="3.5" y="6.5" width="7" height="4" rx="0.7" fill="#142f43" stroke="#f4fafb"/>
+  <path d="M5.5 12.5h3M7.5 10.5v2" stroke="#f4fafb" fill="none" stroke-linecap="round"/>
+  <path d="M13 10v2.5h-2" stroke="#51d9ca" fill="none" stroke-linecap="round"/>
+</svg>

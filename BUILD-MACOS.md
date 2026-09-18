@@ -1,3 +1,54 @@
+# Building the native TidyVNC client on macOS
+
+## Current TidyVNC build (2026-09-18)
+
+The commands below supersede the historical commands retained further down.
+Use a separate FLTK 1.4.5 dependency build; the main project never downloads code.
+Install native dependencies as described in the historical requirements section
+(except FLTK 1.3, which is no longer supported). GoogleTest is required to run the
+unit suite; provide its install prefix alongside the other dependencies.
+
+```sh
+export DEVELOPER_DIR=/Library/Developer/CommandLineTools
+cmake -S cmake/FLTK -B build/fltk-dependency -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PWD/build/fltk-install"
+cmake --build build/fltk-dependency --parallel 8
+cmake -S . -B build/tidyvnc-release -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DFLTK_DIR="$PWD/build/fltk-install/share/fltk" \
+  -DCMAKE_PREFIX_PATH="$PWD/build/test-deps/install;/opt/homebrew/opt/gettext;/opt/homebrew" \
+  -DBUILD_VIEWER=ON -DBUILD_JAVA=OFF -DENABLE_NLS=ON \
+  -DENABLE_GNUTLS=ON -DENABLE_NETTLE=ON -DENABLE_H264=OFF -DENABLE_AUDIO=OFF
+cmake --build build/tidyvnc-release --parallel 8
+ctest --test-dir build/tidyvnc-release/tests/unit --output-on-failure --no-tests=error
+cmake --build build/tidyvnc-release --target dmg
+```
+
+`macapp` stages `build/tidyvnc-release/TidyVNC.app` without making a disk image.
+`dmg` stages the same app and creates
+`build/tidyvnc-release/release/TidyVNC-1.16.80.dmg`. Both targets build required
+catalogs first; no separate translation build or manual copy step is needed.
+Use `TIDYVNC_FLTK_SHARED=ON` for shared FLTK; the old option remains a deprecated
+alias and conflicting values are rejected. Repeat with `build/tidyvnc-debug` and
+`CMAKE_BUILD_TYPE=Debug` for development checks.
+
+The app uses `io.github.jkeli.tidyvnc`, a complete 1x/2x iconset, and the `tidyvnc`
+gettext domain. New .tidyvnc documents are registered; legacy documents remain
+readable through the command line and file dialog. See
+[the migration policy](plans/rebrand/MIGRATION.md) and
+[rebrand evidence/open gates](plans/rebrand/TODO.md).
+
+These are local development artifacts with Homebrew dylib dependencies, without
+distribution signing or notarization. Packaged visual review and physical display
+checks remain open; a passing build is not a portability or visual-quality claim.
+
+---
+
+## Historical TigerVNC build evidence
+
+The remainder records earlier measured builds and original checkout paths.
+Their artifact names, commands, timestamps and hashes are intentionally retained.
+
 # Building the native TigerVNC client on macOS
 
 This document records both the original FLTK 1.3 baseline and the subsequent

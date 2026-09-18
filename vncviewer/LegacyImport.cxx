@@ -5,6 +5,7 @@
 #include <core/Exception.h>
 #include <core/xdgdirs.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <errno.h>
 #include <fstream>
 #include <set>
@@ -55,6 +56,10 @@ void importLegacyHistory(const std::string& source)
   if (input.bad()) throw std::runtime_error("Cannot read legacy history");
   core::AtomicFile file(destination.c_str());
   fputs(output.c_str(), file.stream());
+  struct stat sourceMode;
+  if (stat(source.c_str(), &sourceMode) != 0 ||
+      fchmod(fileno(file.stream()), sourceMode.st_mode & 0600) != 0)
+    throw core::posix_error("Preserve private import permissions", errno);
   file.commit(false);
 }
 #endif

@@ -426,3 +426,17 @@ they are unsuitable as TidyVNC product screenshots. Native and Java app icons
 are tiger-eye duplicates. Java secure/insecure images are generic padlocks and
 can be retained. Native padlock SVGs and vector-drawn authentication controls
 are unbranded. Deferred Windows/Java outputs remain tracked until their rollout.
+
+## Current ledger status
+
+The initial per-file table above is baseline evidence, not a current completion
+claim. The exact ledger has been reconciled after native migration and artwork
+replacement. `python3 tests/rebrand/audit.py` checks every current tracked text
+and path occurrence and reports deferred debt separately; CI also checks
+original license bodies, source attribution and translated legal strings.
+
+Deferred product/state occurrences belong to Windows resources/registry, Linux
+AppStream/server/package integration, Java product text/preferences, and their
+shared or fuzzy gettext messages. No directory-wide exemption is used. Platform
+rollout must replace these entries with tested changes or individually justified
+preservation; do not mark repository completion while this debt remains.

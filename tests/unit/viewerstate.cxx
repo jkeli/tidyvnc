@@ -140,3 +140,18 @@ TEST_F(ViewerState, UnreadableNewStateNeverUsesLegacy) {
   EXPECT_THROW(loadViewerParameters(nullptr), std::exception);
   EXPECT_TRUE(legacyViewerFile(false).empty()); chmod(config().c_str(), 0600);
 }
+
+TEST_F(ViewerState, RejectEmbeddedNullAndKeepRestrictiveImportPermissions) {
+  std::string invalid = "TidyVNC Configuration file Version 1.0";
+  invalid.push_back('\0'); invalid += "hidden\n";
+  write(config(), invalid);
+  EXPECT_THROW(loadViewerParameters(nullptr), std::exception);
+  fs::remove(config());
+  auto old = legacy();
+  write(old, "TigerVNC Configuration file Version 1.0\nScalingFactor=200\n");
+  chmod(old.c_str(), 0400);
+  importLegacyPreferences(old.string());
+  struct stat st;
+  ASSERT_EQ(stat(config().c_str(), &st), 0);
+  EXPECT_EQ(st.st_mode & 0777, 0400);
+}

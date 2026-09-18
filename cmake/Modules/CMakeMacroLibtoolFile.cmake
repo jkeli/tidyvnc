@@ -18,7 +18,7 @@ function(libtool_generate_control_file _target)
   get_target_property(_target_type ${_target} TYPE)
 
   message("-- Creating static libtool control file for target ${_target}")
-  # No support for shared libraries, as TigerVNC only needs libtool config
+  # No support for shared libraries, as TidyVNC only needs libtool config
   # files for static libraries.
   if("${_target_type}" MATCHES "^[^STATIC_LIBRARY]$")
     message(FATAL_ERROR " -  trying to use libtool_create_control_file for non-static library target.")
