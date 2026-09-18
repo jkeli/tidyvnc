@@ -1,7 +1,8 @@
 # Native UI architecture and macOS SwiftUI migration
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
-N1.8 retained frame/cursor contract and N1.10 cancellable authentication prompts are complete (see [viewer/README.md](../../viewer/README.md)).
+N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,
+and N1.11 real authentication/cancellation proof are complete (see [viewer/README.md](../../viewer/README.md)).
 N0 source audit, baseline validation and initial session
 isolation prerequisites (DES schedules, Tight gradient scratch and explicit
 authentication/TLS policies, session-owned JPEG negotiation and clipboard limits,

@@ -195,11 +195,28 @@ generation. Private response buffers are cleared after use/failure/cancellation.
 
 Fourteen tests cover typed replies, payload limits, trust identity copies,
 reply/cancel ordering, expiry, stale generations, independent sessions and
-RFB-client VNC callback resume/cancel/reconnect using fixture streams. Actual
-TLS/socket peer monitoring and cancellation remain N1.6/N1.11, and native prompt
-presentation and trust persistence remain service/frontend work. This bridge
+RFB-client VNC callback resume/cancel/reconnect using fixture streams. Real TLS/socket
+cancellation is now verified by N1.11 below. Production peer monitoring remains
+N1.6, and native prompt presentation and trust persistence remain service/frontend
+work. This bridge
 does not make `ProtocolSession::close()` callable from the UI thread; the host
 calls bridge cancellation directly, then drains/closes on the worker.
+
+## Real authentication/cancellation proof (N1.11)
+
+The `authenticationsocket` suite drives the core against an independent loopback
+TCP peer, verifies VNC challenge responses before sending success, and negotiates
+actual GnuTLS/VeNCrypt X509Vnc with an in-memory self-signed certificate. Tests
+exercise accepted/rejected trust, correct/incorrect passwords, direct close/quit
+cancellation, monotonic timeout, observed socket FIN, and stale/duplicate replies
+after reconnect. A second session with the other security mode completes while
+the first waits for credentials/trust. The test FIN observer does not read protocol
+bytes; it uses macOS kqueue or Linux POLLRDHUP before cancelling the bridge.
+
+This proves safe pause/resume/unwind at the core/host boundary. The test host and
+socket watcher are not production lifecycle/reactor adapters. N1.5/N1.6/N1.13,
+native close/quit UI, Windows sockets and N1.14's full settings/input/clipboard
+isolation matrix remain open. See the TODO evidence for builds and sanitizers.
 
 ## Baseline verification
 
