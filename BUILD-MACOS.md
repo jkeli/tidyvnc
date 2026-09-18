@@ -429,3 +429,48 @@ were exported into a temporary source tree, using the existing static FLTK
 These checks establish that the earlier commits do not require files from
 later implementation commits. They do not add physical-display or
 cross-platform runtime evidence beyond the validation recorded above.
+
+## Explicit Release build (2026-09-18)
+
+Built commit `33556c96` with `CMAKE_BUILD_TYPE=Release` in
+`build/hidpi-release`, preserving the earlier RelWithDebInfo and Debug builds.
+This is an arm64 build using static FLTK 1.4.5, with TLS, RSA-AES and
+translations enabled; Java, H.264 and audio are disabled.
+
+```sh
+export DEVELOPER_DIR=/Library/Developer/CommandLineTools
+cmake -S . -B build/hidpi-release -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DFLTK_DIR="$PWD/build/hidpi-deps/install/share/fltk" \
+  -DCMAKE_PREFIX_PATH='/opt/homebrew/opt/gettext;/opt/homebrew' \
+  -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DBUILD_VIEWER=ON -DBUILD_JAVA=OFF -DENABLE_NLS=ON \
+  -DENABLE_GNUTLS=ON -DENABLE_NETTLE=ON \
+  -DENABLE_H264=OFF -DENABLE_AUDIO=OFF
+cmake --build build/hidpi-release --parallel 8
+ctest --test-dir build/hidpi-release/tests/unit \
+  --output-on-failure --no-tests=error
+cmake --build build/hidpi-release --target dmg
+```
+
+Artifacts:
+
+- Executable: `build/hidpi-release/vncviewer/vncviewer`
+- Persistent app: `build/hidpi-release/TigerVNC.app`, staged using the app
+  bundle procedure above with `build/hidpi-release` as the build directory.
+- Disk image: `build/hidpi-release/release/TigerVNC-1.16.80.dmg`
+
+All 293 unit tests passed in 13.21 seconds. The staged app passed the
+eight-case `macos-scaling-smoke.py --quick` protocol/lifecycle suite. Its
+plist passes validation and enables Retina support; its executable matches
+the built binary and starts successfully with `--version`. Executable SHA-256:
+`34443efbdf670ecc473761389243601efcdf8534f7e7bdbdb1062d3723c202fe`.
+`hdiutil verify` reports a valid DMG checksum. Logs are in the build directory:
+`configure.log`, `build.log`, `tests.log`, `package.log`,
+`protocol-smoke.log`, and `dmg-verify.log`.
+
+This is a local Release configuration, not a portable distribution build.
+It still links Homebrew runtime libraries, targets macOS 27.0, and has not
+been distribution-signed or notarized. Physical-display and interactive
+validation remain open. The existing `hdiutil -volname` deprecation warning
+is nonfatal; disk-image creation required access outside the sandbox.
