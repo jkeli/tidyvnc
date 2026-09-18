@@ -40,6 +40,10 @@ add_executable(connectionencoding connectionencoding.cxx)
 target_link_libraries(connectionencoding rfbclient GTest::gtest_main Threads::Threads)
 gtest_discover_tests(connectionencoding)
 
+add_executable(clientclipboard clientclipboard.cxx)
+target_link_libraries(clientclipboard rfbclient GTest::gtest_main Threads::Threads)
+gtest_discover_tests(clientclipboard)
+
 if(GNUTLS_FOUND AND NOT WIN32)
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)

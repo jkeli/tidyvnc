@@ -33,6 +33,7 @@
 #include <rfb/DecodeManager.h>
 #include <rfb/PixelFormat.h>
 #include <rfb/SecurityClient.h>
+#include <rfb/ClientMessageLimits.h>
 
 namespace rdr {
   class InStream;
@@ -53,6 +54,9 @@ namespace rfb {
     // The default constructor snapshots legacy parameters on the host thread;
     // subsequent handshake configuration uses the connection's own values.
     explicit CConnection(const SecurityClient& securityPolicy);
+    // Explicit construction uses value defaults, never legacy message limits.
+    CConnection(const SecurityClient& securityPolicy,
+                const ClientMessageLimits& messageLimits);
     virtual ~CConnection();
 
     // Settings that control the connection
@@ -361,6 +365,7 @@ namespace rfb {
     int compressLevel;
     int qualityLevel;
     bool jpegAllowed;
+    const ClientMessageLimits messageLimits;
 
     bool formatChange;
     rfb::PixelFormat nextPF;

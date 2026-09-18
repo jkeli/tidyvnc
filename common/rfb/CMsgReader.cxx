@@ -58,9 +58,23 @@ static const uint32_t maxAudioData = 1024*1024;
 using namespace rfb;
 
 CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_)
-  : imageBufIdealSize(0), handler(handler_), is(is_),
+  : CMsgReader(handler_, is_, legacyLimits())
+{
+}
+
+ClientMessageLimits CMsgReader::legacyLimits()
+{
+  ClientMessageLimits result;
+  result.maxCutText = maxCutText;
+  return result;
+}
+
+CMsgReader::CMsgReader(CMsgHandler* handler_, rdr::InStream* is_,
+                       const ClientMessageLimits& limits_)
+  : imageBufIdealSize(0), handler(handler_), is(is_), limits(limits_),
     state(MSGSTATE_IDLE), cursorEncoding(-1)
 {
+  limits.validate();
 }
 
 CMsgReader::~CMsgReader()
@@ -340,6 +354,9 @@ bool CMsgReader::readServerCutText()
   uint32_t len = is->readU32();
 
   if (len & 0x80000000) {
+    // INT32_MIN has no positive signed representation.
+    if (len == 0x80000000)
+      throw protocol_error(_("Invalid extended clipboard message"));
     int32_t slen = len;
     slen = -slen;
     if (readExtendedClipboard(slen)) {
@@ -355,7 +372,7 @@ bool CMsgReader::readServerCutText()
     return false;
   is->clearRestorePoint();
 
-  if (len > (size_t)maxCutText) {
+  if (len > limits.maxCutText) {
     is->skip(len);
     vlog.error(_("Clipboard too large (%d bytes)"), len);
     return true;
@@ -382,7 +399,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
 
   if (len < 4)
     throw protocol_error(_("Invalid extended clipboard message"));
-  if (len > maxCutText) {
+  if ((uint32_t)len > limits.maxCutText) {
     vlog.error(_("Clipboard too large (%d bytes)"), len);
     is->skip(len);
     return true;
@@ -432,7 +449,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
 
       lengths[num] = zis.readU32();
 
-      if (lengths[num] > (size_t)maxCutText) {
+      if (lengths[num] > limits.maxCutText) {
         vlog.error(_("Clipboard too large (%d bytes)"),
                    (unsigned)lengths[num]);
 

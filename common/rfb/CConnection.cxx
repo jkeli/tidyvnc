@@ -70,12 +70,18 @@ core::BoolParameter
                       false);
 
 CConnection::CConnection()
-  : CConnection(SecurityClient())
+  : CConnection(SecurityClient(), CMsgReader::legacyLimits())
 {
   setJpegAllowed(!noJpeg);
 }
 
 CConnection::CConnection(const SecurityClient& securityPolicy)
+  : CConnection(securityPolicy, ClientMessageLimits())
+{
+}
+
+CConnection::CConnection(const SecurityClient& securityPolicy,
+                         const ClientMessageLimits& messageLimits_)
   : csecurity(nullptr), security(securityPolicy),
     supportsLocalCursor(false), supportsCursorPosition(false),
     supportsDesktopResize(false), supportsLEDState(false),
@@ -85,6 +91,7 @@ CConnection::CConnection(const SecurityClient& securityPolicy)
     state_(RFBSTATE_UNINITIALISED),
     pendingPFChange(false), preferredEncoding(encodingTight),
     compressLevel(2), qualityLevel(-1), jpegAllowed(true),
+    messageLimits(messageLimits_),
     formatChange(false), encodingChange(false),
     firstUpdate(true), pendingUpdate(false), continuousUpdates(false),
     forceNonincremental(true),
@@ -92,6 +99,7 @@ CConnection::CConnection(const SecurityClient& securityPolicy)
     hasRemoteClipboard(false), hasLocalClipboard(false),
     audioRequested(false)
 {
+  messageLimits.validate();
 }
 
 CConnection::~CConnection()
@@ -403,7 +411,7 @@ bool CConnection::processInitMsg()
 void CConnection::securityCompleted()
 {
   state_ = RFBSTATE_INITIALISATION;
-  reader_ = new CMsgReader(this, is);
+  reader_ = new CMsgReader(this, is, messageLimits);
   writer_ = new CMsgWriter(&server, os);
   vlog.debug("Authentication success!");
   writer_->writeClientInit(shared);

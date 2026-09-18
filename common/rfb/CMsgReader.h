@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 #include <core/Rect.h>
+#include <rfb/ClientMessageLimits.h>
 
 namespace rdr { class InStream; }
 
@@ -37,6 +38,10 @@ namespace rfb {
   class CMsgReader {
   public:
     CMsgReader(CMsgHandler* handler, rdr::InStream* is);
+    CMsgReader(CMsgHandler* handler, rdr::InStream* is,
+               const ClientMessageLimits& limits);
+    // Capture legacy parameters on the host thread before starting workers.
+    static ClientMessageLimits legacyLimits();
     virtual ~CMsgReader();
 
     bool readServerInit();
@@ -78,6 +83,7 @@ namespace rfb {
   private:
     CMsgHandler* handler;
     rdr::InStream* is;
+    const ClientMessageLimits limits;
 
     enum stateEnum {
       MSGSTATE_IDLE,
