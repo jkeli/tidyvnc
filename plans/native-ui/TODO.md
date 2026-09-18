@@ -272,6 +272,53 @@ sanitizer build to avoid Apple's sanitizer macro conflict with Debug `-Werror`.
   session lifecycle. No native UI, ThreadSanitizer, live protocol or physical
   display result is claimed. N1.4 remains unchecked.
 
+### Decoder parity correction and race detection — 2026-09-18
+
+- Commit: `fix(rfb): address packed Tight gradient input by pixel size`.
+- The new gradient fixtures exposed an existing byte-offset error in the
+  generic filter: it indexed a byte pointer as if each pixel occupied one
+  byte. Both the first-pixel-of-row and subsequent-pixel offsets now include
+  `sizeof(T)`. The RGB888-specific path is unchanged.
+- Added packed-gradient fixtures for 16-/32-bit storage, both byte orders,
+  red/green/blue/white, widths 1/3/17 and three rows; verify direct and
+  translated output including untouched borders. Before the fix, the test
+  failed 72 comparisons; afterwards all comparisons pass.
+- Full retained FLTK Release build and **314/314** unit tests passed in 15.20
+  seconds. Viewer-disabled Debug ASan/UBSan **3/3** decoder tests passed in
+  0.37 seconds. `git diff --check` passed.
+- Added a fresh local viewer-disabled **ThreadSanitizer** build: **3/3**
+  decoder tests passed in 2.16 seconds, including the four concurrent sessions.
+  Explicit `-fsanitize=thread -fno-omit-frame-pointer` C/C++ flags and
+  `-fsanitize=thread` linker flags were used; the top-level `ENABLE_TSAN`
+  option still excludes Apple. Same macOS 27.0 arm64/CLT environment as above.
+  GoogleTest and external dependencies are prebuilt/uninstrumented; this is
+  evidence for exercised decoder paths, not all session/service races.
+- Logs: `/tmp/tidyvnc-tight-offset-before.log`,
+  `/tmp/tidyvnc-tight-offset-{build,tests}.log`,
+  `/tmp/tidyvnc-tight-offset-sanitized-{build,tests}.log`, and
+  `/tmp/tidyvnc-tight-tsan-{configure,build,tests}.log` (ephemeral).
+- N1.4/N1.15 remain open for other global state, service contracts and complete
+  session lifecycle validation. No new native UI or live display result.
+
+Reproduce the isolated race-detection configuration:
+
+```sh
+export DEVELOPER_DIR=/Library/Developer/CommandLineTools
+cmake -S . -B build/native-ui-tsan -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug -DBUILD_VIEWER=OFF \
+  -DENABLE_NLS=OFF -DENABLE_GNUTLS=OFF -DENABLE_NETTLE=OFF \
+  -DENABLE_H264=OFF -DENABLE_AUDIO=OFF \
+  -DCMAKE_PREFIX_PATH=/opt/homebrew \
+  -DGTest_DIR="$PWD/build/test-deps/install/lib/cmake/GTest" \
+  -DCMAKE_DISABLE_FIND_PACKAGE_FLTK=TRUE \
+  '-DCMAKE_C_FLAGS=-fsanitize=thread -fno-omit-frame-pointer' \
+  '-DCMAKE_CXX_FLAGS=-fsanitize=thread -fno-omit-frame-pointer' \
+  '-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread'
+cmake --build build/native-ui-tsan --target tightdecoder --parallel 8
+ctest --test-dir build/native-ui-tsan/tests/unit \
+  -R '^TightDecoder\.' --output-on-failure --no-tests=error
+```
+
 ### Implementation evidence template
 
 Copy for each completed subtask or phase:
