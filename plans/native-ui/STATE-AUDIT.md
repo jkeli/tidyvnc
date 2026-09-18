@@ -90,9 +90,11 @@ N0 inventory, deployment, native-window and service decisions remain separate
 gates; this audit does not authorize UI cutover.
 
 Follow-up: the DES schedule row has been addressed by caller-owned contexts
-and seven regression tests (see the N1.4 prerequisite evidence in
-[TODO.md](TODO.md)). The table above preserves the inspected baseline; other
-rows are still extraction work, not resolved issues.
+and seven regression tests. Tight gradient scratch is now invocation-owned;
+the new concurrent decoder test reproduced the old corruption and passes
+after the fix (see the N1.4 prerequisite evidence in [TODO.md](TODO.md)). The
+table above preserves the inspected baseline; other rows are still extraction
+work, not resolved issues.
 
 ## Baseline verification
 

@@ -32,9 +32,9 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.2 Extract endpoint parsing/normalization, typed options, capabilities, structured errors and settings schema; preserve endpoint syntax, option aliases/ranges and precedence.
 - [ ] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs.
 - [ ] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races.
-  - Completed prerequisite: caller-owned DES schedules for client/server VNC
-    authentication and password-file helpers; see evidence below. Other globals
-    and the Tight decoder scratch identified in the audit remain open.
+  - Completed prerequisites: caller-owned DES schedules for client/server VNC
+    authentication/password-file helpers, and invocation-owned Tight gradient
+    scratch rows; see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
 - [ ] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership.
@@ -246,6 +246,31 @@ ctest --test-dir build/native-ui-sanitized/tests/unit \
 These host-specific dependency paths describe the tested development setup,
 not a portable native release build. The fortify override is confined to this
 sanitizer build to avoid Apple's sanitizer macro conflict with Debug `-Werror`.
+
+### N1.4 prerequisite — independent Tight gradient scratch — 2026-09-18
+
+- Commit: `fix(rfb): isolate Tight gradient scratch for concurrent decoding`.
+- Replaced the two static scratch rows in the generic Tight gradient filter
+  with invocation-local arrays, matching the separate RGB888 path. Storage is
+  bounded at 12 KiB per active call; no locks or per-decoder shared scratch.
+- Added public-parser/decoder fixtures for 16-bit RGB565, RGB565 in 32-bit
+  storage and RGB888, widths 1/17/2048, heights 1/7, uncompressed/compressed
+  payloads, direct/translated output, nonzero origins and untouched borders.
+- Four concurrent independent decoder sessions (two per generic template
+  specialization, different image colours) reproduced corruption **before**
+  the fix; the format/stride test passed before the fix. Both pass afterwards.
+- Full retained FLTK Release build and **313/313** unit tests passed in 15.04
+  seconds; viewer-disabled Debug ASan/UBSan **2/2** decoder tests passed in
+  0.59 seconds. Same macOS 27.0 arm64/CLT environment and sanitizer dependency
+  limitations as the DES evidence above. `git diff --check` passed.
+- Commands: build the default Release target, then run its full unit CTest
+  suite as above. For the existing sanitizer configuration, build target
+  `tightdecoder` and run CTest with `-R '^TightDecoder\.'`.
+- Logs: `/tmp/tidyvnc-tight-before.log`, `/tmp/tidyvnc-tight-{build,tests}.log`,
+  `/tmp/tidyvnc-tight-sanitized-{build,tests}.log` (ephemeral).
+- This proves the exercised decoder isolation, not the complete concurrent
+  session lifecycle. No native UI, ThreadSanitizer, live protocol or physical
+  display result is claimed. N1.4 remains unchecked.
 
 ### Implementation evidence template
 
