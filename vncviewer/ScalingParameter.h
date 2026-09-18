@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
-#ifndef TIGERVNC_SCALING_PARAMETER_H
-#define TIGERVNC_SCALING_PARAMETER_H
+#ifndef TIDYVNC_SCALING_PARAMETER_H
+#define TIDYVNC_SCALING_PARAMETER_H
 #include <core/Configuration.h>
 #include "DesktopTransform.h"
 #include <stdexcept>

@@ -1,24 +1,21 @@
-# Hebrew translation of TigerVNC.
-# Copyright (C) 2019 the TigerVNC Team (msgids)
-# This file is distributed under the same license as the tigervnc package.
-# Yaron Shahrabani <sh.yaron@gmail.com>, 2025
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR TigerVNC team and many others (see README.rst)
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: tidyvnc-1.15.90\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://github.com/jkeli/tidyvnc/issues\n"
 "POT-Creation-Date: 2026-09-18 09:05-0400\n"
-"PO-Revision-Date: 2025-11-13 18:22+0200\n"
-"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
-"Language-Team: Hebrew <heb-bugzap@hamakor.org.il>\n"
-"Language: he\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n==2 ? 1 : n>10 && n%10==0 ? "
-"2 : 3);\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
-"X-Generator: Poedit 3.8\n"
 
 #: common/core/Configuration.cxx:93
 msgid "default"
@@ -42,14 +39,14 @@ msgid "Parameter %s: Invalid value '%d'"
 msgstr ""
 
 #: common/core/LogWriter.cxx:89
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid log target: %s\n"
-msgstr "מפתח הצג ‚%s’ שגוי"
+msgstr ""
 
 #: common/core/LogWriter.cxx:104
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid log name: %s\n"
-msgstr "מפתח הצג ‚%s’ שגוי"
+msgstr ""
 
 #: common/core/LogWriter.cxx:117
 msgid ""
@@ -58,9 +55,8 @@ msgid ""
 msgstr ""
 
 #: common/network/Socket.cxx:64
-#, fuzzy
 msgid "Failed to initialise Winsock"
-msgstr "סגירת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: common/network/Socket.cxx:127 common/rdr/TLSSocket.cxx:115
 #: common/rfb/CSecurityRSAAES.cxx:91 common/rfb/SSecurityRSAAES.cxx:112
@@ -69,54 +65,47 @@ msgstr ""
 
 #: common/network/Socket.cxx:130 common/rdr/TLSSocket.cxx:118
 #: common/rfb/CSecurityRSAAES.cxx:95 common/rfb/SSecurityRSAAES.cxx:116
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to flush remaining socket data on close: %s"
-msgstr "קריאת השורה %d בקובץ „%s” נכשלה"
+msgstr ""
 
 #: common/network/Socket.cxx:210
-#, fuzzy
 msgid "Failed to accept new connection"
-msgstr "קבלת הגדרות צג המערכת נכשלה"
+msgstr ""
 
 #: common/network/Socket.cxx:230
 msgid "Failed to set socket to listening mode"
 msgstr ""
 
 #: common/network/TcpSocket.cxx:79
-#, fuzzy
 msgid "Use IPv4 for incoming and outgoing connections"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:82
-#, fuzzy
 msgid "Use IPv6 for incoming and outgoing connections"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:94 common/network/TcpSocket.cxx:273
 #: common/network/TcpSocket.cxx:398 common/network/UnixSocket.cxx:62
 #: common/network/UnixSocket.cxx:128
-#, fuzzy
 msgid "Failed to create socket"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:98
-#, fuzzy
 msgid "Failed to find free port"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:102
-#, fuzzy
 msgid "Failed to get port number"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:140
 msgid "Unmatched [ in hostname"
 msgstr ""
 
 #: common/network/TcpSocket.cxx:179 common/network/TcpSocket.cxx:186
-#, fuzzy
 msgid "Invalid port specified"
-msgstr "הממדים שצוינו שגויים!"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:231
 msgid "Failed get address for hostname"
@@ -127,19 +116,12 @@ msgid "No useful address found for hostname"
 msgstr ""
 
 #: common/network/TcpSocket.cxx:301
-#, fuzzy
 msgid "Failed to connect to host"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: common/network/TcpSocket.cxx:316 common/network/UnixSocket.cxx:91
-#, fuzzy
 msgid "Failed to get peer name for socket"
-msgstr "קבלת נתוני האירוע של אירוע X Input נכשלה"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:317 common/network/TcpSocket.cxx:331
 #: common/network/TcpSocket.cxx:345 common/network/TcpSocket.cxx:352
@@ -147,19 +129,17 @@ msgid "(N/A)"
 msgstr ""
 
 #: common/network/TcpSocket.cxx:330 common/network/TcpSocket.cxx:344
-#, fuzzy
 msgid "Failed to convert peer name to a string"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:351 common/network/TcpSocket.cxx:757
-#, fuzzy
 msgid "Unknown address family"
-msgstr "משתנה לא ידוע"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:380
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to set TCP_NODELAY: %d"
-msgstr "השמירה של „%s” נכשלה: %s"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:406
 msgid "Failed to set IPV6_V6ONLY"
@@ -170,19 +150,16 @@ msgid "Failed to set SO_REUSEADDR"
 msgstr ""
 
 #: common/network/TcpSocket.cxx:431 common/network/UnixSocket.cxx:143
-#, fuzzy
 msgid "Failed to set socket address"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:543 common/network/TcpSocket.cxx:731
-#, fuzzy
 msgid "Failed to get address for hostname"
-msgstr "קבלת מצב נורית המקלדת נכשלה: %d"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:707
-#, fuzzy
 msgid "Invalid filter specified"
-msgstr "הממדים שצוינו שגויים!"
+msgstr ""
 
 #: common/network/TcpSocket.cxx:743
 msgid "A mask is no longer supported for filters, use a prefix instead"
@@ -198,19 +175,12 @@ msgid "UNIX socket path is too long"
 msgstr ""
 
 #: common/network/UnixSocket.cxx:76
-#, fuzzy
 msgid "Failed to connect to socket"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: common/network/UnixSocket.cxx:100
-#, fuzzy
 msgid "Failed to get local name for socket"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: common/network/UnixSocket.cxx:109
 msgid "(unnamed UNIX socket)"
@@ -233,14 +203,14 @@ msgstr ""
 #: vncviewer/CConn.cxx:390 vncviewer/ServerDialog.cxx:359
 #: vncviewer/ServerDialog.cxx:436 vncviewer/parameters.cxx:787
 #: vncviewer/parameters.cxx:867
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open \"%s\""
-msgstr "ההסרה של „%s” נכשלה: %s"
+msgstr ""
 
 #: common/rdr/FileInStream.cxx:57 common/rfb/SSecurityRSAAES.cxx:200
-#, fuzzy, c-format
+#, c-format
 msgid "Failed reading from \"%s\""
-msgstr "קריאת השורה %d בקובץ „%s” נכשלה"
+msgstr ""
 
 #: common/rdr/HexInStream.cxx:51
 msgid "Input data is not hexadecimal"
@@ -256,9 +226,8 @@ msgstr ""
 #: common/rfb/CSecurityRSAAES.cxx:162 common/rfb/CSecurityRSAAES.cxx:256
 #: common/rfb/SSecurityRSAAES.cxx:357 common/rfb/SSecurityRSAAES.cxx:366
 #: common/rfb/SSecurityVncAuth.cxx:91
-#, fuzzy
 msgid "Failed to generate random data"
-msgstr "קבלת מידע על CRTC %d נכשלה"
+msgstr ""
 
 #: common/rdr/TLSSocket.cxx:93
 #, c-format
@@ -270,9 +239,9 @@ msgid "TLS handshake failed"
 msgstr ""
 
 #: common/rdr/TLSSocket.cxx:131 common/rdr/TLSSocket.cxx:134
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to terminate TLS cleanly: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: common/rdr/TLSSocket.cxx:164
 msgid "Failed receiving TLS data"
@@ -283,23 +252,20 @@ msgid "Failed sending TLS data"
 msgstr ""
 
 #: common/rdr/ZlibInStream.cxx:55
-#, fuzzy
 msgid "Failed to flush remaining stream data"
-msgstr "סגירת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: common/rdr/ZlibInStream.cxx:81 common/rdr/ZlibOutStream.cxx:50
 msgid "Failed to initialize zlib"
 msgstr ""
 
 #: common/rdr/ZlibInStream.cxx:112
-#, fuzzy
 msgid "Failed to decompress data"
-msgstr "פתיחת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: common/rdr/ZlibOutStream.cxx:138 common/rdr/ZlibOutStream.cxx:172
-#, fuzzy
 msgid "Failed to compress data"
-msgstr "פתיחת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: common/rfb/Blacklist.cxx:30
 msgid ""
@@ -318,18 +284,17 @@ msgid "The initial timeout applied when a host is first black-listed"
 msgstr ""
 
 #: common/rfb/CConnection.cxx:69
-#, fuzzy
 msgid "Disable lossy JPEG compression"
-msgstr "לאפשר דחיסת JPEG"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:197
 msgid "Reading version failed, not an RFB server?"
 msgstr ""
 
 #: common/rfb/CConnection.cxx:202
-#, fuzzy, c-format
+#, c-format
 msgid "Server supports RFB protocol version %d.%d"
-msgstr "גרסת פרוטוקול: %d.%d"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:207 common/rfb/CConnection.cxx:211
 #, c-format
@@ -337,19 +302,18 @@ msgid "Server gave unsupported RFB protocol version %d.%d"
 msgstr ""
 
 #: common/rfb/CConnection.cxx:226
-#, fuzzy, c-format
+#, c-format
 msgid "Using RFB protocol version %d.%d"
-msgstr "גרסת פרוטוקול: %d.%d"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:258
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown 3.3 security type %d"
-msgstr "סוג המשתנה אינו ידוע"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:259
-#, fuzzy
 msgid "Unknown 3.3 security type"
-msgstr "סוג המשתנה אינו ידוע"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:302 common/rfb/CSecurityVeNCrypt.cxx:181
 #, c-format
@@ -367,14 +331,13 @@ msgstr ""
 #: common/rfb/CConnection.cxx:359 common/rfb/SSecurityPlain.cxx:116
 #: common/rfb/SSecurityRSAAES.cxx:641 common/rfb/SSecurityRSAAES.cxx:671
 #: common/rfb/SSecurityVncAuth.cxx:121
-#, fuzzy
 msgid "Authentication failed"
-msgstr "האימות נכשל: %s"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:459
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to resize remote session: %d"
-msgstr "ההסרה של „%s” נכשלה: %s"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:598
 msgid "Enabling continuous updates"
@@ -392,7 +355,7 @@ msgstr ""
 
 #: common/rfb/CConnection.cxx:667
 msgid "Invalid SetColourMapEntries from server!"
-msgstr "‫SetColourMapEntries שגוי מהשרת!"
+msgstr ""
 
 #: common/rfb/CConnection.cxx:778 common/rfb/SConnection.cxx:513
 #: unix/w0vncserver/portals/Clipboard.cxx:549
@@ -416,14 +379,13 @@ msgid "Unknown QEMU audio operation %d"
 msgstr ""
 
 #: common/rfb/CMsgReader.cxx:144
-#, fuzzy
 msgid "Audio data is too large"
-msgstr "המשתנה גדול מדי"
+msgstr ""
 
 #: common/rfb/CMsgReader.cxx:194 common/rfb/SMsgReader.cxx:116
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown message type %d"
-msgstr "סוג המשתנה אינו ידוע"
+msgstr ""
 
 #: common/rfb/CMsgReader.cxx:360 common/rfb/CMsgReader.cxx:386
 #: common/rfb/CMsgReader.cxx:436 common/rfb/SMsgReader.cxx:341
@@ -451,9 +413,8 @@ msgid "Invalid rectangle received: %dx%d at %d,%d exceeds %dx%d"
 msgstr ""
 
 #: common/rfb/CMsgReader.cxx:558
-#, fuzzy
 msgid "Invalid rectangle received"
-msgstr "הממדים שצוינו שגויים!"
+msgstr ""
 
 #: common/rfb/CMsgReader.cxx:562
 msgid "Empty rectangle received"
@@ -461,19 +422,16 @@ msgstr ""
 
 #: common/rfb/CMsgReader.cxx:571 common/rfb/CMsgReader.cxx:636
 #: common/rfb/CMsgReader.cxx:683 common/rfb/CMsgReader.cxx:745
-#, fuzzy
 msgid "Received cursor is too large"
-msgstr "המשתנה גדול מדי"
+msgstr ""
 
 #: common/rfb/CMsgReader.cxx:839
-#, fuzzy
 msgid "Unknown cursor type"
-msgstr "סוג המשתנה אינו ידוע"
+msgstr ""
 
 #: common/rfb/CMsgReader.cxx:865 common/rfb/CMsgReader.cxx:870
-#, fuzzy
 msgid "Invalid desktop name received"
-msgstr "הממדים שצוינו שגויים!"
+msgstr ""
 
 #: common/rfb/CSecurityDH.cxx:92
 msgid "Received Diffie-Hellman key is too short"
@@ -488,9 +446,8 @@ msgid "Received invalid Diffie-Hellman modulus"
 msgstr ""
 
 #: common/rfb/CSecurityRSAAES.cxx:183
-#, fuzzy
 msgid "Failed to generate encryption key"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: common/rfb/CSecurityRSAAES.cxx:202
 msgid "Server encryption key is too short"
@@ -505,9 +462,8 @@ msgid "Server encryption key is invalid"
 msgstr ""
 
 #: common/rfb/CSecurityRSAAES.cxx:270 common/rfb/SSecurityRSAAES.cxx:380
-#, fuzzy
 msgid "Failed to encrypt data"
-msgstr "פתיחת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: common/rfb/CSecurityRSAAES.cxx:290
 msgid "Client key length doesn't match length of random data"
@@ -530,9 +486,8 @@ msgid "Path to the X.509 certificate for the trusted certificate authority"
 msgstr ""
 
 #: common/rfb/CSecurityTLS.cxx:62
-#, fuzzy
 msgid "Path to the X.509 certificate revocation list"
-msgstr "נתיב לאישורי X509 של רשות אישורים"
+msgstr ""
 
 #: common/rfb/CSecurityTLS.cxx:88 common/rfb/SSecurityTLS.cxx:90
 msgid "Failed to initialize GnuTLS"
@@ -565,24 +520,12 @@ msgid "Failed to load the system certificate trust store"
 msgstr ""
 
 #: common/rfb/CSecurityTLS.cxx:263
-#, fuzzy
 msgid "Failed to load the user specified certificate authority"
 msgstr ""
-"לא ניתן לטעון את קובץ ההגדרות שצוין:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: common/rfb/CSecurityTLS.cxx:266
-#, fuzzy
 msgid "Failed to load the user specified certificate revocation list"
 msgstr ""
-"לא ניתן לטעון את קובץ ההגדרות שצוין:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: common/rfb/CSecurityTLS.cxx:286
 msgid "Failed to configure the server name for TLS handshake"
@@ -702,14 +645,12 @@ msgid "Indexed RLE"
 msgstr ""
 
 #: common/rfb/EncodeManager.cxx:135
-#, fuzzy
 msgid "Full color"
-msgstr "מ&סך מלא"
+msgstr ""
 
 #: common/rfb/EncodeManager.cxx:140
-#, fuzzy
 msgid "Unknown encoder type"
-msgstr "סוג המשתנה אינו ידוע"
+msgstr ""
 
 #: common/rfb/EncodeManager.cxx:190
 #, c-format
@@ -721,9 +662,8 @@ msgid "Copies"
 msgstr ""
 
 #: common/rfb/H264Decoder.cxx:132
-#, fuzzy
 msgid "Failed to create H.264 context"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: common/rfb/H264LibavDecoderContext.cxx:55
 #: common/rfb/H264WinDecoderContext.cxx:51
@@ -732,23 +672,20 @@ msgid "Could not find video codec"
 msgstr ""
 
 #: common/rfb/H264LibavDecoderContext.cxx:59
-#, fuzzy
 msgid "Could not create video parser"
-msgstr "לא ניתן לקודד את המשתנים"
+msgstr ""
 
 #: common/rfb/H264LibavDecoderContext.cxx:65
 msgid "Could not allocate video codec context"
 msgstr ""
 
 #: common/rfb/H264LibavDecoderContext.cxx:73
-#, fuzzy
 msgid "Could not allocate video frame"
-msgstr "לא ניתן לקודד את המשתנים"
+msgstr ""
 
 #: common/rfb/H264LibavDecoderContext.cxx:81
-#, fuzzy
 msgid "Could not open video codec"
-msgstr "לא ניתן לפתוח את „%s”"
+msgstr ""
 
 #: common/rfb/H264WinDecoderContext.cxx:48
 msgid "Could not initialize MediaFoundation"
@@ -784,28 +721,26 @@ msgid "Unknown operation %c>, assuming ->"
 msgstr ""
 
 #: common/rfb/KeyRemapper.cxx:88
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid mapping %s"
-msgstr "מפתח הצג ‚%s’ שגוי"
+msgstr ""
 
 #: common/rfb/PixelFormat.cxx:187
-#, fuzzy
 msgid "Invalid pixel format"
-msgstr "תצורה שגויה"
+msgstr ""
 
 #: common/rfb/RREDecoder.cxx:112
-#, fuzzy
 msgid "Invalid RRE coordinates"
-msgstr "תצורה שגויה"
+msgstr ""
 
 #: common/rfb/SConnection.cxx:133
 msgid "Reading version failed, not an RFB client?"
 msgstr ""
 
 #: common/rfb/SConnection.cxx:138
-#, fuzzy, c-format
+#, c-format
 msgid "Client needs protocol version %d.%d"
-msgstr "גרסת פרוטוקול: %d.%d"
+msgstr ""
 
 #: common/rfb/SConnection.cxx:144
 #, c-format
@@ -813,9 +748,9 @@ msgid "Client needs protocol version %d.%d, server has %d.%d"
 msgstr ""
 
 #: common/rfb/SConnection.cxx:150
-#, fuzzy, c-format
+#, c-format
 msgid "Client uses unofficial protocol version %d.%d"
-msgstr "גרסת פרוטוקול: %d.%d"
+msgstr ""
 
 #: common/rfb/SConnection.cxx:158
 #, c-format
@@ -841,28 +776,27 @@ msgid "Client requests security type %s (%d)"
 msgstr ""
 
 #: common/rfb/SConnection.cxx:243
-#, fuzzy, c-format
+#, c-format
 msgid "Authentication error: %s"
-msgstr "האימות נכשל: %s"
+msgstr ""
 
 #: common/rfb/SConnection.cxx:319
-#, fuzzy, c-format
+#, c-format
 msgid "Connection failed: %s"
-msgstr "האימות נכשל: %s"
+msgstr ""
 
 #: common/rfb/SConnection.cxx:568 common/rfb/SConnection.cxx:586
 msgid "Connection rejected"
 msgstr ""
 
 #: common/rfb/SMsgReader.cxx:117
-#, fuzzy
 msgid "Unknown message type"
-msgstr "סוג המשתנה אינו ידוע"
+msgstr ""
 
 #: common/rfb/SMsgReader.cxx:496
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown QEMU submessage type %d"
-msgstr "סוג המשתנה אינו ידוע"
+msgstr ""
 
 #: common/rfb/SMsgReader.cxx:516
 msgid "Key event without keycode"
@@ -873,14 +807,12 @@ msgid "Users permitted to access the server"
 msgstr ""
 
 #: common/rfb/SSecurityPlain.cxx:98
-#, fuzzy
 msgid "Username is too long"
-msgstr "השורה ארוכה מדי"
+msgstr ""
 
 #: common/rfb/SSecurityPlain.cxx:102
-#, fuzzy
 msgid "Password is too long"
-msgstr "השורה ארוכה מדי"
+msgstr ""
 
 #: common/rfb/SSecurityRSAAES.cxx:77
 msgid "Path to the RSA key for the RSA-AES security types"
@@ -916,9 +848,8 @@ msgid "No password configured"
 msgstr ""
 
 #: common/rfb/SSecurityTLS.cxx:67
-#, fuzzy
 msgid "Path to the server's X.509 certificate"
-msgstr "נתיב לאישורי X509 של רשות אישורים"
+msgstr ""
 
 #: common/rfb/SSecurityTLS.cxx:72
 msgid "Path to the private key of the server's X.509 certificate"
@@ -941,9 +872,8 @@ msgid "There are no VeNCrypt sub-types to send to the client"
 msgstr ""
 
 #: common/rfb/SSecurityVncAuth.cxx:53 vncviewer/parameters.cxx:96
-#, fuzzy
 msgid "Password file for VNC authentication"
-msgstr "אימות VNC"
+msgstr ""
 
 #: common/rfb/SSecurityVncAuth.cxx:57
 msgid "Obfuscated binary encoding of the password for VNC authentication"
@@ -953,9 +883,9 @@ msgstr ""
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:696
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:753
 #: unix/xserver/hw/vnc/vncDRI3.c:516
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open \"%s\": %s"
-msgstr "ההסרה של „%s” נכשלה: %s"
+msgstr ""
 
 #: common/rfb/Security.cxx:42
 msgid ""
@@ -1035,23 +965,20 @@ msgid "Accept pointer events from clients"
 msgstr ""
 
 #: common/rfb/ServerCore.cxx:93 unix/vncconfig/vncconfig.cxx:86
-#, fuzzy
 msgid "Accept clipboard changes from clients"
-msgstr "לקבל לוח גזירים מהשרת"
+msgstr ""
 
 #: common/rfb/ServerCore.cxx:97
-#, fuzzy
 msgid "Send clipboard changes to clients"
-msgstr "לשלוח לוח גזירים לשרת"
+msgstr ""
 
 #: common/rfb/ServerCore.cxx:101
 msgid "Accept session size changes from clients"
 msgstr ""
 
 #: common/rfb/ServerCore.cxx:105
-#, fuzzy
 msgid "Prompt the local user to accept or reject incoming connections"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: common/rfb/TightDecoder.cxx:74
 msgid "Bad Tight subencoding value received"
@@ -1070,18 +997,17 @@ msgid "Invalid Tight filter code received"
 msgstr ""
 
 #: common/rfb/TightDecoder.cxx:426
-#, fuzzy
 msgid "Failed to decode Tight rectangle"
-msgstr "סגירת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: common/rfb/UnixPasswordValidator.cxx:41
 msgid "Service name for PAM password validation"
 msgstr ""
 
 #: common/rfb/UnixPasswordValidator.cxx:113
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to initialized PAM: %d"
-msgstr "השמירה של „%s” נכשלה: %s"
+msgstr ""
 
 #: common/rfb/UnixPasswordValidator.cxx:123
 #, c-format
@@ -1089,14 +1015,14 @@ msgid "Failed to set PAM_XDISPLAY: %s (%d)"
 msgstr ""
 
 #: common/rfb/UnixPasswordValidator.cxx:131
-#, fuzzy, c-format
+#, c-format
 msgid "PAM authentication failed: %s (%d)"
-msgstr "האימות נכשל: %s"
+msgstr ""
 
 #: common/rfb/UnixPasswordValidator.cxx:137
-#, fuzzy, c-format
+#, c-format
 msgid "PAM authorization failed: %s (%d)"
-msgstr "האימות נכשל: %s"
+msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:90
 #, c-format
@@ -1104,23 +1030,22 @@ msgid "Closing %s: %s"
 msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:212
-#, fuzzy
 msgid "Clean disconnection"
-msgstr "&התחברות חדשה"
+msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:263
 msgid "Client does not support resizing the desktop"
 msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:457
-#, fuzzy, c-format
+#, c-format
 msgid "Server default pixel format: %s"
-msgstr "(בררת המחדל של השרת %s)"
+msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:512
-#, fuzzy, c-format
+#, c-format
 msgid "Client pixel format: %s"
-msgstr "נעשה שימוש בתצורת פיקסלים %s"
+msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:670
 #, c-format
@@ -1140,14 +1065,12 @@ msgid "Client tried to enable continuous updates when not allowed"
 msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:850
-#, fuzzy
 msgid "Authentication timeout"
-msgstr "אימות"
+msgstr ""
 
 #: common/rfb/VNCSConnectionST.cxx:862
-#, fuzzy
 msgid "Idle for too long"
-msgstr "השורה ארוכה מדי"
+msgstr ""
 
 #: common/rfb/VNCServerST.cxx:115
 msgid "Server shutting down"
@@ -1168,14 +1091,14 @@ msgid "Accepted: %s"
 msgstr ""
 
 #: common/rfb/VNCServerST.cxx:170
-#, fuzzy, c-format
+#, c-format
 msgid "Error accepting client: %s"
-msgstr "שגיאה בהקמת חיבור חדש: %s"
+msgstr ""
 
 #: common/rfb/VNCServerST.cxx:199
-#, fuzzy, c-format
+#, c-format
 msgid "Closed: %s"
-msgstr "סגירה"
+msgstr ""
 
 #: common/rfb/VNCServerST.cxx:341
 #, c-format
@@ -1187,9 +1110,8 @@ msgid "Rejecting too large resize request"
 msgstr ""
 
 #: common/rfb/VNCServerST.cxx:633
-#, fuzzy
 msgid "Invalid screen layout requested by client"
-msgstr "חושבה פריסת מסך שגויה לבקשת שינוי הגודל!"
+msgstr ""
 
 #: common/rfb/VNCServerST.cxx:647
 msgid "Desktop configured a different screen layout than requested"
@@ -1221,14 +1143,12 @@ msgstr ""
 
 #: common/rfb/ZRLEDecoder.cxx:71 common/rfb/ZRLEDecoder.cxx:249
 #: common/rfb/ZRLEDecoder.cxx:274
-#, fuzzy
 msgid "Failed to decode ZRLE rectangle"
-msgstr "עדכון מצב נורית המקלדת נכשל"
+msgstr ""
 
 #: common/rfb/ZRLEEncoder.cxx:40
-#, fuzzy
 msgid "[DEPRECATED] Zlib compression level"
-msgstr "רמת דחיסה מותאמת אישית"
+msgstr ""
 
 #: common/rfb/ZRLEEncoder.cxx:48
 msgid ""
@@ -1245,9 +1165,9 @@ msgid "Unable to create more screens, as needed by the new client layout."
 msgstr ""
 
 #: unix/common/randr.cxx:239
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to resize screen to %dx%d"
-msgstr "קריאת רשומה %d בהיסטוריית השרת נכשלה: %s"
+msgstr ""
 
 #: unix/common/randr.cxx:277 unix/common/randr.cxx:358
 #, c-format
@@ -1269,9 +1189,9 @@ msgid "Cannot find an available output for new screen layout"
 msgstr ""
 
 #: unix/common/randr.cxx:417
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to disable the output '%s'"
-msgstr "השמירה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:56 unix/x0vncserver/x0vncserver.cxx:84
 #: vncviewer/parameters.cxx:239
@@ -1288,24 +1208,22 @@ msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:87 vncviewer/OptionsDialog.cxx:1027
 msgid "Also set primary selection"
-msgstr "להגדיר גם את הבחירה העיקרית"
+msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:88
-#, fuzzy
 msgid "Send clipboard to clients"
-msgstr "לשלוח לוח גזירים לשרת"
+msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:89
-#, fuzzy
 msgid "Send primary selection to clients"
-msgstr "לשלוח את הבחירה העיקרית כלוח כזירים"
+msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:108
 msgid "VNC config"
 msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:180
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Usage: %s [parameters]\n"
 "       %s [parameters] -connect [-view-only] <host>[:<port>]\n"
@@ -1315,12 +1233,6 @@ msgid ""
 "       %s [parameters] -get <param>\n"
 "       %s [parameters] -desc <param>\n"
 msgstr ""
-"\n"
-"שימוש: ‎%s [parameters] [host][:displayNum]\n"
-"       %s [parameters] [host][::port]\n"
-"       %s [parameters] [שקע יוניקס]\n"
-"       %s [parameters] -listen [port]\n"
-"       %s [parameters] [קובץ ‎.tigervnc]\n"
 
 #: unix/vncconfig/vncconfig.cxx:189 unix/w0vncserver/w0vncserver.cxx:87
 #: unix/x0vncserver/x0vncserver.cxx:294 unix/xserver/hw/vnc/xvnc.c:223
@@ -1334,12 +1246,6 @@ msgid ""
 "Parameter names are case-insensitive.  The parameters are:\n"
 "\n"
 msgstr ""
-"\n"
-"את המשתנים אפשר להדליק עם ‎-<param>‎ או לכבות עם ‎-<param>=0\n"
-"משתנים שמקבלים ערך אפשר לציין בתור ‎-<param> <value>\n"
-"הצורות התקפות הנוספות הן ‎<param>=<value> -<param>=<value> --<param>=<value>\n"
-"שמות המשתנים תלויי רישיות (אותיות גדולות וקטנות אינן זהות).  המשתנים הם:\n"
-"\n"
 
 #: unix/vncconfig/vncconfig.cxx:246 unix/x0vncserver/x0vncserver.cxx:358
 #, c-format
@@ -1372,9 +1278,9 @@ msgid "%s: Getting the description for parameter %s failed\n"
 msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:314 unix/vncconfig/vncconfig.cxx:336
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Invalid parameter syntax '%s'\n"
-msgstr "מפתח הצג ‚%s’ שגוי"
+msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:316 unix/vncconfig/vncconfig.cxx:330
 #: unix/vncconfig/vncconfig.cxx:338 unix/vncpasswd/vncpasswd.cxx:211
@@ -1384,7 +1290,7 @@ msgstr "מפתח הצג ‚%s’ שגוי"
 #: vncviewer/vncviewer.cxx:639 vncviewer/vncviewer.cxx:647
 #, c-format
 msgid "See '%s --help' for more information.\n"
-msgstr "יש להקליד ‚‎%s --help’ למידע נוסף.\n"
+msgstr ""
 
 #: unix/vncconfig/vncconfig.cxx:325 unix/vncconfig/vncconfig.cxx:347
 #, c-format
@@ -1396,7 +1302,7 @@ msgstr ""
 #: vncviewer/vncviewer.cxx:637
 #, c-format
 msgid "%s: Unrecognized option '%s'\n"
-msgstr "%s: האפשרות ‚%s’ לא מזוהה\n"
+msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:51
 #, c-format
@@ -1406,9 +1312,8 @@ msgid ""
 msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:96
-#, fuzzy
 msgid "Writing VNC password to stdout failed"
-msgstr "פתיחת קובץ הססמה נכשלה"
+msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:119
 #, c-format
@@ -1422,7 +1327,7 @@ msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:141 vncviewer/AuthDialog.cxx:120
 msgid "Password:"
-msgstr "ססמה:"
+msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:150
 #, c-format
@@ -1458,18 +1363,18 @@ msgstr ""
 #: vncviewer/vncviewer.cxx:646
 #, c-format
 msgid "%s: Extra argument '%s'\n"
-msgstr "%s: ארגומנט נוסף ‚%s’\n"
+msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:232 vncviewer/parameters.cxx:776
 #: vncviewer/parameters.cxx:854 vncviewer/vncviewer.cxx:478
 #, c-format
 msgid "Could not determine VNC config directory path"
-msgstr "לא ניתן לקבוע מה נתיב תיקיית ההגדרות"
+msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:240 vncviewer/vncviewer.cxx:494
 #, c-format
 msgid "Could not create VNC config directory \"%s\": %s"
-msgstr "לא ניתן ליצור תיקיית הגדרות של VNC‏ „%s”:‏ %s"
+msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:254
 #, c-format
@@ -1487,14 +1392,13 @@ msgid "A view-only password is not used\n"
 msgstr ""
 
 #: unix/vncpasswd/vncpasswd.cxx:275 unix/vncpasswd/vncpasswd.cxx:283
-#, fuzzy, c-format
+#, c-format
 msgid "Failed writing to \"%s\": %s"
-msgstr "ההסרה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/GSocketSource.cxx:240 unix/x0vncserver/x0vncserver.cxx:509
-#, fuzzy
 msgid "Client connection rejected"
-msgstr "החיבור מאובטח"
+msgstr ""
 
 #: unix/w0vncserver/parameters.cxx:34 unix/x0vncserver/x0vncserver.cxx:87
 #: unix/xserver/hw/vnc/vncExtInit.cc:73 win/vncconfig/Connections.h:39
@@ -1525,9 +1429,8 @@ msgstr ""
 
 #: unix/w0vncserver/parameters.cxx:49 unix/x0vncserver/x0vncserver.cxx:105
 #: unix/xserver/hw/vnc/vncExtInit.cc:88
-#, fuzzy
 msgid "Listen on the specified network address"
-msgstr "לא צוין קוד מקש עם לחיצה על מקש"
+msgstr ""
 
 #: unix/w0vncserver/parameters.cxx:53 unix/x0vncserver/XDesktop.cxx:72
 #: unix/xserver/hw/vnc/XserverDesktop.cc:67 win/rfb_win32/SInput.cxx:146
@@ -1540,24 +1443,21 @@ msgstr ""
 #. clipboards
 #: unix/w0vncserver/parameters.cxx:59 unix/x0vncserver/XSelection.cxx:36
 #: unix/xserver/hw/vnc/vncExtInit.cc:103 vncviewer/parameters.cxx:228
-#, fuzzy
 msgid "Set the primary selection as well as the clipboard selection"
-msgstr "לשלוח את הבחירה העיקרית כלוח כזירים"
+msgstr ""
 
 #. TRANSLATORS: This refers to the two different X11
 #. clipboards
 #: unix/w0vncserver/parameters.cxx:66 unix/x0vncserver/XSelection.cxx:43
 #: unix/xserver/hw/vnc/vncExtInit.cc:110
-#, fuzzy
 msgid ""
 "Send the primary selection to the client as well as the clipboard selection"
-msgstr "לשלוח את הבחירה העיקרית כלוח כזירים"
+msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:93
 #: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:75
-#, fuzzy
 msgid "Remote desktop session stopped"
-msgstr "מציג שולחנות עבודה מרוחקים"
+msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:119
 #, c-format
@@ -1565,9 +1465,9 @@ msgid "Invalid PipeWire chunk size: %d instead of %d"
 msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:276
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to update cursor image: %s"
-msgstr "עדכון מצב נורית המקלדת נכשל: %d"
+msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWireSource.cxx:90
 #, c-format
@@ -1575,29 +1475,20 @@ msgid "PipeWire loop failed: %s"
 msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWireStream.cxx:77
-#, fuzzy
 msgid "Failed to create PipeWire context"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWireStream.cxx:84
-#, fuzzy
 msgid "Failed to connect to PipeWire server"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: unix/w0vncserver/pipewire/PipeWireStream.cxx:124
-#, fuzzy
 msgid "Failed to create PipeWire stream"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWireStream.cxx:153
-#, fuzzy
 msgid "Failed to connect PipeWire stream"
-msgstr "סגירת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/pipewire/PipeWireStream.cxx:175
 #, c-format
@@ -1617,9 +1508,9 @@ msgstr ""
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:323
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:438
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:442
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to update the clipboard: %s"
-msgstr "עדכון מצב נורית המקלדת נכשל"
+msgstr ""
 
 #: unix/w0vncserver/portals/Clipboard.cxx:212
 #: unix/w0vncserver/portals/Clipboard.cxx:400
@@ -1630,9 +1521,9 @@ msgid "Unsupported mime type '%s'"
 msgstr ""
 
 #: unix/w0vncserver/portals/Clipboard.cxx:255
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to release clipboard ownership: %s"
-msgstr "קריאת המשתנה „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/Clipboard.cxx:326
 #: unix/w0vncserver/portals/Clipboard.cxx:355
@@ -1641,9 +1532,9 @@ msgstr "קריאת המשתנה „%s” נכשלה: %s"
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:254
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:480
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:483
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to retrieve the clipboard: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/Clipboard.cxx:338
 #: unix/w0vncserver/portals/Clipboard.cxx:476
@@ -1656,9 +1547,8 @@ msgstr ""
 
 #: unix/w0vncserver/portals/Clipboard.cxx:513
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:481
-#, fuzzy
 msgid "Cancelled"
-msgstr "ביטול"
+msgstr ""
 
 #: unix/w0vncserver/portals/Clipboard.cxx:540
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:510
@@ -1666,21 +1556,21 @@ msgid "Non-ASCII character in clipboard"
 msgstr ""
 
 #: unix/w0vncserver/portals/PortalDesktop.cxx:73
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create PipeWire pixel buffer: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/PortalDesktop.cxx:110
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to initialize clipboard access: %s"
-msgstr "עדכון מצב נורית המקלדת נכשל: %d"
+msgstr ""
 
 #: unix/w0vncserver/portals/PortalDesktop.cxx:127
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:295
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:407
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to start remote desktop session: %s"
-msgstr "ההסרה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/PortalDesktop.cxx:129
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:449
@@ -1698,9 +1588,8 @@ msgstr "ההסרה של „%s” נכשלה: %s"
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:630
 #: unix/w0vncserver/wayland/WaylandDesktop.cxx:125
 #: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:181
-#, fuzzy
 msgid "Failed to start remote desktop session"
-msgstr "ההסרה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/PortalDesktop.cxx:157
 #: unix/w0vncserver/wayland/WaylandDesktop.cxx:188
@@ -1710,35 +1599,25 @@ msgstr ""
 
 #: unix/w0vncserver/portals/PortalProxy.cxx:50
 #: unix/w0vncserver/portals/PortalProxy.cxx:225
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to connect to D-Bus: %s"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: unix/w0vncserver/portals/PortalProxy.cxx:61
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to connect to D-Bus interface \"%s\" at \"%s\" from \"%s\": %s"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: unix/w0vncserver/portals/PortalProxy.cxx:139
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to call D-Bus method \"%s\": %s"
-msgstr "השמירה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/PortalProxy.cxx:244
 #: unix/w0vncserver/portals/PortalProxy.cxx:256
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to enumerate desktop portals: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:67
 msgid "Remember display choice when user connects"
@@ -1746,58 +1625,51 @@ msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:142
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:170
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to send keyboard event: %s"
-msgstr "קבלת מצב נורית המקלדת נכשלה: %d"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:191
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to send pointer motion event: %s"
-msgstr "קריאת השורה %d בקובץ „%s” נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:225
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to send pointer button event: %s"
-msgstr "קריאת רשומה %d בהיסטוריית השרת נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:267
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to send pointer scroll event: %s"
-msgstr "קריאת רשומה %d בהיסטוריית השרת נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:309
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to close remote desktop session: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:347
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to request control of input devices: %s"
-msgstr "כתיבת קובץ ההגדרות נכשלה, אי אפשר לפתוח את %s:‏ %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:383
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to request monitors to share: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:456
 msgid "Connection to local session was cancelled"
 msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:461
-#, fuzzy
 msgid "Failed to connect to local session"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:471
-#, fuzzy
 msgid "Failed to get handle to local session"
-msgstr "קבלת הגדרות צג המערכת נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:510
 #: unix/x0vncserver/XDesktop.cxx:1018 unix/xserver/hw/vnc/vncExtInit.cc:400
@@ -1806,33 +1678,26 @@ msgid "Connection rejected by local user"
 msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:526
-#, fuzzy
 msgid "Failed to get input devices"
-msgstr "קבלת נתוני האירוע של אירוע X Input נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:538
-#, fuzzy
 msgid "Failed to get image streams for local session"
-msgstr "קבלת הגדרות צג המערכת נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:569
 msgid "Display choice restore token was not provided"
 msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:604
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to connect to PipeWire: %s"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:627
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get PipeWire file descriptors: %s"
-msgstr "קבלת פרטי המחווה נכשלה (שגיאה 0x%x)"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:649
 msgid "No image streams provided for the session"
@@ -1850,22 +1715,22 @@ msgstr ""
 #: vncviewer/vncviewer.cxx:512
 #, c-format
 msgid "Could not determine VNC state directory path"
-msgstr "לא ניתן לקבוע מה נתיב תיקיית המצב"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:708
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to load restore token from \"%s\""
-msgstr "קריאת רשומה %d בהיסטוריית השרת נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:742 vncviewer/vncviewer.cxx:518
 #, c-format
 msgid "Could not create VNC state directory \"%s\": %s"
-msgstr "לא ניתן ליצור תיקיית מצב של VNC ‏„%s”:‏ %s"
+msgstr ""
 
 #: unix/w0vncserver/w0vncserver-forget.cxx:40
-#, fuzzy, c-format
+#, c-format
 msgid "TigerVNC server version %s\n"
-msgstr "מציג TigerVNC"
+msgstr ""
 
 #: unix/w0vncserver/w0vncserver-forget.cxx:47
 #, c-format
@@ -1878,7 +1743,7 @@ msgstr ""
 #: vncviewer/parameters.cxx:622
 #, c-format
 msgid "Failed to remove \"%s\": %s"
-msgstr "ההסרה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/w0vncserver.cxx:74 unix/x0vncserver/x0vncserver.cxx:281
 #, c-format
@@ -1913,9 +1778,8 @@ msgstr ""
 
 #: unix/w0vncserver/w0vncserver.cxx:195 unix/x0vncserver/x0vncserver.cxx:426
 #: unix/xserver/hw/vnc/vncExtInit.cc:255
-#, fuzzy
 msgid "No path or port configured for incoming connections"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: unix/w0vncserver/w0vncserver.cxx:211
 msgid "Desktop does not support remote connections"
@@ -1923,19 +1787,19 @@ msgstr ""
 
 #: unix/w0vncserver/wayland/GWaylandSource.cxx:132
 #: unix/w0vncserver/wayland/objects/Display.cxx:87
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to communicate with Wayland server: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandDesktop.cxx:88
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create virtual pointer device: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandDesktop.cxx:94
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create virtual keyboard device: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandDesktop.cxx:114
 msgid "Desktop does not support clipboard control"
@@ -1943,14 +1807,14 @@ msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandDesktop.cxx:124
 #: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:180
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create framebuffer: %s"
-msgstr "קריאת המשתנה „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:126
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to set cursor: %s"
-msgstr "השמירה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:179
 #, c-format
@@ -1958,9 +1822,9 @@ msgid "Cannot handle Wayland pixel format %d: %s"
 msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:199
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to handle screen update: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:200
 msgid "Failed to handle screen update"
@@ -1980,46 +1844,34 @@ msgid "Cannot handle Wayland pixel format %d"
 msgstr ""
 
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:128
-#, fuzzy
 msgid "Failed to create clipboard data device"
-msgstr "עדכון מצב נורית המקלדת נכשל"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/DataControl.cxx:561
-#, fuzzy
 msgid "Failed to create clipboard data source"
-msgstr "עדכון מצב נורית המקלדת נכשל"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/Display.cxx:58
-#, fuzzy
 msgid "Failed to connect to Wayland server"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: unix/w0vncserver/wayland/objects/Display.cxx:63
-#, fuzzy
 msgid "Failed to get Wayland registry"
-msgstr "פתיחת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCaptureSource.cxx:53
 #: unix/w0vncserver/wayland/objects/ImageCaptureSource.cxx:74
-#, fuzzy
 msgid "Failed to create screen capture source"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureCursorSession.cxx:75
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:99
-#, fuzzy
 msgid "Failed to create cursor capture session"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:81
-#, fuzzy
 msgid "Failed to create screen capture session"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:90
 msgid "No pointer available for desktop session"
@@ -2034,33 +1886,30 @@ msgstr ""
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:209
 #: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:198
 #: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:203
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create shared memory pool: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:219
 #: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:293
-#, fuzzy
 msgid "Failed to create Wayland buffer object"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:281
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:288
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:292
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:296
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to capture screen contents: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:282
-#, fuzzy
 msgid "Uknown reason"
-msgstr "משתנה לא ידוע"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:289
-#, fuzzy
 msgid "Invalid buffer constraints"
-msgstr "תצורה שגויה"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:293
 #: win/rfb_win32/Service.cxx:465
@@ -2077,19 +1926,17 @@ msgid "No supported Wayland pixel format"
 msgstr ""
 
 #: unix/w0vncserver/wayland/objects/Keyboard.cxx:148
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to access keyboard layout: %s"
-msgstr "קבלת מצב נורית המקלדת נכשלה: %d"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/Keyboard.cxx:171
-#, fuzzy
 msgid "Failed to parse keyboard layout"
-msgstr "עדכון מצב נורית המקלדת נכשל"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/Keyboard.cxx:182
-#, fuzzy
 msgid "Failed to allocate keyboard state"
-msgstr "עדכון מצב נורית המקלדת נכשל"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/Keyboard.cxx:197
 #, c-format
@@ -2097,28 +1944,25 @@ msgid "Unsupported keymap format: %d"
 msgstr ""
 
 #: unix/w0vncserver/wayland/objects/Object.cxx:57
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to bind to Wayland object %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:253
-#, fuzzy
 msgid "Failed to capture screen contents"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/VirtualKeyboard.cxx:59
-#, fuzzy
 msgid "Failed to create virtual keyboard"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/w0vncserver/wayland/objects/VirtualPointer.cxx:60
 msgid "Unknown mouse button"
 msgstr ""
 
 #: unix/w0vncserver/wayland/objects/VirtualPointer.cxx:73
-#, fuzzy
 msgid "Failed to create virtual pointer"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/x0vncserver/Geometry.cxx:38
 msgid ""
@@ -2155,9 +1999,8 @@ msgid "Image types do not match (%s, %s, %s)"
 msgstr ""
 
 #: unix/x0vncserver/XDesktop.cxx:69
-#, fuzzy
 msgid "Use MIT-SHM extension if available"
-msgstr "הרחבת X Input אינה זמינה."
+msgstr ""
 
 #: unix/x0vncserver/XDesktop.cxx:77 unix/xserver/hw/vnc/XserverDesktop.cc:72
 #: win/winvnc/QueryConnectDialog.cxx:41
@@ -2200,9 +2043,8 @@ msgstr ""
 
 #: unix/x0vncserver/XDesktop.cxx:337 unix/xserver/hw/vnc/XserverDesktop.cc:177
 #: win/winvnc/VNCServerWin32.cxx:250
-#, fuzzy
 msgid "Another connection is currently being queried."
-msgstr "החיבור אינו מאובטח"
+msgstr ""
 
 #: unix/x0vncserver/XDesktop.cxx:344 unix/xserver/hw/vnc/XserverDesktop.cc:192
 #: win/winvnc/QueryConnectDialog.cxx:94
@@ -2220,18 +2062,17 @@ msgid "Could not map keysym XK_%s (0x%04x) to keycode"
 msgstr ""
 
 #: unix/x0vncserver/XDesktop.cxx:627 unix/x0vncserver/XDesktop.cxx:701
-#, fuzzy
 msgid "Failed to get screen layout"
-msgstr "קבלת נתוני האירוע של אירוע X Input נכשלה"
+msgstr ""
 
 #: unix/x0vncserver/XDesktop.cxx:803
 msgid "Failed to find a suitable screen size"
 msgstr ""
 
 #: unix/x0vncserver/XDesktop.cxx:1063
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to update cursor: %s"
-msgstr "השמירה של „%s” נכשלה: %s"
+msgstr ""
 
 #: unix/x0vncserver/XSelection.cxx:87 unix/xserver/hw/vnc/vncSelection.c:142
 msgid "Could not set CLIPBOARD selection"
@@ -2265,9 +2106,8 @@ msgid "Could not read IP filtering rules, rejecting all clients"
 msgstr ""
 
 #: unix/x0vncserver/x0vncserver.cxx:378
-#, fuzzy
 msgid "Invalid geometry"
-msgstr "הממדים שצוינו שגויים!"
+msgstr ""
 
 #: unix/x0vncserver/x0vncserver.cxx:389
 msgid "Listening for VNC connections on systemd sockets"
@@ -2315,28 +2155,27 @@ msgid "Incompatible bits per pixel for pixmap\n"
 msgstr ""
 
 #: unix/xserver/hw/vnc/vncDRI3.c:223
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create GPU buffer: %s\n"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncDRI3.c:301 unix/xserver/hw/vnc/vncDRI3.c:362
-#, fuzzy, c-format
+#, c-format
 msgid "Could not map GPU buffer: %s\n"
-msgstr "לא ניתן לפתוח את „%s”"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncDRI3.c:465
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid render node path: %s\n"
-msgstr "מפתח הצג ‚%s’ שגוי"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncDRI3.c:488 unix/xserver/hw/vnc/vncDRI3.c:507
 msgid "Could not find any available render nodes\n"
 msgstr ""
 
 #: unix/xserver/hw/vnc/vncDRI3.c:492
-#, fuzzy
 msgid "Failed to enumerate render nodes\n"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncDRI3.c:526
 msgid "Could not create GPU render device\n"
@@ -2365,14 +2204,12 @@ msgid "Too many screens for VNC extension\n"
 msgstr ""
 
 #: unix/xserver/hw/vnc/vncExtInit.cc:185
-#, fuzzy
 msgid "VNC extension running"
-msgstr "פרטי חיבור VNC"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncExtInit.cc:207 unix/xserver/hw/vnc/vncExtInit.cc:277
-#, fuzzy
 msgid "Listening for VNC connections on inetd socket"
-msgstr "חיבור TigerVNC למכונת Windows"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncExtInit.cc:268
 #, c-format
@@ -2380,19 +2217,13 @@ msgid "Created VNC server for screen %d"
 msgstr ""
 
 #: unix/xserver/hw/vnc/vncExtInit.cc:274
-#, fuzzy
 msgid "Failed to listen for VNC connections on inetd socket"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncExtInit.cc:358
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to disconnect clients: %s"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: unix/xserver/hw/vnc/vncExtInit.cc:371
 #, c-format
@@ -2408,15 +2239,14 @@ msgid "Failed to add reverse connection socket"
 msgstr ""
 
 #: unix/xserver/hw/vnc/vncExtInit.cc:378
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to establish reverse connection: %s"
-msgstr "שגיאה בהקמת חיבור חדש: %s"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncInput.c:120 unix/xserver/hw/vnc/vncInput.c:124
 #: unix/xserver/hw/vnc/vncInput.c:128
-#, fuzzy
 msgid "Failed to create TigerVNC input devices\n"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: unix/xserver/hw/vnc/vncInput.c:588
 msgid "Unable to find a modifier key for Shift"
@@ -2450,9 +2280,8 @@ msgid "Underlying X server release %d\n"
 msgstr ""
 
 #: unix/xserver/hw/vnc/xvnc.c:221
-#, fuzzy
 msgid "VNC parameters:\n"
-msgstr "משתנה לא ידוע"
+msgstr ""
 
 #: unix/xserver/hw/vnc/xvnc.c:285 unix/xserver/hw/vnc/xvnc.c:288
 #, c-format
@@ -2460,9 +2289,9 @@ msgid "Invalid pixmap depth %d passed to -pixdepths\n"
 msgstr ""
 
 #: unix/xserver/hw/vnc/xvnc.c:312 unix/xserver/hw/vnc/xvnc.c:315
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid geometry %s passed to -geometry\n"
-msgstr "הממדים שצוינו שגויים!"
+msgstr ""
 
 #: unix/xserver/hw/vnc/xvnc.c:335 unix/xserver/hw/vnc/xvnc.c:338
 #: unix/xserver/hw/vnc/xvnc.c:354 unix/xserver/hw/vnc/xvnc.c:357
@@ -2519,19 +2348,18 @@ msgid "No audio playback device available"
 msgstr ""
 
 #: vncviewer/AudioOutputPulse.cxx:152 vncviewer/AudioOutputPulse.cxx:174
-#, fuzzy, c-format
+#, c-format
 msgid "Could not connect to sound server: %s"
-msgstr "לא ניתן ליצור תיקיית הגדרות של VNC‏ „%s”:‏ %s"
+msgstr ""
 
 #: vncviewer/AudioOutputPulse.cxx:180
-#, fuzzy
 msgid "Timed out connecting to sound server"
-msgstr "החיבור מאובטח"
+msgstr ""
 
 #: vncviewer/AudioOutputPulse.cxx:236
-#, fuzzy, c-format
+#, c-format
 msgid "Could not create audio playback stream: %s"
-msgstr "לא ניתן ליצור תיקיית נתונים של VNC‏ „%s”:‏ %s"
+msgstr ""
 
 #: vncviewer/AudioOutputPulse.cxx:266
 #, c-format
@@ -2543,48 +2371,46 @@ msgid "Could not write to audio playback device"
 msgstr ""
 
 #: vncviewer/AudioOutputPulse.cxx:454
-#, fuzzy
 msgid "Lost connection to sound server"
-msgstr "החיבור מאובטח"
+msgstr ""
 
 #: vncviewer/AudioOutputPulse.cxx:470
 msgid "Audio playback stream failed"
 msgstr ""
 
 #: vncviewer/AudioOutputWin32.cxx:113
-#, fuzzy
 msgid "Could not open audio playback device"
-msgstr "לא ניתן לקודד את המשתנים"
+msgstr ""
 
 #: vncviewer/AuthDialog.cxx:70
 msgid "VNC authentication"
-msgstr "אימות VNC"
+msgstr ""
 
 #: vncviewer/AuthDialog.cxx:84
 msgid "This connection is secure"
-msgstr "החיבור מאובטח"
+msgstr ""
 
 #: vncviewer/AuthDialog.cxx:88
 msgid "This connection is not secure"
-msgstr "החיבור אינו מאובטח"
+msgstr ""
 
 #: vncviewer/AuthDialog.cxx:110
 msgid "Username:"
-msgstr "שם משתמש:"
+msgstr ""
 
 #: vncviewer/AuthDialog.cxx:128
 msgid "Keep password for reconnect"
-msgstr "לשמור את הסיסמה להתחברות מחדש"
+msgstr ""
 
 #: vncviewer/CConn.cxx:187
 #, c-format
 msgid "Connected to socket %s"
-msgstr "מחובר לשקע %s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:194
 #, c-format
 msgid "Connected to host %s port %d"
-msgstr "מחובר למארח %s פתחה %d"
+msgstr ""
 
 #: vncviewer/CConn.cxx:199
 #, c-format
@@ -2593,67 +2419,62 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/CConn.cxx:219
 #, c-format
 msgid "Desktop name: %.80s"
-msgstr "שם שולחן העבודה %.80s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:222
 #, c-format
 msgid "Host: %.80s port: %d"
-msgstr "מארח: %.80s פתחה: %d"
+msgstr ""
 
 #: vncviewer/CConn.cxx:226
 #, c-format
 msgid "Size: %d x %d"
-msgstr "גודל: %d x %d"
+msgstr ""
 
 #: vncviewer/CConn.cxx:233
 #, c-format
 msgid "Pixel format: %s"
-msgstr "תצורת פיקסלים: %s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:236
 #, c-format
 msgid "Requested encoding: %s"
-msgstr "קידוד נדרש: %s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:240
 #, c-format
 msgid "Last used encoding: %s"
-msgstr "קידוד אחרון: %s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:244
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
-msgstr "הערכת מהירות הקו: %d קסל״ש"
+msgstr ""
 
 #: vncviewer/CConn.cxx:248
 #, c-format
 msgid "Protocol version: %d.%d"
-msgstr "גרסת פרוטוקול: %d.%d"
+msgstr ""
 
 #: vncviewer/CConn.cxx:252
 #, c-format
 msgid "Security method: %s"
-msgstr "שיטת אבטחה: %s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:310 vncviewer/CConn.cxx:312
 msgid ""
 "The connection was dropped by the server before the session could be "
 "established."
-msgstr "החיבור נקטע מצד השרת בטרם יצירת החיבור הראשוני."
+msgstr ""
 
 #: vncviewer/CConn.cxx:323
 #, c-format
 msgid "Authentication failed: %s"
-msgstr "האימות נכשל: %s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:324
 #, c-format
@@ -2662,9 +2483,6 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"האימות מול השרת נכשל. הסיבה שהשרת סיפק:\n"
-"\n"
-"%s"
 
 #: vncviewer/CConn.cxx:486 vncviewer/CConn.cxx:502
 msgid "Failed to get certificate problem description"
@@ -2689,14 +2507,12 @@ msgid "Failed to load list of servers with a security exception"
 msgstr ""
 
 #: vncviewer/CConn.cxx:541
-#, fuzzy
 msgid "Failed to decode server certificate"
-msgstr "סגירת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: vncviewer/CConn.cxx:547
-#, fuzzy
 msgid "Failed to format server certificate for display"
-msgstr "קריאת רשומה %d בהיסטוריית השרת נכשלה: %s"
+msgstr ""
 
 #: vncviewer/CConn.cxx:564
 msgid "Server host is not previously known"
@@ -2722,9 +2538,8 @@ msgid "Do you want to make an exception for this server?"
 msgstr ""
 
 #: vncviewer/CConn.cxx:578
-#, fuzzy
 msgid "Unknown certificate issuer"
-msgstr "משתנה לא ידוע"
+msgstr ""
 
 #: vncviewer/CConn.cxx:579 vncviewer/CConn.cxx:598 vncviewer/CConn.cxx:615
 #: vncviewer/CConn.cxx:632 vncviewer/CConn.cxx:652 vncviewer/CConn.cxx:684
@@ -2840,54 +2655,54 @@ msgstr ""
 #: vncviewer/CConn.cxx:1010
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
-msgstr "תפוקה %d קסל״ש - האיכות תוחלף לכדי %d"
+msgstr ""
 
 #: vncviewer/CConn.cxx:1041
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
-msgstr "‫תפוקה %d קסל״ש - צבע מלא פעיל מעתה"
+msgstr ""
 
 #: vncviewer/CConn.cxx:1044
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
-msgstr "‫תפוקה %d קסל״ש - צבע מלא מושבת מעתה"
+msgstr ""
 
 #: vncviewer/CConn.cxx:1063
 #, c-format
 msgid "Using pixel format %s"
-msgstr "נעשה שימוש בתצורת פיקסלים %s"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:154
 msgid "Invalid geometry specified!"
-msgstr "הממדים שצוינו שגויים!"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:175
 msgid "Reducing window size to fit on current monitor"
-msgstr "החלון מוקטן כדי להתאים לגודל המסך הנוכחי"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:246
 #, c-format
 msgid "Press %sM to open the context menu"
-msgstr "לחיצה על %sM תפתח את תפריט ההקשר"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:323
 #, c-format
 msgid "%s - TidyVNC (keyboard grabbed)"
-msgstr "%s - TidyVNC (מקלדת לכודה)"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:325
 #, c-format
 msgid "%s - TidyVNC"
-msgstr "%s - TidyVNC"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:691
 msgid "Adjusting window size to avoid accidental full-screen request"
-msgstr "Adjusting window size to avoid accidental full-screen request"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:927
 #, c-format
 msgid "Press %sEnter to leave full-screen mode"
-msgstr "לחיצה על %sEnter תקטין את המסך"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:1157
 msgid ""
@@ -2902,52 +2717,52 @@ msgstr ""
 #: vncviewer/DesktopWindow.cxx:1371 vncviewer/DesktopWindow.cxx:1372
 #: vncviewer/DesktopWindow.cxx:1380 vncviewer/DesktopWindow.cxx:1381
 msgid "Failure grabbing control of the keyboard"
-msgstr "לכידת השליטה במקלדת נכשלה"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:1398
 #, c-format
 msgid "Press %s to release keyboard control from the session"
-msgstr "לחיצה על %s תשחרר את שליטת המקלדת מההפעלה"
+msgstr ""
 
 #: vncviewer/DesktopWindow.cxx:1700
 msgid "Invalid screen layout computed for resize request!"
-msgstr "חושבה פריסת מסך שגויה לבקשת שינוי הגודל!"
+msgstr ""
 
 #: vncviewer/EmulateMB.cxx:228 vncviewer/EmulateMB.cxx:291
 msgid "Invalid state for 3 button emulation"
-msgstr "מצב שגוי להדמיית 3 כפתורים"
+msgstr ""
 
 #: vncviewer/KeyboardMacOS.mm:199 vncviewer/KeyboardX11.cxx:169
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
-msgstr "אין סימן לקוד המקש %d (במצב הנוכחי)"
+msgstr ""
 
 #: vncviewer/KeyboardMacOS.mm:271 vncviewer/KeyboardMacOS.mm:279
 #: vncviewer/KeyboardX11.cxx:220
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
-msgstr "קבלת מצב נורית המקלדת נכשלה: %d"
+msgstr ""
 
 #: vncviewer/KeyboardMacOS.mm:296 vncviewer/KeyboardMacOS.mm:302
 #: vncviewer/KeyboardX11.cxx:265
 #, c-format
 msgid "Failed to update keyboard LED state: %d"
-msgstr "עדכון מצב נורית המקלדת נכשל: %d"
+msgstr ""
 
 #: vncviewer/KeyboardWin32.cxx:255
 #, c-format
 msgid "No scan code for extended virtual key 0x%02x"
-msgstr "אין קוד סריקה למקש הווירטואלי המורחב 0x%02x"
+msgstr ""
 
 #: vncviewer/KeyboardWin32.cxx:257
 #, c-format
 msgid "No scan code for virtual key 0x%02x"
-msgstr "‫אין קוד סריקה למקש הווירטואלי 0x%02x"
+msgstr ""
 
 #: vncviewer/KeyboardWin32.cxx:263
 #, c-format
 msgid "Invalid scan code 0x%02x"
-msgstr "קוד סריקה שגוי 0x%02x"
+msgstr ""
 
 #: vncviewer/KeyboardWin32.cxx:292 vncviewer/KeyboardWin32.cxx:308
 #: vncviewer/KeyboardWin32.cxx:320
@@ -2957,268 +2772,268 @@ msgstr ""
 #: vncviewer/KeyboardWin32.cxx:334
 #, c-format
 msgid "No symbol for extended virtual key 0x%02x"
-msgstr "אין סימן למקש הווירטואלי המורחב 0x%02x"
+msgstr ""
 
 #: vncviewer/KeyboardWin32.cxx:336
 #, c-format
 msgid "No symbol for virtual key 0x%02x"
-msgstr "אין סימן למקש הווירטואלי 0x%02x"
+msgstr ""
 
 #: vncviewer/KeyboardWin32.cxx:613
 #, c-format
 msgid "Failed to update keyboard LED state: %lu"
-msgstr "עדכון מצב נורית המקלדת נכשל: %lu"
+msgstr ""
 
 #: vncviewer/MonitorIndicesParameter.cxx:52
 #: vncviewer/MonitorIndicesParameter.cxx:84
 msgid "Failed to get system monitor configuration"
-msgstr "קבלת הגדרות צג המערכת נכשלה"
+msgstr ""
 
 #: vncviewer/MonitorIndicesParameter.cxx:72
 #, c-format
 msgid "Monitor index %d does not exist"
-msgstr "מפתח צג %d לא קיים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:75
 msgid "TidyVNC options"
-msgstr "אפשרויות TidyVNC"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:110 vncviewer/ServerDialog.cxx:110
 #: vncviewer/vncviewer.cxx:335
 msgid "Cancel"
-msgstr "ביטול"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:115 vncviewer/vncviewer.cxx:334
 msgid "OK"
-msgstr "אישור"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:556
 msgid "Compression"
-msgstr "דחיסה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:573
 msgid "Auto select"
-msgstr "בחירה אוטומטית"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:580
 msgid "Allow JPEG compression"
-msgstr "לאפשר דחיסת JPEG"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:590
 msgid "Preferred encoding"
-msgstr "קידוד מועדף"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:658
 msgid "Color level"
-msgstr "רמת צבע"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:670
 msgid "Full"
-msgstr "מלאה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:677
 msgid "Medium"
-msgstr "בינונית"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:684
 msgid "Low"
-msgstr "נמוכה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:691
 msgid "Very low"
-msgstr "נמוכה מאוד"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:713
 msgid "Custom compression level"
-msgstr "רמת דחיסה מותאמת אישית"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:726
 msgid "level (0=fast, 9=best)"
-msgstr "רמה (0=מהירה, 9=מיטבית)"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:745
 msgid "Quality level"
-msgstr "רמת איכות"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:756
 msgid "quality (0=poor, 9=best)"
-msgstr "איכות (0=עלובה, 9=מיטבית)"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:780
 msgid "Security"
-msgstr "אבטחה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:794
 msgid "Encryption"
-msgstr "הצפנה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:806 vncviewer/OptionsDialog.cxx:873
 msgid "None"
-msgstr "ללא"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:813
 msgid "TLS with anonymous certificates"
-msgstr "‫TLS עם אישורים אלמוניים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:819
 msgid "TLS with X509 certificates"
-msgstr "‫TLS עם אישורי X509"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:826
 msgid "Path to X509 CA certificate"
-msgstr "נתיב לאישורי X509 של רשות אישורים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:833
 msgid "Path to X509 CRL file"
-msgstr "נתיב לקובץ X509 CRL"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:861
 msgid "Authentication"
-msgstr "אימות"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:879
 msgid "Standard VNC (insecure without encryption)"
-msgstr "רגיל של VNC (בלתי מאובטח וללא הצפנה)"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:885
 msgid "Username and password (insecure without encryption)"
-msgstr "שם משתמש וססמה (בלתי מאובטח וללא הצפנה)"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:913
 msgid "Input"
-msgstr "קלט"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:926
 msgid "View only (ignore mouse and keyboard)"
-msgstr "להציג בלבד (להתעלם מהעכבר ומהמקלדת)"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:933
 msgid "Mouse"
-msgstr "עכבר"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:945
 msgid "Emulate middle mouse button"
-msgstr "הדמיית כפתור עכבר אמצעי"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:951
 msgid "Show local cursor when not provided by server"
-msgstr "להציג את הסמן המקומי כשהשרת לא מספק כזה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:956
 msgid "Cursor type"
-msgstr "סוג סמן"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:958
 msgid "Dot"
-msgstr "נקודה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:959
 msgid "System"
-msgstr "כמו המערכת"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:979
 msgid "Keyboard"
-msgstr "מקלדת"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:990
 msgid "Always send all keyboard input in full screen"
-msgstr "תמיד לשלוח את כל קלט המקלדת במסך מלא"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1007
 msgid "Clipboard"
-msgstr "לוח גזירים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1019
 msgid "Accept clipboard from server"
-msgstr "לקבל לוח גזירים מהשרת"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1034
 msgid "Send clipboard to server"
-msgstr "לשלוח לוח גזירים לשרת"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1042
 msgid "Send primary selection as clipboard"
-msgstr "לשלוח את הבחירה העיקרית כלוח כזירים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1063
 msgid "Keyboard shortcuts"
-msgstr "קיצורי מקשים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1070
 msgid "Modifier keys for keyboard shortcuts:"
-msgstr "מקשי החלפה לקיצורי מקלדת:"
+msgstr ""
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
 #: vncviewer/OptionsDialog.cxx:1083 vncviewer/ShortcutHandler.cxx:210
 msgid "Ctrl"
-msgstr "Ctrl"
+msgstr ""
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
 #: vncviewer/OptionsDialog.cxx:1091 vncviewer/ShortcutHandler.cxx:218
 msgid "Shift"
-msgstr "Shift"
+msgstr ""
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
 #: vncviewer/OptionsDialog.cxx:1099 vncviewer/ShortcutHandler.cxx:226
 msgid "Alt"
-msgstr "Alt"
+msgstr ""
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
 #: vncviewer/OptionsDialog.cxx:1107 vncviewer/ShortcutHandler.cxx:234
 msgid "Win"
-msgstr "Win"
+msgstr ""
 
 #. TRANSLATORS: This refers to the keyboard key
 #: vncviewer/OptionsDialog.cxx:1113
 msgid "⌃ Ctrl"
-msgstr "⌃ Ctrl"
+msgstr ""
 
 #. TRANSLATORS: This refers to the keyboard key
 #: vncviewer/OptionsDialog.cxx:1115
 msgid "⇧ Shift"
-msgstr "⇧ Shift"
+msgstr ""
 
 #. TRANSLATORS: This refers to the keyboard key
 #: vncviewer/OptionsDialog.cxx:1117
 msgid "⌥ Option"
-msgstr "⌥ Option"
+msgstr ""
 
 #. TRANSLATORS: This refers to the keyboard key
 #: vncviewer/OptionsDialog.cxx:1119
 msgid "⌘ Cmd"
-msgstr "⌘ Cmd"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1133
 msgid "Display"
-msgstr "תצוגה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1147
 msgid "Display mode"
-msgstr "מצב תצוגה"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1160
 msgid "Windowed"
-msgstr "בחלון"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1168
 msgid "Full screen on current monitor"
-msgstr "מסך מלא בצג הנוכחי"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1176
 msgid "Full screen on all monitors"
-msgstr "מסך מלא על כל הצגים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1184
 msgid "Full screen on selected monitor(s)"
-msgstr "מסך מלא בצגים נבחרים"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1222
 msgid ""
@@ -3234,15 +3049,15 @@ msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1258
 msgid "Miscellaneous"
-msgstr "שונות"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1266
 msgid "Shared (don't disconnect other viewers)"
-msgstr "משותף (לא לנתק צופים אחרים)"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1272
 msgid "Ask to reconnect on connection errors"
-msgstr "לבקש להתחבר מחדש כשיש תקלות חיבור"
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1279
 msgid "Play audio from the server"
@@ -3250,27 +3065,27 @@ msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1395
 msgid "All keyboard shortcuts are disabled."
-msgstr "כל קיצורי המקלדת מושבתים."
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1406
 #, c-format
 msgid "To release keyboard control from the session, press %s."
-msgstr "כדי לשחרר שליטה על המקלדת מההפעלה, יש ללחוץ על %s."
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1411
 #, c-format
 msgid "To pass all keyboard input to the session, press %sG."
-msgstr "כדי להעביר את כל קלט המקלדת להפעלה, יש ללחוץ על %sG."
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1416
 #, c-format
 msgid "To toggle full-screen mode, press %sEnter."
-msgstr "כדי להגדיל/להקטן מסך מלא, יש ללחוץ על %sEnter."
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1420
 #, c-format
 msgid "To open the session context menu, press %sM."
-msgstr "כדי לפתוח את תפריט ההקשר של ההפעלה, יש ללחוץ על %sM."
+msgstr ""
 
 #: vncviewer/OptionsDialog.cxx:1424
 #, c-format
@@ -3279,8 +3094,6 @@ msgid ""
 "%sSpace, release the space bar without releasing %s, and press the desired "
 "key."
 msgstr ""
-"כדי לשלוח צירוף מקשים שכולל את %s ישירות להפעלה, יש ללחוץ על %sרווח, לשחרר "
-"את מקש הרווח מבלי לשחרר את %s וללחוץ על המקש הרצוי."
 
 #: vncviewer/OptionsDialog.cxx:1467
 msgid "Invalid desktop scaling"
@@ -3366,45 +3179,40 @@ msgstr ""
 
 #: vncviewer/ServerDialog.cxx:74
 msgid "VNC server:"
-msgstr "שרת VNC:"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:83
 msgid "Options..."
-msgstr "אפשרויות…"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:87
 msgid "Load..."
-msgstr "לטעון…"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:91
 msgid "Save as..."
-msgstr "לשמור בשם…"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:105
 msgid "About..."
-msgstr "על אודות…"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:114
 msgid "Connect"
-msgstr "התחברות"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:145
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to load the server history: %s"
 msgstr ""
-"לא ניתן לטעון את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/ServerDialog.cxx:173 vncviewer/ServerDialog.cxx:213
 msgid "TigerVNC configuration (*.tigervnc)"
-msgstr "הגדרות TigerVNC‏ (‎*.tigervnc)"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:174
 msgid "Select a TigerVNC configuration file"
-msgstr "נא לבחור קובץ הגדרות של TigerVNC"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:196 vncviewer/vncviewer.cxx:465
 #, c-format
@@ -3413,28 +3221,23 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"לא ניתן לטעון את קובץ ההגדרות שצוין:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/ServerDialog.cxx:214
 msgid "Save the TigerVNC configuration to file"
-msgstr "לשמור את הגדרות ה־TigerVNC לקובץ"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:240
 #, c-format
 msgid "%s already exists. Do you want to overwrite?"
-msgstr "‫%s כבר קיים. לשכתב עליו?"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:241 vncviewer/vncviewer.cxx:332
 msgid "No"
-msgstr "לא"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:241
 msgid "Overwrite"
-msgstr "לשכתב"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:257
 #, c-format
@@ -3443,31 +3246,16 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"לא ניתן לשמור את קובץ ההגדרות שצוין:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/ServerDialog.cxx:290
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to save the default configuration: %s"
 msgstr ""
-"לא ניתן לשמור את הגדרות בררת המחדל:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/ServerDialog.cxx:301
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to save the server history: %s"
 msgstr ""
-"לא ניתן לשמור את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/ServerDialog.cxx:374 vncviewer/ServerDialog.cxx:383
 #: vncviewer/parameters.cxx:881 vncviewer/parameters.cxx:888
@@ -3475,11 +3263,11 @@ msgstr ""
 #: vncviewer/parameters.cxx:966
 #, c-format
 msgid "Failed to read line %d in file \"%s\""
-msgstr "קריאת השורה %d בקובץ „%s” נכשלה"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:387 vncviewer/parameters.cxx:892
 msgid "Line too long"
-msgstr "השורה ארוכה מדי"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:455
 #, c-format
@@ -3495,124 +3283,119 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"אירעה שגיאה בלתי צפויה בעת ההתקשרות עם השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/Viewport.cxx:1134
 msgctxt "ContextMenu|"
 msgid "Disconn&ect"
-msgstr "&ניתוק"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1137
 msgctxt "ContextMenu|"
 msgid "&Full screen"
-msgstr "מ&סך מלא"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1140
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
-msgstr "מ&זעור"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1142
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
-msgstr "שינוי &גודל החלון להפעלה"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1147
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
-msgstr "&Ctrl"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1150
 msgctxt "ContextMenu|"
 msgid "&Alt"
-msgstr "&Alt"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1154
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
-msgstr "לשלוח Ctrl-Alt-&Del"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1157
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
-msgstr "&רענון המסך"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1160
 msgctxt "ContextMenu|"
 msgid "&Options..."
-msgstr "&אפשרויות…"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1162
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
-msgstr "&פרטי ההתחברות…"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1164
 msgctxt "ContextMenu|"
 msgid "About &TidyVNC..."
-msgstr "&על TidyVNC…"
+msgstr ""
 
 #: vncviewer/Viewport.cxx:1253
 msgid "VNC connection info"
-msgstr "פרטי חיבור VNC"
+msgstr ""
 
 #: vncviewer/Win32TouchHandler.cxx:46
 msgid "Window is registered for touch instead of gestures"
-msgstr "החלון רשום למגע במקום למחוות"
+msgstr ""
 
 #: vncviewer/Win32TouchHandler.cxx:81
 #, c-format
 msgid "Failed to set gesture configuration (error 0x%x)"
-msgstr "קביעת הגדרות המחוות נכשלה (שגיאה 0x%x)"
+msgstr ""
 
 #: vncviewer/Win32TouchHandler.cxx:93
 #, c-format
 msgid "Failed to get gesture information (error 0x%x)"
-msgstr "קבלת פרטי המחווה נכשלה (שגיאה 0x%x)"
+msgstr ""
 
 #: vncviewer/Win32TouchHandler.cxx:361
 #, c-format
 msgid "Invalid mouse button %d, must be a number between 1 and 7."
-msgstr "כפתור העכבר %d שגוי, חייב להיות מספר בין 1 ל־7."
+msgstr ""
 
 #: vncviewer/Win32TouchHandler.cxx:426
 #, c-format
 msgid "Unhandled key 0x%x - can't generate keyboard event."
-msgstr "מקש 0x%x לא מטופל - לא ניתן לייצר אירוע מקלדת."
+msgstr ""
 
 #: vncviewer/XInputTouchHandler.cxx:103 vncviewer/touch.cxx:107
 #, c-format
 msgid "Unable to get X Input 2 event mask for window 0x%08lx"
-msgstr "לא ניתן לקבל מסכת אירועים של X Input 2 לחלון 0x%08lx"
+msgstr ""
 
 #: vncviewer/XInputTouchHandler.cxx:105
 #, c-format
 msgid "Window 0x%08lx has no X Input 2 event mask"
-msgstr "לחלון 0x%08lx אין מסכת אירועים של X Input 2"
+msgstr ""
 
 #: vncviewer/XInputTouchHandler.cxx:113 vncviewer/touch.cxx:114
 #, c-format
 msgid "Window 0x%08lx has more than one X Input 2 event mask"
-msgstr "לחלון 0x%08lx יש יותר ממסכת אירועים אחת של X Input 2"
+msgstr ""
 
 #: vncviewer/XInputTouchHandler.cxx:144
 #, c-format
 msgid "Failure grabbing device %i"
-msgstr "לכידת ההתקן %i נכשלה"
+msgstr ""
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
 #: vncviewer/vncviewer.desktop.in.in:2
 msgid "TigerVNC"
-msgstr "TigerVNC"
+msgstr ""
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
 #: vncviewer/vncviewer.desktop.in.in:4
 msgid "Connect to VNC server and display remote desktop"
-msgstr "התחברות לשרת VNC והצגת שולחן עבודה מרוחק"
+msgstr ""
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
 msgid ""
@@ -3625,12 +3408,6 @@ msgid ""
 "and supports various operating systems and architectures as both servers and "
 "clients."
 msgstr ""
-"מחשוב רשת וירטואלי (VNC) היא מערכת תצוגה מרחוק שמאפשרת לצפות ולתפעל סביבת "
-"שולחן עבודה וירטואלית שרצה על גבי מחשב אחר ברשת. באמצעות VNC אפשר להריץ "
-"יישומים גרפיים על מכונה מרוחקת ולשלוח רק את התצוגה מהיישומים האלה למכשיר "
-"המקומי שלך. החבילה הזאת מכילה לקוח שיאפשר לך להתחבר לשולחנות עבודה אחרים "
-"שמריצים שרת VNC. ל־VNC אין תלות במערכת הפעלה כזאת או אחרת והיא תומכת במגוון "
-"מערכות הפעלה וסוגי מעבדים הן מצד השרת והן מצד הלקוח."
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:23
 msgid ""
@@ -3641,28 +3418,23 @@ msgid ""
 "supports a variant of Tight encoding that is greatly accelerated by the use "
 "of the libjpeg-turbo JPEG codec."
 msgstr ""
-"שTigerVNC היא גרסה מהירה של VNC שמבוססת ביסודה על קוד המקור של RealVNC ושל "
-"X.Org. מיזם TigerVNC החל כמאמץ פיתוח לדור הבא של TightVNC לפלטפורמות יוניקס "
-"ולינוקס אך הוא פוצל ממיזם ההורה שלו בתחילת 2009 כדי לאפשר ל־TightVNC להתמקד "
-"בתמיכה ב־Windows. ב־TigerVNC יש תמיכה במגוון של הצפנות Tight שמואצות על ידי "
-"השימוש במפענח JPEG בשם libjpeg-turbo."
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:33
 msgid "TigerVNC connection to a CentOS machine"
-msgstr "חיבור TigerVNC למכונת CentOS"
+msgstr ""
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:37
 msgid "TigerVNC connection to a macOS machine"
-msgstr "חיבור TigerVNC למכונת macOS"
+msgstr ""
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:41
 msgid "TigerVNC connection to a Windows machine"
-msgstr "חיבור TigerVNC למכונת Windows"
+msgstr ""
 
 #. developer_name tag deprecated with Appstream 1.0
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:46
 msgid "The TigerVNC team"
-msgstr "צוות TigerVNC"
+msgstr ""
 
 #: vncviewer/parameters.cxx:56
 msgid "Time in milliseconds to rate-limit successive pointer events"
@@ -3680,9 +3452,8 @@ msgid ""
 msgstr ""
 
 #: vncviewer/parameters.cxx:71
-#, fuzzy
 msgid "Show local cursor when not provided by the server"
-msgstr "להציג את הסמן המקומי כשהשרת לא מספק כזה"
+msgstr ""
 
 #: vncviewer/parameters.cxx:77
 msgid ""
@@ -3705,9 +3476,8 @@ msgid "Auto select pixel format and encoding"
 msgstr ""
 
 #: vncviewer/parameters.cxx:106
-#, fuzzy
 msgid "Use all available colors"
-msgstr "מלאה (כל הצבעים הזמינים)"
+msgstr ""
 
 #: vncviewer/parameters.cxx:111
 msgid ""
@@ -3715,9 +3485,8 @@ msgid ""
 msgstr ""
 
 #: vncviewer/parameters.cxx:120
-#, fuzzy
 msgid "Preferred encoding to use"
-msgstr "קידוד מועדף"
+msgstr ""
 
 #: vncviewer/parameters.cxx:134
 msgid "Use custom compression level as specified by CompressLevel"
@@ -3744,9 +3513,8 @@ msgid "Specify which monitors to use when in full screen"
 msgstr ""
 
 #: vncviewer/parameters.cxx:162
-#, fuzzy
 msgid "[DEPRECATED] Enable full screen over all monitors"
-msgstr "מסך מלא על כל הצגים"
+msgstr ""
 
 #: vncviewer/parameters.cxx:167
 msgid ""
@@ -3765,9 +3533,8 @@ msgid "Specify size and position of viewer window"
 msgstr ""
 
 #: vncviewer/parameters.cxx:183
-#, fuzzy
 msgid "Listen for incoming connections from VNC servers"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: vncviewer/parameters.cxx:187
 msgid ""
@@ -3794,31 +3561,27 @@ msgid "Don't send any mouse or keyboard events to the server"
 msgstr ""
 
 #: vncviewer/parameters.cxx:205
-#, fuzzy
 msgid "Don't disconnect other viewers upon connection"
-msgstr "משותף (לא לנתק צופים אחרים)"
+msgstr ""
 
 #: vncviewer/parameters.cxx:211
 msgid "Play audio sent by the server, if it offers any"
 msgstr ""
 
 #: vncviewer/parameters.cxx:217
-#, fuzzy
 msgid "Accept clipboard changes from the server"
-msgstr "לקבל לוח גזירים מהשרת"
+msgstr ""
 
 #: vncviewer/parameters.cxx:221
-#, fuzzy
 msgid "Send clipboard changes to the server"
-msgstr "לשלוח לוח גזירים לשרת"
+msgstr ""
 
 #. TRANSLATORS: This refers to the two different X11
 #. clipboards
 #: vncviewer/parameters.cxx:235
-#, fuzzy
 msgid ""
 "Send the primary selection to the server as well as the clipboard selection"
-msgstr "לשלוח את הבחירה העיקרית כלוח כזירים"
+msgstr ""
 
 #. TRANSLATORS: The key names must be specified in
 #. English
@@ -3830,11 +3593,10 @@ msgid ""
 msgstr ""
 
 #: vncviewer/parameters.cxx:257
-#, fuzzy
 msgid ""
 "Pass special keys (like Alt+Tab) directly to the server when in full-screen "
 "mode"
-msgstr "להעביר את מקשי המערכת ישירות לשרת (מסך מלא)"
+msgstr ""
 
 #: vncviewer/parameters.cxx:263
 msgid "SSH gateway to tunnel the connection via"
@@ -3842,113 +3604,109 @@ msgstr ""
 
 #: vncviewer/parameters.cxx:535 vncviewer/parameters.cxx:568
 msgid "Failed to create registry key"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: vncviewer/parameters.cxx:556 vncviewer/parameters.cxx:629
 #: vncviewer/parameters.cxx:673 vncviewer/parameters.cxx:751
 msgid "Failed to close registry key"
-msgstr "סגירת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: vncviewer/parameters.cxx:575 vncviewer/parameters.cxx:608
 #: vncviewer/parameters.cxx:795 vncviewer/parameters.cxx:807
 #, c-format
 msgid "Failed to save \"%s\": %s"
-msgstr "השמירה של „%s” נכשלה: %s"
+msgstr ""
 
 #: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:724
 msgid "Failed to open registry key"
-msgstr "פתיחת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: vncviewer/parameters.cxx:663
 #, c-format
 msgid "Failed to read server history entry %d: %s"
-msgstr "קריאת רשומה %d בהיסטוריית השרת נכשלה: %s"
+msgstr ""
 
 #: vncviewer/parameters.cxx:705 vncviewer/parameters.cxx:735
 #, c-format
 msgid "Failed to read parameter \"%s\": %s"
-msgstr "קריאת המשתנה „%s” נכשלה: %s"
+msgstr ""
 
 #: vncviewer/parameters.cxx:796 vncviewer/parameters.cxx:808
 msgid "Could not encode parameter"
-msgstr "לא ניתן לקודד את המשתנים"
+msgstr ""
 
 #: vncviewer/parameters.cxx:826 vncviewer/parameters.cxx:938
 msgid "Invalid format or too large value"
-msgstr "תצורה שגויה או שהערך גדול מדי"
+msgstr ""
 
 #: vncviewer/parameters.cxx:902
 #, c-format
 msgid "Configuration file %s is in an invalid format"
-msgstr "המבנה של קובץ ההגדרות %s שגוי"
+msgstr ""
 
 #: vncviewer/parameters.cxx:925
 msgid "Invalid format"
-msgstr "תצורה שגויה"
+msgstr ""
 
 #: vncviewer/parameters.cxx:969
 msgid "Unknown parameter"
-msgstr "משתנה לא ידוע"
+msgstr ""
 
 #: vncviewer/parameters.cxx:983
 msgid ""
 "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
 msgstr ""
-"השימוש בהגדרה FullScreenAllMonitors הופסק, יש להגדיר את FullScreenMode לערך "
-"‚all’ במקום"
 
 #: vncviewer/parameters.cxx:988
 msgid ""
 "DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' "
 "instead"
 msgstr ""
-"השימוש ב־DotWhenNoCursor הופסק, יש להגדיר את AlwaysCursor ל־1 ואת CursorType "
-"ל־‚Dot’ (נקודה) במקום"
 
 #: vncviewer/touch.cxx:75
 #, c-format
 msgid "Got message (0x%x) for an unhandled window"
-msgstr "התקבלה הודעה (0x%x) לחלון לא מטופל"
+msgstr ""
 
 #: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
 #, c-format
 msgid "Invalid window 0x%08lx specified for pointer grab"
-msgstr "צוין חלון שגוי 0x%08lx ללכידת סמן"
+msgstr ""
 
 #: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
 #, c-format
 msgid "Failed to create touch handler: %s"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: vncviewer/touch.cxx:188
 #, c-format
 msgid "Couldn't attach event handler to window (error 0x%x)"
-msgstr "הצמדת מטפל האירועים לחלון לא צלחה (שגיאה 0x%x)"
+msgstr ""
 
 #: vncviewer/touch.cxx:215
 msgid "Failed to get event data for X Input event"
-msgstr "קבלת נתוני האירוע של אירוע X Input נכשלה"
+msgstr ""
 
 #: vncviewer/touch.cxx:228
 msgid "X Input event for unknown window"
-msgstr "אירוע X Input לחלון בלתי מוכר"
+msgstr ""
 
 #: vncviewer/touch.cxx:252
 msgid "X Input extension not available."
-msgstr "הרחבת X Input אינה זמינה."
+msgstr ""
 
 #: vncviewer/touch.cxx:259
 msgid "X Input 2 (or newer) is not available."
-msgstr "‫X Input 2 (ומעלה) אינו זמין."
+msgstr ""
 
 #: vncviewer/touch.cxx:264
 msgid ""
 "X Input 2.2 (or newer) is not available. Touch gestures will not be "
 "supported."
-msgstr "‫X Input 2.2 (ומעלה) אינו זמין. לא תהיה תמיכה במחוות מגע."
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:96
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "TidyVNC v%s\n"
 "Built on: %s\n"
@@ -3956,19 +3714,14 @@ msgid ""
 "Based on TigerVNC.\n"
 "See https://github.com/jkeli/tidyvnc for information on TidyVNC."
 msgstr ""
-"‏TigerVNC‏ גרסה %s\n"
-"‫נבנה על גבי: %s\n"
-"‫כל הזכויות שמורות (C) 1999‏-%d לצוות TigerVNC ועוד רבים וטובים (ניתן לעיין "
-"ב־README.rst)\n"
-"‬‫למידע על TigerVNC מומלץ לפנות אל https://www.tigervnc.org."
 
 #: vncviewer/vncviewer.cxx:162 vncviewer/vncviewer.cxx:358
 msgid "About TidyVNC"
-msgstr "על TidyVNC"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:184
 msgid "Internal FLTK error. Exiting."
-msgstr "שגיאת FLTK פנימית. מתבצעת יציאה."
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:203
 #, c-format
@@ -3977,29 +3730,24 @@ msgid ""
 "\n"
 "Attempt to reconnect?"
 msgstr ""
-"‫%s\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‫לנסות להתחבר מחדש?"
 
 #: vncviewer/vncviewer.cxx:234 vncviewer/vncviewer.cxx:246
 #, c-format
 msgid "Error starting new connection: %s"
-msgstr "שגיאה בהקמת חיבור חדש: %s"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:255
 #, c-format
 msgid "Termination signal %d has been received. TidyVNC will now exit."
-msgstr "התקבל אות חיסול %d.‏ TidyVNC יסתיים כעת."
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:333
 msgid "Yes"
-msgstr "כן"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:336
 msgid "Close"
-msgstr "סגירה"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:338
 msgid "Add to Favorites"
@@ -4022,18 +3770,16 @@ msgid "Favorites"
 msgstr ""
 
 #: vncviewer/vncviewer.cxx:343
-#, fuzzy
 msgid "Filename:"
-msgstr "שם משתמש:"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:345
 msgid "My Computer"
 msgstr ""
 
 #: vncviewer/vncviewer.cxx:347
-#, fuzzy
 msgid "File Systems"
-msgstr "כמו המערכת"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:349
 msgid "Manage Favorites"
@@ -4056,9 +3802,8 @@ msgid "Save"
 msgstr ""
 
 #: vncviewer/vncviewer.cxx:354
-#, fuzzy
 msgid "Show:"
-msgstr "להציג הכול"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:355
 msgid "Show hidden files"
@@ -4066,36 +3811,33 @@ msgstr ""
 
 #: vncviewer/vncviewer.cxx:360
 msgid "Services"
-msgstr "שירותים"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:361
-#, fuzzy
 msgid "Hide TidyVNC"
-msgstr "%s - TidyVNC"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:362
 msgid "Hide others"
-msgstr "להסתיר אחרים"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:363
 msgid "Show all"
-msgstr "להציג הכול"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:364
-#, fuzzy
 msgid "Quit TidyVNC"
-msgstr "על TidyVNC"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:373
 msgctxt "SysMenu|"
 msgid "&File"
-msgstr "&קובץ"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:376
-#, fuzzy
 msgctxt "SysMenu|File|"
 msgid "&New connection"
-msgstr "&התחברות חדשה"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:398
 #, c-format
@@ -4107,12 +3849,6 @@ msgid ""
 "       %s [parameters] -listen [port]\n"
 "       %s [parameters] [.tigervnc file]\n"
 msgstr ""
-"\n"
-"שימוש: ‎%s [parameters] [host][:displayNum]\n"
-"       %s [parameters] [host][::port]\n"
-"       %s [parameters] [שקע יוניקס]\n"
-"       %s [parameters] -listen [port]\n"
-"       %s [parameters] [קובץ ‎.tigervnc]\n"
 
 #: vncviewer/vncviewer.cxx:413
 #, c-format
@@ -4124,56 +3860,47 @@ msgid ""
 "  -geometry geometry - Initial position of the main TidyVNC window. See the\n"
 "                       man page for details.\n"
 msgstr ""
-"\n"
-"אפשרויות:\n"
-"\n"
-"‏  ‎-display Xdisplay  - בחירת תצוגת ה־X לחלון המציג\n"
-"‏  ‎-geometry geometry - המקום ההתחלתי לחלון המציג הראשי של TidyVNC. בהנחיות "
-"שב־man\n"
-"                       יש פרטים נוספים.\n"
 
 #: vncviewer/vncviewer.cxx:485
 msgid ""
 "~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."
 msgstr ""
-"השימוש ב־‎~/.vnc הופסק, נא לפנות למדריך ‚man vncviewer’ לאיתור הנתיבים שיש "
-"לעבור אליהם."
 
 #: vncviewer/vncviewer.cxx:489
 #, c-format
 msgid ""
 "%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC "
 "location."
-msgstr "השימוש ב־%%APPDATA%%\\vnc הופסק, נא לעבור למקום %%APPDATA%%\\TigerVNC."
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:500
 msgid "Could not determine VNC data directory path"
-msgstr "לא ניתן לקבוע מה תיקיית הנתונים של VNC"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:506
 #, c-format
 msgid "Could not create VNC data directory \"%s\": %s"
-msgstr "לא ניתן ליצור תיקיית נתונים של VNC‏ „%s”:‏ %s"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:545
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create tunnel: '%s' returned %d"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
 #: vncviewer/vncviewer.cxx:682 vncviewer/vncviewer.cxx:683
 msgid "Parameters -listen and -via are incompatible"
-msgstr "המשתנים ‎-listen ו־‎-via לא מתאימים יחד"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:697
 msgid "Unable to listen for incoming connections"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:699
 #, c-format
 msgid "Listening on port %d"
-msgstr "בהאזנה בפתחה %d"
+msgstr ""
 
 #: vncviewer/vncviewer.cxx:728
 #, c-format
@@ -4182,11 +3909,6 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"ההמתנה לחיבור VNC נכנס נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: vncviewer/vncviewer.cxx:749
 #, c-format
@@ -4195,23 +3917,14 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"הקמת ערוץ תקשורת מוצפן נכשלה:\n"
-"\n"
-"%s"
 
 #: vncviewer/vncviewer.desktop.in.in:3
 msgid "Remote desktop viewer"
-msgstr "מציג שולחנות עבודה מרוחקים"
+msgstr ""
 
 #: win/rfb_win32/CleanDesktop.cxx:51
-#, fuzzy
 msgid "Failed to contact Active Desktop"
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/CleanDesktop.cxx:109
 #, c-format
@@ -4219,9 +3932,9 @@ msgid "Failed to modify Active Desktop options: %ld"
 msgstr ""
 
 #: win/rfb_win32/CleanDesktop.cxx:126
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to get desktop item count: %ld"
-msgstr "קבלת מצב נורית המקלדת נכשלה: %d"
+msgstr ""
 
 #: win/rfb_win32/Clipboard.cxx:68
 msgid "Bad clipboard chain change!"
@@ -4236,9 +3949,8 @@ msgid "Unable to empty clipboard"
 msgstr ""
 
 #: win/rfb_win32/Clipboard.cxx:153
-#, fuzzy
 msgid "Unable to set clipboard"
-msgstr "לשלוח את הבחירה העיקרית כלוח כזירים"
+msgstr ""
 
 #: win/rfb_win32/CurrentUser.cxx:68
 #, c-format
@@ -4246,33 +3958,29 @@ msgid "Desktop \"%s\" inaccessible"
 msgstr ""
 
 #: win/rfb_win32/CurrentUser.cxx:73
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to close desktop: %ld"
-msgstr "סגירת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: win/rfb_win32/CurrentUser.cxx:87
-#, fuzzy
 msgid "Failed to get current user token"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: win/rfb_win32/CurrentUser.cxx:99
 msgid "Cannot impersonate unsafe or null token"
 msgstr ""
 
 #: win/rfb_win32/CurrentUser.cxx:103
-#, fuzzy
 msgid "Failed to impersonate user"
-msgstr "פתיחת מפתח הרשומות נכשלה"
+msgstr ""
 
 #: win/rfb_win32/CurrentUser.cxx:121
-#, fuzzy
 msgid "Failed to get current username"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: win/rfb_win32/DIBSectionBuffer.cxx:91
-#, fuzzy
 msgid "Failed to create bitmap"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: win/rfb_win32/DIBSectionBuffer.cxx:164 win/rfb_win32/DeviceContext.cxx:121
 msgid "Depth exceeds bits per pixel"
@@ -4301,9 +4009,8 @@ msgid "%d-colour palettised"
 msgstr ""
 
 #: win/rfb_win32/DeviceContext.cxx:165
-#, fuzzy
 msgid "Failed to create DeviceDC"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: win/rfb_win32/DeviceFrameBuffer.cxx:47
 msgid ""
@@ -4425,34 +4132,23 @@ msgid "Registering handler..."
 msgstr ""
 
 #: win/rfb_win32/Service.cxx:82
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to register handler: %lu"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: win/rfb_win32/Service.cxx:117
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to set shutdown parameters: %lu"
-msgstr "קריאת המשתנה „%s” נכשלה: %s"
+msgstr ""
 
 #: win/rfb_win32/Service.cxx:120 win/rfb_win32/Service.cxx:415
-#, fuzzy
 msgid "Unable to start the service"
 msgstr ""
-"לא ניתן לשמור את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/Service.cxx:139
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to set service status: %lu"
 msgstr ""
-"לא ניתן לשמור את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/Service.cxx:272
 #, c-format
@@ -4460,9 +4156,9 @@ msgid "Unable to open event log: %ld\n"
 msgstr ""
 
 #: win/rfb_win32/Service.cxx:286
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to write to event log: %ld\n"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: win/rfb_win32/Service.cxx:334 win/rfb_win32/Service.cxx:379
 #: win/rfb_win32/Service.cxx:406 win/rfb_win32/Service.cxx:426
@@ -4471,60 +4167,29 @@ msgid "Unable to open Service Control Manager"
 msgstr ""
 
 #: win/rfb_win32/Service.cxx:343
-#, fuzzy
 msgid "Unable to create service"
-msgstr "יצירת המפתח ברשומות נכשלה"
+msgstr ""
 
 #: win/rfb_win32/Service.cxx:384
-#, fuzzy
 msgid "Unable to locate the service"
 msgstr ""
-"לא ניתן לטעון את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/Service.cxx:386
-#, fuzzy
 msgid "Unable to remove the service"
 msgstr ""
-"לא ניתן לשמור את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/Service.cxx:411 win/rfb_win32/Service.cxx:431
 #: win/rfb_win32/Service.cxx:452
-#, fuzzy
 msgid "Unable to open the service"
 msgstr ""
-"לא ניתן לטעון את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/Service.cxx:436
-#, fuzzy
 msgid "Unable to stop the service"
 msgstr ""
-"לא ניתן לשמור את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/Service.cxx:457
-#, fuzzy
 msgid "Unable to query the service"
 msgstr ""
-"לא ניתן לשמור את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/Service.cxx:464
 msgid "Running"
@@ -4545,9 +4210,8 @@ msgid "Unable to track socket address changes: 0x%08x"
 msgstr ""
 
 #: win/rfb_win32/SocketManager.cxx:84
-#, fuzzy
 msgid "Unable to add listening socket"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: win/rfb_win32/SocketManager.cxx:112 win/rfb_win32/SocketManager.cxx:161
 #: win/rfb_win32/SocketManager.cxx:177
@@ -4555,9 +4219,8 @@ msgid "Listening socket is not registered"
 msgstr ""
 
 #: win/rfb_win32/SocketManager.cxx:123
-#, fuzzy
 msgid "Unable to add connection"
-msgstr "לא ניתן להאזין לחיבורים נכנסים"
+msgstr ""
 
 #: win/rfb_win32/SocketManager.cxx:150
 msgid "Socket is not registered"
@@ -4581,14 +4244,8 @@ msgid "Unable to get socket events"
 msgstr ""
 
 #: win/rfb_win32/SocketManager.cxx:252
-#, fuzzy
 msgid "Unable to disable socket events"
 msgstr ""
-"לא ניתן לשמור את היסטוריית השרת:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/rfb_win32/SocketManager.cxx:272
 msgid "Unable to re-enable socket events"
@@ -4618,19 +4275,16 @@ msgid ""
 msgstr ""
 
 #: win/vncconfig/Authentication.h:74
-#, fuzzy
 msgid "X.509 certificates"
-msgstr "‫TLS עם אישורי X509"
+msgstr ""
 
 #: win/vncconfig/Authentication.h:79 win/vncconfig/Authentication.h:92
-#, fuzzy
 msgid "All"
-msgstr "Alt"
+msgstr ""
 
 #: win/vncconfig/Authentication.h:83
-#, fuzzy
 msgid "X.509 certificate"
-msgstr "‫TLS עם אישורי X509"
+msgstr ""
 
 #: win/vncconfig/Authentication.h:87
 msgid "X.509 keys"
@@ -4666,18 +4320,18 @@ msgid "Loading default settings"
 msgstr ""
 
 #: win/vncconfig/Legacy.cxx:156
-#, fuzzy, c-format
+#, c-format
 msgid "Error reading default settings: %s"
-msgstr "שגיאה בהקמת חיבור חדש: %s"
+msgstr ""
 
 #: win/vncconfig/Legacy.cxx:164
 msgid "Loading local user settings"
 msgstr ""
 
 #: win/vncconfig/Legacy.cxx:167
-#, fuzzy, c-format
+#, c-format
 msgid "Error reading local user settings: %s"
-msgstr "שגיאה בהקמת חיבור חדש: %s"
+msgstr ""
 
 #: win/vncconfig/Legacy.cxx:175
 msgid "Loading global user settings"
@@ -4732,9 +4386,8 @@ msgid ""
 msgstr ""
 
 #: win/winvnc/QueryConnectDialog.cxx:77
-#, fuzzy
 msgid "Failed to change to active desktop"
-msgstr "יצירת המטפל באירועי מגע נכשלה: %s"
+msgstr ""
 
 #: win/winvnc/STrayIcon.cxx:51
 msgid "Disable the Options entry in the VNC server tray menu"
@@ -4753,19 +4406,16 @@ msgid "Show the configuration applet in the system tray"
 msgstr ""
 
 #: win/winvnc/VNCServerWin32.cxx:110
-#, fuzzy
 msgid "VNC server (user):"
-msgstr "שרת VNC:"
+msgstr ""
 
 #: win/winvnc/VNCServerWin32.cxx:112
-#, fuzzy
 msgid "VNC server (service):"
-msgstr "שרת VNC:"
+msgstr ""
 
 #: win/winvnc/VNCServerWin32.cxx:119
-#, fuzzy
 msgid "Not accepting connections"
-msgstr "שגיאה בהקמת חיבור חדש: %s"
+msgstr ""
 
 #: win/winvnc/VNCServerWin32.cxx:132
 msgid "Refreshing system tray icon"
@@ -4816,9 +4466,8 @@ msgid "Log destinations:"
 msgstr ""
 
 #: win/winvnc/winvnc.cxx:90
-#, fuzzy
 msgid "Available configuration parameters:"
-msgstr "צוינו הגדרות שגויות עבור %s"
+msgstr ""
 
 #: win/winvnc/winvnc.cxx:127 win/winvnc/winvnc.cxx:140
 msgid "Unable to locate existing VNC Server"
@@ -4830,9 +4479,8 @@ msgid "Sending connect request to VNC Server...\n"
 msgstr ""
 
 #: win/winvnc/winvnc.cxx:134
-#, fuzzy
 msgid "Connection failed."
-msgstr "&פרטי ההתחברות…"
+msgstr ""
 
 #: win/winvnc/winvnc.cxx:145
 #, c-format
@@ -4840,14 +4488,8 @@ msgid "Sending disconnect request to VNC Server...\n"
 msgstr ""
 
 #: win/winvnc/winvnc.cxx:147
-#, fuzzy
 msgid "Failed to disconnect clients."
 msgstr ""
-"ההתחברות אל „%s” נכשלה:\n"
-"‬\n"
-"‏‫\n"
-"‬\n"
-"‏‫%s"
 
 #: win/winvnc/winvnc.cxx:149
 #, c-format
@@ -4908,114 +4550,3 @@ msgstr ""
 #, c-format
 msgid "Unable to close console: %lu"
 msgstr ""
-
-#~ msgid "The name of the parameter is too large"
-#~ msgstr "שם המשתנה גדול מדי"
-
-#~ msgid "About"
-#~ msgstr "על אודות"
-
-#~ msgid "Hide"
-#~ msgstr "להסתיר"
-
-#~ msgid "Quit"
-#~ msgstr "יציאה"
-
-#, c-format
-#~ msgid "SetDesktopSize failed: %d"
-#~ msgstr "‫SetDesktopSize נכשלה: %d"
-
-#, c-format
-#~ msgid "Unexpected character '%c'"
-#~ msgstr "התו ‚%c’ אינו צפוי"
-
-#~ msgid "Menu key"
-#~ msgstr "מקש תפריט"
-
-#~ msgid "VNC viewer: Connection details"
-#~ msgstr "מציג VNC: פרטי התחברות"
-
-#, c-format
-#~ msgctxt "ContextMenu|"
-#~ msgid "Send %s"
-#~ msgstr "לשלוח %s"
-
-#~ msgid "Show dot when no cursor"
-#~ msgstr "להציג נקודה כשאין סמן"
-
-#, c-format
-#~ msgid "No symbol for key code 0x%02x (in the current state)"
-#~ msgstr "אין סימן לקוד המקש 0x%02x (במצב הנוכחי)"
-
-#~ msgid "VNC Viewer: Connection Options"
-#~ msgstr "מציג VNC: אפשרויות התחברות"
-
-#~ msgid "Misc."
-#~ msgstr "שונות"
-
-#~ msgid "Failed to get monitor name because X11 RandR could not be found"
-#~ msgstr "קבלת שם הצג נכשלה כיוון שלא ניתן למצוא את X11 RandR"
-
-#~ msgid "Failed to get information about output %d for CRTC %d"
-#~ msgstr "קבלת מידע על פלט %d עבור CRTC %d נכשלה"
-
-#~ msgid "Screen"
-#~ msgstr "מסך"
-
-#~ msgid "Resize remote session on connect"
-#~ msgstr "לשנות את גודל ההפעלה המרוחקת עם ההתחברות"
-
-#~ msgid "Resize remote session to the local window"
-#~ msgstr "לשנות את גודל ההפעלה המרוחקת לחלון המקומי"
-
-#~ msgid "Enable full-screen"
-#~ msgstr "הפעלת מסך מלא"
-
-#~ msgid "Medium (256 colors)"
-#~ msgstr "בינונית (256 צבעים)"
-
-#~ msgid "Low (64 colors)"
-#~ msgstr "נחותה (64 צבעים)"
-
-#~ msgid "Very low (8 colors)"
-#~ msgstr "נחותה במיוחד (8 צבעים)"
-
-#~ msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-#~ msgstr "רמה (1=מהירה, 6=מיטבית [4-6 אינן הכרחיות בדרך כלל])"
-
-#~ msgid "Full-screen mode"
-#~ msgstr "מצב מסך מלא"
-
-#~ msgctxt "ContextMenu|"
-#~ msgid "E&xit viewer"
-#~ msgstr "י&ציאה מהמציג"
-
-#~ msgctxt "ContextMenu|"
-#~ msgid "Dismiss &menu"
-#~ msgstr "הת&עלמות מהתפריט"
-
-#~ msgid "Failed to write parameter %s of type %s to the registry: %ld"
-#~ msgstr "כתיבת המשתנה %s מסוג %s ברשומות נכשלה: %ld"
-
-#~ msgid "The name of the parameter %s was too large to read from the registry"
-#~ msgstr "שם המשתנה %s היה ארוך מכדי לקרוא אותו מהרשומות"
-
-#~ msgid "The parameter %s was too large to read from the registry"
-#~ msgstr "המשתנה %s היה גדול מכדי לקרוא מהרשומות"
-
-#~ msgid ""
-#~ "Failed to write configuration file, can't obtain home directory path."
-#~ msgstr "כתיבת קובץ ההגדרות נכשלה, אי אפשר לקבל את נתיב תיקיית הבית."
-
-#~ msgid "Failed to read configuration file, can't obtain home directory path."
-#~ msgstr "קריאת קובץ ההגדרות נכשלה, אי אפשר לקבל את נתיב תיקיית הבית."
-
-#~ msgid "Unknown parameter %s on line %d in file %s"
-#~ msgstr "משתנה לא ידוע %s בשורה %d בקובץ %s"
-
-#~ msgid ""
-#~ "Could not create VNC home directory: can't obtain home directory path."
-#~ msgstr "לא ניתן ליצור תיקיית בית VNC: לא ניתן לקבל את נתיב תיקיית הבית."
-
-#~ msgid "tigervnc"
-#~ msgstr "tigervnc"

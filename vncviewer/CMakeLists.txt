@@ -80,7 +80,7 @@ endif()
 
 target_include_directories(vncviewer SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
 target_link_libraries(vncviewer rfbclient rfb network rdr core)
-target_link_libraries(vncviewer ${TIGERVNC_FLTK_TARGET})
+target_link_libraries(vncviewer ${TIDYVNC_FLTK_TARGET})
 
 if(GNUTLS_FOUND)
   target_include_directories(vncviewer SYSTEM PUBLIC ${GNUTLS_INCLUDE_DIR})

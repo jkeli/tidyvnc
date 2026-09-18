@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
-#ifndef TIGERVNC_DESKTOP_LAYOUT_H
-#define TIGERVNC_DESKTOP_LAYOUT_H
+#ifndef TIDYVNC_DESKTOP_LAYOUT_H
+#define TIDYVNC_DESKTOP_LAYOUT_H
 #include "DesktopTransform.h"
 #include <rfb/ScreenSet.h>
 #include <vector>

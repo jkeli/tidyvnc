@@ -20,7 +20,7 @@ Source: "@CMAKE_SOURCE_DIR@\LICENCE.TXT"; DestDir: "{app}"; Flags: ignoreversion
 #define Lang
 #sub AddLanguage
   #define Lang = FileRead(LINGUAS)
-  Source: "@CMAKE_BINARY_DIR@\po\{#Lang}.mo"; DestDir: "{app}\locale\{#Lang}\LC_MESSAGES"; DestName: "tigervnc.mo"; Flags: ignoreversion
+  Source: "@CMAKE_BINARY_DIR@\po\{#Lang}.mo"; DestDir: "{app}\locale\{#Lang}\LC_MESSAGES"; DestName: "tidyvnc.mo"; Flags: ignoreversion
 #endsub
 #for {LINGUAS = FileOpen("@CMAKE_SOURCE_DIR@\po\LINGUAS"); !FileEof(LINGUAS); ""} AddLanguage
 

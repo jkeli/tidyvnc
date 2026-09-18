@@ -31,7 +31,7 @@ if (BUILD_VIEWER)
   # Prefer the selected FLTK headers over another installation in a generic
   # system include directory (e.g. Homebrew's prefix).
   target_include_directories(fbperf SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
-  target_link_libraries(fbperf test_util core rfb ${TIGERVNC_FLTK_TARGET})
+  target_link_libraries(fbperf test_util core rfb ${TIDYVNC_FLTK_TARGET})
   if(WIN32)
     target_compile_definitions(fbperf PRIVATE NOMINMAX)
     target_link_libraries(fbperf msimg32)

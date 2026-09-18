@@ -46,7 +46,7 @@ install -m 644 $BINDIR/release/Info.plist "$APPROOT/Contents/"
 for lang in `cat "$SRCDIR/po/LINGUAS"`; do
 	mkdir -p "$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES"
 	install -m 644 $BINDIR/po/$lang.mo \
-		"$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES/tigervnc.mo"
+		"$APPROOT/Contents/Resources/locale/$lang/LC_MESSAGES/tidyvnc.mo"
 done
 
 install -m 644 $SRCDIR/LICENCE.TXT $TMPDIR/dmg/

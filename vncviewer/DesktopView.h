@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
-#ifndef TIGERVNC_DESKTOP_VIEW_H
-#define TIGERVNC_DESKTOP_VIEW_H
+#ifndef TIDYVNC_DESKTOP_VIEW_H
+#define TIDYVNC_DESKTOP_VIEW_H
 #include <FL/Fl_Window.H>
 #include "DesktopLayout.h"
 #include <memory>

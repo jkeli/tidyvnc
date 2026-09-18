@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
-#ifndef TIGERVNC_CURSOR_RENDERER_H
-#define TIGERVNC_CURSOR_RENDERER_H
+#ifndef TIDYVNC_CURSOR_RENDERER_H
+#define TIDYVNC_CURSOR_RENDERER_H
 
 #include "DesktopResampler.h"
 #include <vector>

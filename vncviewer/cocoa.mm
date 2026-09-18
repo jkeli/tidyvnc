@@ -56,14 +56,14 @@ bool cocoa_monitor_geometry(int screen, DesktopMonitor* monitor)
   return false;
 }
 
-@interface TigerVNCDisplayObserver : NSObject {
+@interface TidyVNCDisplayObserver : NSObject {
 @public
   void (*callback)(void*);
   void* data;
 }
 - (void)changed:(NSNotification*)notification;
 @end
-@implementation TigerVNCDisplayObserver
+@implementation TidyVNCDisplayObserver
 - (void)changed:(NSNotification*)notification
 {
   callback(data);
@@ -73,7 +73,7 @@ bool cocoa_monitor_geometry(int screen, DesktopMonitor* monitor)
 void* cocoa_observe_display(Fl_Window* win, void (*callback)(void*), void* data)
 {
   if (!win->shown()) return nullptr;
-  TigerVNCDisplayObserver* observer = [[TigerVNCDisplayObserver alloc] init];
+  TidyVNCDisplayObserver* observer = [[TidyVNCDisplayObserver alloc] init];
   observer->callback = callback;
   observer->data = data;
   NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
@@ -90,7 +90,7 @@ void* cocoa_observe_display(Fl_Window* win, void (*callback)(void*), void* data)
 void cocoa_unobserve_display(void* token)
 {
   if (!token) return;
-  TigerVNCDisplayObserver* observer = (TigerVNCDisplayObserver*)token;
+  TidyVNCDisplayObserver* observer = (TidyVNCDisplayObserver*)token;
   [[NSNotificationCenter defaultCenter] removeObserver:observer];
   [observer release];
 }

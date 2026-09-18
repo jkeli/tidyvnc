@@ -23,14 +23,14 @@ parity remains excluded. Deferred items do not count as completed.
 ## R1 — Product strings, build identity and localization
 
 - [ ] Rebrand native connection, session, options, error and file-dialog titles.
-- [ ] Rebrand About, context menu, macOS About/Hide/Quit and default message titles; preserve mnemonics.
-- [ ] Rebrand version/help/diagnostic output while preserving original copyright and adding clear upstream attribution.
+- [x] Rebrand About, context menu, macOS About/Hide/Quit and default message titles; preserve mnemonics.
+- [x] Rebrand version/help/diagnostic output while preserving original copyright and adding clear upstream attribution.
 - [ ] Replace current product/support links with verified fork destinations; retain historical and attribution links.
-- [ ] Rename CMake project/dependency names and audit derived artifact/install paths.
-- [ ] Rename private symbols, include guards and FLTK target variables using the appropriate case.
-- [ ] Introduce public `TIDYVNC_*` build options with tested legacy aliases and conflict diagnostics.
-- [ ] Rename the gettext domain and POT file together with every runtime, installation and staging MO path.
-- [ ] Regenerate POT and merge every PO; review active `msgstr`, fuzzy/obsolete entries and project metadata.
+- [x] Rename CMake project/dependency names and audit derived artifact/install paths.
+- [x] Rename private symbols, include guards and FLTK target variables using the appropriate case.
+- [x] Introduce public `TIDYVNC_*` build options with tested legacy aliases and conflict diagnostics.
+- [x] Rename the gettext domain and POT file together with every runtime, installation and staging MO path.
+- [x] Regenerate POT and merge every PO; review active `msgstr`, fuzzy/obsolete entries and project metadata.
 - [ ] Preserve translated legal text, translator credits, placeholders and markup.
 - [ ] Run catalog validation and test representative translated UI for stale branding and clipped text.
 
@@ -159,3 +159,19 @@ parity remains excluded. Deferred items do not count as completed.
 - Verified GitHub API: jkeli/tidyvnc, issues enabled; adopted
   io.github.jkeli.tidyvnc and the factual jkeli/tidyvnc project identity.
 - Windows artwork and screenshot visual classification remains open.
+
+### 2026-09-18 — R1 native identity and catalogs
+
+- Native menus, session/options titles, diagnostics and About identify TidyVNC;
+  About preserves the original copyright and explicitly credits upstream.
+- Renamed private guards/Cocoa observer/FLTK target and project names; public
+  TIDYVNC_FLTK_SHARED has a deprecated alias with conflict detection. Seven
+  standalone option tests passed. X server public options remain deferred.
+- Renamed gettext domain/POT and every MO staging/install reference together.
+  Regenerated POT, merged all 40 PO catalogs, checked msgfmt/accelerators.
+  Simple native labels retain translations; changed combined About text stays
+  fuzzy (English fallback) until translator review, preserving legal translations.
+  Existing Italian header warnings remain; translated GUI review remains open.
+- Fresh arm64 Release build (static FLTK 1.4.5, gettext, TLS, RSA-AES) passed;
+  all 293 unit tests passed in 14.37 seconds. Viewer-off configuration passed.
+- File labels/state migration and artwork are subsequent commits.

@@ -33,7 +33,7 @@
 #include "Surface.h"
 
 #ifndef FLTK_USE_X11
-#error "TigerVNC requires FLTK's X11 backend (Wayland-only FLTK is unsupported)"
+#error "TidyVNC requires FLTK's X11 backend (Wayland-only FLTK is unsupported)"
 #endif
 // Applies to both the viewer and fbperf when FLTK provides both backends.
 FL_EXPORT bool fl_disable_wayland = true;

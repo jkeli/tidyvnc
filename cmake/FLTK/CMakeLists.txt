@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(TigerVNC_FLTK LANGUAGES C CXX)
+project(TidyVNC_FLTK LANGUAGES C CXX)
 
 # This is a separate dependency build: the main project never downloads code.
 include(ExternalProject)
