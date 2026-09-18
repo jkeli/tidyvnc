@@ -165,8 +165,21 @@ cannot invalidate published bytes. Queued stale-generation data is cleared on
 reset, while already-held leases remain valid and tagged. Tests include an RFB
 pixel buffer that is destroyed before its published image is read, plus
 concurrent consumption during reset. The current FLTK `DesktopSession` still
-uses its existing buffer path; wiring the future session engine and native
-renderer to this boundary is not yet implemented. See N1.8 evidence in TODO.
+uses its existing buffer path. The portable `ProtocolSession` now feeds this
+boundary (N1.7); native-renderer integration remains open. See N1.8 evidence in TODO.
+
+## Window-independent session owner (N1.7)
+
+`viewer/core/ProtocolSession` now owns RFB attempts and an ordinary
+`ManagedPixelBuffer`, with no dependency on FLTK windows or platform pixel
+surfaces. It drives retained frame/cursor publication only after decoder work
+is joined, preserves subscribers across new attempt generations, and destroys
+protocol-owned buffers safely while views retain immutable leases. Source frame
+allocation is bounded independently of publication copies and checked against
+legacy RFB signed-size arithmetic. Wire fixtures exercise decode, resize,
+backpressure, detach, reconnect and failure. This completes the portable
+framebuffer/view ownership boundary, not the remaining executor, service,
+prompt or full lifecycle work in the audit. FLTK remains the comparison adapter.
 
 ## Baseline verification
 

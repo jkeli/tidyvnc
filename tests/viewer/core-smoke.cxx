@@ -2,28 +2,25 @@
 #include <viewer/core/DesktopLayout.h>
 #include <viewer/core/DesktopResampler.h>
 #include <viewer/core/FramePublisher.h>
-#include <rfb/CConnection.h>
+#include <viewer/core/ProtocolSession.h>
+#include <rdr/MemInStream.h>
+#include <rdr/MemOutStream.h>
 #include <rfb/ClientCredentialCache.h>
 #include <network/TcpSocket.h>
 #include <cassert>
 #include <cstring>
 
-// A second, headless consumer of the same target used by FLTK. Link real RFB
-// connection construction/teardown and transport parsing, not just value types.
-class HeadlessConnection : public rfb::CConnection {
-public:
-  HeadlessConnection() : CConnection(rfb::SecurityClient({rfb::secTypeNone})) {}
-  void getUserPasswd(bool, std::string*, std::string*) override {}
-  bool verifyCertificate(unsigned int, const uint8_t*, size_t) override { return false; }
-  bool verifyHostKey(const uint8_t*, size_t, const char*) override { return false; }
-  void initDone() override {}
-  void bell() override {}
-};
-
 int main()
 {
-  HeadlessConnection connection;
-  connection.setJpegAllowed(false);
+  // Consume the actual window-independent session, including stream setup and
+  // protocol version exchange, rather than a test-only CConnection subclass.
+  const uint8_t version[] = "RFB 003.008\n";
+  rdr::MemInStream input(version, 12);
+  rdr::MemOutStream wire;
+  viewer::ProtocolSession connection(rfb::SecurityClient({rfb::secTypeNone}));
+  connection.start("fixture", input, wire);
+  assert(connection.processMessage());
+  assert(wire.length() == 12);
   connection.close();
 
   std::string host;

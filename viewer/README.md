@@ -1,6 +1,7 @@
 # Portable viewer targets
 
-`tidyvnc_viewer_core` contains the shared desktop transform, monitor layout,
+`tidyvnc_viewer_core` contains the window-independent protocol session and retained
+frame publisher, plus the shared desktop transform, monitor layout,
 resampling, tile cache and cursor renderer. It links the existing RFB client
 and transport libraries. The retained FLTK application, rendering unit tests
 and scaling benchmark consume this same target instead of compiling separate
@@ -11,7 +12,8 @@ display metrics and its validation. It has no dependency on protocol code or a
 UI toolkit. The FLTK adapter obtains actual window/display values in
 `vncviewer/DisplayMetrics.cxx`. Future native adapters supply the same values.
 Storage, scheduling, clipboard and authentication services remain later work;
-this target does not yet implement those interfaces or the session lifecycle.
+this target does not yet implement those service interfaces. The core protocol
+session is driven by a host executor; full command/event lifecycle is separate.
 
 Dependency direction:
 
@@ -25,7 +27,7 @@ FLTK frontend / headless consumer
 Public includes use `<viewer/core/...>` and `<viewer/platform/...>`. Neither
 target imports `vncviewer`, FLTK, AppKit, SwiftUI or WinUI. No GUI event loop is
 initialized by the headless consumer. This is the build boundary for N1.1, not
-a completed session engine or a stable public ABI.
+a completed command/event session engine or a stable public ABI.
 
 ## Reproduce the headless check
 
@@ -109,8 +111,61 @@ must be resubmitted. There is no waiting for leases on the engine or UI thread.
 Invalid spans/layouts throw before copying; allocation failure propagates while
 leaving existing leases intact. Cancellation/wakeup for retries belongs to N1.6.
 
-This core contract and its headless consumer are implemented. Feeding it from
-the extracted session engine, mapping leases into the C ABI and native renderer,
-and measuring full-frame-copy performance belong to N1.7/N2 and the performance
-gates. The retained FLTK rendering path is not switched to snapshot copies by
-this change.
+The window-independent `ProtocolSession` now feeds this publisher (N1.7).
+Mapping leases into the C ABI/native renderer and measuring full-frame-copy
+performance remain N2 and the performance gates. The retained FLTK rendering
+path is not switched to snapshot copies by this change.
+
+
+## Window-independent protocol session (N1.7)
+
+`viewer::ProtocolSession` owns a fresh RFB connection for each attempt, the
+protocol framebuffer and the retained publication boundary. It owns no widgets,
+windows, native surfaces or event loop. An executor calls `start()` with borrowed
+input/output streams and calls `processMessage()` when data is available. Streams
+must outlive `close()`. Security/TLS policy, clipboard limits and buffer budgets
+are copied at construction; no legacy UI configuration is read by the wrapper.
+
+The authoritative buffer is always 32-bit BGRA with opaque alpha semantics,
+independent of host integer endianness. The session requests the matching wire
+format. Raw/compressed/CopyRect data flows through the existing RFB decoder;
+publication happens only after the end-of-update decoder join. Resize preserves
+overlapping pixels, zeros exposed areas and produces full-damage publication.
+RFB cursor callbacks feed straight RGBA cursor leases, including explicit hide.
+
+`attachView()` returns a retained subscription with the current snapshot. Dropping
+its final reference detaches the view; other views and protocol processing keep
+running. Views receive immutable copies, never the decoder's mutable buffer.
+After backpressure, the executor can call `retryPublication()` with no extra
+network input. It returns false during an incomplete update or while retained
+leases prevent another allocation. Cursor retry uses the latest protocol-owned
+shape, not the borrowed callback buffer.
+
+`close()` synchronously drains the RFB connection on its owning worker and queues
+frame/cursor clears in a newer generation. Repeated close is harmless. A new
+`start()` creates a new RFB object with fresh protocol/decode state, retaining
+view subscriptions and rejecting active-attempt replacement. Errors from protocol
+processing close the attempt and invalidate pending images before being rethrown;
+already-held leases remain safe. `desktop()` returns an owned metadata snapshot.
+This synchronous worker operation is not the future asynchronous close/drain API.
+
+A host may supply `SessionAuthentication` for credentials/trust. Missing handlers
+cancel credentials and reject trust; no dialog is opened. The delegate is retained
+for the session lifetime. Callbacks must not reenter protocol processing, close or
+publication. A native host still needs the cancellable worker rendezvous from
+N1.10; this seam does not make UI-thread authentication safe.
+
+The default source-frame limit is 64 MiB and the publication payload budget is
+128 MiB. Resize may temporarily hold both old and replacement source buffers
+(up to twice the source limit), in addition to published leases, decoder scratch
+and protocol state. Requests that exceed the source limit or the existing RFB
+allocator's signed arithmetic capacity are rejected before allocation. These are
+buffer budgets, not a whole-process memory ceiling.
+
+The headless tests drive actual client RFB processing using fixture streams:
+None negotiation, raw/CopyRect updates, resize, cursor shape/hide, view detach,
+backpressure, reconnect, invalid dimensions and the VNC credential callback path.
+The VNC fixture supplies SecurityResult rather than implementing a server-side
+password verifier. Socket readiness, typed command/event operations, cancellation,
+clipboard/input service adapters, native UI and async shutdown remain separate
+milestones. The legacy FLTK `CConn`/`DesktopSession` remains the comparison adapter.
