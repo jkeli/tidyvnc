@@ -11,11 +11,13 @@
 namespace rdr { class InStream; class OutStream; }
 namespace viewer {
 
-// Synchronous protocol seam, owned by the host. Native hosts must implement
-// their cancellable worker rendezvous here; no UI event loop belongs in core.
+// Synchronous protocol seam, retained by the session. PromptAuthentication
+// supplies a cancellable worker rendezvous; no UI event loop belongs in core.
 class SessionAuthentication {
 public:
   virtual ~SessionAuthentication() = default;
+  virtual void beginAttempt(uint64_t, const std::string&) {}
+  virtual void cancelPending() noexcept {}
   virtual void credentials(bool secure, std::string* username, std::string* password) = 0;
   virtual bool certificate(unsigned int, const uint8_t*, size_t) { return false; }
   virtual bool hostKey(const uint8_t*, size_t, const char*) { return false; }

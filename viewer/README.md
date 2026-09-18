@@ -152,8 +152,8 @@ This synchronous worker operation is not the future asynchronous close/drain API
 A host may supply `SessionAuthentication` for credentials/trust. Missing handlers
 cancel credentials and reject trust; no dialog is opened. The delegate is retained
 for the session lifetime. Callbacks must not reenter protocol processing, close or
-publication. A native host still needs the cancellable worker rendezvous from
-N1.10; this seam does not make UI-thread authentication safe.
+publication. `PromptAuthentication` supplies the cancellable worker rendezvous
+(N1.10); the host supplies notification delivery and native prompt presentation.
 
 The default source-frame limit is 64 MiB and the publication payload budget is
 128 MiB. Resize may temporarily hold both old and replacement source buffers
@@ -169,3 +169,41 @@ The VNC fixture supplies SecurityResult rather than implementing a server-side
 password verifier. Socket readiness, typed command/event operations, cancellation,
 clipboard/input service adapters, native UI and async shutdown remain separate
 milestones. The legacy FLTK `CConn`/`DesktopSession` remains the comparison adapter.
+
+## Cancellable authentication prompts (N1.10)
+
+Create one `PromptAuthentication` per logical session and pass it to
+`ProtocolSession`. The session calls `beginAttempt()` with its generation and
+server name. Credential, certificate and host-key callbacks publish owned request
+data, invoke the notification hook outside the bridge mutex, then wait on a
+condition variable on the requesting worker only. The wait releases that mutex;
+the session holds no framebuffer, publisher or service-store lock at this seam.
+The notification hook must promptly enqueue work for the UI/service dispatcher;
+it must not enter a nested GUI loop, wait for UI completion or retain the bridge
+strongly. The host must keep the bridge alive until its worker has drained.
+
+The UI calls `takeRequest()` once per prompt and answers using `replyCredentials()`
+or `replyTrust()` with both the request ID and connection generation. IDs increase
+across reconnects; stale, duplicate, wrong-kind and oversized replies cannot
+complete a different request. Certificate/key bytes and fingerprint strings are
+owned copies. Only one prompt is outstanding per session. Identity bytes are
+limited to 64 KiB and server names, fingerprints and each credential field to
+4096 bytes. Private credential response storage is overwritten after consumption,
+cancellation or failure; caller-owned strings retain their ordinary lifetimes.
+
+Close, quit and reconnect controllers must call `cancel()` directly from their
+thread before waiting for or queuing worker teardown. It wakes a parked callback
+without a command running on that worker; cancellation also wins over a reply
+accepted but not consumed yet. After callback unwinding, `ProtocolSession` closes
+and advances the generation. Its own `close()` remains a worker-only operation,
+not a thread-safe cancellation API. A new attempt may begin only after the old
+worker has drained. Cancelling an attempt prevents later prompts in that attempt.
+
+An unanswered prompt expires against a monotonic deadline (60 seconds by default,
+configurable from a positive millisecond duration through 24 hours). A host socket
+watcher can call `cancel(PromptCancelReason::PeerClosed)`; cancellation, timeout
+and peer closure are distinguishable in `PromptInterrupted`. Automatic socket
+watching belongs to N1.6, and actual TLS/socket cancellation proof to N1.11.
+Tests cover direct bridge races and real RFB client VNC callback resume/cancel
+using fixture streams. Native dialogs, trust persistence and a main-thread event
+dispatcher are not provided by this bridge.

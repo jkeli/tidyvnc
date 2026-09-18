@@ -5,6 +5,7 @@ target_include_directories(tidyvnc_viewer_platform PUBLIC ${CMAKE_SOURCE_DIR})
 add_library(tidyvnc_viewer_core STATIC
   core/FramePublisher.cxx
   core/ProtocolSession.cxx
+  core/PromptAuthentication.cxx
   core/DesktopTransform.cxx
   core/DesktopLayout.cxx
   core/DesktopResampler.cxx
