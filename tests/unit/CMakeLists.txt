@@ -64,6 +64,10 @@ add_executable(promptauthentication promptauthentication.cxx)
 target_link_libraries(promptauthentication tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
 gtest_discover_tests(promptauthentication PROPERTIES TIMEOUT 30)
 
+add_executable(sessioninput sessioninput.cxx)
+target_link_libraries(sessioninput tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(sessioninput PROPERTIES TIMEOUT 30)
+
 if(GNUTLS_FOUND AND NOT WIN32)
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)

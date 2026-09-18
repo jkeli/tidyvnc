@@ -3,6 +3,7 @@
 #define TIDYVNC_PROTOCOL_SESSION_H
 
 #include <viewer/core/FramePublisher.h>
+#include <viewer/core/InputQueue.h>
 #include <rfb/SecurityClient.h>
 #include <rfb/ClientMessageLimits.h>
 #include <memory>
@@ -26,6 +27,8 @@ struct SessionBufferLimits {
   size_t framebufferBytes = 64 * 1024 * 1024;
   size_t publicationBytes = 128 * 1024 * 1024;
   size_t subscribers = 16;
+  size_t inputCommands = 256;
+  size_t heldKeys = 64;
 };
 struct SessionDesktop {
   bool active = false, ready = false;
@@ -36,7 +39,8 @@ struct SessionDesktop {
 
 // A window-independent RFB attempt owner, driven by the host's serialized
 // executor. Transport readiness, command/event lifecycle and async drain are
-// separate layers. Only subscription take/release may run on other threads.
+// separate layers. Subscription take/release and InputQueue operations may run
+// on other threads; all protocol operations stay on the owning worker.
 // Authentication handlers must not reenter processMessage/close/publication.
 class ProtocolSession {
 public:
@@ -61,6 +65,11 @@ public:
   // Returns false while an update is in progress or publication remains blocked.
   bool retryPublication();
   size_t publicationBytesInUse() const;
+  std::shared_ptr<InputQueue> inputQueue() const;
+  // Worker-only. Processes at most inputCommands + one release barrier per call.
+  // Returns false after held-key overflow; the mailbox records the fault and
+  // requires explicit focus reactivation before accepting more input.
+  bool drainInput();
 
 private:
   class Connection;
@@ -69,6 +78,7 @@ private:
   const SessionBufferLimits buffers;
   std::shared_ptr<SessionAuthentication> authentication;
   FramePublisher publisher;
+  const std::shared_ptr<InputQueue> inputMailbox;
   std::unique_ptr<Connection> connection;
   bool processing = false;
 };

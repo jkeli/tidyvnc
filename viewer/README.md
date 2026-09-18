@@ -246,3 +246,56 @@ the production readiness adapter (N1.6), asynchronous lifecycle/drain (N1.5/N1.1
 native close/quit wiring, other TLS versions/security modes, and Windows socket
 coverage remain separate acceptance work. N1.14's complete settings/input/clipboard
 isolation matrix also remains open.
+
+## Bounded keyboard and pointer input (N1.12 input portion)
+
+`ProtocolSession::inputQueue()` returns a retainable, thread-safe mailbox for
+host-mapped RFB keysyms/QEMU keycodes and remote pointer coordinates. Submit the
+current connection generation with each event. The core rejects disconnected,
+stale, view-only and unfocused input; invalid button masks and empty key presses
+are rejected before reaching the protocol writer. Physical key IDs match repeats
+and releases to the original press mapping. Native shortcut/keyboard translation
+remains the host's responsibility; the portable path does not apply the legacy
+`CConnection::sendKeyPress()` platform remapping a second time.
+
+The host wakes its worker after input or policy changes, then calls
+`drainInput()` on that worker. Submission never writes to the socket. Each drain
+processes at most `inputCommands + 1` entries, keeping a busy producer from
+monopolizing protocol processing. Check mailbox status and schedule another drain
+if queued input or a release flag remains; the return value is not an empty-queue
+indicator. Consecutive pointer motions with unchanged
+buttons coalesce, including drag motion. Button transitions retain their original
+coordinates and are never coalesced; motion never crosses a key-event boundary.
+The existing RFB writer clamps positions and negotiates extended keys/buttons.
+
+The default queue capacity is 256 commands (configurable from 1 through 65536),
+with at most 64 held physical keys (1 through 1024). A separate release-all flag
+cannot be crowded out by input commands. Queue/storage exhaustion returns
+`InputResult::Overflow`, clears unsent input, increments the observable overflow
+counter and suspends new input until explicit `setFocused(generation, true)`.
+Held-key exhaustion reports false from `drainInput()`, releases held state in that
+call and records the same mailbox fault. Queue status is a bounded snapshot;
+the wider lifecycle/error event stream is still N1.5/N1.12 work.
+
+`setFocused(..., false)` clears unsent input and requests key/button release.
+Reactivation keeps that release ahead of newly accepted input. Enabling view-only
+has the same release behavior and blocks new submissions in core. A command
+already dequeued by the worker may finish before a concurrent policy change;
+the next dequeue handles the release. Focus and view-only policy persist across
+reconnect, while queued events and held state do not. View-only is logical-session
+policy; its setter does not carry a connection generation.
+
+Close and protocol/write failure invalidate queued input and attempt to release
+held keys/buttons before destroying the connection. A dead transport can prevent
+remote delivery; release-write failures do not prevent local cleanup or replace
+the original exception. Transport buffering, writable readiness and asynchronous
+flush/drain are separate responsibilities of N1.6/N1.13. These queue/held-key limits
+are not a whole-process or transport-buffer memory budget. Retained mailboxes
+remain safe and reject input after session destruction.
+
+`SessionInput` tests decode the emitted RFB bytes and exercise coalescing,
+transition order, repeats, extended capabilities, focus/view-only changes,
+overflow/recovery, disconnect/reconnect, write/protocol failure, retained lifetime,
+and a concurrent producer with independent sessions. Native input translation,
+focus ownership across multiple views, general event/completion queues and the
+remaining N1.12 acceptance criteria are still pending.

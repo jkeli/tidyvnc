@@ -3,11 +3,14 @@
 
 #include <rfb/CConnection.h>
 #include <rfb/Cursor.h>
+#include <rfb/CMsgWriter.h>
 #include <rfb/Exception.h>
 #include <rfb/PixelBuffer.h>
 #include <limits>
 #include <stdexcept>
 #include <utility>
+#include <algorithm>
+#include <vector>
 
 namespace viewer {
 namespace {
@@ -23,9 +26,49 @@ public:
     : CConnection(owner_.security, owner_.messages), owner(owner_) {
     supportsLocalCursor = true;
     supportsDesktopResize = true;
+    held.reserve(owner.buffers.heldKeys);
   }
   bool ready = false;
   uint64_t bells = 0;
+
+  bool sendInput(const InputQueue::Command& command) {
+    if (command.kind == InputQueue::Command::ReleaseAll) {
+      releaseInput(); return true;
+    }
+    if (command.kind == InputQueue::Command::Pointer) {
+      pointerPosition = core::Point(command.x, command.y);
+      buttons = command.buttons;
+      writer()->writePointerEvent(pointerPosition, buttons);
+      return true;
+    }
+    auto key = std::find_if(held.begin(), held.end(), [&](const HeldKey& value) {
+      return value.id == command.keyId;
+    });
+    if (command.down) {
+      if (key == held.end()) {
+        if (held.size() == owner.buffers.heldKeys) return false;
+        held.push_back({command.keyId, command.keySym, command.keyCode});
+        key = held.end() - 1;
+      }
+      writer()->writeKeyEvent(key->symbol, key->code, true);
+    } else if (key != held.end()) {
+      writer()->writeKeyEvent(key->symbol, key->code, false);
+      held.erase(key);
+    }
+    return true;
+  }
+  void releaseInput() {
+    // Unwind chords in reverse press order.
+    while (!held.empty()) {
+      const auto key = held.back();
+      writer()->writeKeyEvent(key.symbol, key.code, false);
+      held.pop_back();
+    }
+    if (buttons) {
+      writer()->writePointerEvent(pointerPosition, 0);
+      buttons = 0;
+    }
+  }
 
   bool publish() {
     if (inUpdate) return false;
@@ -69,6 +112,7 @@ protected:
     setPF(framebufferFormat());
     ready = true;
     publish();
+    owner.inputMailbox->connected();
   }
   void resizeFramebuffer() override {
     const int width = server.width(), height = server.height();
@@ -119,16 +163,23 @@ private:
   ProtocolSession& owner;
   core::Rect damage;
   bool inUpdate = false, cursorChanged = false;
+  struct HeldKey { uint32_t id, symbol, code; };
+  std::vector<HeldKey> held;
+  core::Point pointerPosition;
+  uint16_t buttons = 0;
 };
 ProtocolSession::ProtocolSession(const rfb::SecurityClient& security_,
   const rfb::ClientMessageLimits& messages_, const SessionBufferLimits& buffers_,
   std::shared_ptr<SessionAuthentication> authentication_)
   : security(security_), messages(messages_), buffers(buffers_),
-    authentication(authentication_), publisher(buffers.publicationBytes, buffers.subscribers)
+    authentication(authentication_), publisher(buffers.publicationBytes, buffers.subscribers),
+    inputMailbox(new InputQueue(buffers.inputCommands))
 {
   messages.validate();
   if (!buffers.framebufferBytes)
     throw std::invalid_argument("Framebuffer limit must be positive");
+  if (!buffers.heldKeys || buffers.heldKeys > 1024)
+    throw std::invalid_argument("Invalid held key limit");
 }
 ProtocolSession::~ProtocolSession()
 {
@@ -149,6 +200,7 @@ void ProtocolSession::start(const std::string& serverName, rdr::InStream& input,
   next->initialiseProtocol();
   if (authentication)
     authentication->beginAttempt(publisher.generation(), serverName);
+  inputMailbox->begin(publisher.generation());
   connection = std::move(next);
 }
 bool ProtocolSession::processMessage()
@@ -170,7 +222,13 @@ void ProtocolSession::close()
 {
   if (processing) throw std::logic_error("Reentrant protocol close");
   if (!connection) return;
+  inputMailbox->end(publisher.generation() + 1);
   if (authentication) authentication->cancelPending();
+  // A dead transport may reject release writes. Still drain and invalidate;
+  // never replace the original protocol/IO error with a teardown write error.
+  if (connection->ready) {
+    try { connection->releaseInput(); } catch (...) {}
+  }
   // No callbacks are made to views; their queued images are invalidated after
   // decoder work and protocol-owned resources have been drained.
   connection.reset();
@@ -199,4 +257,29 @@ bool ProtocolSession::retryPublication()
   return !connection || connection->publish();
 }
 size_t ProtocolSession::publicationBytesInUse() const { return publisher.bytesInUse(); }
+std::shared_ptr<InputQueue> ProtocolSession::inputQueue() const { return inputMailbox; }
+bool ProtocolSession::drainInput()
+{
+  if (processing) throw std::logic_error("Reentrant input processing");
+  if (!connection || !connection->ready) return true;
+  processing = true;
+  try {
+    InputQueue::Command command;
+    bool okay = true;
+    for (size_t count = 0; count <= buffers.inputCommands && inputMailbox->take(command); ++count) {
+      if (!connection->sendInput(command)) {
+        inputMailbox->overflow();
+        connection->releaseInput();
+        okay = false;
+        break;
+      }
+    }
+    processing = false;
+    return okay;
+  } catch (...) {
+    processing = false;
+    close();
+    throw;
+  }
+}
 }
