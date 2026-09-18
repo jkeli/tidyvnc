@@ -203,7 +203,46 @@ An unanswered prompt expires against a monotonic deadline (60 seconds by default
 configurable from a positive millisecond duration through 24 hours). A host socket
 watcher can call `cancel(PromptCancelReason::PeerClosed)`; cancellation, timeout
 and peer closure are distinguishable in `PromptInterrupted`. Automatic socket
-watching belongs to N1.6, and actual TLS/socket cancellation proof to N1.11.
+watching belongs to N1.6; N1.11 below verifies actual TLS/socket cancellation.
 Tests cover direct bridge races and real RFB client VNC callback resume/cancel
 using fixture streams. Native dialogs, trust persistence and a main-thread event
 dispatcher are not provided by this bridge.
+
+## Real authentication and cancellation proof (N1.11)
+
+On macOS/Linux builds with GnuTLS, `authenticationsocket` exercises
+`ProtocolSession` and `PromptAuthentication` against an independent loopback TCP
+RFB peer. The peer compares the received VNC DES response with a known answer
+before sending success; a wrong password receives an actual failed SecurityResult.
+The TLS cases negotiate VeNCrypt X509Vnc and TLS 1.2 with an ephemeral self-signed
+certificate, then perform password verification inside the encrypted connection.
+The tests accept or reject the actual certificate callback; no successful result
+is substituted for the handshake.
+
+The same tests cancel outstanding trust/credential prompts on host close/quit,
+expire an unanswered request, and observe a socket FIN while the worker is parked.
+The test host detects FIN with kqueue `EV_EOF` (macOS) or `POLLRDHUP` (Linux), then
+calls direct prompt cancellation. It never consumes protocol bytes on a competing
+reader. Reconnect uses the same session/bridge with a fresh socket, generation and
+request ID, and rejects stale and duplicate responses. A second session with a
+different security mode completes while the first remains parked.
+
+Run in an existing GnuTLS-enabled build:
+
+```sh
+cmake --build build/headless-check --target authenticationsocket
+ctest --test-dir build/headless-check/tests/unit -R AuthenticationSocket \
+  --output-on-failure --no-tests=error
+```
+
+These tests bind only `127.0.0.1` on an ephemeral port and need permission to open
+local sockets. They generate certificate/key material in memory and contact no
+external server. CTest caps each case at 30 seconds; prompt, peer and drain waits
+also have deadlines. The headless CI matrix automatically includes the suite.
+
+This proves the synchronous security callbacks can pause and unwind safely at
+the core/host boundary. The host controller and FIN watcher here are test fixtures;
+the production readiness adapter (N1.6), asynchronous lifecycle/drain (N1.5/N1.13),
+native close/quit wiring, other TLS versions/security modes, and Windows socket
+coverage remain separate acceptance work. N1.14's complete settings/input/clipboard
+isolation matrix also remains open.

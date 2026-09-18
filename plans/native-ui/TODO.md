@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract and N1.10 cancellable authentication prompts. N1.4 is in progress.** Check an item only after
+**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts and N1.11 real authentication/cancellation proof. N1.4 is in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -43,8 +43,8 @@ may disappear merely because it is absent from an initial mockup.
 - [x] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership. Implemented by the portable `ProtocolSession`; see evidence below. Retained FLTK remains a comparison adapter.
 - [x] N1.8 Implement retained frame/cursor leases, explicit pixel format/stride/origin, damage and size generations; bound memory and merge skipped damage correctly. See N1.8 evidence below; session/frontend integration remains in N1.7/N2.
 - [ ] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors.
-- [x] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. Implemented by `PromptAuthentication`; see evidence below. Real TLS/socket cancellation remains N1.11.
-- [ ] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect.
+- [x] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. Implemented by `PromptAuthentication`; see evidence below. Real TLS/socket cancellation is verified by N1.11 below.
+- [x] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect. Loopback TCP/GnuTLS proof at the core/host boundary; see evidence below. Production reactor and native close/quit wiring remain separate items.
 - [ ] N1.12 Implement bounded input/event queues, coalescing rules and release-all on focus loss/overflow/disconnect; keep view-only enforcement in core.
 - [ ] N1.13 Implement disconnect/drain with cancelled IO/prompts/timers/subscriptions and joined decoder work; repeated close and partial construction failure are safe.
 - [ ] N1.14 Test two simultaneous sessions with different security/settings, one awaiting credentials while the other continues; no secret, modifier, clipboard or option leakage.
@@ -751,6 +751,58 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   automatic socket peer monitoring, async lifecycle and real TLS/VNC-server
   cancellation proof remain their unchecked service/frontend/N1.6/N1.11 items.
   No interactive GUI or Linux/Windows execution result is claimed.
+
+### N1.11 — real VNC/TLS authentication and cancellation proof — 2026-09-18
+
+- Commit: `test(viewer): prove authentication cancellation over loopback TCP`.
+- Added `authenticationsocket`, an independent loopback TCP RFB peer exercising
+  the actual `ProtocolSession` and `PromptAuthentication`. The server compares
+  the VNC challenge response with the recorded password known-answer vector
+  before sending SecurityResult; an incorrect password receives a real failure.
+  No client DES helper computes the server's expected answer.
+- TLS cases negotiate VeNCrypt X509Vnc and GnuTLS TLS 1.2 with an ephemeral
+  in-memory self-signed certificate, exercise the real trust callback, then
+  verify VNC authentication inside the encrypted connection. Tests cover both
+  certificate acceptance and rejection and enforce the credential secure flag.
+- Sixteen cases cover plain VNC and TLS success, wrong passwords, outstanding
+  trust/credential cancellation from host close/quit, monotonic prompt timeout,
+  peer disappearance, mismatched replies, reconnect with a new socket/generation
+  and rejection of old/duplicate replies. A second session with the other security
+  mode completes while the first remains parked, checking that the synchronous
+  callback does not monopolize shared crypto/session locks.
+- A test host observes TCP FIN using macOS kqueue EV_EOF or Linux POLLRDHUP and
+  directly cancels the parked bridge. It does not consume protocol bytes or
+  require a command to run on the waiting worker. Teardown cancels prompts,
+  interrupts sockets and joins workers before destroying streams/peer resources.
+  Prompt, peer and drain waits are bounded, with a 30-second CTest case limit.
+- GnuTLS-enabled macOS/Linux builds register these tests in the ordinary unit
+  suite, including the existing headless CI matrix. The server binds only IPv4
+  loopback on an ephemeral port, uses no external server and persists no key or
+  certificate. The initial sandboxed run could not bind loopback; the authorized
+  execution outside that restriction passed. An initial compile-time narrowing
+  error in the test policy initializer was corrected with an explicit type.
+- Headless Debug: **16/16** focused socket tests passed (1.14 seconds).
+  GnuTLS-enabled ASan/UBSan: **16/16** (1.62 seconds); ThreadSanitizer:
+  **16/16** (2.26 seconds). Full retained FLTK Release: **398/398** unit tests
+  (18.45 seconds), plus **1/1** smoke. Full existing headless Debug:
+  **383/383** unit tests (16.28 seconds), plus **1/1** smoke (0.13 seconds).
+  `git diff --check` and branding/attribution audit passed.
+- Reproduce with the [README instructions](../../viewer/README.md): build
+  `authenticationsocket` in a GnuTLS-enabled configuration, then run unit CTest
+  with `-R AuthenticationSocket --output-on-failure --no-tests=error`. Local
+  configurations: `build/native-ui-prompts-final`, `build/tidyvnc-release`,
+  `build/native-ui-tls-sanitized` and `build/native-ui-tls-tsan`.
+  Ephemeral logs: `/tmp/tidyvnc-authsocket-test.log`,
+  `/tmp/tidyvnc-authsocket-{sanitized,tsan}-test.log`, and
+  `/tmp/tidyvnc-authsocket-{release,headless}-{tests,smoke}.log`.
+- Same macOS 27 arm64 / AppleClang 21 CLT environment; sanitizer instrumentation
+  covers project code, not all external GnuTLS/crypto libraries. Linux code is
+  wired into CI but was not executed locally; Windows socket coverage is absent.
+  This completes authentication/cancellation proof at the core/host boundary.
+  The fixture controller/FIN observer is not the production reactor/lifecycle
+  adapter: N1.5/N1.6/N1.13 and native close/quit wiring remain open. Other security
+  modes/TLS versions and N1.14's full settings/input/clipboard isolation matrix
+  remain separate work. No native UI or full application-quit claim is made.
 
 ### Implementation evidence template
 

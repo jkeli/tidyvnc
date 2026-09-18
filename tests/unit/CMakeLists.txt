@@ -68,6 +68,13 @@ if(GNUTLS_FOUND AND NOT WIN32)
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)
   gtest_discover_tests(clienttls)
+
+  if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_executable(authenticationsocket authenticationsocket.cxx)
+    target_include_directories(authenticationsocket SYSTEM PRIVATE ${GNUTLS_INCLUDE_DIR})
+    target_link_libraries(authenticationsocket tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+    gtest_discover_tests(authenticationsocket PROPERTIES TIMEOUT 30)
+  endif()
 endif()
 
 add_executable(convertlf convertlf.cxx)
