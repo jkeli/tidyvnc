@@ -33,6 +33,14 @@ namespace rfb {
   public:
     SecurityClient(void) : Security(secTypes) {}
 
+    // Copy an explicit per-connection allow-list without reading the legacy
+    // parameter registry. Unsupported/uncompiled types are rejected; an empty
+    // list permits no authentication. VeNCrypt is inferred from its subtypes.
+    explicit SecurityClient(const std::list<uint32_t>& types);
+
+    // Compiled authentication methods, independent of user configuration.
+    static const std::list<uint32_t>& supportedTypes();
+
     /* Create client side CSecurity class instance */
     CSecurity* GetCSecurity(CConnection* cc, uint32_t secType);
 

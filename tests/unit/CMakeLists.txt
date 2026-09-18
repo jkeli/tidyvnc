@@ -32,6 +32,10 @@ add_executable(tightdecoder tightdecoder.cxx)
 target_link_libraries(tightdecoder rfbclient GTest::gtest_main Threads::Threads)
 gtest_discover_tests(tightdecoder)
 
+add_executable(securityclient securityclient.cxx)
+target_link_libraries(securityclient rfbclient GTest::gtest_main Threads::Threads)
+gtest_discover_tests(securityclient)
+
 add_executable(convertlf convertlf.cxx)
 target_link_libraries(convertlf core GTest::gtest_main)
 gtest_discover_tests(convertlf)

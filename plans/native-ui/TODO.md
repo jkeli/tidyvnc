@@ -33,8 +33,9 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs.
 - [ ] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races.
   - Completed prerequisites: caller-owned DES schedules for client/server VNC
-    authentication/password-file helpers, and invocation-owned Tight gradient
-    scratch rows; see evidence below. Other audited globals remain open.
+    authentication/password-file helpers, invocation-owned Tight gradient
+    scratch rows, and explicit per-connection authentication allow-lists;
+    see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
 - [ ] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership.
@@ -318,6 +319,42 @@ cmake --build build/native-ui-tsan --target tightdecoder --parallel 8
 ctest --test-dir build/native-ui-tsan/tests/unit \
   -R '^TightDecoder\.' --output-on-failure --no-tests=error
 ```
+
+### N1.4 prerequisite — explicit authentication policy — 2026-09-18
+
+- Commit: `feat(rfb): inject per-connection authentication policies`.
+- Added a `SecurityClient` constructor taking an owned copy of explicit
+  security type IDs without reading/registering global parameters. Rejects
+  unknown or uncompiled methods and explicit VeNCrypt wrapper IDs; the wrapper
+  is inferred from allowed subtypes. Deduplicates types without reordering.
+  An empty list denies negotiation instead of restoring defaults.
+- Added a `CConnection` constructor that copies the supplied policy. Existing
+  constructors retain FLTK/CLI default behavior. Neither server security
+  configuration nor server preference order changed. A static read-only
+  `supportedTypes()` query exposes compiled methods independently of settings.
+- Nine tests cover snapshots of caller lists/policies and legacy defaults,
+  compiled capabilities, unsupported methods, empty-list rejection, RFB 3.3
+  and 3.8 negotiation, VeNCrypt advertisement, server ordering and four
+  concurrent connections selecting different methods. Negotiation tests use
+  the real `CConnection::processMsg` with in-memory streams, not a UI stub.
+- Full retained FLTK Release build and **323/323** unit tests passed in 15.11
+  seconds. Viewer-disabled Debug **9/9** focused tests passed under ASan/UBSan
+  (0.54 seconds) and ThreadSanitizer (1.01 seconds). The Release build includes
+  GnuTLS/nettle; both sanitizer builds disable them, exercising rejection of
+  uncompiled methods. Same macOS 27.0 arm64/CLT toolchain and prebuilt-library
+  instrumentation limitations as earlier evidence. `git diff --check` passed.
+- Reproduction: build default target and run the full Release CTest suite;
+  build `securityclient` in the existing `native-ui-sanitized` and
+  `native-ui-tsan` configurations, then run their unit suites with
+  `-R '^SecurityClient\.' --output-on-failure --no-tests=error`.
+- Logs: `/tmp/tidyvnc-policy-{build,focused,tests}.log`,
+  `/tmp/tidyvnc-policy-sanitized-{build,tests}.log` and
+  `/tmp/tidyvnc-policy-tsan-{build,tests}.log` (ephemeral).
+- This is the authentication-method selection boundary, not a full immutable
+  security/settings model or public C ABI. TLS priority/CA/CRL still use legacy
+  globals, and prompt ownership, trust, credentials and runtime initialization
+  remain open. No real TLS authentication, prompt cancellation or complete
+  concurrent session lifecycle is claimed. N1.2/N1.4/N1.14 remain unchecked.
 
 ### Implementation evidence template
 

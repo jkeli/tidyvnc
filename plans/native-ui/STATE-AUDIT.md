@@ -96,6 +96,13 @@ after the fix (see the N1.4 prerequisite evidence in [TODO.md](TODO.md)). The
 table above preserves the inspected baseline; other rows are still extraction
 work, not resolved issues.
 
+Authentication-method selection now also has an explicit value-list constructor
+and a `CConnection` policy-copy constructor. Native callers can avoid reading
+the legacy `SecurityTypes` parameter; existing callers still use their current
+defaults. Compiled capabilities are available independently of global settings.
+TLS priority/CA/CRL are **not** isolated by this change. See the explicit-policy
+evidence in [TODO.md](TODO.md) for negotiation and sanitizer results.
+
 ## Baseline verification
 
 On 2026-09-18, before code changes, the retained Release build passed **304/304**
