@@ -147,6 +147,8 @@ void ProtocolSession::start(const std::string& serverName, rdr::InStream& input,
   next->setServerName(serverName.c_str());
   next->setStreams(&input, &output);
   next->initialiseProtocol();
+  if (authentication)
+    authentication->beginAttempt(publisher.generation(), serverName);
   connection = std::move(next);
 }
 bool ProtocolSession::processMessage()
@@ -168,6 +170,7 @@ void ProtocolSession::close()
 {
   if (processing) throw std::logic_error("Reentrant protocol close");
   if (!connection) return;
+  if (authentication) authentication->cancelPending();
   // No callbacks are made to views; their queued images are invalidated after
   // decoder work and protocol-owned resources have been drained.
   connection.reset();

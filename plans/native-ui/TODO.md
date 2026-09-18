@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session and N1.8 retained publication contract. N1.4 is in progress.** Check an item only after
+**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract and N1.10 cancellable authentication prompts. N1.4 is in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -43,7 +43,7 @@ may disappear merely because it is absent from an initial mockup.
 - [x] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership. Implemented by the portable `ProtocolSession`; see evidence below. Retained FLTK remains a comparison adapter.
 - [x] N1.8 Implement retained frame/cursor leases, explicit pixel format/stride/origin, damage and size generations; bound memory and merge skipped damage correctly. See N1.8 evidence below; session/frontend integration remains in N1.7/N2.
 - [ ] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors.
-- [ ] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. If pausing is unsafe, implement/test resumable security states first.
+- [x] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. Implemented by `PromptAuthentication`; see evidence below. Real TLS/socket cancellation remains N1.11.
 - [ ] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect.
 - [ ] N1.12 Implement bounded input/event queues, coalescing rules and release-all on focus loss/overflow/disconnect; keep view-only enforcement in core.
 - [ ] N1.13 Implement disconnect/drain with cancelled IO/prompts/timers/subscriptions and joined decoder work; repeated close and partial construction failure are safe.
@@ -702,6 +702,55 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   services, native UI/ABI and asynchronous close/drain remain their own unchecked
   items. No interactive GUI, physical-display, real TLS/password-server or
   Windows/Linux execution result is claimed by this milestone.
+
+### N1.10 — cancellable worker authentication prompts — 2026-09-18
+
+- Commit: `feat(viewer): bridge authentication with cancellable worker prompts`.
+- Added `PromptAuthentication`, a per-session `SessionAuthentication` delegate.
+  Credential, certificate and host-key callbacks publish owned request metadata,
+  notify outside the mutex and park only their worker. UI/service code takes the
+  request and replies using its monotonic ID and connection generation. The wait
+  releases the bridge mutex; no framebuffer/publication/store lock is held at the
+  protocol authentication seam. No GUI loop or main-thread wait is introduced.
+- Direct cancellation wakes a parked callback without a queued worker command.
+  Cancellation wins over an accepted-but-unconsumed reply, prevents later prompts
+  in the same attempt and distinguishes cancellation, timeout and peer closure.
+  The monotonic timeout defaults to 60 seconds and is configurable up to 24 hours.
+  Reconnect requires worker drain and a newer generation; request IDs never reset.
+- Reject stale/duplicate/wrong-kind replies and oversized payloads. Identity data
+  is capped at 64 KiB; server names, fingerprints and individual credential fields
+  at 4096 bytes. Private credential reply buffers are overwritten after use,
+  cancellation or failure. Caller-owned strings retain their ordinary lifetimes.
+- `ProtocolSession` begins the delegate attempt and cancels pending work during
+  worker close. Hosts must directly call bridge cancellation before queuing close
+  on a parked worker; `ProtocolSession::close()` itself remains worker-only.
+  The host notification hook must enqueue and return promptly and the delegate
+  must remain alive until worker drain. See [viewer/README.md](../../viewer/README.md).
+- Fourteen tests cover reply typing/limits, immediate notifier reply without
+  deadlock, trust payload ownership, duplicate/stale replies, deadline expiry,
+  cancellation before/during wait and after accepted reply, notification failure,
+  independent sessions, and actual RFB-client VNC callbacks resumed/cancelled and
+  reconnected through the bridge. The fixture supplies SecurityResult; it does
+  not verify the server-side password or prove actual TLS/socket cancellation.
+- Retained FLTK Release: **382/382** unit tests passed (18.95 seconds), plus
+  **1/1** smoke (0.09 seconds). Fresh headless Debug with TLS/nettle/GoogleTest:
+  **367/367** unit tests (14.92 seconds), smoke and dependency audit passed.
+  Viewer-disabled/TLS-disabled Debug: **24/24** prompt/session tests under
+  ASan/UBSan (0.55 seconds) and ThreadSanitizer (0.97 seconds). The initial strict
+  Debug build caught an ignored test future return value; it was corrected before
+  these passing runs. `git diff --check` and branding/attribution audit passed.
+- Reproduce the headless check using the README with a new build directory
+  (local: `build/native-ui-prompts-final`). Build `promptauthentication` and
+  `protocolsession` in the sanitizer configurations and run unit CTest with
+  `-R '^(PromptAuthentication|ProtocolSession)\.' --output-on-failure --no-tests=error`.
+  Ephemeral logs: `/tmp/tidyvnc-prompts-{build,test,smoke}.log`,
+  `/tmp/tidyvnc-prompts-headless-final.log`, and
+  `/tmp/tidyvnc-prompts-{sanitized,tsan}-{build,test}.log`.
+- Same macOS 27 arm64 / AppleClang 21 CLT environment; sanitizers instrument project
+  code, not all external libraries. Native dialogs/dispatch, trust persistence,
+  automatic socket peer monitoring, async lifecycle and real TLS/VNC-server
+  cancellation proof remain their unchecked service/frontend/N1.6/N1.11 items.
+  No interactive GUI or Linux/Windows execution result is claimed.
 
 ### Implementation evidence template
 

@@ -179,7 +179,27 @@ allocation is bounded independently of publication copies and checked against
 legacy RFB signed-size arithmetic. Wire fixtures exercise decode, resize,
 backpressure, detach, reconnect and failure. This completes the portable
 framebuffer/view ownership boundary, not the remaining executor, service,
-prompt or full lifecycle work in the audit. FLTK remains the comparison adapter.
+full lifecycle work in the audit. FLTK remains the comparison adapter.
+
+## Cancellable authentication bridge (N1.10)
+
+`viewer/core/PromptAuthentication` now connects synchronous credential, TLS
+certificate and RSA host-key callbacks to owned, generation-tagged requests.
+Only the requesting worker waits; its condition-variable wait releases the
+bridge mutex, and notification callbacks run outside locks. No framebuffer,
+publication or service-store lock is held at the session authentication seam.
+UI reply/cancel operations take only the short bridge mutex and do not depend on
+a queued worker command. Cancellation and monotonic timeout invalidate the
+attempt and wake the waiter; reconnect requires a drained worker and newer
+generation. Private response buffers are cleared after use/failure/cancellation.
+
+Fourteen tests cover typed replies, payload limits, trust identity copies,
+reply/cancel ordering, expiry, stale generations, independent sessions and
+RFB-client VNC callback resume/cancel/reconnect using fixture streams. Actual
+TLS/socket peer monitoring and cancellation remain N1.6/N1.11, and native prompt
+presentation and trust persistence remain service/frontend work. This bridge
+does not make `ProtocolSession::close()` callable from the UI thread; the host
+calls bridge cancellation directly, then drains/closes on the worker.
 
 ## Baseline verification
 
