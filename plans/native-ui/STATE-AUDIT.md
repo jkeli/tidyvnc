@@ -117,6 +117,15 @@ updates no longer read the global parameter. Wire-message tests cover legacy
 snapshots, explicit defaults, live toggles and concurrent independent sessions.
 This does not isolate the remaining viewer parameters or validate native UI.
 
+Incoming clipboard limits are now value-owned by `CConnection` and `CMsgReader`.
+The legacy constructor captures `MaxCutText` before the handshake; explicit
+construction takes `ClientMessageLimits` or uses its fixed defaults without
+reading the global parameter. Plain text, extended wire payloads and each
+expanded format use the snapshot. Tests exercise real RFB 3.8/None negotiation,
+concurrent distinct limits and alignment after discarded updates. This preserves
+the existing per-format semantics, not an aggregate transport/decompression
+budget; reader buffering and clipboard service ownership remain separate work.
+
 ## Baseline verification
 
 On 2026-09-18, before code changes, the retained Release build passed **304/304**

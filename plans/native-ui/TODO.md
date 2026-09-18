@@ -35,7 +35,7 @@ may disappear merely because it is absent from an initial mockup.
   - Completed prerequisites: caller-owned DES schedules for client/server VNC
     authentication/password-file helpers, invocation-owned Tight gradient
     scratch rows, explicit per-connection authentication/TLS policies, and
-    session-owned JPEG negotiation;
+    session-owned JPEG negotiation and incoming clipboard limits;
     see evidence below. Other audited globals remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
@@ -440,6 +440,42 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
 - N1.4 remains open: timers, reconnect credentials and other viewer globals
   still require scoped ownership. This is not a complete session settings
   contract, native frontend, or full concurrent connection lifecycle test.
+
+### N1.4 prerequisite — connection-owned clipboard limits — 2026-09-18
+
+- Commit: `feat(rfb): snapshot incoming clipboard limits per connection`.
+- Added value-only `ClientMessageLimits`, validated to preserve the legacy
+  0..INT_MAX range and 256 KiB default. Connections and readers own const copies.
+  Explicit-policy construction uses fixed defaults or supplied limits; the
+  legacy connection captures `MaxCutText` at construction, before authentication.
+  Standalone legacy readers also capture their default at construction.
+- Plain text, extended wire payload size and per-format decompressed lengths
+  now use the reader snapshot. No incoming clipboard path reads mutable global
+  configuration. Existing skip/drain semantics and server reader policy remain
+  unchanged. Reject the extended length `0x80000000` before signed negation,
+  avoiding undefined integer overflow on malformed input.
+- Six tests use real RFB 3.8/None negotiation, ServerInit and clipboard bytes.
+  They verify the plain-text boundary/zero limit, construction-time legacy and
+  explicit defaults, oversized extended-wire rejection, decompressed format
+  filtering while retaining a subsequent valid format, caller-copy isolation,
+  invalid policy/length rejection, and concurrent connections with distinct
+  caps (20 sessions per worker). A trailing Bell verifies message alignment.
+- Retained FLTK Release build: **339/339** unit tests passed in 15.86 seconds.
+  Viewer-disabled/TLS-disabled Debug: **6/6** tests passed under ASan/UBSan
+  (0.17 seconds) and ThreadSanitizer (0.37 seconds). `git diff --check` passed.
+  Same macOS 27 arm64 / CLT / SDK environment as the baseline; no native UI or
+  minimum-macOS compatibility result is claimed.
+- Reproduce: `DEVELOPER_DIR=/Library/Developer/CommandLineTools cmake --build
+  build/tidyvnc-release --parallel 8`, then `ctest --test-dir
+  build/tidyvnc-release/tests/unit --output-on-failure --no-tests=error`.
+  For existing `build/native-ui-sanitized` and `build/native-ui-tsan`, build
+  `clientclipboard` and run unit CTest with `-R '^ClientClipboard\.'`.
+- Logs: `/tmp/tidyvnc-clipboard-{build,tests}.log` and
+  `/tmp/tidyvnc-clipboard-{sanitized,tsan}-{build,tests}.log` (ephemeral).
+- This cap retains per-message/per-format semantics. It does not bound total
+  transport buffering or aggregate decompression work, implement clipboard
+  services, or prove full session lifecycle isolation. N1.4 remains open for
+  timers, reconnect credentials and other audited globals.
 
 ### Implementation evidence template
 
