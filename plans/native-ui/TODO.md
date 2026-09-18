@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts and N1.11 real authentication/cancellation proof. N1.4 and N1.12 are in progress.** Check an item only after
+**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts and N1.11 real authentication/cancellation proof and N1.12 bounded input/event queues. N1.4 is in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -45,12 +45,13 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors.
 - [x] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. Implemented by `PromptAuthentication`; see evidence below. Real TLS/socket cancellation is verified by N1.11 below.
 - [x] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect. Loopback TCP/GnuTLS proof at the core/host boundary; see evidence below. Production reactor and native close/quit wiring remain separate items.
-- [ ] N1.12 Implement bounded input/event queues, coalescing rules and release-all on focus loss/overflow/disconnect; keep view-only enforcement in core.
+- [x] N1.12 Implement bounded input/event queues, coalescing rules and release-all on focus loss/overflow/disconnect; keep view-only enforcement in core. See input and event evidence below; the full lifecycle/command catalog remains N1.5.
   - [x] Bounded keyboard/pointer mailbox and held state, motion coalescing, core
     view-only enforcement, release barriers, reconnect invalidation and RFB wire
     tests. See the N1.12 input evidence below.
-  - [ ] General ordered event/completion queues, statistics coalescing and their
-    overflow rules alongside the N1.5 lifecycle/event contract.
+  - [x] Ordered event/completion queues, reserved completion capacity, statistics
+    coalescing and terminal overflow rules, integrated with protocol events and
+    refresh operations. See the N1.12 event evidence below.
 - [ ] N1.13 Implement disconnect/drain with cancelled IO/prompts/timers/subscriptions and joined decoder work; repeated close and partial construction failure are safe.
 - [ ] N1.14 Test two simultaneous sessions with different security/settings, one awaiting credentials while the other continues; no secret, modifier, clipboard or option leakage.
 - [ ] N1.15 Run existing applicable unit suites plus deterministic core/service tests with fake stores, transport, scheduler and event sink; run supported sanitizers and record limitations.
@@ -865,6 +866,64 @@ ctest --test-dir build/native-ui-tsan/tests/unit \
   remain N1.6/N1.13. Native mapping/multi-view focus and general ordered
   event/completion queues/statistics coalescing remain pending. The parent N1.12
   checkbox stays open until that remaining event contract is implemented.
+
+### N1.12 — bounded event stream and completion reservations — 2026-09-18
+
+- Commit: `feat(viewer): bound session events and reserve operation completions`.
+- Completed N1.12's remaining event queue portion with `SessionEvents`: owned
+  fixed-size records, preallocated event/reservation storage, queue-local sequence
+  and operation IDs, generation checks, and an initial current-state snapshot.
+  Queued events plus outstanding completion reservations are bounded by capacity
+  (128 default, configurable 2–65536), plus one fixed terminal-overflow record.
+  Producers run on the owning executor; consumers can take/query on other threads.
+  No user callback executes under an event mutex.
+- Statistics replace older statistics and append at the tail, preserving reliable
+  event order; sequence gaps are intentional. Reliable events and operation
+  admission can reclaim statistics slots. If reliable records/reservations fill
+  capacity, statistics only update the current snapshot. They never evict a result.
+- Reserve a completion slot before accepting an operation. Completion consumes
+  that reservation exactly once; unknown/duplicate IDs and stale-generation
+  admission are rejected. Pending operations must finish before generation advance.
+  Overflow preserves queued records/completions, fails outstanding reservations,
+  emits one terminal `Overflow` in the dedicated slot and seals the stream.
+  Sequence exhaustion retains headroom for completion/fault delivery. Sealing and
+  cancellation finish pending reservations without discarding queued results.
+- `ProtocolSession::subscribeEvents()` attaches one lifecycle coordinator, separate
+  from view subscriptions, and starts with the current snapshot even after connect.
+  Protocol state, desktop size, bells and completed-frame statistics feed the queue.
+  Normal subscriptions survive reconnect with generation-tagged events; retained
+  streams seal on session destruction and remain readable. Sealed coordinators
+  may be replaced; IDs remain scoped to the original stream identity.
+- `requestRefresh()` reserves a result before scheduling an RFB refresh and returns
+  its operation ID, or zero without changing protocol state when admission fails.
+  Completion means scheduled, not receipt of a new frame. Event publication
+  overflow closes the affected attempt, invalidates queued input and attempts
+  real RFB key/button release; startup overflow also leaves no live attempt.
+- Nine queue tests and seven protocol integration tests cover snapshot ownership,
+  ordering/coalescing, reserved capacity, overflow with outstanding completions,
+  cancellation/sealing, stale/duplicate results, concurrent statistics consumption,
+  late subscription, refresh admission/results, held-key release on overflow,
+  reconnect, retained lifetime, resize and coordinator replacement/startup failure.
+- Full retained FLTK Release **429/429** unit tests (18.48 seconds), **1/1** smoke
+  (0.22 seconds). Full existing headless Debug **414/414** unit tests (16.40 seconds),
+  **1/1** smoke (0.09 seconds). Final focused input/event/session/prompt suites:
+  ASan/UBSan **55/55** (2.05 seconds), ThreadSanitizer **55/55** (3.53 seconds).
+  Branding/attribution audit and `git diff --check` passed.
+- Reproduce by building `sessionevents`, `protocolsession`, `sessioninput`,
+  `promptauthentication` and running unit CTest with
+  `-R '^(SessionEvents|ProtocolSession|SessionInput|PromptAuthentication)\.' --output-on-failure --no-tests=error`.
+  Local configurations: `build/native-ui-prompts-final`, `build/native-ui-sanitized`,
+  `build/native-ui-tsan`, `build/tidyvnc-release`. Ephemeral logs:
+  `/tmp/tidyvnc-events-native-ui-{sanitized,tsan}-{build,tests}.log` and
+  `/tmp/tidyvnc-events-{release,headless}-{tests,smoke}.log`.
+- Same macOS 27 arm64 / AppleClang 21 CLT environment. Focused sanitizer builds
+  disable TLS; full suites retain the real loopback authentication checks. External
+  libraries are not all instrumented; no Linux/Windows or native UI run is claimed.
+  This completes the bounded input/event/coalescing contract, not N1.5's full
+  session/listener state machine or operation catalog. Resolving/listening and
+  authentication substates, service events, native integration, timer throttling,
+  readiness/wakeup and asynchronous drain remain their unchecked N1.5/N1.6/N1.9/
+  N1.13 items. Frame/cursor pixel payloads retain their separate N1.8 budget.
 
 ### Implementation evidence template
 

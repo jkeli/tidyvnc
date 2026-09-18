@@ -233,8 +233,27 @@ A transport failure cannot guarantee remote release delivery, but cleanup procee
 Input command capacity and held-key count are independently bounded. Retained
 mailboxes become disconnected on session destruction. Wire tests cover basic and
 extended input, failures, concurrent production and per-session policy isolation.
-General event/completion queues, worker readiness/flush, full lifecycle drain,
-native input mapping and multi-view focus ownership remain unchecked work.
+The general event/completion queue is now implemented below. Worker
+readiness/flush, full lifecycle drain, native input mapping and multi-view focus
+ownership remain unchecked work.
+
+## Bounded event/completion ownership (N1.12)
+
+`SessionEvents` preallocates a bounded ordered stream and operation reservations.
+A new protocol subscriber receives the current snapshot. Reliable events preserve
+order, statistics coalesce, and admission reserves a completion slot before an
+operation is accepted. Overflow retains queued results, fails pending reservations
+and publishes one terminal fault in a dedicated slot. All records are owned fixed
+values; no user callback runs while the queue mutex is held.
+
+The protocol owner emits state, size, bell and completed-frame statistics events
+and supplies a refresh operation with an admission ID and exactly-once completion.
+Overflow closes the attempt and releases input. Subscriptions survive normal
+reconnect with generation tags; retained events remain readable after destruction.
+Tests cover queue pressure/order, concurrent consumption, snapshots, completion
+admission, startup overflow and release behavior. This completes N1.12's queue
+contract; N1.5 still owns full session/listener transitions and command coverage,
+and N1.6/N1.13 still own readiness, scheduling and asynchronous drain.
 
 ## Baseline verification
 

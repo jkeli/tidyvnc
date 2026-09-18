@@ -113,6 +113,8 @@ protected:
     ready = true;
     publish();
     owner.inputMailbox->connected();
+    owner.eventState.state = SessionState::Connected;
+    if (!owner.emit(SessionEventKind::State)) throw std::runtime_error("Session event queue overflow");
   }
   void resizeFramebuffer() override {
     const int width = server.width(), height = server.height();
@@ -128,6 +130,8 @@ protected:
     setFramebuffer(replacement.get());
     replacement.release();
     damage = {0, 0, width, height};
+    if (ready && !owner.emit(SessionEventKind::Desktop))
+      throw std::runtime_error("Session event queue overflow");
   }
   void framebufferUpdateStart() override {
     inUpdate = true;
@@ -137,6 +141,8 @@ protected:
     CConnection::framebufferUpdateEnd();
     inUpdate = false;
     publish();
+    ++owner.eventState.frames;
+    if (!owner.emit(SessionEventKind::Statistics)) throw std::runtime_error("Session event queue overflow");
   }
   bool dataRect(const core::Rect& rectangle, int encoding) override {
     if (!CConnection::dataRect(rectangle, encoding)) return false;
@@ -148,7 +154,10 @@ protected:
     CConnection::setCursor(width, height, hotspot, data);
     cursorChanged = true;
   }
-  void bell() override { ++bells; }
+  void bell() override {
+    ++bells;
+    if (!owner.emit(SessionEventKind::Bell)) throw std::runtime_error("Session event queue overflow");
+  }
   void getUserPasswd(bool secure, std::string* user, std::string* password) override {
     if (!owner.authentication) throw rfb::auth_cancelled();
     owner.authentication->credentials(secure, user, password);
@@ -186,6 +195,7 @@ ProtocolSession::~ProtocolSession()
   // Drain before publisher and authentication services go away. The host closes
   // on its worker; destruction must not be delegated to a UI rendering callback.
   close();
+  if (auto events = eventObserver.lock()) events->seal(OperationResult::Cancelled);
 }
 void ProtocolSession::start(const std::string& serverName, rdr::InStream& input, rdr::OutStream& output)
 {
@@ -202,6 +212,14 @@ void ProtocolSession::start(const std::string& serverName, rdr::InStream& input,
     authentication->beginAttempt(publisher.generation(), serverName);
   inputMailbox->begin(publisher.generation());
   connection = std::move(next);
+  eventState = SessionSnapshot();
+  eventState.state = SessionState::Negotiating;
+  try {
+    if (!emit(SessionEventKind::State)) throw std::runtime_error("Session event queue overflow");
+  } catch (...) {
+    finish(true);
+    throw;
+  }
 }
 bool ProtocolSession::processMessage()
 {
@@ -214,11 +232,15 @@ bool ProtocolSession::processMessage()
     return result;
   } catch (...) {
     processing = false;
-    close();
+    finish(true);
     throw;
   }
 }
 void ProtocolSession::close()
+{
+  finish(false);
+}
+void ProtocolSession::finish(bool failed)
 {
   if (processing) throw std::logic_error("Reentrant protocol close");
   if (!connection) return;
@@ -229,10 +251,15 @@ void ProtocolSession::close()
   if (connection->ready) {
     try { connection->releaseInput(); } catch (...) {}
   }
+  eventState.state = failed ? SessionState::Failed : SessionState::Closed;
+  if (auto events = eventObserver.lock())
+    events->cancelPending(failed ? OperationResult::Failed : OperationResult::Cancelled);
+  emit(SessionEventKind::State);
   // No callbacks are made to views; their queued images are invalidated after
   // decoder work and protocol-owned resources have been drained.
   connection.reset();
   publisher.reset(publisher.generation() + 1);
+  eventState.generation = publisher.generation();
 }
 SessionDesktop ProtocolSession::desktop() const
 {
@@ -278,8 +305,55 @@ bool ProtocolSession::drainInput()
     return okay;
   } catch (...) {
     processing = false;
-    close();
+    finish(true);
     throw;
   }
+}
+bool ProtocolSession::emit(SessionEventKind kind)
+{
+  eventState.generation = publisher.generation();
+  eventState.width = eventState.height = 0;
+  if (connection) {
+    eventState.bells = connection->bells;
+    if (connection->ready && eventState.state == SessionState::Connected) {
+      eventState.width = connection->server.width();
+      eventState.height = connection->server.height();
+    }
+  }
+  auto events = eventObserver.lock();
+  return !events || events->sealed() || events->publish(kind,eventState);
+}
+std::shared_ptr<SessionEvents> ProtocolSession::subscribeEvents(size_t capacity)
+{
+  if (processing) throw std::logic_error("Reentrant event subscription");
+  if (auto events = eventObserver.lock()) {
+    if (!events->sealed()) throw std::logic_error("Session already has an event coordinator");
+  }
+  auto events = std::make_shared<SessionEvents>(eventState,capacity);
+  eventObserver = events;
+  return events;
+}
+uint64_t ProtocolSession::requestRefresh()
+{
+  if (processing) throw std::logic_error("Reentrant refresh");
+  auto events = eventObserver.lock();
+  if (!connection || !connection->ready || !events || events->sealed()) return 0;
+  const auto operation = events->reserve(publisher.generation());
+  if (!operation) {
+    if (events->sealed()) finish(true);
+    return 0;
+  }
+  processing = true;
+  try {
+    connection->refreshFramebuffer();
+    events->complete(operation,OperationResult::Succeeded);
+    processing = false;
+  } catch (...) {
+    processing = false;
+    events->complete(operation,OperationResult::Failed);
+    finish(true);
+    throw;
+  }
+  return operation;
 }
 }

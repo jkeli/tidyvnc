@@ -275,7 +275,8 @@ cannot be crowded out by input commands. Queue/storage exhaustion returns
 counter and suspends new input until explicit `setFocused(generation, true)`.
 Held-key exhaustion reports false from `drainInput()`, releases held state in that
 call and records the same mailbox fault. Queue status is a bounded snapshot;
-the wider lifecycle/error event stream is still N1.5/N1.12 work.
+the bounded event stream is described below; the wider lifecycle/error event
+catalog remains N1.5 work.
 
 `setFocused(..., false)` clears unsent input and requests key/button release.
 Reactivation keeps that release ahead of newly accepted input. Enabling view-only
@@ -297,5 +298,65 @@ remain safe and reject input after session destruction.
 transition order, repeats, extended capabilities, focus/view-only changes,
 overflow/recovery, disconnect/reconnect, write/protocol failure, retained lifetime,
 and a concurrent producer with independent sessions. Native input translation,
-focus ownership across multiple views, general event/completion queues and the
-remaining N1.12 acceptance criteria are still pending.
+focus ownership across multiple views and the full command/lifecycle catalog
+remain pending. The event/completion queue is implemented below.
+
+## Bounded session events and refresh completion (N1.12)
+
+A worker calls `ProtocolSession::subscribeEvents(capacity)` to attach one lifecycle
+coordinator, independently of the frame/view subscribers. The returned retained
+`SessionEvents` stream begins with the current owned snapshot, including when
+subscribing after connection. The coordinator consumes it with `take()` on any
+thread. Producer methods belong to the serialized session/host executor; they
+must not be invoked by UI consumers. There are no event callbacks under locks.
+Dropping the stream detaches it. A sealed stream can be replaced with a new one
+starting from the latest session snapshot.
+
+The session publishes negotiation, connected, closed/failed, desktop-size and
+bell events, plus completed-frame statistics. This is the existing protocol
+owner's event surface; it does not yet implement resolving/listening, authentication
+substates, the full command catalog, service events or asynchronous lifecycle
+operations from N1.5/N1.9. Frame/cursor pixel leases remain in their own bounded
+coalescing mailboxes. Statistics currently contain complete-update and bell counts;
+timer-based publication throttling belongs to the scheduler integration.
+
+Every event carries a queue-local increasing sequence and connection generation.
+The initial snapshot and reliable events retain their order. New statistics
+replace older pending statistics by removing them and appending the newest event;
+sequence gaps are therefore valid. Reliable events may reclaim a statistics slot.
+If only reliable events/reservations occupy capacity, statistics update the
+queryable snapshot without taking a slot. They never displace a completion.
+
+`reserve(generation)` admits an operation only if a completion slot is available;
+zero rejects without a completion obligation. `complete(id, result)` converts
+that reservation into exactly one ordered result. Duplicate/unknown IDs and stale
+admission generations are rejected. Pending operations must finish before advancing
+the stream generation. IDs are scoped to their stream, so the host must retain
+that identity with an operation token across coordinator replacement.
+
+`ProtocolSession::requestRefresh()` uses this contract. It requires a connected
+session and active event coordinator, returning zero on rejection. A successful
+completion means the RFB refresh request was scheduled, not that a new framebuffer
+has arrived. Normal close cancels pending operations and publishes its terminal
+state; the same stream can continue across reconnect with a new generation.
+Session destruction seals a retained stream after terminal events, which remain
+readable. Sealing on the executor cancels remaining reservations and prevents new
+admission/publication without discarding queued results.
+
+The capacity defaults to 128 and is configurable from 2 through 65536. Fixed-size
+records and operation storage are preallocated at construction. The count of
+queued events plus reserved completions never exceeds capacity, with one extra
+fixed terminal-overflow record. If another reliable event cannot fit, the stream
+fails outstanding operations, preserves queued events/completions, then delivers
+exactly one `Overflow` and seals. Protocol publication failure closes the affected
+attempt and releases held input. It never silently drops a completion or grows an
+unbounded queue. Sequence exhaustion also preserves space for pending completions
+and the terminal fault. A consumer must drain terminal records before replacing
+its coordinator if it still needs those results.
+
+`SessionEvents` and `ProtocolSession` tests exercise reserved capacity, reliable
+ordering, statistics replacement, cancellation/sealing, overflow, concurrency,
+late subscription, resize snapshots, refresh admission/completion, reconnect,
+retained lifetime and real RFB input release on event overflow. Together with the
+input and frame mailboxes, this completes N1.12's queue/coalescing contract. The
+full session/listener state machine and operation catalog remain N1.5.

@@ -68,6 +68,10 @@ add_executable(sessioninput sessioninput.cxx)
 target_link_libraries(sessioninput tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
 gtest_discover_tests(sessioninput PROPERTIES TIMEOUT 30)
 
+add_executable(sessionevents sessionevents.cxx)
+target_link_libraries(sessionevents tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(sessionevents PROPERTIES TIMEOUT 30)
+
 if(GNUTLS_FOUND AND NOT WIN32)
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)
