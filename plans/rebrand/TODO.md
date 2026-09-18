@@ -1,8 +1,7 @@
 # TidyVNC rebrand checklist
 
 Implementation tracker for [PLAN.md](PLAN.md), baseline `33556c96`, 2026-09-18.
-Planning and initial inspection are complete; implementation boxes below are
-intentionally unchecked. Check an item only after its stated work and validation
+Implementation is in progress; unresolved and deferred work stays unchecked. Check an item only after its stated work and validation
 are complete, and record evidence in the log at the end.
 
 The native macOS viewer is first. Windows/Linux execution remains deferred;
@@ -11,15 +10,15 @@ parity remains excluded. Deferred items do not count as completed.
 
 ## R0 — Inventory, naming and attribution
 
-- [ ] Inventory tracked text, filenames, hidden CI files, catalogs, packaging patches and binary artwork; include `unix/xserver/hw/vnc` and Java.
+- [x] Inventory tracked text, filenames, hidden CI files, catalogs, packaging patches and binary artwork; include `unix/xserver/hw/vnc` and Java.
 - [ ] Create `INVENTORY.md` with replace/preserve/migrate decisions, reasons, consumers and validation for every occurrence group.
 - [ ] Establish narrow `rebrand-exceptions.json` entries for attribution, history and deliberate compatibility identifiers.
-- [ ] Record canonical `TidyVNC`, `tidyvnc` and `TIDYVNC` spellings and retained generic executable names.
-- [ ] Finalize the proposed `io.github.jkeli.tidyvnc` application identity before packaging.
-- [ ] Confirm actual publisher/maintainer identity and available fork support URLs; avoid invented domains, companies or email addresses.
-- [ ] Record baseline license/copyright/author/translator notices and historical upstream references for later diff review.
+- [x] Record canonical `TidyVNC`, `tidyvnc` and `TIDYVNC` spellings and retained generic executable names.
+- [x] Finalize the proposed `io.github.jkeli.tidyvnc` application identity before packaging.
+- [x] Confirm actual publisher/maintainer identity and available fork support URLs; avoid invented domains, companies or email addresses.
+- [x] Record baseline license/copyright/author/translator notices and historical upstream references for later diff review.
 - [ ] Visually classify Windows ICO/BMP resources and all screenshots, including graphics whose filenames do not mention TigerVNC.
-- [ ] Record the original artwork direction, asset provenance requirements and expected platform outputs.
+- [x] Record the original artwork direction, asset provenance requirements and expected platform outputs.
 
 ## R1 — Product strings, build identity and localization
 
@@ -150,3 +149,13 @@ parity remains excluded. Deferred items do not count as completed.
 - Commands / checks and outcome:
 - Visual evidence and attribution/compatibility review:
 - Remaining limitations or deferred follow-up:
+
+### 2026-09-18 — R0 baseline
+
+- Inventoried 1,212 tracked paths and 3,369 old-brand text matches; exact occurrence
+  ledger distinguishes unresolved replacements/migrations from preservation.
+- Recorded license hashes and copyright lines before editing. Mixed legal/product
+  lines and final exception review remain open.
+- Verified GitHub API: jkeli/tidyvnc, issues enabled; adopted
+  io.github.jkeli.tidyvnc and the factual jkeli/tidyvnc project identity.
+- Windows artwork and screenshot visual classification remains open.
