@@ -38,6 +38,14 @@ endif() # WIN32
 
 if(APPLE)
 
+# The assembled bundle must bind its plist and use the app identifier, rather
+# than inheriting the linker's generic executable-only ad-hoc signature.
+set(TIDYVNC_MACOS_SIGN_IDENTITY "-" CACHE STRING
+  "macOS app signing identity (- for local ad-hoc builds; Apple-issued identity recommended)")
+if(TIDYVNC_MACOS_SIGN_IDENTITY STREQUAL "")
+  message(FATAL_ERROR "Set TIDYVNC_MACOS_SIGN_IDENTITY to - or a code-signing identity")
+endif()
+string(REPLACE "'" "'\\''" MACAPP_SIGN_IDENTITY_SHELL "${TIDYVNC_MACOS_SIGN_IDENTITY}")
 set(MACAPP_LANGUAGES "")
 set(MACAPP_CATALOGS "")
 if(ENABLE_NLS)

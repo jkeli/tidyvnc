@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tidyvnc 1.9.90\n"
 "Report-Msgid-Bugs-To: https://github.com/jkeli/tidyvnc/issues\n"
-"POT-Creation-Date: 2026-09-18 09:35-0400\n"
+"POT-Creation-Date: 2026-09-18 09:48-0400\n"
 "PO-Revision-Date: 2019-11-23 23:25+0100\n"
 "Last-Translator: Balázs Úr <ur.balazs@fsf.hu>\n"
 "Language-Team: Hungarian <translation-team-hu@lists.sourceforge.net>\n"
@@ -207,7 +207,7 @@ msgid "Buffer size of %lu bytes exceeds maximum of %lu bytes"
 msgstr ""
 
 #: common/rdr/FileInStream.cxx:40 common/rfb/SSecurityRSAAES.cxx:187
-#: vncviewer/CConn.cxx:390 vncviewer/ServerDialog.cxx:385
+#: vncviewer/CConn.cxx:410 vncviewer/ServerDialog.cxx:385
 #: vncviewer/ServerDialog.cxx:467 vncviewer/parameters.cxx:820
 #: vncviewer/parameters.cxx:914
 #, fuzzy, c-format
@@ -1755,7 +1755,7 @@ msgstr ""
 
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:688
 #: unix/w0vncserver/portals/RemoteDesktop.cxx:736
-#: unix/w0vncserver/w0vncserver-forget.cxx:80 vncviewer/CConn.cxx:513
+#: unix/w0vncserver/w0vncserver-forget.cxx:80 vncviewer/CConn.cxx:533
 #: vncviewer/ServerDialog.cxx:372 vncviewer/ServerDialog.cxx:454
 #: vncviewer/vncviewer.cxx:502
 #, fuzzy, c-format
@@ -2464,17 +2464,32 @@ msgstr "Felhasználónév:"
 msgid "Keep password for reconnect"
 msgstr ""
 
-#: vncviewer/CConn.cxx:187
+#: vncviewer/CConn.cxx:189
 #, c-format
 msgid "Connected to socket %s"
 msgstr "Kapcsolódva a(z) %s foglalathoz"
 
-#: vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:196
 #, c-format
 msgid "Connected to host %s port %d"
 msgstr "Kapcsolódva a(z) %s géphez a következő porton: %d"
 
-#: vncviewer/CConn.cxx:199
+#: vncviewer/CConn.cxx:205
+#, c-format
+msgid ""
+"Failed to connect to \"%s\":\n"
+"\n"
+"%s\n"
+"\n"
+"macOS may be blocking local network access. Allow TidyVNC in the Local "
+"Network permission prompt, or in System Settings > Privacy & Security > "
+"Local Network, then retry.\n"
+"\n"
+"If access is already allowed, check the host address, network connection and "
+"firewall."
+msgstr ""
+
+#: vncviewer/CConn.cxx:212 vncviewer/CConn.cxx:219
 #, fuzzy, c-format
 msgid ""
 "Failed to connect to \"%s\":\n"
@@ -2482,63 +2497,63 @@ msgid ""
 "%s"
 msgstr "Nem sikerült beolvasni a beállítófájlt, nem lehet megnyitni: %s: %s"
 
-#: vncviewer/CConn.cxx:219
+#: vncviewer/CConn.cxx:239
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Asztal neve: %.80s"
 
-#: vncviewer/CConn.cxx:222
+#: vncviewer/CConn.cxx:242
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Gép: %.80s port: %d"
 
-#: vncviewer/CConn.cxx:226
+#: vncviewer/CConn.cxx:246
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Méret: %d x %d"
 
-#: vncviewer/CConn.cxx:233
+#: vncviewer/CConn.cxx:253
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Képpontformátum: %s"
 
-#: vncviewer/CConn.cxx:236
+#: vncviewer/CConn.cxx:256
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Kért kódolás: %s"
 
-#: vncviewer/CConn.cxx:240
+#: vncviewer/CConn.cxx:260
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Legutóbb használt kódolás: %s"
 
-#: vncviewer/CConn.cxx:244
+#: vncviewer/CConn.cxx:264
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Vonali sebesség becslés: %d kbit/s"
 
-#: vncviewer/CConn.cxx:248
+#: vncviewer/CConn.cxx:268
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Protokollverzió: %d.%d"
 
-#: vncviewer/CConn.cxx:252
+#: vncviewer/CConn.cxx:272
 #, c-format
 msgid "Security method: %s"
 msgstr "Biztonsági módszer: %s"
 
-#: vncviewer/CConn.cxx:310 vncviewer/CConn.cxx:312
+#: vncviewer/CConn.cxx:330 vncviewer/CConn.cxx:332
 msgid ""
 "The connection was dropped by the server before the session could be "
 "established."
 msgstr ""
 
-#: vncviewer/CConn.cxx:323
+#: vncviewer/CConn.cxx:343
 #, fuzzy, c-format
 msgid "Authentication failed: %s"
 msgstr "Hitelesítés megszakítva"
 
-#: vncviewer/CConn.cxx:324
+#: vncviewer/CConn.cxx:344
 #, c-format
 msgid ""
 "Failed to authenticate with the server. Reason given by the server:\n"
@@ -2546,139 +2561,139 @@ msgid ""
 "%s"
 msgstr ""
 
-#: vncviewer/CConn.cxx:486 vncviewer/CConn.cxx:502
+#: vncviewer/CConn.cxx:506 vncviewer/CConn.cxx:522
 msgid "Failed to get certificate problem description"
 msgstr ""
 
-#: vncviewer/CConn.cxx:489
+#: vncviewer/CConn.cxx:509
 #, c-format
 msgid "Invalid server certificate: %s"
 msgstr ""
 
-#: vncviewer/CConn.cxx:505
+#: vncviewer/CConn.cxx:525
 #, c-format
 msgid "Server certificate problems: %s"
 msgstr ""
 
-#: vncviewer/CConn.cxx:529
+#: vncviewer/CConn.cxx:549
 msgid "Server has an existing security exception"
 msgstr ""
 
-#: vncviewer/CConn.cxx:535
+#: vncviewer/CConn.cxx:555
 msgid "Failed to load list of servers with a security exception"
 msgstr ""
 
-#: vncviewer/CConn.cxx:541
+#: vncviewer/CConn.cxx:561
 msgid "Failed to decode server certificate"
 msgstr ""
 
-#: vncviewer/CConn.cxx:547
+#: vncviewer/CConn.cxx:567
 msgid "Failed to format server certificate for display"
 msgstr ""
 
-#: vncviewer/CConn.cxx:564
+#: vncviewer/CConn.cxx:584
 msgid "Server host is not previously known"
 msgstr ""
 
-#: vncviewer/CConn.cxx:572
+#: vncviewer/CConn.cxx:592
 msgid "This certificate has been signed by an unknown authority:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:574 vncviewer/CConn.cxx:593 vncviewer/CConn.cxx:610
-#: vncviewer/CConn.cxx:627 vncviewer/CConn.cxx:647 vncviewer/CConn.cxx:679
-#: vncviewer/CConn.cxx:699 vncviewer/CConn.cxx:717 vncviewer/CConn.cxx:735
-#: vncviewer/CConn.cxx:756
+#: vncviewer/CConn.cxx:594 vncviewer/CConn.cxx:613 vncviewer/CConn.cxx:630
+#: vncviewer/CConn.cxx:647 vncviewer/CConn.cxx:667 vncviewer/CConn.cxx:699
+#: vncviewer/CConn.cxx:719 vncviewer/CConn.cxx:737 vncviewer/CConn.cxx:755
+#: vncviewer/CConn.cxx:776
 msgid ""
 "Someone could be trying to impersonate the site and you should not continue."
 msgstr ""
 
-#: vncviewer/CConn.cxx:576 vncviewer/CConn.cxx:595 vncviewer/CConn.cxx:612
-#: vncviewer/CConn.cxx:629 vncviewer/CConn.cxx:649 vncviewer/CConn.cxx:681
-#: vncviewer/CConn.cxx:701 vncviewer/CConn.cxx:719 vncviewer/CConn.cxx:737
-#: vncviewer/CConn.cxx:758
+#: vncviewer/CConn.cxx:596 vncviewer/CConn.cxx:615 vncviewer/CConn.cxx:632
+#: vncviewer/CConn.cxx:649 vncviewer/CConn.cxx:669 vncviewer/CConn.cxx:701
+#: vncviewer/CConn.cxx:721 vncviewer/CConn.cxx:739 vncviewer/CConn.cxx:757
+#: vncviewer/CConn.cxx:778
 msgid "Do you want to make an exception for this server?"
 msgstr ""
 
-#: vncviewer/CConn.cxx:578
+#: vncviewer/CConn.cxx:598
 msgid "Unknown certificate issuer"
 msgstr ""
 
-#: vncviewer/CConn.cxx:579 vncviewer/CConn.cxx:598 vncviewer/CConn.cxx:615
-#: vncviewer/CConn.cxx:632 vncviewer/CConn.cxx:652 vncviewer/CConn.cxx:684
-#: vncviewer/CConn.cxx:704 vncviewer/CConn.cxx:722 vncviewer/CConn.cxx:740
-#: vncviewer/CConn.cxx:761
+#: vncviewer/CConn.cxx:599 vncviewer/CConn.cxx:618 vncviewer/CConn.cxx:635
+#: vncviewer/CConn.cxx:652 vncviewer/CConn.cxx:672 vncviewer/CConn.cxx:704
+#: vncviewer/CConn.cxx:724 vncviewer/CConn.cxx:742 vncviewer/CConn.cxx:760
+#: vncviewer/CConn.cxx:781
 msgid "Add exception"
 msgstr ""
 
-#: vncviewer/CConn.cxx:591
+#: vncviewer/CConn.cxx:611
 msgid "This certificate is not yet valid:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:597
+#: vncviewer/CConn.cxx:617
 msgid "Certificate is not yet valid"
 msgstr ""
 
-#: vncviewer/CConn.cxx:608
+#: vncviewer/CConn.cxx:628
 msgid "This certificate has expired:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:614
+#: vncviewer/CConn.cxx:634
 msgid "Expired certificate"
 msgstr ""
 
-#: vncviewer/CConn.cxx:625
+#: vncviewer/CConn.cxx:645
 msgid "This certificate uses an insecure algorithm:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:631
+#: vncviewer/CConn.cxx:651
 msgid "Insecure certificate algorithm"
 msgstr ""
 
-#: vncviewer/CConn.cxx:643
+#: vncviewer/CConn.cxx:663
 #, c-format
 msgid ""
 "The specified hostname \"%s\" does not match the certificate provided by the "
 "server:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:651
+#: vncviewer/CConn.cxx:671
 msgid "Certificate hostname mismatch"
 msgstr ""
 
-#: vncviewer/CConn.cxx:667
+#: vncviewer/CConn.cxx:687
 msgid "Server host certificate has changed"
 msgstr ""
 
-#: vncviewer/CConn.cxx:675
+#: vncviewer/CConn.cxx:695
 msgid ""
 "This host is previously known with a different certificate, and the new "
 "certificate has been signed by an unknown authority:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:683 vncviewer/CConn.cxx:703 vncviewer/CConn.cxx:721
-#: vncviewer/CConn.cxx:739 vncviewer/CConn.cxx:760
+#: vncviewer/CConn.cxx:703 vncviewer/CConn.cxx:723 vncviewer/CConn.cxx:741
+#: vncviewer/CConn.cxx:759 vncviewer/CConn.cxx:780
 msgid "Unexpected server certificate"
 msgstr ""
 
-#: vncviewer/CConn.cxx:696
+#: vncviewer/CConn.cxx:716
 msgid ""
 "This host is previously known with a different certificate, and the new "
 "certificate is not yet valid:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:714
+#: vncviewer/CConn.cxx:734
 msgid ""
 "This host is previously known with a different certificate, and the new "
 "certificate has expired:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:732
+#: vncviewer/CConn.cxx:752
 msgid ""
 "This host is previously known with a different certificate, and the new "
 "certificate uses an insecure algorithm:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:751
+#: vncviewer/CConn.cxx:771
 #, c-format
 msgid ""
 "This host is previously known with a different certificate, and the "
@@ -2686,17 +2701,17 @@ msgid ""
 "server:"
 msgstr ""
 
-#: vncviewer/CConn.cxx:778
+#: vncviewer/CConn.cxx:798
 msgid ""
 "Failed to store server certificate to list of servers with a security "
 "exception"
 msgstr ""
 
-#: vncviewer/CConn.cxx:781
+#: vncviewer/CConn.cxx:801
 msgid "Security exception added for server host"
 msgstr ""
 
-#: vncviewer/CConn.cxx:791
+#: vncviewer/CConn.cxx:811
 #, c-format
 msgid ""
 "The server has provided the following identifying information:\n"
@@ -2706,30 +2721,30 @@ msgid ""
 "Do you want to continue connecting to this server?"
 msgstr ""
 
-#: vncviewer/CConn.cxx:797
+#: vncviewer/CConn.cxx:817
 msgid "Verify server key"
 msgstr ""
 
-#: vncviewer/CConn.cxx:798
+#: vncviewer/CConn.cxx:818
 msgid "Continue"
 msgstr ""
 
-#: vncviewer/CConn.cxx:1010
+#: vncviewer/CConn.cxx:1030
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Áteresztőképesség %d kbit/s – váltás a(z) %d. minőségre"
 
-#: vncviewer/CConn.cxx:1041
+#: vncviewer/CConn.cxx:1061
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "Áteresztőképesség %d kbit/s – a teljes szín most engedélyezve"
 
-#: vncviewer/CConn.cxx:1044
+#: vncviewer/CConn.cxx:1064
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
 msgstr "Áteresztőképesség %d kbit/s – a teljes szín most letiltva"
 
-#: vncviewer/CConn.cxx:1063
+#: vncviewer/CConn.cxx:1083
 #, c-format
 msgid "Using pixel format %s"
 msgstr "%s képpontformátum használata"

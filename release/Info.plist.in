@@ -8,6 +8,8 @@
 	<string>TidyVNC</string>
 	<key>CFBundleExecutable</key>
 	<string>vncviewer</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>TidyVNC connects to VNC servers on your local network so you can view and control their desktops.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>CFBundleGetInfoString</key>

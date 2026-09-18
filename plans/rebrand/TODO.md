@@ -276,3 +276,27 @@ parity remains excluded. Deferred items do not count as completed.
 - Icon regeneration matches checked-in pixels/containers, including the small
   optical variant. Asset-container tests and seven option-alias tests pass.
 - Interactive/physical and deferred platform boxes intentionally remain open.
+
+### Local Network permission follow-up (2026-09-18)
+
+- [x] Add the missing Local Network usage description to the macOS app.
+- [x] Sign the assembled bundle with the application identifier and bind its
+  plist/resources; expose an Apple-issued identity option for stable privacy
+  tracking across updates. Local default is ad hoc; no valid signing identity
+  is installed on this machine. Distribution signing/notarization remain open.
+- [x] Explain possible privacy denial and retry in relevant macOS TCP connection
+  errors, retaining the real error and routing/firewall troubleshooting. Unix
+  sockets retain their existing diagnostics. Refresh all 30 gettext catalogs.
+- [x] Validate plist, sealed signature, unsigned code equality, icons and all
+  packaged catalogs. Release build passed 304 unit tests and eight loopback
+  protocol/lifecycle cases. Branding/attribution audit and catalog checks passed
+  (existing Italian header warnings remain). DMG checksum verification passed.
+- [x] Update `/Applications/TidyVNC.app`; preserve the previous bundle at
+  `build/backups/TidyVNC-before-local-network-fix.zip`. Quit and reopen the app
+  to use the new executable. No system privacy settings were changed.
+- [ ] Verify Finder-launched Local Network consent and the user's actual LAN
+  connection; target host was not provided. Loopback tests do not prove consent.
+- [ ] Verify permission persistence across updates with an Apple-issued signature.
+
+Updated DMG SHA-256: `b6c922da890c2385472b42446605803f18a12a9d06b52ad73d940bc0feeffa8a`.
+The earlier artifact digest above remains historical evidence.
