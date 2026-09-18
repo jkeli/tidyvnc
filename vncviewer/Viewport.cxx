@@ -50,9 +50,16 @@
 #include "fltk/layout.h"
 #include "fltk/util.h"
 #include "Viewport.h"
+#include "DisplayMetrics.h"
+#include "DesktopResampler.h"
+#include "CursorRenderer.h"
+#include <cmath>
+#include <vector>
+#include <memory>
 #include "CConn.h"
 #include "OptionsDialog.h"
 #include "DesktopWindow.h"
+#include "DesktopSession.h"
 #include "parameters.h"
 #include "vncviewer.h"
 
@@ -93,14 +100,23 @@ static const int FAKE_DEL_KEY_CODE = 0x10003;
 // Used for fake key presses for lock key sync
 static const int FAKE_KEY_CODE = 0xffff;
 
-Viewport::Viewport(int w, int h, CConn* cc_)
-  : Fl_Widget(0, 0, w, h), cc(cc_), frameBuffer(nullptr),
+Viewport::Viewport(int w, int h, CConn* cc_, std::shared_ptr<DesktopSession> sharedSession)
+  : Fl_Widget(0, 0, w, h), cc(cc_), session(sharedSession), frameBuffer(nullptr), renderTile(nullptr),
+    availableWidth(w), availableHeight(h),
     lastPointerPos(0, 0), lastButtonMask(0),
     keyboard(nullptr), shortcutBypass(false), shortcutActive(false),
     firstLEDState(true), pendingClientClipboard(false),
     menuCtrlKey(false), menuAltKey(false), cursor(nullptr),
     cursorIsBlank(false)
 {
+  if(!session) session=std::make_shared<DesktopSession>(cc,w,h);
+  session->attach(this);
+  inputOwner=session->inputOwner();
+  frameBuffer=session->buffer();
+  if(inputOwner!=this) {
+    setCursor();
+    return;
+  }
 #if defined(WIN32)
   keyboard = new KeyboardWin32(this);
 #elif defined(__APPLE__)
@@ -120,9 +136,6 @@ Viewport::Viewport(int w, int h, CConn* cc_)
   //        layouts we don't support
   Fl::disable_im();
 
-  frameBuffer = new PlatformPixelBuffer(w, h);
-  assert(frameBuffer);
-  cc->setFramebuffer(frameBuffer);
 
   contextMenu = new Fl_Menu_Button(0, 0, 0, 0);
   // Setting box type to FL_NO_BOX prevents it from trying to draw the
@@ -154,11 +167,15 @@ Viewport::~Viewport()
   // again later when this object is already gone.
   Fl::remove_timeout(handlePointerTimeout, this);
 
-  Fl::remove_system_handler(handleSystemEvent);
-
-  Fl::remove_clipboard_notify(handleClipboardChange);
-
-  OptionsDialog::removeCallback(handleOptions);
+  Fl::remove_timeout(handleFocusChange,this);
+  if(inputOwner->activePointerView==this) inputOwner->activePointerView=nullptr;
+  session->detach(this);
+  if(inputOwner==this) {
+    Fl::remove_system_handler(handleSystemEvent);
+    Fl::remove_clipboard_notify(handleClipboardChange);
+    OptionsDialog::removeCallback(handleOptions);
+    Fl::enable_im();
+  }
 
   if (cursor) {
     if (!cursor->alloc_array)
@@ -166,8 +183,9 @@ Viewport::~Viewport()
     delete cursor;
   }
 
+  delete softwareCursor;
+  delete renderTile;
   delete keyboard;
-  Fl::enable_im();
 
   // FLTK automatically deletes all child widgets, so we shouldn't touch
   // them ourselves here
@@ -183,12 +201,21 @@ const rfb::PixelFormat &Viewport::getPreferredPF()
 // Copy the areas of the framebuffer that have been changed (damaged)
 // to the displayed window.
 
-void Viewport::updateWindow()
-{
-  core::Rect r;
+void Viewport::updateWindow() { session->update(); }
 
-  r = frameBuffer->getDamage();
-  damage(FL_DAMAGE_USER1, r.tl.x + x(), r.tl.y + y(), r.width(), r.height());
+void Viewport::sourceDamaged(const core::Rect& damage)
+{
+  tileCache.invalidate(damage);
+  deferredDamage=deferredDamage.union_boundary(damage);
+}
+
+void Viewport::flushSourceDamage()
+{
+  ScalingSettings::Quality quality = scalingQuality == "Nearest" ? ScalingSettings::Nearest :
+    scalingQuality == "Area" ? ScalingSettings::Area : ScalingSettings::Bilinear;
+  core::Rect r=transform().logicalDamage(deferredDamage,quality);
+  deferredDamage={};
+  if(!r.is_empty()) damage(FL_DAMAGE_USER1,r.tl.x,r.tl.y,r.width(),r.height());
 }
 
 static const char * dotcursor_xpm[] = {
@@ -248,6 +275,21 @@ void Viewport::setCursor()
     }
   }
 
+  damageSoftwareCursor();
+  delete softwareCursor; softwareCursor = nullptr;
+  DesktopTransform t = transform();
+  cursorScaleX = double(t.backingWidth)/remoteWidth();
+  cursorScaleY = double(t.backingHeight)/remoteHeight();
+  cursorDpiX = t.metrics.pixelsPerUnitX; cursorDpiY = t.metrics.pixelsPerUnitY;
+  if (!cursorIsBlank && width > 0 && height > 0 && !t.empty() &&
+      (cursorScaleX != 1 || cursorScaleY != 1 || cursorDpiX != 1 || cursorDpiY != 1 || width > 128 || height > 128)) {
+    ScalingSettings::Quality quality = scalingQuality == "Nearest" ? ScalingSettings::Nearest :
+      scalingQuality == "Area" ? ScalingSettings::Area : ScalingSettings::Bilinear;
+    softwareCursor = new CursorRenderer(data,width,height,hotspot,cursorScaleX,cursorScaleY,quality);
+    softwareHotspot = softwareCursor->hotspot();
+  }
+  damageSoftwareCursor();
+
   if (Fl::belowmouse() == this)
     showCursor();
 }
@@ -259,6 +301,10 @@ void Viewport::showCursor()
     return;
   }
 
+  if (softwareCursor) {
+    window()->cursor(FL_CURSOR_NONE);
+    return;
+  }
   if (cursorIsBlank && alwaysCursor && (cursorType == "system")) {
     window()->cursor(FL_CURSOR_DEFAULT);
   } else {
@@ -383,52 +429,199 @@ void Viewport::pushLEDState()
 }
 
 
-void Viewport::draw(Surface* dst)
+DesktopTransform Viewport::transform() const
 {
-  int X, Y, W, H;
+  DisplayMetrics metrics = displayMetrics(window());
+  if(!displayGeneration || metrics.screen != previousMetrics.screen ||
+      metrics.pixelsPerUnitX != previousMetrics.pixelsPerUnitX ||
+      metrics.pixelsPerUnitY != previousMetrics.pixelsPerUnitY) {
+    ++displayGeneration;
+    previousMetrics=metrics;
+  }
+  metrics.generation=displayGeneration;
+  const bool device=desktopPixelUnits=="Device" && (!canvasWidth || !scalingFactor.settings().fits());
+  const double unitX=device?metrics.pixelsPerUnitX:1;
+  const double unitY=device?metrics.pixelsPerUnitY:1;
+  double aw=canvasWidth?canvasWidth/unitX:availableWidth;
+  double ah=canvasHeight?canvasHeight/unitY:availableHeight;
+  ScalingSettings effective=scalingFactor.settings();
+  ScalingSettings::Units units=device?ScalingSettings::Device:ScalingSettings::Logical;
+  DesktopTransform result(remoteWidth(),remoteHeight(),aw,ah,metrics,{},ScalingSettings::Device);
+  try {
+    result=DesktopTransform(remoteWidth(),remoteHeight(),aw,ah,metrics,effective,units,originX,originY);
+    scalingLimitReported=false;
+  } catch(const std::overflow_error&) {
+    if(!scalingLimitReported) {
+      vlog.error(_("Scaled desktop exceeds the dimension limit; temporarily using 100%% Device"));
+      scalingLimitReported=true;
+    }
+    effective={}; units=ScalingSettings::Device;
+    result=DesktopTransform(remoteWidth(),remoteHeight(),aw,ah,metrics,effective,units,originX,originY);
+  }
+  if(canvasWidth) result.placeOnCanvas(canvasWidth,canvasHeight,canvasRegion,
+    device?ScalingSettings::Device:ScalingSettings::Logical,canvasPanX,canvasPanY);
+  return result;
+}
+int Viewport::remoteWidth() const { return frameBuffer->width(); }
+int Viewport::remoteHeight() const { return frameBuffer->height(); }
 
-  // Check what actually needs updating
-  fl_clip_box(x(), y(), w(), h(), X, Y, W, H);
-  if ((W == 0) || (H == 0))
-    return;
-
-  frameBuffer->draw(dst, X - x(), Y - y(), X, Y, W, H);
+void Viewport::setCanvas(int width,int height,const core::Rect& region,double panX,double panY)
+{
+  canvasWidth=width; canvasHeight=height; canvasRegion=region;
+  canvasPanX=panX; canvasPanY=panY;
+  configureDisplay(window()->w(),window()->h());
+}
+void Viewport::clearCanvas()
+{
+  canvasWidth=canvasHeight=0;
+  originX=originY=0;
+  configureDisplay(window()->w(),window()->h());
 }
 
+void Viewport::configureDisplay(int width, int height)
+{
+  availableWidth = width; availableHeight = height;
+  DesktopTransform t = transform();
+  setDisplayOrigin(originX,originY);
+  if(cursor && (cursorScaleX != double(t.backingWidth)/remoteWidth() ||
+                cursorScaleY != double(t.backingHeight)/remoteHeight() ||
+                cursorDpiX != t.metrics.pixelsPerUnitX || cursorDpiY != t.metrics.pixelsPerUnitY))
+    setCursor();
+}
 
+void Viewport::draw(Surface* dst, int bx, int by)
+{
+  renderDesktop(dst, bx, by);
+  drawSoftwareCursor(dst,bx,by);
+}
 void Viewport::draw()
 {
-  int X, Y, W, H;
-
-  // Check what actually needs updating
-  fl_clip_box(x(), y(), w(), h(), X, Y, W, H);
-  if ((W == 0) || (H == 0))
-    return;
-
-  frameBuffer->draw(X - x(), Y - y(), X, Y, W, H);
+  renderDesktop(nullptr);
+  drawSoftwareCursor(nullptr,0,0);
 }
 
+void Viewport::renderDesktop(Surface* dst, int targetBX, int targetBY)
+{
+  DesktopTransform t = transform();
+  if (t.empty()) return;
+  int X, Y, W, H;
+  fl_clip_box(x(), y(), w(), h(), X, Y, W, H);
+  if (W <= 0 || H <= 0) return;
+  const double qx = t.metrics.pixelsPerUnitX, qy = t.metrics.pixelsPerUnitY;
+  core::Rect clip(std::max(t.originBX, int(std::floor(X*qx))),
+                  std::max(t.originBY, int(std::floor(Y*qy))),
+                  std::min(t.originBX+t.backingWidth, int(std::ceil((X+W)*qx))),
+                  std::min(t.originBY+t.backingHeight, int(std::ceil((Y+H)*qy))));
+  if (dst) clip = clip.intersect({targetBX, targetBY,
+                                 targetBX+dst->width(), targetBY+dst->height()});
+  if (clip.is_empty()) return;
+  // Exposes and local scale changes may happen while decoders are active.
+  session->synchronize();
+  if (t.identity()) {
+    if (dst) frameBuffer->draw(dst, clip.tl.x-t.originBX, clip.tl.y-t.originBY,
+      clip.tl.x-targetBX, clip.tl.y-targetBY, clip.width(), clip.height());
+    else frameBuffer->drawBacking(clip.tl.x-t.originBX, clip.tl.y-t.originBY,
+      clip.tl.x, clip.tl.y, clip.width(), clip.height(), qx, qy);
+    return;
+  }
+  if (!renderTile) renderTile = new PlatformPixelBuffer(256,256);
+  int stride;
+  const uint8_t* source = frameBuffer->getBuffer(frameBuffer->getRect(), &stride);
+  ScalingSettings::Quality quality = scalingQuality == "Nearest" ? ScalingSettings::Nearest :
+    scalingQuality == "Area" ? ScalingSettings::Area : ScalingSettings::Bilinear;
+  tileCache.configure(remoteWidth(),remoteHeight(),t.backingWidth,t.backingHeight,
+                      quality,t.metrics.generation);
+  int startX=(clip.tl.x-t.originBX)/256*256;
+  int startY=(clip.tl.y-t.originBY)/256*256;
+  for (int ty=startY;ty<clip.br.y-t.originBY;ty+=256) {
+    for (int tx=startX;tx<clip.br.x-t.originBX;tx+=256) {
+      int tw=std::min(256,t.backingWidth-tx), th=std::min(256,t.backingHeight-ty), ts;
+      core::Rect tile(0,0,tw,th);
+      uint8_t* out=renderTile->getBufferRW(tile,&ts);
+      tileCache.render(source,size_t(stride)*4,out,size_t(ts)*4,{tx,ty,tx+tw,ty+th});
+      renderTile->commitBufferRW(tile);
+      renderTile->getDamage();
+      int bx=tx+t.originBX, by=ty+t.originBY;
+      core::Rect visible=core::Rect(bx,by,bx+tw,by+th).intersect(clip);
+      if(dst) renderTile->draw(dst,visible.tl.x-bx,visible.tl.y-by,
+        visible.tl.x-targetBX,visible.tl.y-targetBY,visible.width(),visible.height());
+      else renderTile->drawBacking(visible.tl.x-bx,visible.tl.y-by,
+        visible.tl.x,visible.tl.y,visible.width(),visible.height(),qx,qy);
+    }
+  }
+}
+
+void Viewport::resizeFramebuffer(int width,int height) { session->resize(width,height); }
+
+void Viewport::sourceReplaced()
+{
+  frameBuffer=session->buffer();
+  lastPointerPos.x=std::max(0,std::min(remoteWidth()-1,lastPointerPos.x));
+  lastPointerPos.y=std::max(0,std::min(remoteHeight()-1,lastPointerPos.y));
+  deferredDamage={};
+  tileCache.clear();
+  configureDisplay(availableWidth,availableHeight);
+  // A smaller source also exposes old image bounds outside the new widget.
+  window()->redraw();
+}
+
+void Viewport::setDisplayOrigin(double x, double y)
+{
+  originX=x; originY=y;
+  DesktopTransform t=transform();
+  originX=t.originBX/t.metrics.pixelsPerUnitX;
+  originY=t.originBY/t.metrics.pixelsPerUnitY;
+  int left=int(std::floor(originX)), top=int(std::floor(originY));
+  int width=int(std::ceil(originX+t.logicalWidth))-left;
+  int height=int(std::ceil(originY+t.logicalHeight))-top;
+  // The integer widget only encloses the image. Rendering and input use
+  // the independently retained, backing-aligned fractional origin.
+  if(left!=this->x() || top!=this->y() || width!=w() || height!=h()) {
+    Fl_Widget::resize(left,top,width,height);
+    redraw();
+  }
+}
 
 void Viewport::resize(int x, int y, int w, int h)
 {
-  if ((w != frameBuffer->width()) || (h != frameBuffer->height())) {
-    vlog.debug("Resizing framebuffer from %dx%d to %dx%d",
-               frameBuffer->width(), frameBuffer->height(), w, h);
-
-    frameBuffer = new PlatformPixelBuffer(w, h);
-    assert(frameBuffer);
-    cc->setFramebuffer(frameBuffer);
-  }
-
-  Fl_Widget::resize(x, y, w, h);
+  originX+=x-this->x(); originY+=y-this->y();
+  Fl_Widget::resize(x,y,w,h);
 }
 
+
+Viewport* Viewport::pointerTarget(int* x,int* y)
+{
+  if(session->views().size()==1) return this;
+  // During a held drag FLTK keeps sending events to the original widget.
+  // Route through the view under the global pointer before converting to R.
+  int rootX=Fl::event_x_root(), rootY=Fl::event_y_root();
+  for(Viewport* view : session->views()) {
+    Fl_Window* win=view->window();
+    if(rootX>=win->x() && rootY>=win->y() && rootX<win->x()+win->w() && rootY<win->y()+win->h()) {
+      *x=rootX-win->x(); *y=rootY-win->y(); return view;
+    }
+  }
+  return this;
+}
 
 int Viewport::handle(int event)
 {
   std::string filtered;
   int buttonMask, wheelMask;
+  int pointerX=Fl::event_x(), pointerY=Fl::event_y();
+  Viewport* pointerView=pointerTarget(&pointerX,&pointerY);
 
+  if (event == FL_MOVE || event == FL_DRAG || event == FL_PUSH || event == FL_RELEASE ||
+      event == FL_ENTER || event == FL_LEAVE || event == FL_MOUSEWHEEL) {
+    Viewport* old=inputOwner->activePointerView;
+    if(old) old->damageSoftwareCursor();
+    inputOwner->activePointerView=event==FL_LEAVE && pointerView==this?nullptr:pointerView;
+    pointerView->logicalPointer={pointerX,pointerY};
+    if(inputOwner->activePointerView) {
+      pointerView->damageSoftwareCursor();
+      pointerView->showCursor();
+    }
+  }
   switch (event) {
   case FL_PASTE:
     if (!core::isValidUTF8(Fl::event_text(), Fl::event_length())) {
@@ -465,7 +658,8 @@ int Viewport::handle(int event)
   case FL_LEAVE:
     window()->cursor(FL_CURSOR_DEFAULT);
     // We want a last move event to help trigger edge stuff
-    handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()}, 0);
+    inputOwner->handlePointerEvent(pointerView->transform().remotePoint(pointerX,pointerY),
+                                   inputOwner->lastButtonMask);
     return 1;
 
   case FL_PUSH:
@@ -508,32 +702,19 @@ int Viewport::handle(int event)
 
       // A quick press of the wheel "button", followed by a immediate
       // release below
-      handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()},
+      inputOwner->handlePointerEvent(pointerView->transform().remotePoint(pointerX,pointerY),
                          buttonMask | wheelMask);
     } 
 
-    handlePointerEvent({Fl::event_x() - x(), Fl::event_y() - y()}, buttonMask);
+    inputOwner->handlePointerEvent(pointerView->transform().remotePoint(pointerX,pointerY), buttonMask);
     return 1;
 
   case FL_FOCUS:
-    flushPendingClipboard();
-
-    // We may have gotten our lock keys out of sync with the server
-    // whilst we didn't have focus. Try to sort this out.
-    pushLEDState();
-
-    // Resend Ctrl/Alt if needed
-    if (menuCtrlKey)
-      sendKeyPress(FAKE_CTRL_KEY_CODE, 0x1d, XK_Control_L);
-    if (menuAltKey)
-      sendKeyPress(FAKE_ALT_KEY_CODE, 0x38, XK_Alt_L);
-
-    // Yes, we would like some focus please!
-    return 1;
-
   case FL_UNFOCUS:
-    // We won't get more key events, so reset our knowledge about keys
-    resetKeyboard();
+    // Focus can briefly be null between native windows. Defer the decision
+    // to release held keys until FLTK has completed the focus transfer.
+    if(!Fl::has_timeout(handleFocusChange,inputOwner))
+      Fl::add_timeout(0,handleFocusChange,inputOwner);
     return 1;
 
   case FL_KEYDOWN:
@@ -545,9 +726,11 @@ int Viewport::handle(int event)
   return Fl_Widget::handle(event);
 }
 
-void Viewport::sendPointerEvent(const core::Point& pos,
+void Viewport::sendPointerEvent(const core::Point& position,
                                 uint16_t buttonMask)
 {
+  core::Point pos(std::max(0,std::min(remoteWidth()-1,position.x)),
+                  std::max(0,std::min(remoteHeight()-1,position.y)));
   if (viewOnly)
       return;
 
@@ -567,15 +750,27 @@ void Viewport::sendPointerEvent(const core::Point& pos,
   lastButtonMask = buttonMask;
 }
 
-bool Viewport::hasFocus()
+bool Viewport::sessionFocused()
 {
-  Fl_Widget* focus;
+  Fl_Widget* focus=Fl::grab();
+  if(!focus) focus=Fl::focus();
+  Viewport* view=dynamic_cast<Viewport*>(focus);
+  return view && view->session==session;
+}
 
-  focus = Fl::grab();
-  if (!focus)
-    focus = Fl::focus();
+bool Viewport::hasFocus() { return sessionFocused(); }
 
-  return focus == this;
+void Viewport::handleFocusChange(void* data)
+{
+  Viewport* self=static_cast<Viewport*>(data);
+  bool focused=self->hasFocus();
+  if(focused==self->sessionHadFocus) return;
+  self->sessionHadFocus=focused;
+  if(!focused) { self->resetKeyboard(); return; }
+  self->flushPendingClipboard();
+  self->pushLEDState();
+  if(self->menuCtrlKey) self->sendKeyPress(FAKE_CTRL_KEY_CODE,0x1d,XK_Control_L);
+  if(self->menuAltKey) self->sendKeyPress(FAKE_ALT_KEY_CODE,0x38,XK_Alt_L);
 }
 
 void Viewport::handleClipboardChange(int source, void *data)
@@ -1074,7 +1269,50 @@ void Viewport::handleOptions(void *data)
     modifierMask |= ShortcutHandler::parseModifier(key.getValueStr().c_str());
 
   self->shortcutHandler.setModifiers(modifierMask);
+  for(Viewport* view : self->session->views()) view->setCursor();
 
   if (Fl::belowmouse() == self)
     self->showCursor();
+}
+
+void Viewport::damageSoftwareCursor()
+{
+  if(!softwareCursor) return;
+  DisplayMetrics m=displayMetrics(window());
+  int x0=int(std::floor(logicalPointer.x-softwareHotspot.x/m.pixelsPerUnitX))-1;
+  int y0=int(std::floor(logicalPointer.y-softwareHotspot.y/m.pixelsPerUnitY))-1;
+  int cw=int(std::ceil(softwareCursor->width()/m.pixelsPerUnitX))+2;
+  int ch=int(std::ceil(softwareCursor->height()/m.pixelsPerUnitY))+2;
+  window()->damage(FL_DAMAGE_USER1,x0,y0,cw,ch);
+}
+
+void Viewport::drawSoftwareCursor(Surface* dst,int bx,int by)
+{
+  if(!softwareCursor || viewOnly || inputOwner->activePointerView!=this) return;
+  DesktopTransform t=transform();
+  const double qx=t.metrics.pixelsPerUnitX, qy=t.metrics.pixelsPerUnitY;
+  int dx=int(std::floor(logicalPointer.x*qx+.5))-softwareHotspot.x;
+  int dy=int(std::floor(logicalPointer.y*qy+.5))-softwareHotspot.y;
+  core::Rect r(dx,dy,dx+softwareCursor->width(),dy+softwareCursor->height());
+  int X,Y,W,H;
+  fl_clip_box(0,0,window()->w(),window()->h(),X,Y,W,H);
+  r=r.intersect({int(std::floor(X*qx)),int(std::floor(Y*qy)),
+                 int(std::ceil((X+W)*qx)),int(std::ceil((Y+H)*qy))});
+  if(dst) r=r.intersect({bx,by,bx+dst->width(),by+dst->height()});
+  if(r.is_empty()) return;
+  std::vector<uint8_t> pixels(256*256*4);
+  for(int y=r.tl.y;y<r.br.y;y+=256) for(int x=r.tl.x;x<r.br.x;x+=256) {
+    int w=std::min(256,r.br.x-x), h=std::min(256,r.br.y-y);
+    softwareCursor->render(pixels.data(),size_t(w)*4,{x-dx,y-dy,x-dx+w,y-dy+h});
+    Fl_RGB_Image image(pixels.data(),w,h,4);
+    Surface tile(&image);
+    if(dst) tile.blend(dst,0,0,x-bx,y-by,w,h);
+    else {
+      Surface background(w,h);
+      background.clear(40,40,40);
+      renderDesktop(&background,x,y);
+      tile.blend(&background,0,0,0,0,w,h);
+      background.drawBacking(0,0,x,y,w,h,qx,qy);
+    }
+  }
 }

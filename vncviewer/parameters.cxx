@@ -183,6 +183,13 @@ core::BoolParameter
              _("Listen for incoming connections from VNC servers"),
              false);
 
+ScalingParameter scalingFactor("ScalingFactor",
+  _("Desktop scaling: 100, Auto, FixedRatio, FitWidth, FitHeight, WxH, percent, or X%xY%"));
+core::EnumParameter scalingQuality("ScalingQuality", _("Desktop resampling quality"),
+  {"Nearest", "Bilinear", "Area"}, "Bilinear");
+core::EnumParameter desktopPixelUnits("DesktopPixelUnits", _("Units for desktop pixels and fixed scaling"),
+  {"Logical", "Device"}, "Logical");
+
 core::BoolParameter
   remoteResize("RemoteResize",
                _("Dynamically resize the remote desktop size as the "
@@ -285,6 +292,9 @@ static core::VoidParameter* parameterArray[] = {
   &rfb::CConnection::noJpeg,
   &qualityLevel,
   /* Display */
+  &scalingFactor,
+  &scalingQuality,
+  &desktopPixelUnits,
   &fullScreen,
   &fullScreenMode,
   &fullScreenSelectedMonitors,

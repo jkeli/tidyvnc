@@ -56,6 +56,7 @@
 #endif
 
 #include <FL/Fl.H>
+#include <FL/fl_ask.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Button.H>
@@ -97,6 +98,7 @@ OptionsDialog::OptionsDialog()
     createInputPage(tx, ty, tw, th);
     createShortcutsPage(tx, ty, tw, th);
     createDisplayPage(tx, ty, tw, th);
+    createScalingPage(tx, ty, tw, th);
     createMiscPage(tx, ty, tw, th);
   }
 
@@ -170,6 +172,15 @@ void OptionsDialog::show(void)
 
 void OptionsDialog::loadOptions(void)
 {
+  scalingEditingMode = scalingFactor.settings().mode;
+  scalingModeChoice->value(scalingEditingMode);
+  scalingValues[scalingEditingMode] = scalingFactor.getValueStr();
+  scalingInput->value(scalingValues[scalingEditingMode].c_str());
+  if(scalingEditingMode < 5) scalingInput->deactivate();
+  else scalingInput->activate();
+  scalingQualityChoice->value(scalingQuality == "Nearest" ? 0 : scalingQuality == "Area" ? 2 : 1);
+  pixelUnitsChoice->value(desktopPixelUnits == "Device" ? 1 : 0);
+  handleScaling(nullptr,this);
   /* Compression */
   autoselectCheckbox->value(autoSelect);
   jpegCheckbox->value(!rfb::CConnection::noJpeg);
@@ -376,6 +387,9 @@ void OptionsDialog::loadOptions(void)
 
 void OptionsDialog::storeOptions(void)
 {
+  scalingFactor.setParam(scalingInput->value());
+  scalingQuality.setParam(scalingQualityChoice->value() == 0 ? "Nearest" : scalingQualityChoice->value() == 2 ? "Area" : "Bilinear");
+  desktopPixelUnits.setParam(pixelUnitsChoice->value() == 1 ? "Device" : "Logical");
   /* Compression */
   autoSelect.setParam(autoselectCheckbox->value());
   rfb::CConnection::noJpeg.setParam(!jpegCheckbox->value());
@@ -1182,7 +1196,8 @@ void OptionsDialog::createDisplayPage(int tx, int ty, int tw, int th)
 #if defined(WIN32)
     supportsMultihead = true;
 #elif defined(__APPLE__)
-    supportsMultihead = !cocoa_screens_have_separate_spaces();
+    // Separate native surfaces can occupy separate Spaces.
+    supportsMultihead = true;
 #else
     // FLTK will emulate multihead support without a WM
     if (!x11_has_wm())
@@ -1419,6 +1434,11 @@ void OptionsDialog::handleFullScreenMode(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
+  dialog->monitorArrangement->canvasPreview(dialog->pixelUnitsChoice->value()==1 &&
+    dialog->scalingEditingMode!=ScalingSettings::Auto &&
+    dialog->scalingEditingMode!=ScalingSettings::FixedRatio &&
+    dialog->scalingEditingMode!=ScalingSettings::FitWidth &&
+    dialog->scalingEditingMode!=ScalingSettings::FitHeight,dialog->allMonitorsButton->value());
   if (dialog->selectedMonitorsButton->value()) {
     dialog->monitorArrangement->activate();
   } else {
@@ -1438,9 +1458,18 @@ void OptionsDialog::handleOK(Fl_Widget* /*widget*/, void *data)
 {
   OptionsDialog *dialog = (OptionsDialog*)data;
 
-  dialog->hide();
-
+  try {
+    ScalingSettings settings=ScalingSettings::parse(dialog->scalingInput->value());
+    if(settings.mode != dialog->scalingEditingMode &&
+       !(dialog->scalingEditingMode == ScalingSettings::Percent && settings.mode == ScalingSettings::Unscaled))
+      throw std::invalid_argument("Enter a value matching the selected scaling mode");
+  } catch (const std::invalid_argument& e) {
+    fl_alert("%s: %s", _("Invalid desktop scaling"), e.what());
+    dialog->scalingInput->take_focus();
+    return;
+  }
   dialog->storeOptions();
+  dialog->hide();
 }
 
 int OptionsDialog::fltk_event_handler(int event)
@@ -1477,4 +1506,60 @@ void OptionsDialog::handleAlwaysCursor(Fl_Widget* /*widget*/, void *data)
   } else {
     dialog->cursorTypeChoice->deactivate();
   }
+}
+
+void OptionsDialog::createScalingPage(int tx, int ty, int tw, int th)
+{
+  Fl_Group* group = new Fl_Group(tx, ty, tw, th, _("Scaling"));
+  tx += OUTER_MARGIN; ty += OUTER_MARGIN;
+  int width = tw - 2*OUTER_MARGIN;
+  scalingModeChoice = new Fl_Choice(tx, ty+INPUT_HEIGHT, width, INPUT_HEIGHT, _("Scaling mode:"));
+  scalingModeChoice->align(FL_ALIGN_TOP_LEFT);
+  for(const char* label : {_("No scaling"), _("Automatic fit (stretch)"), _("Fit preserving aspect ratio"),
+      _("Fit width"), _("Fit height"), _("Exact dimensions"), _("Percentage"), _("Independent percentages")})
+    scalingModeChoice->add(label);
+  scalingModeChoice->callback(handleScalingMode,this);
+  ty += INPUT_HEIGHT*2 + INNER_MARGIN;
+  scalingInput = new Fl_Input(tx, ty+INPUT_HEIGHT, width, INPUT_HEIGHT, _("Size or percentage:"));
+  scalingInput->align(FL_ALIGN_TOP_LEFT);
+  scalingInput->when(FL_WHEN_CHANGED);
+  scalingInput->callback(handleScaling,this);
+  ty += INPUT_HEIGHT*2 + INNER_MARGIN;
+  Fl_Box* help = fltk_box(tx, ty, width, INPUT_HEIGHT*2);
+  help->align(FL_ALIGN_INSIDE|FL_ALIGN_TOP_LEFT|FL_ALIGN_WRAP);
+  help->label(_("Examples: 1920x1080, 137.5, 125%x80%. Auto and exact dimensions may distort the aspect ratio."));
+  ty += INPUT_HEIGHT*2 + INNER_MARGIN;
+  scalingQualityChoice = new Fl_Choice(tx, ty+INPUT_HEIGHT, width, INPUT_HEIGHT, _("Scaling quality:"));
+  scalingQualityChoice->align(FL_ALIGN_TOP_LEFT);
+  scalingQualityChoice->add(_("Nearest")); scalingQualityChoice->add(_("Bilinear")); scalingQualityChoice->add(_("Area (best for shrinking)"));
+  ty += INPUT_HEIGHT*2 + INNER_MARGIN;
+  pixelUnitsChoice = new Fl_Choice(tx, ty+INPUT_HEIGHT, width, INPUT_HEIGHT, _("Fixed scaling units (fit modes ignore this):"));
+  pixelUnitsChoice->align(FL_ALIGN_TOP_LEFT);
+  pixelUnitsChoice->add(_("Logical units")); pixelUnitsChoice->add(_("Device pixels"));
+  pixelUnitsChoice->callback(handleFullScreenMode,this);
+  group->end();
+}
+
+void OptionsDialog::handleScaling(Fl_Widget*, void* data)
+{
+  OptionsDialog* dialog=static_cast<OptionsDialog*>(data);
+  try {
+    if(ScalingSettings::parse(dialog->scalingInput->value()).fits())
+      dialog->pixelUnitsChoice->deactivate();
+    else dialog->pixelUnitsChoice->activate();
+  } catch(const std::invalid_argument&) {
+    dialog->pixelUnitsChoice->activate();
+  }
+}
+
+void OptionsDialog::handleScalingMode(Fl_Widget*, void* data)
+{
+  OptionsDialog* dialog=static_cast<OptionsDialog*>(data);
+  dialog->scalingValues[dialog->scalingEditingMode]=dialog->scalingInput->value();
+  dialog->scalingEditingMode=dialog->scalingModeChoice->value();
+  dialog->scalingInput->value(dialog->scalingValues[dialog->scalingEditingMode].c_str());
+  if(dialog->scalingEditingMode < 5) dialog->scalingInput->deactivate();
+  else dialog->scalingInput->activate();
+  handleScaling(nullptr,dialog);
+  handleFullScreenMode(nullptr,dialog);
 }

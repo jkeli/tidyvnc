@@ -20,6 +20,7 @@
 #define __OPTIONSDIALOG_H__
 
 #include <map>
+#include <string>
 
 #include <FL/Fl_Window.H>
 
@@ -58,6 +59,7 @@ protected:
   void createInputPage(int tx, int ty, int tw, int th);
   void createShortcutsPage(int tx, int ty, int tw, int th);
   void createDisplayPage(int tx, int ty, int tw, int th);
+  void createScalingPage(int tx, int ty, int tw, int th);
   void createMiscPage(int tx, int ty, int tw, int th);
 
   static void handleAutoselect(Fl_Widget *widget, void *data);
@@ -73,6 +75,8 @@ protected:
 
   static void handleModifier(Fl_Widget *widget, void *data);
 
+  static void handleScalingMode(Fl_Widget *widget, void *data);
+  static void handleScaling(Fl_Widget *widget, void *data);
   static void handleFullScreenMode(Fl_Widget *widget, void *data);
 
   static void handleCancel(Fl_Widget *widget, void *data);
@@ -154,6 +158,14 @@ protected:
   Fl_Toggle_Button *superButton;
 
   Fl_Box *shortcutsText;
+
+  Fl_Choice *scalingModeChoice;
+  Fl_Input *scalingInput;
+  int scalingEditingMode = 0;
+  std::string scalingValues[8] = {"100", "Auto", "FixedRatio", "FitWidth", "FitHeight",
+                                  "1920x1080", "100", "100%x100%"};
+  Fl_Choice *scalingQualityChoice;
+  Fl_Choice *pixelUnitsChoice;
 
   /* Display */
   Fl_Group *displayModeGroup;

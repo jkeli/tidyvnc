@@ -14,12 +14,20 @@ add_executable(vncviewer
   BaseTouchHandler.cxx
   CConn.cxx
   DesktopWindow.cxx
+  DesktopView.cxx
+  DesktopSession.cxx
+  DesktopLayout.cxx
   EmulateMB.cxx
   ServerDialog.cxx
   ShortcutHandler.cxx
   Surface.cxx
   OptionsDialog.cxx
   PlatformPixelBuffer.cxx
+  DesktopTransform.cxx
+  CursorRenderer.cxx
+  DesktopTileCache.cxx
+  DesktopResampler.cxx
+  DisplayMetrics.cxx
   Viewport.cxx
   parameters.cxx
   touch.cxx

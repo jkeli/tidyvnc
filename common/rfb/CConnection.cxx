@@ -1134,3 +1134,8 @@ void CConnection::updateEncodings()
 
   writer()->writeSetEncodings(encodings);
 }
+
+void CConnection::syncFramebuffer()
+{
+  decoder.flush();
+}

@@ -130,6 +130,10 @@ namespace rfb {
     // framebuffer
     void refreshFramebuffer();
 
+    // Rendering can occur during a slow update or an expose, outside
+    // framebufferUpdateEnd(). Join pending decode jobs before reading pixels.
+    void syncFramebuffer();
+
     // setPreferredEncoding()/getPreferredEncoding() adjusts which
     // encoding is listed first as a hint to the server that it is the
     // preferred one

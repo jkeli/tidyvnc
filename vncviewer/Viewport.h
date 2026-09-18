@@ -21,33 +21,58 @@
 #define __VIEWPORT_H__
 
 #include <core/Rect.h>
+#include <memory>
 
 #include <FL/Fl_Widget.H>
 
+#include "DesktopTransform.h"
+#include "DesktopTileCache.h"
 #include "EmulateMB.h"
 #include "Keyboard.h"
 #include "ShortcutHandler.h"
+
+namespace rfb { class PixelFormat; }
 
 class Fl_Menu_Button;
 class Fl_RGB_Image;
 
 class CConn;
+class DesktopSession;
 class Keyboard;
 class PlatformPixelBuffer;
 class Surface;
+class CursorRenderer;
 
 class Viewport : public Fl_Widget, protected EmulateMB,
                  protected KeyboardHandler {
 public:
 
-  Viewport(int w, int h, CConn* cc_);
+  Viewport(int w, int h, CConn* cc_, std::shared_ptr<DesktopSession> session = {});
   ~Viewport();
+
+  std::shared_ptr<DesktopSession> desktopSession() const { return session; }
+  void sourceDamaged(const core::Rect& damage);
+  void flushSourceDamage();
+  void sourceReplaced();
+  bool sessionFocused();
+  void setCacheBudget(size_t bytes) { tileCache.setBudget(bytes); }
 
   // Most efficient format (from Viewport's point of view)
   const rfb::PixelFormat &getPreferredPF();
 
   // Flush updates to screen
   void updateWindow();
+  void resizeFramebuffer(int width, int height);
+  void configureDisplay(int availableWidth, int availableHeight);
+  DesktopTransform transform() const;
+  void setDisplayOrigin(double x, double y);
+  double displayX() const { return originX; }
+  double displayY() const { return originY; }
+  void setCanvas(int width, int height, const core::Rect& region,
+                 double panX = 0, double panY = 0);
+  void clearCanvas();
+  int remoteWidth() const;
+  int remoteHeight() const;
 
   // New image for the locally rendered cursor
   void setCursor();
@@ -55,7 +80,7 @@ public:
   // Change client LED state
   void setLEDState(unsigned int state);
 
-  void draw(Surface* dst);
+  void draw(Surface* dst, int originBX = 0, int originBY = 0);
 
   // Clipboard events
   void handleClipboardRequest();
@@ -75,7 +100,11 @@ protected:
                         uint16_t buttonMask) override;
 
 private:
+  void renderDesktop(Surface* destination, int originBX = 0, int originBY = 0);
+  void drawSoftwareCursor(Surface* destination, int originBX, int originBY);
+  void damageSoftwareCursor();
   bool hasFocus();
+  Viewport* pointerTarget(int* x, int* y);
 
   // Show the currently set (or system) cursor
   void showCursor();
@@ -86,6 +115,7 @@ private:
 
   void handlePointerEvent(const core::Point& pos, uint16_t buttonMask);
   static void handlePointerTimeout(void *data);
+  static void handleFocusChange(void* data);
 
   void resetKeyboard();
 
@@ -107,8 +137,23 @@ private:
 
 private:
   CConn* cc;
+  std::shared_ptr<DesktopSession> session;
+  Viewport* inputOwner;
+  Viewport* activePointerView = nullptr;
+  bool sessionHadFocus = false;
 
   PlatformPixelBuffer* frameBuffer;
+  PlatformPixelBuffer* renderTile;
+  core::Rect deferredDamage;
+  DesktopTileCache tileCache;
+  int availableWidth, availableHeight;
+  double originX = 0, originY = 0;
+  int canvasWidth = 0, canvasHeight = 0;
+  core::Rect canvasRegion;
+  double canvasPanX = 0, canvasPanY = 0;
+  mutable bool scalingLimitReported = false;
+  mutable DisplayMetrics previousMetrics;
+  mutable unsigned long displayGeneration = 0;
 
   core::Point lastPointerPos;
   uint16_t lastButtonMask;
@@ -131,6 +176,11 @@ private:
   bool menuAltKey;
 
   Fl_RGB_Image *cursor;
+  CursorRenderer* softwareCursor = nullptr;
+  core::Point softwareHotspot;
+  core::Point logicalPointer;
+  double cursorScaleX = 0, cursorScaleY = 0;
+  double cursorDpiX = 0, cursorDpiY = 0;
   core::Point cursorHotspot;
   bool cursorIsBlank;
 };

@@ -23,18 +23,23 @@
 #include <list>
 #include <map>
 #include <string>
+#include <memory>
+#include <vector>
 
 #include <sys/time.h>
 
 #include <FL/Fl_Window.H>
 
 #include <rfb/ScreenSet.h>
+#include "DesktopTransform.h"
 
-namespace rfb { class ModifiablePixelBuffer; }
+namespace rfb { class ModifiablePixelBuffer; class PixelFormat; }
 
 class CConn;
 class Surface;
 class Viewport;
+class DesktopView;
+struct DesktopLayout;
 
 class Fl_Scrollbar;
 
@@ -81,6 +86,10 @@ public:
   int handle(int event) override;
 
   void fullscreen_on();
+  void displayConfigurationChanged();
+  void viewFocusChanged();
+  void viewPointerMoved(Fl_Window* view);
+  void leaveFullscreen();
 
   // Grab keyboard events from desktop environment
   void grabKeyboard();
@@ -106,6 +115,13 @@ private:
   void maximizeWindow();
 
   static void handleResizeTimeout(void *data);
+  static void scheduleDisplayRefresh(void* data);
+  static void handleDisplayRefresh(void* data);
+  void refreshDisplayMetrics();
+  bool configureMacFullscreen();
+  void clearFullscreenViews();
+  bool panFullscreen();
+  static void handleLeaveFullscreen(void* data);
   static void reconfigureFullscreen(void *data);
   void remoteResize();
 
@@ -128,9 +144,19 @@ private:
   Fl_Scrollbar *hscroll, *vscroll;
   Viewport *viewport;
   Surface *offscreen;
+  DisplayMetrics lastDisplayMetrics;
+  unsigned long metricsGeneration = 0;
+  bool metricsRepaint = false;
+  void* displayObserver = nullptr;
+  std::unique_ptr<DesktopLayout> fullscreenLayout;
+  std::vector<std::unique_ptr<DesktopView>> fullscreenViews;
+  uint32_t primaryMonitor = 0;
+  bool configuringFullscreen = false;
+  double canvasPanX = 0, canvasPanY = 0;
 
   struct Overlay {
     Surface *surface;
+    std::string text;
     unsigned char alpha;
     struct timeval start;
   };

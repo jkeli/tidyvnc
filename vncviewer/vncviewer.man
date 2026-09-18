@@ -433,3 +433,39 @@ Research Ltd / AT&T Laboratories Cambridge.  TightVNC additions were
 implemented by Constantin Kaplinsky. Many other people have since
 participated in development, testing and support. This manual is part
 of the TigerVNC software suite.
+
+.SH DESKTOP SCALING
+.TP
+.B \-ScalingFactor value
+Controls local presentation without changing the decoded framebuffer.
+Use 100 (or None) for no scaling, Auto to stretch to the window,
+FixedRatio to fit while preserving aspect ratio, FitWidth, FitHeight,
+exact dimensions such as 1920x1080, a percentage such as 137.5, or
+independent percentages such as 125%x80%.
+Percentages range from 0.01 to 10000 with at most two decimal places.
+Output axes are limited to 65535 backing pixels. A request exceeding this
+limit temporarily falls back to 100% Device while retaining the setting.
+Non-default scaling suspends automatic RemoteResize without changing
+its saved preference. An explicit initial DesktopSize stays in remote pixels.
+.TP
+.B \-ScalingQuality Nearest|Bilinear|Area
+Selects local desktop filtering, independently of JPEG QualityLevel.
+Bilinear is the default. Area averages source coverage on shrinking axes
+and uses linear interpolation on enlarging axes.
+.TP
+.B \-DesktopPixelUnits Logical|Device
+Selects units for no scaling, percentages and exact dimensions.
+Logical (default) preserves one remote pixel per logical UI unit at 100%.
+Device uses one remote pixel per window backing pixel at 100%.
+Fit modes ignore this preference. At 100%, automatic RemoteResize uses
+logical or backing dimensions respectively. On macOS, fullscreen on multiple
+monitors uses a separate native window for each selected monitor, sharing
+one connection. Device mode adjusts unequal monitor pixel sizes into a
+nonoverlapping remote arrangement, previewed in the Display options.
+Fit modes use the logical monitor arrangement. A rejected server resize
+leaves the actual framebuffer authoritative; oversized content can be panned
+at the outside edges of the canvas. Closing a secondary view exits fullscreen.
+Ordinary windows straddling monitors still have one native backing scale.
+If per-monitor fullscreen cannot be configured, an overlay identifies the
+single-window fallback. Mixed-monitor Spaces/hotplug behavior still needs
+release validation. XWayland compositor scaling can further change output.

@@ -54,6 +54,11 @@
 #endif
 
 #include "Fl_Monitor_Arrangement.h"
+#include <core/i18n.h>
+#ifdef __APPLE__
+#include "../DesktopLayout.h"
+#include "../cocoa.h"
+#endif
 
 static std::set<Fl_Monitor_Arrangement *> instances;
 static const Fl_Boxtype FL_CHECKERED_BOX = FL_FREE_BOXTYPE;
@@ -132,6 +137,52 @@ void Fl_Monitor_Arrangement::draw()
   }
 
   Fl_Group::draw();
+  drawCanvasPreview();
+}
+
+void Fl_Monitor_Arrangement::canvasPreview(bool devicePixels,bool allMonitors)
+{
+  previewDevice=devicePixels; previewAll=allMonitors;
+  redraw();
+}
+
+void Fl_Monitor_Arrangement::drawCanvasPreview()
+{
+#ifdef __APPLE__
+  std::set<int> selected=value();
+  if(previewAll) {
+    selected.clear();
+    for(int i=0;i<Fl::screen_count();++i) selected.insert(i);
+  }
+  if(selected.empty()) return;
+  try {
+    std::vector<DesktopMonitor> previewMonitors;
+    for(int index : selected) {
+      DesktopMonitor monitor;
+      if(!cocoa_monitor_geometry(index,&monitor)) return;
+      previewMonitors.push_back(monitor);
+    }
+    DesktopLayout canvas(previewMonitors,previewDevice?ScalingSettings::Device:ScalingSettings::Logical);
+    int top=y()+h()*3/5;
+    fl_push_clip(x()+2,top,w()-4,y()+h()-top-2);
+    fl_color(FL_FOREGROUND_COLOR); fl_font(FL_HELVETICA,11);
+    fl_draw(_("Remote desktop arrangement"),x()+8,top+12);
+    double scale=std::min(double(w()-20)/canvas.width,double(y()+h()-top-20)/canvas.height);
+    int left=x()+(w()-int(canvas.width*scale))/2;
+    for(const auto& region : canvas.regions) {
+      int rx=left+int(region.canvas.tl.x*scale), ry=top+16+int(region.canvas.tl.y*scale);
+      int rw=std::max(1,int(region.canvas.width()*scale)), rh=std::max(1,int(region.canvas.height()*scale));
+      fl_color(FL_SELECTION_COLOR); fl_rectf(rx,ry,rw,rh);
+      fl_color(FL_BACKGROUND_COLOR); fl_rect(rx,ry,rw,rh);
+      fl_color(fl_contrast(FL_FOREGROUND_COLOR,FL_SELECTION_COLOR));
+      std::string label=std::to_string(region.monitor.screen+1);
+      fl_draw(label.c_str(),rx,ry,rw,rh,FL_ALIGN_CENTER);
+    }
+    fl_pop_clip();
+  } catch(const std::exception&) {
+    // A topology transition will trigger refresh() when FLTK settles.
+  }
+#endif
 }
 
 void Fl_Monitor_Arrangement::layout()
@@ -199,6 +250,10 @@ void Fl_Monitor_Arrangement::refresh()
 
 bool Fl_Monitor_Arrangement::is_required(int m)
 {
+#ifdef __APPLE__
+  // Independent fullscreen views allow nonrectangular monitor selections.
+  return false;
+#endif
   // A selected monitor is never required.
   if (monitors[m]->value() == 1)
     return false;
@@ -269,7 +324,11 @@ double Fl_Monitor_Arrangement::scale()
   std::pair<int, int> size = this->size();
 
   double s_w = static_cast<double>(this->w()-MARGIN) / static_cast<double>(size.first);
-  double s_h = static_cast<double>(this->h()-MARGIN) / static_cast<double>(size.second);
+  int height=this->h();
+#ifdef __APPLE__
+  height=height*3/5;
+#endif
+  double s_h = static_cast<double>(height-MARGIN) / static_cast<double>(size.second);
 
   // Choose the one that scales the least, in order to
   // maximize our use of the given bounding area.
@@ -317,7 +376,11 @@ std::pair<int, int> Fl_Monitor_Arrangement::offset()
   std::pair<int, int> origin = this->origin();
 
   int offset_x = (this->w()/2) - (size.first/2 * scale);
-  int offset_y = (this->h()/2) - (size.second/2 * scale);
+  int height=this->h();
+#ifdef __APPLE__
+  height=height*3/5;
+#endif
+  int offset_y = (height/2) - (size.second/2 * scale);
 
   return std::make_pair(offset_x + abs(origin.first)*scale, offset_y + abs(origin.second)*scale);
 }
@@ -390,13 +453,14 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
     info.cbSize = sizeof(info);
     GetMonitorInfo(*iter, (LPMONITORINFO)&info);
 
-    if (info.rcMonitor.left != x)
+    double scale=Fl::screen_scale(m);
+    if (int(info.rcMonitor.left/scale) != x)
       continue;
-    if (info.rcMonitor.top != y)
+    if (int(info.rcMonitor.top/scale) != y)
       continue;
-    if ((info.rcMonitor.right - info.rcMonitor.left) != w)
+    if (int((info.rcMonitor.right - info.rcMonitor.left)/scale) != w)
       continue;
-    if ((info.rcMonitor.bottom - info.rcMonitor.top) != h)
+    if (int((info.rcMonitor.bottom - info.rcMonitor.top)/scale) != h)
       continue;
 
     for (int i = 0; ; i++) {
@@ -417,27 +481,12 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
 
   return "";
 #elif defined(__APPLE__)
-  CGDisplayCount count;
-  CGDirectDisplayID displays[16];
-
-  CGDirectDisplayID displayID;
-  CFDictionaryRef info;
-  CFDictionaryRef dict;
+  DesktopMonitor monitor;
+  if(!cocoa_monitor_geometry(m,&monitor)) return "";
+  CGDirectDisplayID displayID=monitor.id;
+  CFDictionaryRef info,dict;
   CFIndex dict_len;
-
   std::string name;
-
-  if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess)
-    return "";
-
-  if (count != (unsigned)Fl::screen_count())
-    return "";
-
-  if (m >= (int)count)
-    return "";
-
-  // Notice: Here we assume indices to be ordered the same as in FLTK (we rely on that in cocoa.mm as well).
-  displayID = displays[m];
 
   info = IODisplayCreateInfoDictionary(CGDisplayIOServicePort(displayID),
                                        kIODisplayOnlyPreferredName);
@@ -512,9 +561,12 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
     if (!crtc)
       continue;
 
-    if ((crtc->x != x) || (crtc->y != y) ||
-        ((int)crtc->width != w) || ((int)crtc->height != h))
+    double scale=Fl::screen_scale(m);
+    if ((int(crtc->x/scale) != x) || (int(crtc->y/scale) != y) ||
+        (int(crtc->width/scale) != w) || (int(crtc->height/scale) != h)) {
+      XRRFreeCrtcInfo(crtc);
       continue;
+    }
 
     for (int j = 0; j < crtc->noutput; j++) {
       XRROutputInfo *output;
@@ -526,8 +578,11 @@ std::string Fl_Monitor_Arrangement::get_monitor_name(int m)
       if (!name.empty())
         name += " / ";
       name += output->name;
+      XRRFreeOutputInfo(output);
     }
+    XRRFreeCrtcInfo(crtc);
   }
+  XRRFreeScreenResources(res);
 
   return name;
 

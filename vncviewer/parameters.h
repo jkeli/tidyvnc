@@ -23,6 +23,7 @@
 #include <core/Configuration.h>
 
 #include "MonitorIndicesParameter.h"
+#include "ScalingParameter.h"
 
 #ifdef _WIN32
 #include <list>
@@ -58,6 +59,9 @@ extern MonitorIndicesParameter fullScreenSelectedMonitors;
 extern core::StringParameter desktopSize;
 extern core::StringParameter geometry;
 extern core::BoolParameter remoteResize;
+extern ScalingParameter scalingFactor;
+extern core::EnumParameter scalingQuality;
+extern core::EnumParameter desktopPixelUnits;
 
 extern core::BoolParameter listenMode;
 

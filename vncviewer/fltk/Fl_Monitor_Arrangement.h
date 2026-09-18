@@ -43,6 +43,7 @@ public:
 
   // Set selected indices.
   int value(std::set<int> indices);
+  void canvasPreview(bool devicePixels, bool allMonitors);
 
 protected:
   void draw() override;
@@ -51,6 +52,8 @@ private:
   const Fl_Color AVAILABLE_COLOR;
   typedef std::map<int, Fl_Button *> MonitorMap;
   MonitorMap monitors;
+  bool previewDevice = false, previewAll = false;
+  void drawCanvasPreview();
 
   // Layout the monitor arrangement.
   void layout();
