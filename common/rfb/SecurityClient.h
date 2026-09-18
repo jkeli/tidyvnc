@@ -23,6 +23,7 @@
 #define __RFB_SECURITYCLIENT_H__
 
 #include <rfb/Security.h>
+#include <rfb/ClientTLSOptions.h>
 
 namespace rfb {
 
@@ -31,12 +32,15 @@ namespace rfb {
 
   class SecurityClient : public Security {
   public:
-    SecurityClient(void) : Security(secTypes) {}
+    // Compatibility path: snapshot legacy parameters before starting workers.
+    SecurityClient();
 
     // Copy an explicit per-connection allow-list without reading the legacy
     // parameter registry. Unsupported/uncompiled types are rejected; an empty
     // list permits no authentication. VeNCrypt is inferred from its subtypes.
     explicit SecurityClient(const std::list<uint32_t>& types);
+    SecurityClient(const std::list<uint32_t>& types,
+                   const ClientTLSOptions& tlsOptions);
 
     // Compiled authentication methods, independent of user configuration.
     static const std::list<uint32_t>& supportedTypes();
@@ -45,6 +49,9 @@ namespace rfb {
     CSecurity* GetCSecurity(CConnection* cc, uint32_t secType);
 
     static core::EnumListParameter secTypes;
+
+  private:
+    ClientTLSOptions tlsOptions;
   };
 
 }

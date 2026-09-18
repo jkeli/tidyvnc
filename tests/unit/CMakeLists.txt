@@ -36,6 +36,12 @@ add_executable(securityclient securityclient.cxx)
 target_link_libraries(securityclient rfbclient GTest::gtest_main Threads::Threads)
 gtest_discover_tests(securityclient)
 
+if(GNUTLS_FOUND AND NOT WIN32)
+  add_executable(clienttls clienttls.cxx)
+  target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(clienttls)
+endif()
+
 add_executable(convertlf convertlf.cxx)
 target_link_libraries(convertlf core GTest::gtest_main)
 gtest_discover_tests(convertlf)

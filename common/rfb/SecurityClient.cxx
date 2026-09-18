@@ -94,8 +94,23 @@ const std::list<uint32_t>& SecurityClient::supportedTypes()
   return types;
 }
 
-SecurityClient::SecurityClient(const std::list<uint32_t>& types)
+SecurityClient::SecurityClient() : Security(secTypes)
 {
+#ifdef HAVE_GNUTLS
+  tlsOptions = CSecurityTLS::legacyOptions();
+#endif
+}
+
+SecurityClient::SecurityClient(const std::list<uint32_t>& types)
+  : SecurityClient(types, ClientTLSOptions())
+{
+}
+
+SecurityClient::SecurityClient(const std::list<uint32_t>& types,
+                               const ClientTLSOptions& tlsOptions_)
+  : tlsOptions(tlsOptions_)
+{
+  tlsOptions.validate();
   const auto& supported = supportedTypes();
   for (uint32_t type : types) {
     if (std::find(supported.begin(), supported.end(), type) == supported.end())
@@ -117,25 +132,25 @@ CSecurity* SecurityClient::GetCSecurity(CConnection* cc, uint32_t secType)
 #ifdef HAVE_GNUTLS
   case secTypeTLSNone:
     return new CSecurityStack(cc, secTypeTLSNone,
-                              new CSecurityTLS(cc, true));
+                              new CSecurityTLS(cc, true, tlsOptions));
   case secTypeTLSVnc:
     return new CSecurityStack(cc, secTypeTLSVnc,
-                              new CSecurityTLS(cc, true),
+                              new CSecurityTLS(cc, true, tlsOptions),
                               new CSecurityVncAuth(cc));
   case secTypeTLSPlain:
     return new CSecurityStack(cc, secTypeTLSPlain,
-                              new CSecurityTLS(cc, true),
+                              new CSecurityTLS(cc, true, tlsOptions),
                               new CSecurityPlain(cc));
   case secTypeX509None:
     return new CSecurityStack(cc, secTypeX509None,
-                              new CSecurityTLS(cc, false));
+                              new CSecurityTLS(cc, false, tlsOptions));
   case secTypeX509Vnc:
     return new CSecurityStack(cc, secTypeX509Vnc,
-                              new CSecurityTLS(cc, false),
+                              new CSecurityTLS(cc, false, tlsOptions),
                               new CSecurityVncAuth(cc));
   case secTypeX509Plain:
     return new CSecurityStack(cc, secTypeX509Plain,
-                              new CSecurityTLS(cc, false),
+                              new CSecurityTLS(cc, false, tlsOptions),
                               new CSecurityPlain(cc));
 #endif
 #ifdef HAVE_NETTLE

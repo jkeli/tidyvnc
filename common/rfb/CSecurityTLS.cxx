@@ -77,12 +77,28 @@ static const char* configdirfn(const char* fn)
   return full_path;
 }
 
+ClientTLSOptions CSecurityTLS::legacyOptions()
+{
+  ClientTLSOptions options;
+  options.priority = (const char*)Security::GnuTLSPriority;
+  options.caFile = (const char*)X509CA;
+  options.crlFile = (const char*)X509CRL;
+  return options;
+}
+
 CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon)
-  : CSecurity(cc_), session(nullptr),
+  : CSecurityTLS(cc_, _anon, legacyOptions())
+{
+}
+
+CSecurityTLS::CSecurityTLS(CConnection* cc_, bool _anon,
+                         const ClientTLSOptions& options_)
+  : CSecurity(cc_), options(options_), session(nullptr),
     anon_cred(nullptr), cert_cred(nullptr),
     anon(_anon), tlssock(nullptr),
     rawis(nullptr), rawos(nullptr)
 {
+  options.validate();
   int err = gnutls_global_init();
   if (err != GNUTLS_E_SUCCESS)
     throw rdr::tls_error(_("Failed to initialize GnuTLS"), err);
@@ -187,11 +203,11 @@ void CSecurityTLS::setParam()
   int ret;
 
   // Custom priority string specified?
-  if (strcmp(Security::GnuTLSPriority, "") != 0) {
+  if (!options.priority.empty()) {
     std::string prio;
     const char *err;
 
-    prio = (const char*)Security::GnuTLSPriority;
+    prio = options.priority;
     if (anon) {
       prio += ":";
       prio += kx_anon_priority;
@@ -259,10 +275,12 @@ void CSecurityTLS::setParam()
     if (gnutls_certificate_set_x509_system_trust(cert_cred) < 1)
       vlog.error(_("Failed to load the system certificate trust store"));
 
-    if (gnutls_certificate_set_x509_trust_file(cert_cred, X509CA, GNUTLS_X509_FMT_PEM) < 0)
+    if (!options.caFile.empty() &&
+        gnutls_certificate_set_x509_trust_file(cert_cred, options.caFile.c_str(), GNUTLS_X509_FMT_PEM) < 0)
       vlog.error(_("Failed to load the user specified certificate authority"));
 
-    if (gnutls_certificate_set_x509_crl_file(cert_cred, X509CRL, GNUTLS_X509_FMT_PEM) < 0)
+    if (!options.crlFile.empty() &&
+        gnutls_certificate_set_x509_crl_file(cert_cred, options.crlFile.c_str(), GNUTLS_X509_FMT_PEM) < 0)
       vlog.error(_("Failed to load the user specified certificate revocation list"));
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
