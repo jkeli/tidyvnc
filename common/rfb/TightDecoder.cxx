@@ -612,7 +612,7 @@ void TightDecoder::FilterGradient(const uint8_t* inbuf,
     for (x = 0; x < rectWidth; x++) {
       /* First pixel in a row */
       if (x == 0) {
-        pf.rgbFromBuffer(pix, &inbuf[y*rectWidth], 1);
+        pf.rgbFromBuffer(pix, &inbuf[y*rectWidth*sizeof(T)], 1);
         for (c = 0; c < 3; c++)
           pix[c] += prevRow[c];
 
@@ -632,7 +632,7 @@ void TightDecoder::FilterGradient(const uint8_t* inbuf,
         }
       }
 
-      pf.rgbFromBuffer(pix, &inbuf[y*rectWidth+x], 1);
+      pf.rgbFromBuffer(pix, &inbuf[(y*rectWidth+x)*sizeof(T)], 1);
       for (c = 0; c < 3; c++)
         pix[c] += est[c];
 

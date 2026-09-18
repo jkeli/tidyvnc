@@ -136,3 +136,30 @@ TEST(TightDecoder, ConcurrentGradientSessions)
     worker.join();
   EXPECT_FALSE(failed.load());
 }
+
+TEST(TightDecoder, PackedGradientPixelOffsets)
+{
+  const std::array<uint8_t, 3> colours[] = {
+    {{255, 0, 0}}, {{0, 255, 0}}, {{0, 0, 255}}, {{255, 255, 255}}
+  };
+  // Nonzero high bytes expose stepping by bytes instead of packed pixels.
+  // Include one-column rectangles to exercise the first pixel of later rows.
+  for (int bpp : {16, 32}) {
+    for (bool bigEndian : {false, true}) {
+      const rfb::PixelFormat pf(bpp, 16, bigEndian, true, 31, 63, 31, 11, 5, 0);
+      rfb::ServerParams server;
+      server.setPF(pf);
+      rfb::TightDecoder decoder;
+      for (const auto& colour : colours) {
+        for (int width : {1, 3, 17}) {
+          SCOPED_TRACE(::testing::Message() << "bpp=" << bpp
+                       << " bigEndian=" << bigEndian << " width=" << width
+                       << " colour=" << ::testing::PrintToString(colour));
+          auto wire = constantGradient(pf, width, 3, colour);
+          EXPECT_TRUE(decodeConstant(decoder, server, pf, width, 3, colour, wire));
+          EXPECT_TRUE(decodeConstant(decoder, server, rgb888, width, 3, colour, wire));
+        }
+      }
+    }
+  }
+}
