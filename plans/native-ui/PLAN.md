@@ -1,6 +1,6 @@
 # Native UI architecture and macOS SwiftUI migration
 
-Status: N1.1 headless build boundary is complete (see [viewer/README.md](../../viewer/README.md)).
+Status: N1.1 headless build boundary and N1.8 retained frame/cursor contract are complete (see [viewer/README.md](../../viewer/README.md)).
 N0 source audit, baseline validation and initial session
 isolation prerequisites (DES schedules, Tight gradient scratch and explicit
 authentication/TLS policies, session-owned JPEG negotiation and clipboard limits,

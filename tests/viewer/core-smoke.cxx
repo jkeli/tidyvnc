@@ -1,6 +1,7 @@
 /* Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later. */
 #include <viewer/core/DesktopLayout.h>
 #include <viewer/core/DesktopResampler.h>
+#include <viewer/core/FramePublisher.h>
 #include <rfb/CConnection.h>
 #include <rfb/ClientCredentialCache.h>
 #include <network/TcpSocket.h>
@@ -42,6 +43,18 @@ int main()
                   core::Rect(0, 0, 2, 2), ScalingSettings::Nearest);
   for (int i = 0; i < 4; ++i)
     assert(std::memcmp(output + 4*i, source, 4) == 0);
+
+  viewer::FramePublisher publisher(1024);
+  auto subscription = publisher.subscribe();
+  viewer::PixelView pixels{output, sizeof(output), 2, 2, 8,
+    viewer::PixelFormat::BGRA8, viewer::AlphaMode::Opaque, viewer::PixelOrigin::TopLeft};
+  assert(publisher.publishFrame(1, pixels, {0, 0, 2, 2}) == viewer::PublishResult::Published);
+  viewer::ViewUpdate update;
+  assert(subscription->take(update) && update.frame);
+  auto retained = update.frame;
+  publisher.reset(2);
+  assert(subscription->take(update) && !update.frame);
+  assert(std::memcmp(retained->pixels.data(), source, 4) == 0);
 
   rfb::ClientCredentialCache credentials;
   credentials.remember(nullptr, "fixture", true);

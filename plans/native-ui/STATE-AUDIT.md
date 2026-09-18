@@ -156,6 +156,18 @@ consumer and the available unit suites. See [viewer/README.md](../../viewer/READ
 and the N1.1 evidence in TODO. This boundary does not resolve the outstanding
 shared-state and session-lifecycle issues above.
 
+## Retained publication boundary (N1.8)
+
+`viewer/core/FramePublisher` now implements independently retained immutable
+pixel leases with explicit layout, session/size generations, bounded payload
+storage and per-subscriber damage coalescing. Old source/framebuffer destruction
+cannot invalidate published bytes. Queued stale-generation data is cleared on
+reset, while already-held leases remain valid and tagged. Tests include an RFB
+pixel buffer that is destroyed before its published image is read, plus
+concurrent consumption during reset. The current FLTK `DesktopSession` still
+uses its existing buffer path; wiring the future session engine and native
+renderer to this boundary is not yet implemented. See N1.8 evidence in TODO.
+
 ## Baseline verification
 
 On 2026-09-18, before code changes, the retained Release build passed **304/304**
