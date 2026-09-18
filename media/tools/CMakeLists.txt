@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(TidyVNCIconTools LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Svg)
+add_executable(render-svg render-svg.cxx)
+target_link_libraries(render-svg PRIVATE Qt6::Core Qt6::Gui Qt6::Svg)

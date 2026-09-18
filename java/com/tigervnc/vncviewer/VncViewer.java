@@ -70,12 +70,24 @@ public class VncViewer implements Runnable {
   public static String build = null;
   public static String buildDate = null;
   public static String buildTime = null;
-  static ImageIcon frameIconSrc =
-    new ImageIcon(VncViewer.class.getResource("tigervnc.ico"));
-  public static final Image frameIcon = frameIconSrc.getImage();
-  public static final ImageIcon logoIcon =
-    new ImageIcon(VncViewer.class.getResource("tigervnc.png"));
-  public static final Image logoImage = logoIcon.getImage();
+  public static final java.util.List<Image> frameIcons = new java.util.ArrayList<Image>();
+  static {
+    for (int size : new int[] {16, 32, 64, 128, 256})
+      frameIcons.add(new ImageIcon(VncViewer.class.getResource("tidyvnc_" + size + ".png")).getImage());
+  }
+  // Keep the original 48-pixel layout while drawing from a high-density source.
+  public static final Image logoImage = frameIcons.get(frameIcons.size() - 1);
+  public static final ImageIcon logoIcon = new ImageIcon(logoImage) {
+    public int getIconWidth() { return 48; }
+    public int getIconHeight() { return 48; }
+    public synchronized void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+      java.awt.Graphics2D copy = (java.awt.Graphics2D)g.create();
+      copy.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                            java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+      copy.drawImage(getImage(), x, y, 48, 48, c);
+      copy.dispose();
+    }
+  };
   public static final InputStream timestamp =
     VncViewer.class.getResourceAsStream("timestamp");
   public static final String os = 
@@ -366,7 +378,7 @@ public class VncViewer implements Runnable {
       new JOptionPane(msg, JOptionPane.INFORMATION_MESSAGE,
                       JOptionPane.DEFAULT_OPTION, VncViewer.logoIcon, options);
     JDialog dlg = op.createDialog(parent, "About TigerVNC");
-    dlg.setIconImage(VncViewer.frameIcon);
+    dlg.setIconImages(VncViewer.frameIcons);
     dlg.setAlwaysOnTop(true);
     dlg.setVisible(true);
     if (fullScreenWindow != null)

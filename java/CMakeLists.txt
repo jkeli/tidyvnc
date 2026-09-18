@@ -64,8 +64,13 @@ configure_file(${CLASSPATH}/timestamp.in ${CLASSPATH}/timestamp)
 if(NOT "${SRCDIR}" STREQUAL "${BINDIR}")
 
 set(ICONS
-tigervnc.ico
-tigervnc.png
+tidyvnc.ico
+tidyvnc.png
+tidyvnc_16.png
+tidyvnc_32.png
+tidyvnc_64.png
+tidyvnc_128.png
+tidyvnc_256.png
 insecure.png
 secure.png)
 
@@ -104,8 +109,13 @@ add_custom_command(OUTPUT VncViewer.jar
   DEPENDS ${JAVA_CLASSES}
     ${SRCDIR}/${CLASSPATH}/MANIFEST.MF
     ${BINDIR}/${CLASSPATH}/timestamp
-    ${BINDIR}/${CLASSPATH}/tigervnc.ico
-    ${BINDIR}/${CLASSPATH}/tigervnc.png
+    ${BINDIR}/${CLASSPATH}/tidyvnc.ico
+    ${BINDIR}/${CLASSPATH}/tidyvnc.png
+    ${BINDIR}/${CLASSPATH}/tidyvnc_16.png
+    ${BINDIR}/${CLASSPATH}/tidyvnc_32.png
+    ${BINDIR}/${CLASSPATH}/tidyvnc_64.png
+    ${BINDIR}/${CLASSPATH}/tidyvnc_128.png
+    ${BINDIR}/${CLASSPATH}/tidyvnc_256.png
     ${BINDIR}/${CLASSPATH}/insecure.png
     ${BINDIR}/${CLASSPATH}/secure.png
   COMMAND ${JAVA_ARCHIVE}
@@ -119,7 +129,7 @@ add_custom_command(OUTPUT VncViewer.jar
     com/jcraft/jsch/*.class
     com/jcraft/jsch/*/*.class
     com/tigervnc/vncviewer/*.png
-    com/tigervnc/vncviewer/tigervnc.ico
+    com/tigervnc/vncviewer/tidyvnc.ico
   ${SIGN_JAR_COMMAND})
 
 add_custom_target(java ALL DEPENDS VncViewer.jar)

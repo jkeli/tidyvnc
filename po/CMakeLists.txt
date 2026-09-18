@@ -74,6 +74,8 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
       "--output=${CMAKE_CURRENT_SOURCE_DIR}/tidyvnc.pot"
       --default-domain=tidyvnc
       --from-code=UTF-8
+      --package-name=TidyVNC
+      --package-version=${VERSION}
       --keyword=_
       --keyword=C_:1c,2
       --keyword=N_

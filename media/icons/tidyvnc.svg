@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>TidyVNC — connected displays</title>
+  <desc>Original vector artwork created with OpenAI Codex for jkeli/tidyvnc, 2026. GPL-2.0-or-later. Navy, teal and white paired remote displays.</desc>
+  <rect x="80" y="80" width="864" height="864" rx="192" fill="#142f43"/>
+  <rect x="390" y="228" width="390" height="292" rx="36" fill="none" stroke="#51d9ca" stroke-width="40"/>
+  <rect x="224" y="372" width="438" height="308" rx="36" fill="#142f43" stroke="#f4fafb" stroke-width="40"/>
+  <path d="M350 756h186M443 686v70" fill="none" stroke="#f4fafb" stroke-width="40" stroke-linecap="round"/>
+  <path d="M760 606v106q0 44-44 44h-74" fill="none" stroke="#51d9ca" stroke-width="40" stroke-linecap="round"/>
+  <circle cx="760" cy="594" r="27" fill="#51d9ca"/>
+</svg>

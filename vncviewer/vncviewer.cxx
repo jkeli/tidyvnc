@@ -294,7 +294,7 @@ static void init_fltk()
       char icon_path[PATH_MAX];
       bool exists;
 
-      sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tigervnc.png",
+      sprintf(icon_path, "%s/icons/hicolor/%dx%d/apps/tidyvnc.png",
               CMAKE_INSTALL_FULL_DATADIR, icon_size, icon_size);
 
       struct stat st;
