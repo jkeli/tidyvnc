@@ -27,7 +27,8 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Input.H>
-#include <FL/Fl_Pixmap.H>
+#include <FL/Fl_Image.H>
+#include <FL/fl_draw.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Secret_Input.H>
 #include <FL/fl_ask.H>
@@ -39,15 +40,31 @@
 #include "AuthDialog.h"
 #include "parameters.h"
 
-/* xpm:s predate const, so they have invalid definitions */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-#include "../media/secure.xpm"
-#include "../media/insecure.xpm"
-#pragma GCC diagnostic pop
-
-static Fl_Pixmap secure_icon(secure);
-static Fl_Pixmap insecure_icon(insecure);
+// Draw at the current window's resolution; the old 16-pixel XPMs blurred
+// when FLTK enlarged them on Retina displays. UI dimensions stay logical.
+class SecurityIcon : public Fl_Image {
+public:
+  explicit SecurityIcon(bool locked) : Fl_Image(16,16,0), locked(locked) {}
+  void draw(int x,int y,int w,int h,int cx=0,int cy=0) override
+  {
+    fl_push_clip(x,y,w,h);
+    x-=cx; y-=cy;
+    Fl_Color color=fl_color();
+    fl_color(FL_BLACK);
+    fl_line_style(FL_SOLID,2);
+    int shackle=locked?4:8;
+    fl_arc(x+shackle,y+2,7,9,0,180);
+    fl_line(x+shackle,y+6,x+shackle,y+9);
+    if(locked) fl_line(x+11,y+6,x+11,y+9);
+    fl_line_style(0);
+    fl_rectf(x+2,y+8,12,7);
+    fl_color(color);
+    fl_pop_clip();
+  }
+private:
+  bool locked;
+};
+static SecurityIcon secure_icon(true), insecure_icon(false);
 
 AuthDialog::AuthDialog(bool secure_, bool needsUser, bool needsPassword)
   : Fl_Window(410, 0, _("VNC authentication"))
