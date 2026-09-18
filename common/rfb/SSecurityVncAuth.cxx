@@ -17,9 +17,6 @@
  */
 //
 // SSecurityVncAuth
-//
-// XXX not thread-safe, because d3des isn't - do we need to worry about this?
-//
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -72,9 +69,10 @@ bool SSecurityVncAuth::verifyResponse(const char* password)
   int pwdLen = strlen(password);
   for (int i=0; i<8; i++)
     key[i] = i<pwdLen ? password[i] : 0;
-  deskey(key, EN0);
+  d3des_ctx context;
+  d3des_set_key(&context, key, EN0);
   for (int j = 0; j < vncAuthChallengeSize; j += 8)
-    des(challenge+j, expectedResponse+j);
+    d3des_transform(&context, challenge+j, expectedResponse+j);
 
   // Check the actual response
   return memcmp(response, expectedResponse, vncAuthChallengeSize) == 0;
@@ -166,4 +164,3 @@ void VncAuthPasswdParameter::getVncAuthPasswd(std::string *password, std::string
   } catch (...) {
   }
 }
-

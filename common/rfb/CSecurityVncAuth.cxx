@@ -17,9 +17,6 @@
  */
 //
 // CSecurityVncAuth
-//
-// XXX not thread-safe, because d3des isn't - do we need to worry about this?
-//
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -60,9 +57,10 @@ bool CSecurityVncAuth::processMsg()
   uint8_t key[8];
   for (size_t i=0; i<8; i++)
     key[i] = i<passwd.size() ? passwd[i] : 0;
-  deskey(key, EN0);
+  d3des_ctx context;
+  d3des_set_key(&context, key, EN0);
   for (int j = 0; j < vncAuthChallengeSize; j += 8)
-    des(challenge+j, challenge+j);
+    d3des_transform(&context, challenge+j, challenge+j);
 
   // Return the response to the server
   os->writeBytes(challenge, vncAuthChallengeSize);

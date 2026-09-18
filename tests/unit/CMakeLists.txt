@@ -19,6 +19,15 @@ add_executable(conv conv.cxx)
 target_link_libraries(conv rfb GTest::gtest_main)
 gtest_discover_tests(conv)
 
+add_executable(d3des d3des.cxx)
+find_package(Threads REQUIRED)
+target_link_libraries(d3des rfb GTest::gtest_main Threads::Threads)
+gtest_discover_tests(d3des)
+
+add_executable(vncauth vncauth.cxx)
+target_link_libraries(vncauth rfbclient GTest::gtest_main)
+gtest_discover_tests(vncauth)
+
 add_executable(convertlf convertlf.cxx)
 target_link_libraries(convertlf core GTest::gtest_main)
 gtest_discover_tests(convertlf)
