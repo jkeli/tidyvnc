@@ -1,7 +1,7 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Started: N0 source audit and baseline validation.** Check an item only after
+**Started: N0 source audit and first N1.4 isolation prerequisite.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -32,6 +32,9 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.2 Extract endpoint parsing/normalization, typed options, capabilities, structured errors and settings schema; preserve endpoint syntax, option aliases/ranges and precedence.
 - [ ] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs.
 - [ ] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races.
+  - Completed prerequisite: caller-owned DES schedules for client/server VNC
+    authentication and password-file helpers; see evidence below. Other globals
+    and the Tight decoder scratch identified in the audit remain open.
 - [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
 - [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
 - [ ] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership.
@@ -190,6 +193,59 @@ These are boundaries, not implementation checkboxes for this milestone:
   documented. No application behavior changed in this commit.
 - N0.4–N0.6 remain open: screenshots/focus, matched full performance workloads
   and minimum-OS/dependency validation have not been performed.
+
+### N1.4 prerequisite — independent DES schedules — 2026-09-18
+
+- Commit: `fix(rfb): isolate DES key schedules for concurrent authentication`.
+- Replaced the private DES process-global key register with an explicit C
+  context, used on the stack by both authentication implementations and both
+  password-file helpers. Read-only tables are const. Removed unused private
+  key-register copy/load functions; repository search found no remaining old
+  API callers. No public native ABI or change to VNC algorithms/wire policy.
+- Added six low-level/password-file tests and a real `CSecurityVncAuth`
+  in-memory stream test covering empty, padded and truncated passwords against
+  pre-change response fixtures. Includes a standard DES vector adapted for
+  VNC key bit order, deterministic interleaving and four concurrent workers.
+- Full retained Release build (including `rfbserver`, `rfbclient`, viewer and
+  tools) and **311/311** unit tests passed in 14.93 seconds. Same macOS/CLT
+  configuration as the audit baseline. `git diff --check` passed.
+- Fresh viewer-disabled Debug build with ASan/UBSan: **7/7** focused tests
+  passed in 0.31 seconds. FLTK discovery disabled; NLS/TLS/nettle/H.264/audio
+  disabled in this isolated sanitizer configuration. External libraries and
+  the prebuilt GoogleTest dependency are not sanitizer-instrumented.
+- Initial sanitizer configure could not discover GoogleTest; passing the
+  existing local `GTest_DIR` resolved it. The in-memory connection test first
+  failed to compile because its test double omitted the abstract `bell`
+  method; adding that override resolved it in Release and Debug.
+- Logs: `/tmp/tidyvnc-native-des-{build,tests}.log` and
+  `/tmp/tidyvnc-native-sanitized-{configure,build,tests}.log` (ephemeral).
+- No live TLS/prompt, full protocol matrix, server authentication runtime,
+  ThreadSanitizer, native UI, cross-platform runtime or complete concurrent
+  session result is claimed. Secret zeroization and the rest of N1.4 remain
+  open. The FLTK frontend remains the shipping/default path.
+
+Reproduce the focused sanitizer check from the repository root:
+
+```sh
+export DEVELOPER_DIR=/Library/Developer/CommandLineTools
+cmake -S . -B build/native-ui-sanitized -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug -DBUILD_VIEWER=OFF \
+  -DENABLE_NLS=OFF -DENABLE_GNUTLS=OFF -DENABLE_NETTLE=OFF \
+  -DENABLE_H264=OFF -DENABLE_AUDIO=OFF \
+  -DCMAKE_PREFIX_PATH=/opt/homebrew \
+  -DGTest_DIR="$PWD/build/test-deps/install/lib/cmake/GTest" \
+  -DCMAKE_DISABLE_FIND_PACKAGE_FLTK=TRUE \
+  '-DCMAKE_C_FLAGS=-fsanitize=address,undefined -fno-omit-frame-pointer -Wno-macro-redefined -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0' \
+  '-DCMAKE_CXX_FLAGS=-fsanitize=address,undefined -fno-omit-frame-pointer -Wno-macro-redefined -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0' \
+  '-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address,undefined'
+cmake --build build/native-ui-sanitized --target d3des vncauth --parallel 8
+ctest --test-dir build/native-ui-sanitized/tests/unit \
+  -R '^(D3DES|VncAuth)\.' --output-on-failure --no-tests=error
+```
+
+These host-specific dependency paths describe the tested development setup,
+not a portable native release build. The fortify override is confined to this
+sanitizer build to avoid Apple's sanitizer macro conflict with Debug `-Werror`.
 
 ### Implementation evidence template
 

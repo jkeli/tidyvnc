@@ -19,37 +19,31 @@
  *	(GEnie : OUTER; CIS : [71755,204])
  */
 
-#ifdef  __cplusplus
+#ifndef RFB_D3DES_H
+#define RFB_D3DES_H
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-#define EN0	0	/* MODE == encrypt */
-#define DE1	1	/* MODE == decrypt */
+#define EN0 0 /* encrypt */
+#define DE1 1 /* decrypt */
 
-extern void deskey(unsigned char *, int);
-/*		      hexkey[8]     MODE
- * Sets the internal key register according to the hexadecimal
- * key contained in the 8 bytes of hexkey, according to the DES,
- * for encryption or decryption according to MODE.
+/* One caller-owned key schedule. Initialize before transforming blocks.
+ * Independent contexts can be used concurrently. An initialized context can
+ * also be read concurrently, provided it is not being re-keyed or destroyed.
+ * The key uses VNC's reversed per-byte bit order, as in the original D3DES.
+ * This is a private RFB helper, not part of the native viewer's public C ABI.
  */
+typedef struct {
+  unsigned long keys[32];
+} d3des_ctx;
 
-extern void usekey(unsigned long *);
-/*		    cookedkey[32]
- * Loads the internal key register with the data in cookedkey.
- */
+void d3des_set_key(d3des_ctx* ctx, const unsigned char key[8], int mode);
 
-extern void cpkey(unsigned long *);
-/*		   cookedkey[32]
- * Copies the contents of the internal key register into the storage
- * located at &cookedkey[0].
- */
-
-extern void des(unsigned char *, unsigned char *);
-/*		    from[8]	      to[8]
- * Encrypts/Decrypts (according to the key currently loaded in the
- * internal key register) one block of eight bytes at address 'from'
- * into the block at address 'to'.  They can be the same.
- */
+/* Transform exactly eight bytes. Input and output may be the same buffer. */
+void d3des_transform(const d3des_ctx* ctx, const unsigned char input[8],
+                     unsigned char output[8]);
 
 #ifdef __cplusplus
 }
@@ -57,3 +51,5 @@ extern void des(unsigned char *, unsigned char *);
 
 /* d3des.h V5.09 rwo 9208.04 15:06 Graven Imagery
  ********************************************************************/
+
+#endif /* RFB_D3DES_H */

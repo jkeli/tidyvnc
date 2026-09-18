@@ -17,10 +17,6 @@
  * USA.
  */
 
-//
-// XXX not thread-safe, because d3des isn't - do we need to worry about this?
-//
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -36,7 +32,7 @@ extern "C" {
 
 #include <rfb/obfuscate.h>
 
-static unsigned char d3desObfuscationKey[] = {23,82,107,6,35,78,88,7};
+static const unsigned char d3desObfuscationKey[] = {23,82,107,6,35,78,88,7};
 
 std::vector<uint8_t> rfb::obfuscate(const char *str)
 {
@@ -47,8 +43,9 @@ std::vector<uint8_t> rfb::obfuscate(const char *str)
   size_t l = strlen(str), i;
   for (i=0; i<8; i++)
     buf[i] = i<l ? str[i] : 0;
-  deskey(d3desObfuscationKey, EN0);
-  des(buf.data(), buf.data());
+  d3des_ctx context;
+  d3des_set_key(&context, d3desObfuscationKey, EN0);
+  d3des_transform(&context, buf.data(), buf.data());
 
   return buf;
 }
@@ -62,8 +59,9 @@ std::string rfb::deobfuscate(const uint8_t *data, size_t len)
 
   assert(data != nullptr);
 
-  deskey(d3desObfuscationKey, DE1);
-  des((uint8_t*)data, (uint8_t*)buf);
+  d3des_ctx context;
+  d3des_set_key(&context, d3desObfuscationKey, DE1);
+  d3des_transform(&context, data, (uint8_t*)buf);
   buf[8] = 0;
 
   return buf;

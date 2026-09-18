@@ -28,17 +28,15 @@
 
 #include "d3des.h"
 
-static void scrunch(unsigned char *, unsigned long *);
+static void scrunch(const unsigned char *, unsigned long *);
 static void unscrun(unsigned long *, unsigned char *);
-static void desfunc(unsigned long *, unsigned long *);
-static void cookey(unsigned long *);
+static void desfunc(unsigned long *, const unsigned long *);
+static void cookey(unsigned long *, unsigned long *);
 
-static unsigned long KnL[32] = { 0L };
-
-static unsigned short bytebit[8]	= {
+static const unsigned short bytebit[8]	= {
 	01, 02, 04, 010, 020, 040, 0100, 0200 };
 
-static unsigned long bigbyte[24] = {
+static const unsigned long bigbyte[24] = {
 	0x800000L,	0x400000L,	0x200000L,	0x100000L,
 	0x80000L,	0x40000L,	0x20000L,	0x10000L,
 	0x8000L,	0x4000L,	0x2000L,	0x1000L,
@@ -48,22 +46,22 @@ static unsigned long bigbyte[24] = {
 
 /* Use the key schedule specified in the Standard (ANSI X3.92-1981). */
 
-static unsigned char pc1[56] = {
+static const unsigned char pc1[56] = {
 	56, 48, 40, 32, 24, 16,  8,	 0, 57, 49, 41, 33, 25, 17,
 	 9,  1, 58, 50, 42, 34, 26,	18, 10,  2, 59, 51, 43, 35,
 	62, 54, 46, 38, 30, 22, 14,	 6, 61, 53, 45, 37, 29, 21,
 	13,  5, 60, 52, 44, 36, 28,	20, 12,  4, 27, 19, 11,  3 };
 
-static unsigned char totrot[16] = {
+static const unsigned char totrot[16] = {
 	1,2,4,6,8,10,12,14,15,17,19,21,23,25,27,28 };
 
-static unsigned char pc2[48] = {
+static const unsigned char pc2[48] = {
 	13, 16, 10, 23,  0,  4,  2, 27, 14,  5, 20,  9,
 	22, 18, 11,  3, 25,  7, 15,  6, 26, 19, 12,  1,
 	40, 51, 30, 36, 46, 54, 29, 39, 50, 44, 32, 47,
 	43, 48, 38, 55, 33, 52, 45, 41, 49, 35, 28, 31 };
 
-void deskey(unsigned char *key, int edf) /* Thanks to James Gillogly & Phil Karn! */
+void d3des_set_key(d3des_ctx *ctx, const unsigned char key[8], int edf) /* Thanks to James Gillogly & Phil Karn! */
 {
 	register int i, j, l, m, n;
 	unsigned char pc1m[56], pcr[56];
@@ -94,17 +92,16 @@ void deskey(unsigned char *key, int edf) /* Thanks to James Gillogly & Phil Karn
 			if( pcr[pc2[j+24]] ) kn[n] |= bigbyte[j];
 			}
 		}
-	cookey(kn);
+	cookey(kn, ctx->keys);
 	return;
 	}
 
-static void cookey(register unsigned long *raw1)
+static void cookey(register unsigned long *raw1, unsigned long *out)
 {
 	register unsigned long *cook, *raw0;
-	unsigned long dough[32];
 	register int i;
 
-	cook = dough;
+	cook = out;
 	for( i = 0; i < 16; i++, raw1++ ) {
 		raw0 = raw1++;
 		*cook	 = (*raw0 & 0x00fc0000L) << 6;
@@ -116,39 +113,21 @@ static void cookey(register unsigned long *raw1)
 		*cook	|= (*raw1 & 0x0003f000L) >> 4;
 		*cook++ |= (*raw1 & 0x0000003fL);
 		}
-	usekey(dough);
 	return;
 	}
 
-void cpkey(register unsigned long *into)
-{
-	register unsigned long *from, *endp;
-
-	from = KnL, endp = &KnL[32];
-	while( from < endp ) *into++ = *from++;
-	return;
-	}
-
-void usekey(register unsigned long *from)
-{
-	register unsigned long *to, *endp;
-
-	to = KnL, endp = &KnL[32];
-	while( to < endp ) *to++ = *from++;
-	return;
-	}
-
-void des(unsigned char *inblock, unsigned char *outblock)
+void d3des_transform(const d3des_ctx *ctx, const unsigned char inblock[8],
+                     unsigned char outblock[8])
 {
 	unsigned long work[2];
 
 	scrunch(inblock, work);
-	desfunc(work, KnL);
+	desfunc(work, ctx->keys);
 	unscrun(work, outblock);
 	return;
 	}
 
-static void scrunch(register unsigned char *outof,
+static void scrunch(register const unsigned char *outof,
                     register unsigned long *into)
 {
 	*into	 = (*outof++ & 0xffL) << 24;
@@ -176,7 +155,7 @@ static void unscrun(register unsigned long *outof,
 	return;
 	}
 
-static unsigned long SP1[64] = {
+static const unsigned long SP1[64] = {
 	0x01010400L, 0x00000000L, 0x00010000L, 0x01010404L,
 	0x01010004L, 0x00010404L, 0x00000004L, 0x00010000L,
 	0x00000400L, 0x01010400L, 0x01010404L, 0x00000400L,
@@ -194,7 +173,7 @@ static unsigned long SP1[64] = {
 	0x00000404L, 0x01000400L, 0x01000400L, 0x00000000L,
 	0x00010004L, 0x00010400L, 0x00000000L, 0x01010004L };
 
-static unsigned long SP2[64] = {
+static const unsigned long SP2[64] = {
 	0x80108020L, 0x80008000L, 0x00008000L, 0x00108020L,
 	0x00100000L, 0x00000020L, 0x80100020L, 0x80008020L,
 	0x80000020L, 0x80108020L, 0x80108000L, 0x80000000L,
@@ -212,7 +191,7 @@ static unsigned long SP2[64] = {
 	0x00108000L, 0x00000000L, 0x80008000L, 0x00008020L,
 	0x80000000L, 0x80100020L, 0x80108020L, 0x00108000L };
 
-static unsigned long SP3[64] = {
+static const unsigned long SP3[64] = {
 	0x00000208L, 0x08020200L, 0x00000000L, 0x08020008L,
 	0x08000200L, 0x00000000L, 0x00020208L, 0x08000200L,
 	0x00020008L, 0x08000008L, 0x08000008L, 0x00020000L,
@@ -230,7 +209,7 @@ static unsigned long SP3[64] = {
 	0x08020000L, 0x08000208L, 0x00000208L, 0x08020000L,
 	0x00020208L, 0x00000008L, 0x08020008L, 0x00020200L };
 
-static unsigned long SP4[64] = {
+static const unsigned long SP4[64] = {
 	0x00802001L, 0x00002081L, 0x00002081L, 0x00000080L,
 	0x00802080L, 0x00800081L, 0x00800001L, 0x00002001L,
 	0x00000000L, 0x00802000L, 0x00802000L, 0x00802081L,
@@ -248,7 +227,7 @@ static unsigned long SP4[64] = {
 	0x00002001L, 0x00002080L, 0x00800000L, 0x00802001L,
 	0x00000080L, 0x00800000L, 0x00002000L, 0x00802080L };
 
-static unsigned long SP5[64] = {
+static const unsigned long SP5[64] = {
 	0x00000100L, 0x02080100L, 0x02080000L, 0x42000100L,
 	0x00080000L, 0x00000100L, 0x40000000L, 0x02080000L,
 	0x40080100L, 0x00080000L, 0x02000100L, 0x40080100L,
@@ -266,7 +245,7 @@ static unsigned long SP5[64] = {
 	0x00080100L, 0x02000100L, 0x40000100L, 0x00080000L,
 	0x00000000L, 0x40080000L, 0x02080100L, 0x40000100L };
 
-static unsigned long SP6[64] = {
+static const unsigned long SP6[64] = {
 	0x20000010L, 0x20400000L, 0x00004000L, 0x20404010L,
 	0x20400000L, 0x00000010L, 0x20404010L, 0x00400000L,
 	0x20004000L, 0x00404010L, 0x00400000L, 0x20000010L,
@@ -284,7 +263,7 @@ static unsigned long SP6[64] = {
 	0x00004000L, 0x00400010L, 0x20004010L, 0x00000000L,
 	0x20404000L, 0x20000000L, 0x00400010L, 0x20004010L };
 
-static unsigned long SP7[64] = {
+static const unsigned long SP7[64] = {
 	0x00200000L, 0x04200002L, 0x04000802L, 0x00000000L,
 	0x00000800L, 0x04000802L, 0x00200802L, 0x04200800L,
 	0x04200802L, 0x00200000L, 0x00000000L, 0x04000002L,
@@ -302,7 +281,7 @@ static unsigned long SP7[64] = {
 	0x00000000L, 0x00200802L, 0x04200000L, 0x00000800L,
 	0x04000002L, 0x04000800L, 0x00000800L, 0x00200002L };
 
-static unsigned long SP8[64] = {
+static const unsigned long SP8[64] = {
 	0x10001040L, 0x00001000L, 0x00040000L, 0x10041040L,
 	0x10000000L, 0x10001040L, 0x00000040L, 0x10000000L,
 	0x00040040L, 0x10040000L, 0x10041040L, 0x00041000L,
@@ -321,7 +300,7 @@ static unsigned long SP8[64] = {
 	0x00001040L, 0x00040040L, 0x10000000L, 0x10041000L };
 
 static void desfunc(register unsigned long *block,
-                    register unsigned long *keys)
+                    register const unsigned long *keys)
 {
 	register unsigned long fval, work, right, leftt;
 	register int round;
