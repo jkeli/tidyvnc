@@ -183,8 +183,8 @@ void Surface::update(const Fl_RGB_Image* image)
   const unsigned char* in;
   unsigned char* out;
 
-  assert(image->w() == width());
-  assert(image->h() == height());
+  assert(image->data_w() == width());
+  assert(image->data_h() == height());
 
   img = XCreateImage(fl_display, (Visual*)CopyFromParent, 32,
                      ZPixmap, 0, nullptr, width(), height(),
@@ -230,7 +230,7 @@ void Surface::update(const Fl_RGB_Image* image)
       in += image->d();
     }
     if (image->ld() != 0)
-      in += image->ld() - image->w() * image->d();
+      in += image->ld() - image->data_w() * image->d();
   }
 
   gc = XCreateGC(fl_display, pixmap, 0, nullptr);
@@ -241,3 +241,61 @@ void Surface::update(const Fl_RGB_Image* image)
   XDestroyImage(img);
 }
 
+
+// FLTK's public clip region is in logical coordinates. Convert only the
+// region intersecting this tile; do not depend on FLTK's private drivers.
+static void backingClip(Region logical, Region backing, int x, int y, int w, int h,
+                        double qx, double qy)
+{
+  if(w<=0 || h<=0) return;
+  int inside=XRectInRegion(logical,x,y,w,h);
+  if(!inside) return;
+  if(inside==RectangleIn || (w==1 && h==1)) {
+    int left=int(std::floor(x*qx)), top=int(std::floor(y*qy));
+    XRectangle rect;
+    rect.x=left; rect.y=top;
+    rect.width=int(std::ceil((x+w)*qx))-left;
+    rect.height=int(std::ceil((y+h)*qy))-top;
+    XUnionRectWithRegion(&rect,backing,backing);
+  } else if(w>=h) {
+    backingClip(logical,backing,x,y,w/2,h,qx,qy);
+    backingClip(logical,backing,x+w/2,y,w-w/2,h,qx,qy);
+  } else {
+    backingClip(logical,backing,x,y,w,h/2,qx,qy);
+    backingClip(logical,backing,x,y+h/2,w,h-h/2,qx,qy);
+  }
+}
+
+void Surface::drawBacking(int sx, int sy, int dx, int dy, int dw, int dh,
+                          double qx, double qy)
+{
+  Picture target=XRenderCreatePicture(fl_display,fl_window,visFormat,0,nullptr);
+  Region logical=(Region)fl_clip_region();
+  if(logical) {
+    Region native=XCreateRegion();
+    int left=int(std::floor(dx/qx)), top=int(std::floor(dy/qy));
+    backingClip(logical,native,left,top,int(std::ceil((dx+dw)/qx))-left,
+                int(std::ceil((dy+dh)/qy))-top,qx,qy);
+    XRenderSetPictureClipRegion(fl_display,target,native);
+    XDestroyRegion(native);
+  }
+  XRenderComposite(fl_display,PictOpSrc,picture,None,target,sx,sy,0,0,dx,dy,dw,dh);
+  XRenderFreePicture(fl_display,target);
+}
+
+void Surface::blendScaled(Surface* dst, int sx, int sy, int sw, int sh,
+                          int dx, int dy, int dw, int dh, int a)
+{
+  XTransform transform = {{{XDoubleToFixed(double(sw)/dw), 0, XDoubleToFixed(sx)},
+                           {0, XDoubleToFixed(double(sh)/dh), XDoubleToFixed(sy)},
+                           {0, 0, XDoubleToFixed(1)}}};
+  XRenderSetPictureTransform(fl_display, picture, &transform);
+  XRenderSetPictureFilter(fl_display, picture, FilterBilinear, nullptr, 0);
+  Picture alpha = alpha_mask(a);
+  XRenderComposite(fl_display, PictOpOver, picture, alpha, dst->picture,
+                   0, 0, 0, 0, dx, dy, dw, dh);
+  if (alpha != None) XRenderFreePicture(fl_display, alpha);
+  XTransform identity = {{{XDoubleToFixed(1),0,0},{0,XDoubleToFixed(1),0},{0,0,XDoubleToFixed(1)}}};
+  XRenderSetPictureTransform(fl_display, picture, &identity);
+  XRenderSetPictureFilter(fl_display, picture, FilterNearest, nullptr, 0);
+}

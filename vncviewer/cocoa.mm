@@ -25,14 +25,75 @@
 
 #include <FL/Fl_Window.H>
 #include <FL/x.H>
+#include <FL/fl_draw.H>
 
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
 
 #include "cocoa.h"
+#include "DesktopLayout.h"
 
 static CFMachPortRef event_tap;
 static CFRunLoopSourceRef tap_source;
+
+bool cocoa_monitor_geometry(int screen, DesktopMonitor* monitor)
+{
+  // FLTK 1.4 enumerates CGGetActiveDisplayList and divides CGDisplayBounds
+  // by its GUI scale. Match bounds to avoid relying on enumeration order
+  // remaining unchanged during a hotplug notification.
+  int x,y,w,h;
+  Fl::screen_xywh(x,y,w,h,screen);
+  double scale=Fl::screen_scale(screen);
+  for(NSScreen* native in [NSScreen screens]) {
+    CGDirectDisplayID id=[[native.deviceDescription objectForKey:@"NSScreenNumber"] unsignedIntValue];
+    CGRect bounds=CGDisplayBounds(id);
+    if(int(bounds.origin.x/scale)!=x || int(bounds.origin.y/scale)!=y ||
+       int(bounds.size.width/scale)!=w || int(bounds.size.height/scale)!=h) continue;
+    NSRect backing=[native convertRectToBacking:NSMakeRect(0,0,w*scale,h*scale)];
+    *monitor={id,screen,{x,y,x+w,y+h},int(backing.size.width),int(backing.size.height)};
+    return true;
+  }
+  return false;
+}
+
+@interface TigerVNCDisplayObserver : NSObject {
+@public
+  void (*callback)(void*);
+  void* data;
+}
+- (void)changed:(NSNotification*)notification;
+@end
+@implementation TigerVNCDisplayObserver
+- (void)changed:(NSNotification*)notification
+{
+  callback(data);
+}
+@end
+
+void* cocoa_observe_display(Fl_Window* win, void (*callback)(void*), void* data)
+{
+  if (!win->shown()) return nullptr;
+  TigerVNCDisplayObserver* observer = [[TigerVNCDisplayObserver alloc] init];
+  observer->callback = callback;
+  observer->data = data;
+  NSNotificationCenter* center = [NSNotificationCenter defaultCenter];
+  NSWindow* native = (NSWindow*)fl_xid(win);
+  for (NSString* name in @[NSWindowDidChangeBackingPropertiesNotification,
+                          NSWindowDidChangeScreenNotification,
+                          NSWindowDidResizeNotification])
+    [center addObserver:observer selector:@selector(changed:) name:name object:native];
+  [center addObserver:observer selector:@selector(changed:)
+      name:NSApplicationDidChangeScreenParametersNotification object:nil];
+  return observer;
+}
+
+void cocoa_unobserve_display(void* token)
+{
+  if (!token) return;
+  TigerVNCDisplayObserver* observer = (TigerVNCDisplayObserver*)token;
+  [[NSNotificationCenter defaultCenter] removeObserver:observer];
+  [observer release];
+}
 
 void cocoa_prevent_native_fullscreen(Fl_Window *win)
 {
@@ -254,4 +315,34 @@ void cocoa_enable_minimize(Fl_Window *win)
   nsw = (NSWindow*)fl_xid(win);
   assert(nsw);
   nsw.styleMask |= NSWindowStyleMaskMiniaturizable;
+}
+
+void cocoa_backing_scale(Fl_Window* win, double* x, double* y)
+{
+  *x = *y = 1;
+  if (!win->shown()) return;
+  NSWindow* native = (NSWindow*)fl_xid(win);
+  NSSize size = [[native contentView] convertSizeToBacking:NSMakeSize(1, 1)];
+  *x = size.width; *y = size.height;
+}
+
+void cocoa_scale_image_surface(double x,double y)
+{
+  // Called once on a newly current, explicitly backing-sized image surface.
+  // Preserve Quartz's half-unit stroke origin at the requested scale.
+  CGContextRef gc=fl_mac_gc();
+  CGContextTranslateCTM(gc,(x-1)/2,(y-1)/2);
+  CGContextScaleCTM(gc,x,y);
+}
+
+void cocoa_warp_pointer(Fl_Window* win, double logicalX, double logicalY)
+{
+  NSWindow* native=(NSWindow*)fl_xid(win);
+  NSView* view=[native contentView];
+  double scale=Fl::screen_scale(win->screen_num());
+  NSPoint point=NSMakePoint(logicalX*scale, logicalY*scale);
+  if(![view isFlipped]) point.y=NSHeight([view bounds])-point.y;
+  point=[native convertPointToScreen:[view convertPoint:point toView:nil]];
+  CGFloat top=NSMaxY([[[NSScreen screens] objectAtIndex:0] frame]);
+  CGWarpMouseCursorPosition(CGPointMake(point.x,top-point.y));
 }

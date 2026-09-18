@@ -44,7 +44,7 @@ static CGImageRef create_image(CGColorSpaceRef lut,
   CGImageRef image;
 
   provider = CGDataProviderCreateWithData(nullptr, data,
-                                          w * h * 4, nullptr);
+                                          size_t(w) * h * 4, nullptr);
   if (!provider)
     throw std::runtime_error("CGDataProviderCreateWithData");
 
@@ -70,7 +70,7 @@ static void render(CGContextRef gc, CGColorSpaceRef lut,
                    const unsigned char* data,
                    CGBlendMode mode, CGFloat alpha,
                    int src_x, int src_y, int src_w, int src_h,
-                   int x, int y, int w, int h)
+                   int x, int y, int w, int h, int crop_w = -1, int crop_h = -1)
 {
   CGRect rect;
   CGImageRef image, subimage;
@@ -79,12 +79,14 @@ static void render(CGContextRef gc, CGColorSpaceRef lut,
 
   rect.origin.x = src_x;
   rect.origin.y = src_y;
-  rect.size.width = w;
-  rect.size.height = h;
+  rect.size.width = crop_w < 0 ? w : crop_w;
+  rect.size.height = crop_h < 0 ? h : crop_h;
 
   subimage = CGImageCreateWithImageInRect(image, rect);
-  if (!subimage)
+  if (!subimage) {
+    CGImageRelease(image);
     throw std::runtime_error("CGImageCreateImageWithImageInRect");
+  }
 
   CGContextSaveGState(gc);
 
@@ -139,24 +141,7 @@ void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned 
 void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
                    int dst_w, int dst_h)
 {
-  CGColorSpaceRef lut;
-
-  CGContextSaveGState(fl_gc);
-
-  // Reset the transformation matrix back to the default identity
-  // matrix as otherwise we get a massive performance hit
-  CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
-
-  // macOS Coordinates are from bottom left, not top left
-  dst_y = Fl_Window::current()->h() - (dst_y + dst_h);
-
-  lut = CGBitmapContextGetColorSpace(fl_gc);
-  assert(lut);
-
-  render(fl_gc, lut, data, kCGBlendModeCopy, 1.0,
-         src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
-
-  CGContextRestoreGState(fl_gc);
+  drawBacking(src_x, src_y, dst_x, dst_y, dst_w, dst_h, 1, 1);
 }
 
 void Surface::draw(Surface* dst, int src_x, int src_y,
@@ -178,24 +163,14 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
 void Surface::blend(int src_x, int src_y, int dst_x, int dst_y,
                     int dst_w, int dst_h, int a)
 {
-  CGColorSpaceRef lut;
-
-  CGContextSaveGState(fl_gc);
-
-  // Reset the transformation matrix back to the default identity
-  // matrix as otherwise we get a massive performance hit
-  CGContextConcatCTM(fl_gc, CGAffineTransformInvert(CGContextGetCTM(fl_gc)));
-
-  // macOS Coordinates are from bottom left, not top left
-  dst_y = Fl_Window::current()->h() - (dst_y + dst_h);
-
-  lut = CGBitmapContextGetColorSpace(fl_gc);
-  assert(lut);
-
-  render(fl_gc, lut, data, kCGBlendModeNormal, (CGFloat)a/255.0,
-         src_x, src_y, width(), height(), dst_x, dst_y, dst_w, dst_h);
-
-  CGContextRestoreGState(fl_gc);
+  CGContextRef gc = fl_mac_gc();
+  CGContextSaveGState(gc);
+  // FLTK positions strokes at half-unit centers. Images use pixel edges.
+  CGContextTranslateCTM(gc, -0.5, -0.5);
+  CGContextScaleCTM(gc, 1, -1);
+  render(gc, srgb, data, kCGBlendModeNormal, (CGFloat)a/255.0,
+         src_x, src_y, width(), height(), dst_x, -dst_y-dst_h, dst_w, dst_h);
+  CGContextRestoreGState(gc);
 }
 
 void Surface::blend(Surface* dst, int src_x, int src_y,
@@ -216,7 +191,7 @@ void Surface::blend(Surface* dst, int src_x, int src_y,
 
 void Surface::alloc()
 {
-  data = new unsigned char[width() * height() * 4];
+  data = new unsigned char[size_t(width()) * height() * 4];
 }
 
 void Surface::dealloc()
@@ -230,14 +205,14 @@ void Surface::update(const Fl_RGB_Image* image)
   const unsigned char* in;
   unsigned char* out;
 
-  assert(image->w() == width());
-  assert(image->h() == height());
+  assert(image->data_w() == width());
+  assert(image->data_h() == height());
 
   // Convert data and pre-multiply alpha
   in = (const unsigned char*)image->data()[0];
   out = data;
-  for (y = 0;y < image->h();y++) {
-    for (x = 0;x < image->w();x++) {
+  for (y = 0;y < image->data_h();y++) {
+    for (x = 0;x < image->data_w();x++) {
       switch (image->d()) {
       case 1:
         *out++ = in[0];
@@ -267,6 +242,30 @@ void Surface::update(const Fl_RGB_Image* image)
       in += image->d();
     }
     if (image->ld() != 0)
-      in += image->ld() - image->w() * image->d();
+      in += image->ld() - image->data_w() * image->d();
   }
+}
+
+void Surface::drawBacking(int sx, int sy, int dx, int dy, int dw, int dh,
+                          double qx, double qy)
+{
+  CGContextRef gc = fl_mac_gc();
+  CGContextSaveGState(gc);
+  // Keep the window's native translation, scale and clip. Undo only the
+  // logical-unit mapping for this already-resampled backing-pixel copy.
+  CGContextTranslateCTM(gc, -0.5, -0.5);
+  CGContextScaleCTM(gc, 1/qx, -1/qy);
+  CGContextSetInterpolationQuality(gc, kCGInterpolationNone);
+  render(gc, srgb, data, kCGBlendModeCopy, 1,
+         sx, sy, width(), height(), dx, -dy-dh, dw, dh);
+  CGContextRestoreGState(gc);
+}
+
+void Surface::blendScaled(Surface* dst, int sx, int sy, int sw, int sh,
+                           int dx, int dy, int dw, int dh, int a)
+{
+  CGContextRef gc = make_bitmap(dst->width(), dst->height(), dst->data);
+  render(gc, srgb, data, kCGBlendModeNormal, (CGFloat)a/255,
+         sx, sy, width(), height(), dx, dst->height()-dy-dh, dw, dh, sw, sh);
+  CGContextRelease(gc);
 }

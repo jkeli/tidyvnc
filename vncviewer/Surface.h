@@ -38,13 +38,23 @@ public:
 
   int width() { return w; }
   int height() { return h; }
+  int logicalWidth() { return lw; }
+  int logicalHeight() { return lh; }
 
   void clear(unsigned char r, unsigned char g, unsigned char b, unsigned char a=255);
+
+  // Source, destination and clip dimensions are backing pixels. The scale
+  // converts only the final native-window copy to FLTK's logical context.
+  void drawBacking(int src_x, int src_y, int dst_x, int dst_y,
+                   int dst_w, int dst_h, double pixelsPerUnitX, double pixelsPerUnitY);
 
   void draw(int src_x, int src_y, int dst_x, int dst_y,
             int dst_w, int dst_h);
   void draw(Surface* dst, int src_x, int src_y, int dst_x, int dst_y,
             int dst_w, int dst_h);
+
+  void blendScaled(Surface* dst, int src_x, int src_y, int src_w, int src_h,
+                   int dst_x, int dst_y, int dst_w, int dst_h, int a=255);
 
   void blend(int src_x, int src_y, int dst_x, int dst_y,
              int dst_w, int dst_h, int a=255);
@@ -57,7 +67,7 @@ protected:
   void update(const Fl_RGB_Image* image);
 
 protected:
-  int w, h;
+  int w, h, lw, lh;
 
 #if defined(WIN32)
   RGBQUAD* data;

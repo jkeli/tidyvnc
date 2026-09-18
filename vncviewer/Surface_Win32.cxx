@@ -50,19 +50,19 @@ void Surface::clear(unsigned char r, unsigned char g, unsigned char b, unsigned 
   }
 }
 
-void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
-                   int dst_w, int dst_h)
+static void copyBitmap(HBITMAP bitmap, HDC target, int src_x, int src_y, int dst_x, int dst_y,
+                       int dst_w, int dst_h)
 {
   HDC dc;
 
-  dc = CreateCompatibleDC(fl_gc);
+  dc = CreateCompatibleDC(target);
   if (!dc)
     throw core::win32_error("CreateCompatibleDC", GetLastError());
 
   if (!SelectObject(dc, bitmap))
     throw core::win32_error("SelectObject", GetLastError());
 
-  if (!BitBlt(fl_gc, dst_x, dst_y, dst_w, dst_h,
+  if (!BitBlt(target, dst_x, dst_y, dst_w, dst_h,
               dc, src_x, src_y, SRCCOPY)) {
     // If the desktop we're rendering to is inactive (like when the screen
     // is locked or the UAC is active), then GDI calls will randomly fail.
@@ -76,10 +76,15 @@ void Surface::draw(int src_x, int src_y, int dst_x, int dst_y,
   DeleteDC(dc);
 }
 
+void Surface::draw(int sx, int sy, int dx, int dy, int dw, int dh)
+{
+  copyBitmap(bitmap, fl_win32_gc(), sx, sy, dx, dy, dw, dh);
+}
+
 void Surface::draw(Surface* dst, int src_x, int src_y,
                    int dst_x, int dst_y, int dst_w, int dst_h)
 {
-  HDC origdc, dstdc;
+  HDC dstdc;
 
   dstdc = CreateCompatibleDC(nullptr);
   if (!dstdc)
@@ -88,10 +93,7 @@ void Surface::draw(Surface* dst, int src_x, int src_y,
   if (!SelectObject(dstdc, dst->bitmap))
     throw core::win32_error("SelectObject", GetLastError());
 
-  origdc = fl_gc;
-  fl_gc = dstdc;
-  draw(src_x, src_y, dst_x, dst_y, dst_w, dst_h);
-  fl_gc = origdc;
+  copyBitmap(bitmap, dstdc, src_x, src_y, dst_x, dst_y, dst_w, dst_h);
 
   DeleteDC(dstdc);
 }
@@ -105,8 +107,13 @@ void Surface::blend(int /*src_x*/, int /*src_y*/,
   assert(false);
 }
 
-void Surface::blend(Surface* dst, int src_x, int src_y,
-                    int dst_x, int dst_y, int dst_w, int dst_h, int a)
+void Surface::blend(Surface* dst, int sx, int sy, int dx, int dy, int dw, int dh, int a)
+{
+  blendScaled(dst, sx, sy, dw, dh, dx, dy, dw, dh, a);
+}
+
+void Surface::blendScaled(Surface* dst, int src_x, int src_y, int src_w, int src_h,
+                          int dst_x, int dst_y, int dst_w, int dst_h, int a)
 {
   HDC dstdc, srcdc;
   BLENDFUNCTION blend;
@@ -129,7 +136,7 @@ void Surface::blend(Surface* dst, int src_x, int src_y,
   blend.AlphaFormat = AC_SRC_ALPHA;
 
   if (!AlphaBlend(dstdc, dst_x, dst_y, dst_w, dst_h,
-                  srcdc, src_x, src_y, dst_w, dst_h, blend)) {
+                  srcdc, src_x, src_y, src_w, src_h, blend)) {
     // If the desktop we're rendering to is inactive (like when the screen
     // is locked or the UAC is active), then GDI calls will randomly fail.
     // This is completely undocumented so we have no idea how best to deal
@@ -173,14 +180,14 @@ void Surface::update(const Fl_RGB_Image* image)
   RGBQUAD* out;
   int x, y;
 
-  assert(image->w() == width());
-  assert(image->h() == height());
+  assert(image->data_w() == width());
+  assert(image->data_h() == height());
 
   // Convert data and pre-multiply alpha
   in = (const unsigned char*)image->data()[0];
   out = data;
-  for (y = 0;y < image->w();y++) {
-    for (x = 0;x < image->h();x++) {
+  for (y = 0;y < image->data_h();y++) {
+    for (x = 0;x < image->data_w();x++) {
       switch (image->d()) {
       case 1:
         out->rgbBlue = in[0];
@@ -211,7 +218,13 @@ void Surface::update(const Fl_RGB_Image* image)
       out++;
     }
     if (image->ld() != 0)
-      in += image->ld() - image->w() * image->d();
+      in += image->ld() - image->data_w() * image->d();
   }
 }
 
+
+void Surface::drawBacking(int sx, int sy, int dx, int dy, int dw, int dh,
+                          double /*qx*/, double /*qy*/)
+{
+  draw(sx, sy, dx, dy, dw, dh);
+}

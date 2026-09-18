@@ -23,18 +23,28 @@
 #include <FL/Fl_RGB_Image.H>
 
 #include "Surface.h"
+#include <limits>
+#include <stdexcept>
+
+static void checkSurfaceSize(int w, int h)
+{
+  if(w <= 0 || h <= 0 || size_t(w) > (std::numeric_limits<size_t>::max)()/4/size_t(h))
+    throw std::overflow_error("Invalid surface allocation size");
+}
 
 Surface::Surface(int width, int height) :
-  w(width), h(height)
+  w(width), h(height), lw(width), lh(height)
 {
+  checkSurfaceSize(w,h);
   alloc();
 }
 
 Surface::Surface(const Fl_RGB_Image* image) :
-  w(image->w()), h(image->h())
+  w(image->data_w()), h(image->data_h()), lw(image->w()), lh(image->h())
 {
+  checkSurfaceSize(w,h);
   alloc();
-  update(image);
+  try { update(image); } catch (...) { dealloc(); throw; }
 }
 
 Surface::~Surface()

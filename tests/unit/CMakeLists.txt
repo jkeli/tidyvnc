@@ -70,3 +70,20 @@ target_link_libraries(desktoplayout core GTest::gtest_main)
 gtest_discover_tests(desktoplayout)
 target_compile_definitions(desktoptransform PRIVATE
   DESKTOP_SCALING_FIXTURES="${CMAKE_SOURCE_DIR}/tests/fixtures/desktop-scaling.tsv")
+
+# Native bitmap operations can be tested without opening a display on these
+# platforms. X11 surfaces require a server and belong in the GUI matrix.
+if(BUILD_VIEWER AND (APPLE OR WIN32))
+  add_executable(surface surface.cxx ../../vncviewer/Surface.cxx)
+  target_include_directories(surface SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
+  target_link_libraries(surface core ${TIGERVNC_FLTK_TARGET} GTest::gtest_main)
+  if(APPLE)
+    target_sources(surface PRIVATE ../../vncviewer/Surface_OSX.cxx ../../vncviewer/cocoa.mm)
+    target_link_libraries(surface "-framework Cocoa" "-framework Carbon" "-framework IOKit")
+  else()
+    target_sources(surface PRIVATE ../../vncviewer/Surface_Win32.cxx)
+    target_compile_definitions(surface PRIVATE NOMINMAX)
+    target_link_libraries(surface core msimg32)
+  endif()
+  gtest_discover_tests(surface)
+endif()

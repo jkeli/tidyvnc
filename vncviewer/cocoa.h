@@ -20,6 +20,15 @@
 #define __VNCVIEWER_COCOA_H__
 
 class Fl_Window;
+struct DesktopMonitor;
+bool cocoa_monitor_geometry(int screen, DesktopMonitor* monitor);
+
+void cocoa_warp_pointer(Fl_Window* win, double logicalX, double logicalY);
+void cocoa_backing_scale(Fl_Window* win, double* x, double* y);
+void cocoa_scale_image_surface(double x, double y);
+// Observer callbacks run on the UI thread and should only enqueue work.
+void* cocoa_observe_display(Fl_Window* win, void (*callback)(void*), void* data);
+void cocoa_unobserve_display(void* observer);
 
 void cocoa_prevent_native_fullscreen(Fl_Window *win);
 
