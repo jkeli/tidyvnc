@@ -20,7 +20,7 @@
 #ifndef __RFB_I18N_H__
 #define __RFB_I18N_H__
 
-#define DEFAULT_TEXT_DOMAIN "tigervnc"
+#define DEFAULT_TEXT_DOMAIN "tidyvnc"
 
 /*
  * LC_MESSAGES is only in POSIX, and hence missing on Windows. libintl

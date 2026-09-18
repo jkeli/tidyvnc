@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
-#ifndef TIGERVNC_DESKTOP_TRANSFORM_H
-#define TIGERVNC_DESKTOP_TRANSFORM_H
+#ifndef TIDYVNC_DESKTOP_TRANSFORM_H
+#define TIDYVNC_DESKTOP_TRANSFORM_H
 
 #include <string>
 #include <core/Rect.h>

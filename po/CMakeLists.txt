@@ -71,20 +71,20 @@ if (GETTEXT_XGETTEXT_EXECUTABLE)
   add_custom_target(translations_update
     ${GETTEXT_XGETTEXT_EXECUTABLE}
       "--directory=${PROJECT_SOURCE_DIR}"
-      "--output=${CMAKE_CURRENT_SOURCE_DIR}/tigervnc.pot"
-      --default-domain=tigervnc
+      "--output=${CMAKE_CURRENT_SOURCE_DIR}/tidyvnc.pot"
+      --default-domain=tidyvnc
       --from-code=UTF-8
       --keyword=_
       --keyword=C_:1c,2
       --keyword=N_
       --keyword=NC_:1c,2
       "--copyright-holder=TigerVNC team and many others \(see README.rst\)"
-      --msgid-bugs-address=tigervnc-devel@googlegroups.com
+      --msgid-bugs-address=https://github.com/jkeli/tidyvnc/issues
       --sort-by-file
       --add-location
       --add-comments=TRANSLATORS
       ${po_source}
-    COMMENT "Updating tigervnc.pot"
+    COMMENT "Updating tidyvnc.pot"
     VERBATIM
   )
 endif (GETTEXT_XGETTEXT_EXECUTABLE)
@@ -101,7 +101,7 @@ foreach(lang ${po_FILES})
 
   install(FILES ${mo}
     DESTINATION "${CMAKE_INSTALL_FULL_LOCALEDIR}/${lang}/LC_MESSAGES"
-    RENAME tigervnc.mo
+    RENAME tidyvnc.mo
   )
 
   set(moFiles ${moFiles} ${mo})

@@ -1,6 +1,6 @@
 /* Copyright 2026 TigerVNC contributors. Licensed under GPL-2.0-or-later. */
-#ifndef TIGERVNC_DESKTOP_RESAMPLER_H
-#define TIGERVNC_DESKTOP_RESAMPLER_H
+#ifndef TIDYVNC_DESKTOP_RESAMPLER_H
+#define TIDYVNC_DESKTOP_RESAMPLER_H
 #include "DesktopTransform.h"
 #include <cstddef>
 #include <cstdint>

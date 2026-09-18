@@ -61,7 +61,7 @@ static core::LogWriter vlog("ServerDialog");
 const char* SERVER_HISTORY="tigervnc.history";
 
 ServerDialog::ServerDialog()
-  : Fl_Window(450, 0, "TigerVNC")
+  : Fl_Window(450, 0, "TidyVNC")
 {
   int x, y, x2;
   Fl_Button *button;

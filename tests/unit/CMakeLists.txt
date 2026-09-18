@@ -76,7 +76,7 @@ target_compile_definitions(desktoptransform PRIVATE
 if(BUILD_VIEWER AND (APPLE OR WIN32))
   add_executable(surface surface.cxx ../../vncviewer/Surface.cxx)
   target_include_directories(surface SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
-  target_link_libraries(surface core ${TIGERVNC_FLTK_TARGET} GTest::gtest_main)
+  target_link_libraries(surface core ${TIDYVNC_FLTK_TARGET} GTest::gtest_main)
   if(APPLE)
     target_sources(surface PRIVATE ../../vncviewer/Surface_OSX.cxx ../../vncviewer/cocoa.mm)
     target_link_libraries(surface "-framework Cocoa" "-framework Carbon" "-framework IOKit")

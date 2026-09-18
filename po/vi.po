@@ -5,747 +5,4808 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.8.90\n"
-"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2018-06-13 14:22+0000\n"
+"Project-Id-Version: tidyvnc 1.8.90\n"
+"Report-Msgid-Bugs-To: https://github.com/jkeli/tidyvnc/issues\n"
+"POT-Creation-Date: 2026-09-18 09:05-0400\n"
 "PO-Revision-Date: 2018-07-04 14:52+0700\n"
 "Last-Translator: Trần Ngọc Quân <vnwildman@gmail.com>\n"
 "Language-Team: Vietnamese <translation-team-vi@lists.sourceforge.net>\n"
 "Language: vi\n"
-"X-Bugs: Report translation errors to the Language-Team address.\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Gtranslator 2.91.7\n"
 
-#: vncviewer/CConn.cxx:116
+#: common/core/Configuration.cxx:93
+msgid "default"
+msgstr ""
+
+#: common/core/Configuration.cxx:262
 #, c-format
-msgid "connected to socket %s"
+msgid "Alias for %s"
+msgstr ""
+
+#: common/core/Configuration.cxx:308 common/core/Configuration.cxx:358
+#: common/core/Configuration.cxx:463 common/core/Configuration.cxx:593
+#: common/core/Configuration.cxx:612 common/core/LogWriter.cxx:133
+#, c-format
+msgid "Parameter %s: Invalid value '%s'"
+msgstr ""
+
+#: common/core/Configuration.cxx:368
+#, c-format
+msgid "Parameter %s: Invalid value '%d'"
+msgstr ""
+
+#: common/core/LogWriter.cxx:89
+#, c-format
+msgid "Invalid log target: %s\n"
+msgstr ""
+
+#: common/core/LogWriter.cxx:104
+#, c-format
+msgid "Invalid log name: %s\n"
+msgstr ""
+
+#: common/core/LogWriter.cxx:117
+msgid ""
+"Specifies which log output should be directed to which target logger, and "
+"the level of output to log, in the format <log>:<target>:<level>[, ...]"
+msgstr ""
+
+#: common/network/Socket.cxx:64
+msgid "Failed to initialise Winsock"
+msgstr ""
+
+#: common/network/Socket.cxx:127 common/rdr/TLSSocket.cxx:115
+#: common/rfb/CSecurityRSAAES.cxx:91 common/rfb/SSecurityRSAAES.cxx:112
+msgid "Failed to flush remaining socket data on close"
+msgstr ""
+
+#: common/network/Socket.cxx:130 common/rdr/TLSSocket.cxx:118
+#: common/rfb/CSecurityRSAAES.cxx:95 common/rfb/SSecurityRSAAES.cxx:116
+#, fuzzy, c-format
+msgid "Failed to flush remaining socket data on close: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: common/network/Socket.cxx:210
+#, fuzzy
+msgid "Failed to accept new connection"
+msgstr "không thể tạo phần DIB"
+
+#: common/network/Socket.cxx:230
+msgid "Failed to set socket to listening mode"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:79
+msgid "Use IPv4 for incoming and outgoing connections"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:82
+msgid "Use IPv6 for incoming and outgoing connections"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:94 common/network/TcpSocket.cxx:273
+#: common/network/TcpSocket.cxx:398 common/network/UnixSocket.cxx:62
+#: common/network/UnixSocket.cxx:128
+#, fuzzy
+msgid "Failed to create socket"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: common/network/TcpSocket.cxx:98
+msgid "Failed to find free port"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:102
+msgid "Failed to get port number"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:140
+msgid "Unmatched [ in hostname"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:179 common/network/TcpSocket.cxx:186
+#, fuzzy
+msgid "Invalid port specified"
+msgstr "Hình dạng đã cho không hợp lệ!"
+
+#: common/network/TcpSocket.cxx:231
+msgid "Failed get address for hostname"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:299
+msgid "No useful address found for hostname"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:301
+msgid "Failed to connect to host"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:316 common/network/UnixSocket.cxx:91
+msgid "Failed to get peer name for socket"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:317 common/network/TcpSocket.cxx:331
+#: common/network/TcpSocket.cxx:345 common/network/TcpSocket.cxx:352
+msgid "(N/A)"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:330 common/network/TcpSocket.cxx:344
+msgid "Failed to convert peer name to a string"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:351 common/network/TcpSocket.cxx:757
+msgid "Unknown address family"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:380
+#, c-format
+msgid "Failed to set TCP_NODELAY: %d"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:406
+msgid "Failed to set IPV6_V6ONLY"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:424
+msgid "Failed to set SO_REUSEADDR"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:431 common/network/UnixSocket.cxx:143
+msgid "Failed to set socket address"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:543 common/network/TcpSocket.cxx:731
+#, fuzzy
+msgid "Failed to get address for hostname"
+msgstr "Gặp lỗi khi lấy trạng thái LED bàn phím: %d"
+
+#: common/network/TcpSocket.cxx:707
+#, fuzzy
+msgid "Invalid filter specified"
+msgstr "Hình dạng đã cho không hợp lệ!"
+
+#: common/network/TcpSocket.cxx:743
+msgid "A mask is no longer supported for filters, use a prefix instead"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:766
+#, c-format
+msgid "Invalid prefix length for filter: %u"
+msgstr ""
+
+#: common/network/UnixSocket.cxx:56 common/network/UnixSocket.cxx:123
+msgid "UNIX socket path is too long"
+msgstr ""
+
+#: common/network/UnixSocket.cxx:76
+#, fuzzy
+msgid "Failed to connect to socket"
 msgstr "đã kết nối đến ổ cắm mạng %s"
 
-#: vncviewer/CConn.cxx:123
+#: common/network/UnixSocket.cxx:100
+msgid "Failed to get local name for socket"
+msgstr ""
+
+#: common/network/UnixSocket.cxx:109
+msgid "(unnamed UNIX socket)"
+msgstr ""
+
+#: common/network/UnixSocket.cxx:150
+msgid "Failed to set socket permissions"
+msgstr ""
+
+#: common/rdr/AESInStream.cxx:86
+msgid "Corrupted message received"
+msgstr ""
+
+#: common/rdr/BufferedInStream.cxx:69 common/rdr/BufferedOutStream.cxx:143
 #, c-format
-msgid "connected to host %s port %d"
+msgid "Buffer size of %lu bytes exceeds maximum of %lu bytes"
+msgstr ""
+
+#: common/rdr/FileInStream.cxx:40 common/rfb/SSecurityRSAAES.cxx:187
+#: vncviewer/CConn.cxx:390 vncviewer/ServerDialog.cxx:359
+#: vncviewer/ServerDialog.cxx:436 vncviewer/parameters.cxx:787
+#: vncviewer/parameters.cxx:867
+#, fuzzy, c-format
+msgid "Failed to open \"%s\""
+msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
+
+#: common/rdr/FileInStream.cxx:57 common/rfb/SSecurityRSAAES.cxx:200
+#, fuzzy, c-format
+msgid "Failed reading from \"%s\""
+msgstr "Gặp lỗi khi điều khiển chuột"
+
+#: common/rdr/HexInStream.cxx:51
+msgid "Input data is not hexadecimal"
+msgstr ""
+
+#: common/rdr/RandomStream.cxx:73
+msgid "No system random source available"
+msgstr ""
+
+#: common/rdr/RandomStream.cxx:93 common/rdr/RandomStream.cxx:101
+#: common/rfb/CSecurityDH.cxx:121 common/rfb/CSecurityDH.cxx:145
+#: common/rfb/CSecurityMSLogonII.cxx:109 common/rfb/CSecurityMSLogonII.cxx:131
+#: common/rfb/CSecurityRSAAES.cxx:162 common/rfb/CSecurityRSAAES.cxx:256
+#: common/rfb/SSecurityRSAAES.cxx:357 common/rfb/SSecurityRSAAES.cxx:366
+#: common/rfb/SSecurityVncAuth.cxx:91
+msgid "Failed to generate random data"
+msgstr ""
+
+#: common/rdr/TLSSocket.cxx:93
+#, c-format
+msgid "TLS handshake failed: %s"
+msgstr ""
+
+#: common/rdr/TLSSocket.cxx:95
+msgid "TLS handshake failed"
+msgstr ""
+
+#: common/rdr/TLSSocket.cxx:131 common/rdr/TLSSocket.cxx:134
+#, fuzzy, c-format
+msgid "Failed to terminate TLS cleanly: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: common/rdr/TLSSocket.cxx:164
+msgid "Failed receiving TLS data"
+msgstr ""
+
+#: common/rdr/TLSSocket.cxx:187
+msgid "Failed sending TLS data"
+msgstr ""
+
+#: common/rdr/ZlibInStream.cxx:55
+#, fuzzy
+msgid "Failed to flush remaining stream data"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: common/rdr/ZlibInStream.cxx:81 common/rdr/ZlibOutStream.cxx:50
+msgid "Failed to initialize zlib"
+msgstr ""
+
+#: common/rdr/ZlibInStream.cxx:112
+msgid "Failed to decompress data"
+msgstr ""
+
+#: common/rdr/ZlibOutStream.cxx:138 common/rdr/ZlibOutStream.cxx:172
+#, fuzzy
+msgid "Failed to compress data"
+msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
+
+#: common/rfb/Blacklist.cxx:30
+msgid ""
+"Temporarily reject connections from a host if it repeatedly fails to "
+"authenticate"
+msgstr ""
+
+#: common/rfb/Blacklist.cxx:35
+msgid ""
+"The number of unauthenticated connection attempts allowed from any "
+"individual host before that host is black-listed"
+msgstr ""
+
+#: common/rfb/Blacklist.cxx:41
+msgid "The initial timeout applied when a host is first black-listed"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:69
+#, fuzzy
+msgid "Disable lossy JPEG compression"
+msgstr "Cho phép nén JPEG:"
+
+#: common/rfb/CConnection.cxx:197
+msgid "Reading version failed, not an RFB server?"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:202
+#, fuzzy, c-format
+msgid "Server supports RFB protocol version %d.%d"
+msgstr "Phiên bản giao thức: %d.%d"
+
+#: common/rfb/CConnection.cxx:207 common/rfb/CConnection.cxx:211
+#, c-format
+msgid "Server gave unsupported RFB protocol version %d.%d"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:226
+#, fuzzy, c-format
+msgid "Using RFB protocol version %d.%d"
+msgstr "Phiên bản giao thức: %d.%d"
+
+#: common/rfb/CConnection.cxx:258
+#, c-format
+msgid "Unknown 3.3 security type %d"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:259
+msgid "Unknown 3.3 security type"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:302 common/rfb/CSecurityVeNCrypt.cxx:181
+#, c-format
+msgid "Choosing security type %s (%d)"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:309 common/rfb/CConnection.cxx:310
+msgid "No matching security types"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:354
+msgid "Unknown security result from server"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:359 common/rfb/SSecurityPlain.cxx:116
+#: common/rfb/SSecurityRSAAES.cxx:641 common/rfb/SSecurityRSAAES.cxx:671
+#: common/rfb/SSecurityVncAuth.cxx:121
+#, fuzzy
+msgid "Authentication failed"
+msgstr "Xác thực bị hủy bỏ"
+
+#: common/rfb/CConnection.cxx:459
+#, fuzzy, c-format
+msgid "Failed to resize remote session: %d"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: common/rfb/CConnection.cxx:598
+msgid "Enabling continuous updates"
+msgstr "Đang bật cập nhật liên tục"
+
+#: common/rfb/CConnection.cxx:623
+#, c-format
+msgid "Requesting audio (format %d, %d channels, %d Hz)"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:637 common/rfb/CConnection.cxx:645
+#: common/rfb/CConnection.cxx:653
+msgid "Unexpected audio message"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:667
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "SetColourMapEntries từ máy phục vụ không hợp lệ!"
+
+#: common/rfb/CConnection.cxx:778 common/rfb/SConnection.cxx:513
+#: unix/w0vncserver/portals/Clipboard.cxx:549
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:521
+#: unix/xserver/hw/vnc/vncSelection.c:616 vncviewer/Viewport.cxx:628
+msgid "Invalid UTF-8 sequence in clipboard"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:49 common/rfb/SMsgReader.cxx:51
+msgid "Maximum permitted length of an incoming clipboard update"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:120
+#, c-format
+msgid "Unknown QEMU submessage %d"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:135
+#, c-format
+msgid "Unknown QEMU audio operation %d"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:144
+msgid "Audio data is too large"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:194 common/rfb/SMsgReader.cxx:116
+#, fuzzy, c-format
+msgid "Unknown message type %d"
+msgstr "Bảng mã chưa biết %d"
+
+#: common/rfb/CMsgReader.cxx:360 common/rfb/CMsgReader.cxx:386
+#: common/rfb/CMsgReader.cxx:436 common/rfb/SMsgReader.cxx:341
+#: common/rfb/SMsgReader.cxx:367 common/rfb/SMsgReader.cxx:417
+#, c-format
+msgid "Clipboard too large (%d bytes)"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:384 common/rfb/CMsgReader.cxx:406
+#: common/rfb/CMsgReader.cxx:431 common/rfb/CMsgReader.cxx:445
+#: common/rfb/CMsgReader.cxx:461 common/rfb/CMsgReader.cxx:491
+#: common/rfb/SMsgReader.cxx:365 common/rfb/SMsgReader.cxx:387
+#: common/rfb/SMsgReader.cxx:412 common/rfb/SMsgReader.cxx:425
+#: common/rfb/SMsgReader.cxx:441 common/rfb/SMsgReader.cxx:471
+msgid "Invalid extended clipboard message"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:520 common/rfb/SMsgReader.cxx:257
+msgid "Ignoring fence with too large payload"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:555
+#, c-format
+msgid "Invalid rectangle received: %dx%d at %d,%d exceeds %dx%d"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:558
+#, fuzzy
+msgid "Invalid rectangle received"
+msgstr "Hình dạng đã cho không hợp lệ!"
+
+#: common/rfb/CMsgReader.cxx:562
+msgid "Empty rectangle received"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:571 common/rfb/CMsgReader.cxx:636
+#: common/rfb/CMsgReader.cxx:683 common/rfb/CMsgReader.cxx:745
+msgid "Received cursor is too large"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:839
+msgid "Unknown cursor type"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:865 common/rfb/CMsgReader.cxx:870
+#, fuzzy
+msgid "Invalid desktop name received"
+msgstr "Hình dạng đã cho không hợp lệ!"
+
+#: common/rfb/CSecurityDH.cxx:92
+msgid "Received Diffie-Hellman key is too short"
+msgstr ""
+
+#: common/rfb/CSecurityDH.cxx:94
+msgid "Received Diffie-Hellman key is too long"
+msgstr ""
+
+#: common/rfb/CSecurityDH.cxx:106 common/rfb/CSecurityMSLogonII.cxx:94
+msgid "Received invalid Diffie-Hellman modulus"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:183
+#, fuzzy
+msgid "Failed to generate encryption key"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: common/rfb/CSecurityRSAAES.cxx:202
+msgid "Server encryption key is too short"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:204
+msgid "Server encryption key is too long"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:217
+msgid "Server encryption key is invalid"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:270 common/rfb/SSecurityRSAAES.cxx:380
+msgid "Failed to encrypt data"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:290
+msgid "Client key length doesn't match length of random data"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:303 common/rfb/SSecurityRSAAES.cxx:413
+msgid "Failed to decrypt data"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:474 common/rfb/SSecurityRSAAES.cxx:583
+msgid "Incorrect hash received"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:504
+msgid "Unknown RSA-AES subtype"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:57
+msgid "Path to the X.509 certificate for the trusted certificate authority"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:62
+#, fuzzy
+msgid "Path to the X.509 certificate revocation list"
+msgstr "Đường dẫn chứng nhận CA X509"
+
+#: common/rfb/CSecurityTLS.cxx:88 common/rfb/SSecurityTLS.cxx:90
+msgid "Failed to initialize GnuTLS"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:145
+msgid "Server failed to initialize TLS session"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:149 common/rfb/SSecurityTLS.cxx:152
+msgid "Failed to initialize GnuTLS session"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:154 common/rfb/CSecurityTLS.cxx:205
+#: common/rfb/CSecurityTLS.cxx:217 common/rfb/CSecurityTLS.cxx:234
+#: common/rfb/SSecurityTLS.cxx:157 common/rfb/SSecurityTLS.cxx:215
+#: common/rfb/SSecurityTLS.cxx:227 common/rfb/SSecurityTLS.cxx:244
+msgid "Failed to configure GnuTLS priority"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:203 common/rfb/CSecurityTLS.cxx:215
+#: common/rfb/CSecurityTLS.cxx:232 common/rfb/SSecurityTLS.cxx:213
+#: common/rfb/SSecurityTLS.cxx:225 common/rfb/SSecurityTLS.cxx:242
+#, c-format
+msgid "Syntax error in GnuTLS priority string: %s"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:260
+msgid "Failed to load the system certificate trust store"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:263
+msgid "Failed to load the user specified certificate authority"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:266
+msgid "Failed to load the user specified certificate revocation list"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:286
+msgid "Failed to configure the server name for TLS handshake"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:308
+msgid "Unsupported certificate type"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:315
+#, c-format
+msgid "Server certificate verification failed: %s"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:318
+msgid "Server certificate verification failed"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:330
+msgid "Empty certificate chain"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:111
+msgid "The server reported an unsupported VeNCrypt version"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:123
+msgid ""
+"The server reported that it could not support the client's VeNCrypt version"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:138
+msgid "The server reported no VeNCrypt sub-types"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:179 common/rfb/SSecurityVeNCrypt.cxx:174
+msgid "No valid VeNCrypt sub-type"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:53
+msgid "Unable to determine the number of CPU cores on this system"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:56
+#, c-format
+msgid "Detected %d CPU core(s)"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:63
+#, c-format
+msgid "Creating %d decoder thread(s)"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:107 common/rfb/DecodeManager.cxx:114
+#, c-format
+msgid "Unknown encoding %d"
+msgstr "Bảng mã chưa biết %d"
+
+#: common/rfb/DecodeManager.cxx:108 common/rfb/DecodeManager.cxx:115
+msgid "Unknown encoding"
+msgstr "Bảng mã chưa biết"
+
+#. TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+#: common/rfb/DecodeManager.cxx:230 common/rfb/DecodeManager.cxx:244
+#: common/rfb/EncodeManager.cxx:204 common/rfb/EncodeManager.cxx:238
+#: common/rfb/EncodeManager.cxx:253
+msgid "rects"
+msgstr ""
+
+#. TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+#: common/rfb/DecodeManager.cxx:232 common/rfb/DecodeManager.cxx:246
+#: common/rfb/EncodeManager.cxx:206 common/rfb/EncodeManager.cxx:240
+#: common/rfb/EncodeManager.cxx:255
+msgid "pixels"
+msgstr ""
+
+#. TRANSLATORS: Short form of bytes
+#: common/rfb/DecodeManager.cxx:236 common/rfb/DecodeManager.cxx:250
+#: common/rfb/EncodeManager.cxx:210 common/rfb/EncodeManager.cxx:244
+#: common/rfb/EncodeManager.cxx:259
+msgid "B"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:237 common/rfb/DecodeManager.cxx:251
+#: common/rfb/EncodeManager.cxx:211 common/rfb/EncodeManager.cxx:245
+#: common/rfb/EncodeManager.cxx:260
+msgid "ratio"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:242 common/rfb/DecodeManager.cxx:248
+#: common/rfb/EncodeManager.cxx:251 common/rfb/EncodeManager.cxx:257
+msgid "Total:"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:118
+#, fuzzy
+msgid "Unknown encoder class"
+msgstr "Bảng mã chưa biết"
+
+#: common/rfb/EncodeManager.cxx:125
+msgid "Solid"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:127
+msgid "Bitmap"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:129
+msgid "Bitmap RLE"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:131
+msgid "Indexed"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:133
+msgid "Indexed RLE"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:135
+#, fuzzy
+msgid "Full color"
+msgstr "T&oàn màn hình"
+
+#: common/rfb/EncodeManager.cxx:140
+#, fuzzy
+msgid "Unknown encoder type"
+msgstr "Bảng mã chưa biết"
+
+#: common/rfb/EncodeManager.cxx:190
+#, c-format
+msgid "Framebuffer updates: %u"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:202 common/rfb/EncodeManager.cxx:208
+msgid "Copies"
+msgstr ""
+
+#: common/rfb/H264Decoder.cxx:132
+#, fuzzy
+msgid "Failed to create H.264 context"
+msgstr "không thể tạo phần DIB"
+
+#: common/rfb/H264LibavDecoderContext.cxx:55
+#: common/rfb/H264WinDecoderContext.cxx:51
+#: common/rfb/H264WinDecoderContext.cxx:58
+msgid "Could not find video codec"
+msgstr ""
+
+#: common/rfb/H264LibavDecoderContext.cxx:59
+#, fuzzy
+msgid "Could not create video parser"
+msgstr "Không thể tạo ảnh bộ đệm khung"
+
+#: common/rfb/H264LibavDecoderContext.cxx:65
+msgid "Could not allocate video codec context"
+msgstr ""
+
+#: common/rfb/H264LibavDecoderContext.cxx:73
+#, fuzzy
+msgid "Could not allocate video frame"
+msgstr "Không thể tạo ảnh bộ đệm khung"
+
+#: common/rfb/H264LibavDecoderContext.cxx:81
+msgid "Could not open video codec"
+msgstr ""
+
+#: common/rfb/H264WinDecoderContext.cxx:48
+msgid "Could not initialize MediaFoundation"
+msgstr ""
+
+#: common/rfb/H264WinDecoderContext.cxx:104
+msgid "Could not start video decoder"
+msgstr ""
+
+#: common/rfb/HextileDecoder.cxx:214
+msgid "Invalid Hextile coordinates"
+msgstr ""
+
+#: common/rfb/HextileEncoder.cxx:43
+msgid ""
+"Use improved compression algorithm for Hextile encoding which achieves "
+"better compression ratios at the cost of using more CPU time"
+msgstr ""
+
+#: common/rfb/JpegDecompressor.cxx:223
+msgid "Invalid JPEG data received"
+msgstr ""
+
+#: common/rfb/KeyRemapper.cxx:63
+msgid ""
+"Comma-separated list of incoming keysyms to remap.  Mappings are expressed "
+"as two hex values, prefixed by 0x, and separated by ->"
+msgstr ""
+
+#: common/rfb/KeyRemapper.cxx:83
+#, c-format
+msgid "Unknown operation %c>, assuming ->"
+msgstr ""
+
+#: common/rfb/KeyRemapper.cxx:88
+#, fuzzy, c-format
+msgid "Invalid mapping %s"
+msgstr "Định dạng không hợp lệ"
+
+#: common/rfb/PixelFormat.cxx:187
+#, fuzzy
+msgid "Invalid pixel format"
+msgstr "Định dạng không hợp lệ"
+
+#: common/rfb/RREDecoder.cxx:112
+#, fuzzy
+msgid "Invalid RRE coordinates"
+msgstr "Định dạng không hợp lệ"
+
+#: common/rfb/SConnection.cxx:133
+msgid "Reading version failed, not an RFB client?"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:138
+#, fuzzy, c-format
+msgid "Client needs protocol version %d.%d"
+msgstr "Phiên bản giao thức: %d.%d"
+
+#: common/rfb/SConnection.cxx:144
+#, c-format
+msgid "Client needs protocol version %d.%d, server has %d.%d"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:150
+#, fuzzy, c-format
+msgid "Client uses unofficial protocol version %d.%d"
+msgstr "Phiên bản giao thức: %d.%d"
+
+#: common/rfb/SConnection.cxx:158
+#, c-format
+msgid "Assuming compatibility with version %d.%d"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:175
+#, c-format
+msgid "No supported security type for %d.%d client"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:189
+msgid "No supported security types"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:223
+msgid "Requested security type is not available"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:225 common/rfb/SSecurityVeNCrypt.cxx:169
+#, c-format
+msgid "Client requests security type %s (%d)"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:243
+#, fuzzy, c-format
+msgid "Authentication error: %s"
+msgstr "Xác thực"
+
+#: common/rfb/SConnection.cxx:319
+#, fuzzy, c-format
+msgid "Connection failed: %s"
+msgstr "Thông tin kết nối VNC"
+
+#: common/rfb/SConnection.cxx:568 common/rfb/SConnection.cxx:586
+msgid "Connection rejected"
+msgstr ""
+
+#: common/rfb/SMsgReader.cxx:117
+msgid "Unknown message type"
+msgstr ""
+
+#: common/rfb/SMsgReader.cxx:496
+#, c-format
+msgid "Unknown QEMU submessage type %d"
+msgstr ""
+
+#: common/rfb/SMsgReader.cxx:516
+msgid "Key event without keycode"
+msgstr ""
+
+#: common/rfb/SSecurityPlain.cxx:48
+msgid "Users permitted to access the server"
+msgstr ""
+
+#: common/rfb/SSecurityPlain.cxx:98
+#, fuzzy
+msgid "Username is too long"
+msgstr "Dòng quá dài"
+
+#: common/rfb/SSecurityPlain.cxx:102
+#, fuzzy
+msgid "Password is too long"
+msgstr "Dòng quá dài"
+
+#: common/rfb/SSecurityRSAAES.cxx:77
+msgid "Path to the RSA key for the RSA-AES security types"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:81
+msgid "Require a username for the RSA-AES security types"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:193 common/rfb/SSecurityRSAAES.cxx:220
+#: common/rfb/SSecurityRSAAES.cxx:231 common/rfb/SSecurityRSAAES.cxx:271
+msgid "Invalid RSA key"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:334
+msgid "Client encryption key is too short"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:336
+msgid "Client encryption key is too long"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:349
+msgid "Client encryption key is invalid"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:400
+msgid "Server key length doesn't match length of random data"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:659 common/rfb/SSecurityVncAuth.cxx:108
+msgid "No password configured"
+msgstr ""
+
+#: common/rfb/SSecurityTLS.cxx:67
+#, fuzzy
+msgid "Path to the server's X.509 certificate"
+msgstr "Đường dẫn chứng nhận CA X509"
+
+#: common/rfb/SSecurityTLS.cxx:72
+msgid "Path to the private key of the server's X.509 certificate"
+msgstr ""
+
+#: common/rfb/SSecurityTLS.cxx:290
+msgid "Failed to load the server certificate and private key"
+msgstr ""
+
+#: common/rfb/SSecurityVeNCrypt.cxx:109
+msgid "The client cannot support the server's VeNCrypt version"
+msgstr ""
+
+#: common/rfb/SSecurityVeNCrypt.cxx:119
+msgid "The client returned an unsupported VeNCrypt version"
+msgstr ""
+
+#: common/rfb/SSecurityVeNCrypt.cxx:149
+msgid "There are no VeNCrypt sub-types to send to the client"
+msgstr ""
+
+#: common/rfb/SSecurityVncAuth.cxx:53 vncviewer/parameters.cxx:96
+#, fuzzy
+msgid "Password file for VNC authentication"
+msgstr "Xác thực VNC"
+
+#: common/rfb/SSecurityVncAuth.cxx:57
+msgid "Obfuscated binary encoding of the password for VNC authentication"
+msgstr ""
+
+#: common/rfb/SSecurityVncAuth.cxx:144 unix/vncpasswd/vncpasswd.cxx:267
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:696
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:753
+#: unix/xserver/hw/vnc/vncDRI3.c:516
+#, fuzzy, c-format
+msgid "Failed to open \"%s\": %s"
+msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
+
+#: common/rfb/Security.cxx:42
+msgid ""
+"GnuTLS priority string that controls the TLS session's handshake algorithms"
+msgstr ""
+
+#: common/rfb/Security.cxx:191 common/rfb/encodings.cxx:55
+msgid "[unknown]"
+msgstr ""
+
+#: common/rfb/SecurityClient.cxx:54 common/rfb/SecurityServer.cxx:50
+msgid "Specify which security scheme to use"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:36
+msgid ""
+"The number of seconds after which an idle VNC connection will be dropped "
+"(zero means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:41
+msgid ""
+"Terminate when no client has been connected for the specified number of "
+"seconds (zero means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:46
+msgid ""
+"Terminate when a client has been connected for the specified number of "
+"seconds (zero means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:51
+msgid ""
+"Terminate after the specified number of seconds of user inactivity (zero "
+"means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:56
+msgid ""
+"Perform pixel comparison on framebuffer to reduce unnecessary updates (0: "
+"never, 1: always, 2: auto)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:61
+msgid "The maximum number of updates per second sent to each client"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:65
+msgid ""
+"Always use protocol version 3.3 for backwards compatibility with badly-"
+"behaved clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:70
+msgid ""
+"Always treat incoming connections as shared, regardless of the client-"
+"specified setting"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:75
+msgid ""
+"Never treat incoming connections as shared, regardless of the client-"
+"specified setting"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:80
+msgid "Disconnect existing clients if an incoming connection is not shared"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:85
+msgid "Accept key events from clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:89
+msgid "Accept pointer events from clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:93 unix/vncconfig/vncconfig.cxx:86
+#, fuzzy
+msgid "Accept clipboard changes from clients"
+msgstr "Chấp nhận clipboard từ máy chủ"
+
+#: common/rfb/ServerCore.cxx:97
+#, fuzzy
+msgid "Send clipboard changes to clients"
+msgstr "Gửi clipboard đến máy chủ"
+
+#: common/rfb/ServerCore.cxx:101
+msgid "Accept session size changes from clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:105
+msgid "Prompt the local user to accept or reject incoming connections"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:74
+msgid "Bad Tight subencoding value received"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:108
+msgid "Too large Tight rectangle"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:153
+msgid "Invalid bits per pixel for gradient filter"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:160
+msgid "Invalid Tight filter code received"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:426
+msgid "Failed to decode Tight rectangle"
+msgstr ""
+
+#: common/rfb/UnixPasswordValidator.cxx:41
+msgid "Service name for PAM password validation"
+msgstr ""
+
+#: common/rfb/UnixPasswordValidator.cxx:113
+#, fuzzy, c-format
+msgid "Failed to initialized PAM: %d"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: common/rfb/UnixPasswordValidator.cxx:123
+#, c-format
+msgid "Failed to set PAM_XDISPLAY: %s (%d)"
+msgstr ""
+
+#: common/rfb/UnixPasswordValidator.cxx:131
+#, fuzzy, c-format
+msgid "PAM authentication failed: %s (%d)"
+msgstr "Xác thực bị hủy bỏ"
+
+#: common/rfb/UnixPasswordValidator.cxx:137
+#, c-format
+msgid "PAM authorization failed: %s (%d)"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:90
+#, c-format
+msgid "Closing %s: %s"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:212
+#, fuzzy
+msgid "Clean disconnection"
+msgstr "Kết nối &mới"
+
+#: common/rfb/VNCSConnectionST.cxx:263
+msgid "Client does not support resizing the desktop"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:457
+#, fuzzy, c-format
+msgid "Server default pixel format: %s"
+msgstr "(máy chủ mặc định %s)"
+
+#: common/rfb/VNCSConnectionST.cxx:512
+#, fuzzy, c-format
+msgid "Client pixel format: %s"
+msgstr "Đang dùng định dạng điểm ảnh %s"
+
+#: common/rfb/VNCSConnectionST.cxx:670
+#, c-format
+msgid "Update request %dx%d at %d,%d exceeds framebuffer %dx%d"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:750
+msgid "Fence response of unexpected size received"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:764
+msgid "Fence response of unexpected type received"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:778
+msgid "Client tried to enable continuous updates when not allowed"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:850
+#, fuzzy
+msgid "Authentication timeout"
+msgstr "Xác thực"
+
+#: common/rfb/VNCSConnectionST.cxx:862
+#, fuzzy
+msgid "Idle for too long"
+msgstr "Dòng quá dài"
+
+#: common/rfb/VNCServerST.cxx:115
+msgid "Server shutting down"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:147
+#, c-format
+msgid "Blacklisted: %s"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:154
+msgid "Too many security failures"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:163
+#, c-format
+msgid "Accepted: %s"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:170
+#, c-format
+msgid "Error accepting client: %s"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:199
+#, fuzzy, c-format
+msgid "Closed: %s"
+msgstr "Đóng"
+
+#: common/rfb/VNCServerST.cxx:341
+#, c-format
+msgid "Removing screen %d (%x) as it is completely outside the new framebuffer"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:627
+msgid "Rejecting too large resize request"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:633
+#, fuzzy
+msgid "Invalid screen layout requested by client"
+msgstr "Bố cục màn hình đã tính toán không hợp lệ cho yêu cầu đổi cỡ!"
+
+#: common/rfb/VNCServerST.cxx:647
+msgid "Desktop configured a different screen layout than requested"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:730
+msgid "Maximum idle time reached, exiting"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:733
+msgid "Maximum disconnected time reached, exiting"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:736
+msgid "Maximum connected time reached, exiting"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:756
+msgid "The server is already in use"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:789
+msgid "Non-shared connection requested"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:794
+msgid "Server is already in use"
+msgstr ""
+
+#: common/rfb/ZRLEDecoder.cxx:71 common/rfb/ZRLEDecoder.cxx:249
+#: common/rfb/ZRLEDecoder.cxx:274
+#, fuzzy
+msgid "Failed to decode ZRLE rectangle"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
+
+#: common/rfb/ZRLEEncoder.cxx:40
+#, fuzzy
+msgid "[DEPRECATED] Zlib compression level"
+msgstr "Mức nén tự chọn:"
+
+#: common/rfb/ZRLEEncoder.cxx:48
+msgid ""
+"Warning: The ZlibLevel option is deprecated and is ignored by the server. "
+"The compression level can be set by the client instead."
+msgstr ""
+
+#: unix/common/randr.cxx:201
+msgid "One or more screens are mirrored. Cannot reconfigure screen layout."
+msgstr ""
+
+#: unix/common/randr.cxx:217 unix/common/randr.cxx:226
+msgid "Unable to create more screens, as needed by the new client layout."
+msgstr ""
+
+#: unix/common/randr.cxx:239
+#, fuzzy, c-format
+msgid "Failed to resize screen to %dx%d"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/common/randr.cxx:277 unix/common/randr.cxx:358
+#, c-format
+msgid "The required output '%s' is not usable"
+msgstr ""
+
+#: unix/common/randr.cxx:287 unix/common/randr.cxx:368
+#, c-format
+msgid "The output '%s' does not support the required mode %dx%d"
+msgstr ""
+
+#: unix/common/randr.cxx:309 unix/common/randr.cxx:390
+#, c-format
+msgid "Failed to reconfigure the output '%s' to %dx%d+%d+%d"
+msgstr ""
+
+#: unix/common/randr.cxx:341
+msgid "Cannot find an available output for new screen layout"
+msgstr ""
+
+#: unix/common/randr.cxx:417
+#, c-format
+msgid "Failed to disable the output '%s'"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:56 unix/x0vncserver/x0vncserver.cxx:84
+#: vncviewer/parameters.cxx:239
+msgid "The X display to use"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:57
+msgid "Don't display a window"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:58
+msgid "Start with window iconified"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:87 vncviewer/OptionsDialog.cxx:1027
+msgid "Also set primary selection"
+msgstr "Cũng đặt chọn chính"
+
+#: unix/vncconfig/vncconfig.cxx:88
+#, fuzzy
+msgid "Send clipboard to clients"
+msgstr "Gửi clipboard đến máy chủ"
+
+#: unix/vncconfig/vncconfig.cxx:89
+#, fuzzy
+msgid "Send primary selection to clients"
+msgstr "Gửi chọn chính là clipboard"
+
+#: unix/vncconfig/vncconfig.cxx:108
+msgid "VNC config"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:180
+#, c-format
+msgid ""
+"Usage: %s [parameters]\n"
+"       %s [parameters] -connect [-view-only] <host>[:<port>]\n"
+"       %s [parameters] -disconnect\n"
+"       %s [parameters] [-set] <Xvnc-param>=<value> ...\n"
+"       %s [parameters] -list\n"
+"       %s [parameters] -get <param>\n"
+"       %s [parameters] -desc <param>\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:189 unix/w0vncserver/w0vncserver.cxx:87
+#: unix/x0vncserver/x0vncserver.cxx:294 unix/xserver/hw/vnc/xvnc.c:223
+#: vncviewer/vncviewer.cxx:420
+#, c-format
+msgid ""
+"\n"
+"Parameters can be turned on with -<param> or off with -<param>=0\n"
+"Parameters which take a value can be specified as -<param> <value>\n"
+"Other valid forms are <param>=<value> -<param>=<value> --<param>=<value>\n"
+"Parameter names are case-insensitive.  The parameters are:\n"
+"\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:246 unix/x0vncserver/x0vncserver.cxx:358
+#, c-format
+msgid "%s: Unable to open display \"%s\"\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:252
+#, c-format
+msgid "%s: No VNC extension on display \"%s\"\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:268
+#, c-format
+msgid "%s: Connecting to %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:273
+#, c-format
+msgid "%s: Disconnecting all clients failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:285
+#, c-format
+msgid "%s: Getting the value of parameter %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:297
+#, c-format
+msgid "%s: Getting the description for parameter %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:314 unix/vncconfig/vncconfig.cxx:336
+#, c-format
+msgid "%s: Invalid parameter syntax '%s'\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:316 unix/vncconfig/vncconfig.cxx:330
+#: unix/vncconfig/vncconfig.cxx:338 unix/vncpasswd/vncpasswd.cxx:211
+#: unix/vncpasswd/vncpasswd.cxx:222 unix/w0vncserver/w0vncserver-forget.cxx:72
+#: unix/w0vncserver/w0vncserver.cxx:149 unix/w0vncserver/w0vncserver.cxx:155
+#: unix/x0vncserver/x0vncserver.cxx:344 unix/x0vncserver/x0vncserver.cxx:350
+#: vncviewer/vncviewer.cxx:639 vncviewer/vncviewer.cxx:647
+#, c-format
+msgid "See '%s --help' for more information.\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:325 unix/vncconfig/vncconfig.cxx:347
+#, c-format
+msgid "%s: Setting the parameter %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:328 unix/vncpasswd/vncpasswd.cxx:209
+#: unix/w0vncserver/w0vncserver.cxx:147 unix/x0vncserver/x0vncserver.cxx:342
+#: vncviewer/vncviewer.cxx:637
+#, c-format
+msgid "%s: Unrecognized option '%s'\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:51
+#, c-format
+msgid ""
+"Usage: %s [file]\n"
+"       %s -f\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:96
+#, fuzzy
+msgid "Writing VNC password to stdout failed"
+msgstr "Gặp lỗi khi mở tập tin mật khẩu"
+
+#: unix/vncpasswd/vncpasswd.cxx:119
+#, c-format
+msgid "Cannot check password quality: %s\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:127
+#, c-format
+msgid "Password quality check failed:\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:141 vncviewer/AuthDialog.cxx:120
+msgid "Password:"
+msgstr "Mật khẩu:"
+
+#: unix/vncpasswd/vncpasswd.cxx:150
+#, c-format
+msgid "Password not changed\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:155
+#, c-format
+msgid "Password can not be longer than 8 characters - try again\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:166
+#, c-format
+msgid "Password must be at least 6 characters - try again\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:171
+msgid "Verify:"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:178
+#, c-format
+msgid "Passwords don't match - try again\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:216
+#, c-format
+msgid "%s: Too long filename specified\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:221 unix/w0vncserver/w0vncserver-forget.cxx:71
+#: unix/w0vncserver/w0vncserver.cxx:154 unix/x0vncserver/x0vncserver.cxx:349
+#: vncviewer/vncviewer.cxx:646
+#, c-format
+msgid "%s: Extra argument '%s'\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:232 vncviewer/parameters.cxx:776
+#: vncviewer/parameters.cxx:854 vncviewer/vncviewer.cxx:478
+#, fuzzy, c-format
+msgid "Could not determine VNC config directory path"
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: unix/vncpasswd/vncpasswd.cxx:240 vncviewer/vncviewer.cxx:494
+#, fuzzy, c-format
+msgid "Could not create VNC config directory \"%s\": %s"
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: unix/vncpasswd/vncpasswd.cxx:254
+#, c-format
+msgid "Would you like to enter a view-only password (y/n)? "
+msgstr ""
+
+#. TRANSLATORS: Should be character used to abbreviate "yes" above
+#: unix/vncpasswd/vncpasswd.cxx:259
+msgid "yY"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:262
+#, c-format
+msgid "A view-only password is not used\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:275 unix/vncpasswd/vncpasswd.cxx:283
+#, fuzzy, c-format
+msgid "Failed writing to \"%s\": %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/GSocketSource.cxx:240 unix/x0vncserver/x0vncserver.cxx:509
+#, fuzzy
+msgid "Client connection rejected"
+msgstr "Kết nối này là an toàn"
+
+#: unix/w0vncserver/parameters.cxx:34 unix/x0vncserver/x0vncserver.cxx:87
+#: unix/xserver/hw/vnc/vncExtInit.cc:73 win/vncconfig/Connections.h:39
+#: win/winvnc/VNCServerWin32.cxx:54
+msgid "TCP port to listen for RFB protocol"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:37 unix/x0vncserver/x0vncserver.cxx:91
+#: unix/xserver/hw/vnc/vncExtInit.cc:76
+msgid "UNIX socket path to listen for RFB protocol"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:40 unix/x0vncserver/x0vncserver.cxx:95
+#: unix/xserver/hw/vnc/vncExtInit.cc:79
+msgid "UNIX socket access mode"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:43 unix/x0vncserver/x0vncserver.cxx:101
+#: unix/xserver/hw/vnc/vncExtInit.cc:85 win/vncconfig/Connections.h:44
+#: win/winvnc/VNCServerWin32.cxx:60
+msgid "Only allow connections from localhost"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:46 unix/x0vncserver/x0vncserver.cxx:81
+#: unix/xserver/hw/vnc/vncExtInit.cc:82
+msgid "Name of VNC desktop"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:49 unix/x0vncserver/x0vncserver.cxx:105
+#: unix/xserver/hw/vnc/vncExtInit.cc:88
+#, fuzzy
+msgid "Listen on the specified network address"
+msgstr "Không có mã mô tả cho phím bấm"
+
+#: unix/w0vncserver/parameters.cxx:53 unix/x0vncserver/XDesktop.cxx:72
+#: unix/xserver/hw/vnc/XserverDesktop.cc:67 win/rfb_win32/SInput.cxx:146
+msgid ""
+"Send keyboard events straight through and avoid mapping them to the current "
+"keyboard layout"
+msgstr ""
+
+#. TRANSLATORS: This refers to the two different X11
+#. clipboards
+#: unix/w0vncserver/parameters.cxx:59 unix/x0vncserver/XSelection.cxx:36
+#: unix/xserver/hw/vnc/vncExtInit.cc:103 vncviewer/parameters.cxx:228
+#, fuzzy
+msgid "Set the primary selection as well as the clipboard selection"
+msgstr "Gửi chọn chính là clipboard"
+
+#. TRANSLATORS: This refers to the two different X11
+#. clipboards
+#: unix/w0vncserver/parameters.cxx:66 unix/x0vncserver/XSelection.cxx:43
+#: unix/xserver/hw/vnc/vncExtInit.cc:110
+#, fuzzy
+msgid ""
+"Send the primary selection to the client as well as the clipboard selection"
+msgstr "Gửi chọn chính là clipboard"
+
+#: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:93
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:75
+#, fuzzy
+msgid "Remote desktop session stopped"
+msgstr "Trình xem màn hình từ xa"
+
+#: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:119
+#, c-format
+msgid "Invalid PipeWire chunk size: %d instead of %d"
+msgstr ""
+
+#: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:276
+#, fuzzy, c-format
+msgid "Failed to update cursor image: %s"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím: %d"
+
+#: unix/w0vncserver/pipewire/PipeWireSource.cxx:90
+#, c-format
+msgid "PipeWire loop failed: %s"
+msgstr ""
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:77
+#, fuzzy
+msgid "Failed to create PipeWire context"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:84
+msgid "Failed to connect to PipeWire server"
+msgstr ""
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:124
+#, fuzzy
+msgid "Failed to create PipeWire stream"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:153
+#, fuzzy
+msgid "Failed to connect PipeWire stream"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:175
+#, c-format
+msgid "Error communicating with PipeWire: %s"
+msgstr ""
+
+#: unix/w0vncserver/portals/Clipboard.cxx:153
+#: unix/w0vncserver/portals/Clipboard.cxx:183
+#: unix/w0vncserver/portals/Clipboard.cxx:197
+#: unix/w0vncserver/portals/Clipboard.cxx:211
+#: unix/w0vncserver/portals/Clipboard.cxx:222
+#: unix/w0vncserver/portals/Clipboard.cxx:234
+#: unix/w0vncserver/portals/Clipboard.cxx:277
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:177
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:197
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:307
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:323
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:438
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:442
+#, fuzzy, c-format
+msgid "Failed to update the clipboard: %s"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:212
+#: unix/w0vncserver/portals/Clipboard.cxx:400
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:308
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:439
+#, c-format
+msgid "Unsupported mime type '%s'"
+msgstr ""
+
+#: unix/w0vncserver/portals/Clipboard.cxx:255
+#, fuzzy, c-format
+msgid "Failed to release clipboard ownership: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:326
+#: unix/w0vncserver/portals/Clipboard.cxx:355
+#: unix/w0vncserver/portals/Clipboard.cxx:512
+#: unix/w0vncserver/portals/Clipboard.cxx:515
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:254
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:480
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:483
+#, fuzzy, c-format
+msgid "Failed to retrieve the clipboard: %s"
+msgstr "Gặp lỗi khi lấy trạng thái LED bàn phím: %d"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:338
+#: unix/w0vncserver/portals/Clipboard.cxx:476
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:447
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:501
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:614
+#, c-format
+msgid "Invalid response to request \"%s\""
+msgstr ""
+
+#: unix/w0vncserver/portals/Clipboard.cxx:513
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:481
+#, fuzzy
+msgid "Cancelled"
+msgstr "Thôi"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:540
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:510
+msgid "Non-ASCII character in clipboard"
+msgstr ""
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:73
+#, fuzzy, c-format
+msgid "Failed to create PipeWire pixel buffer: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:110
+#, fuzzy, c-format
+msgid "Failed to initialize clipboard access: %s"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím: %d"
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:127
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:295
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:407
+#, fuzzy, c-format
+msgid "Failed to start remote desktop session: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:129
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:449
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:457
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:462
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:472
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:502
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:511
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:515
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:516
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:527
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:539
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:606
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:616
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:630
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:125
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:181
+msgid "Failed to start remote desktop session"
+msgstr ""
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:157
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:188
+#: unix/xserver/hw/vnc/XserverDesktop.cc:185
+msgid "Unable to query the local user to accept the connection."
+msgstr ""
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:50
+#: unix/w0vncserver/portals/PortalProxy.cxx:225
+#, fuzzy, c-format
+msgid "Failed to connect to D-Bus: %s"
+msgstr "Gặp lỗi khi đọc tập tin cấu hình, không thể mở %s: %s"
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:61
+#, c-format
+msgid "Failed to connect to D-Bus interface \"%s\" at \"%s\" from \"%s\": %s"
+msgstr ""
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:139
+#, fuzzy, c-format
+msgid "Failed to call D-Bus method \"%s\": %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:244
+#: unix/w0vncserver/portals/PortalProxy.cxx:256
+#, fuzzy, c-format
+msgid "Failed to enumerate desktop portals: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:67
+msgid "Remember display choice when user connects"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:142
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:170
+#, fuzzy, c-format
+msgid "Failed to send keyboard event: %s"
+msgstr "Gặp lỗi khi lấy trạng thái LED bàn phím: %d"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:191
+#, fuzzy, c-format
+msgid "Failed to send pointer motion event: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:225
+#, fuzzy, c-format
+msgid "Failed to send pointer button event: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:267
+#, fuzzy, c-format
+msgid "Failed to send pointer scroll event: %s"
+msgstr "Gặp lỗi khi đọc tham số %s từ sổ đăng ký: %ld"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:309
+#, fuzzy, c-format
+msgid "Failed to close remote desktop session: %s"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:347
+#, fuzzy, c-format
+msgid "Failed to request control of input devices: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:383
+#, fuzzy, c-format
+msgid "Failed to request monitors to share: %s"
+msgstr "Gặp lỗi khi lấy trạng thái LED bàn phím: %d"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:456
+msgid "Connection to local session was cancelled"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:461
+msgid "Failed to connect to local session"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:471
+msgid "Failed to get handle to local session"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:510
+#: unix/x0vncserver/XDesktop.cxx:1018 unix/xserver/hw/vnc/vncExtInit.cc:400
+#: win/winvnc/VNCServerWin32.cxx:313
+msgid "Connection rejected by local user"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:526
+msgid "Failed to get input devices"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:538
+msgid "Failed to get image streams for local session"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:569
+msgid "Display choice restore token was not provided"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:604
+#, fuzzy, c-format
+msgid "Failed to connect to PipeWire: %s"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:627
+#, fuzzy, c-format
+msgid "Failed to get PipeWire file descriptors: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:649
+msgid "No image streams provided for the session"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:654
+#, c-format
+msgid "Only one image stream supported, got %d"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:688
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:736
+#: unix/w0vncserver/w0vncserver-forget.cxx:80 vncviewer/CConn.cxx:513
+#: vncviewer/ServerDialog.cxx:346 vncviewer/ServerDialog.cxx:428
+#: vncviewer/vncviewer.cxx:512
+#, fuzzy, c-format
+msgid "Could not determine VNC state directory path"
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:708
+#, fuzzy, c-format
+msgid "Failed to load restore token from \"%s\""
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:742 vncviewer/vncviewer.cxx:518
+#, fuzzy, c-format
+msgid "Could not create VNC state directory \"%s\": %s"
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: unix/w0vncserver/w0vncserver-forget.cxx:40
+#, c-format
+msgid "TigerVNC server version %s\n"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver-forget.cxx:47
+#, c-format
+msgid ""
+"\n"
+"Usage: %s\n"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver-forget.cxx:88 vncviewer/parameters.cxx:588
+#: vncviewer/parameters.cxx:622
+#, fuzzy, c-format
+msgid "Failed to remove \"%s\": %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/w0vncserver.cxx:74 unix/x0vncserver/x0vncserver.cxx:281
+#, c-format
+msgid "TigerVNC server version %s, built %s\n"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:82 unix/x0vncserver/x0vncserver.cxx:289
+#, c-format
+msgid ""
+"\n"
+"Usage: %s [<parameters>]\n"
+"       %s --version\n"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:163 unix/x0vncserver/x0vncserver.cxx:394
+#: unix/xserver/hw/vnc/vncExtInit.cc:224
+#, c-format
+msgid "Listening for VNC connections on %s (mode %04o)"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:181 unix/x0vncserver/x0vncserver.cxx:412
+#: unix/xserver/hw/vnc/vncExtInit.cc:244
+#, c-format
+msgid "Listening for VNC connections on local interfaces, port %d"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:184 unix/x0vncserver/x0vncserver.cxx:415
+#: unix/xserver/hw/vnc/vncExtInit.cc:247
+#, c-format
+msgid "Listening for VNC connections on interface %s, port %d"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:195 unix/x0vncserver/x0vncserver.cxx:426
+#: unix/xserver/hw/vnc/vncExtInit.cc:255
+msgid "No path or port configured for incoming connections"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:211
+msgid "Desktop does not support remote connections"
+msgstr ""
+
+#: unix/w0vncserver/wayland/GWaylandSource.cxx:132
+#: unix/w0vncserver/wayland/objects/Display.cxx:87
+#, c-format
+msgid "Failed to communicate with Wayland server: %s"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:88
+#, fuzzy, c-format
+msgid "Failed to create virtual pointer device: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:94
+#, fuzzy, c-format
+msgid "Failed to create virtual keyboard device: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:114
+msgid "Desktop does not support clipboard control"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:124
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:180
+#, fuzzy, c-format
+msgid "Failed to create framebuffer: %s"
+msgstr "Không thể tạo ảnh bộ đệm khung"
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:126
+#, fuzzy, c-format
+msgid "Failed to set cursor: %s"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:179
+#, c-format
+msgid "Cannot handle Wayland pixel format %d: %s"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:199
+#, fuzzy, c-format
+msgid "Failed to handle screen update: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:200
+msgid "Failed to handle screen update"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:358
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:627
+#, c-format
+msgid "Cannot handle Wayland transform %d"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:470
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:512
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:533
+#, c-format
+msgid "Cannot handle Wayland pixel format %d"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:128
+#, fuzzy
+msgid "Failed to create clipboard data device"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
+
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:561
+#, fuzzy
+msgid "Failed to create clipboard data source"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
+
+#: unix/w0vncserver/wayland/objects/Display.cxx:58
+msgid "Failed to connect to Wayland server"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/Display.cxx:63
+#, fuzzy
+msgid "Failed to get Wayland registry"
+msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/objects/ImageCaptureSource.cxx:53
+#: unix/w0vncserver/wayland/objects/ImageCaptureSource.cxx:74
+#, fuzzy
+msgid "Failed to create screen capture source"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureCursorSession.cxx:75
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:99
+#, fuzzy
+msgid "Failed to create cursor capture session"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:81
+#, fuzzy
+msgid "Failed to create screen capture session"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:90
+msgid "No pointer available for desktop session"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:172
+msgid "No Wayland pixel formats provided"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:191
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:199
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:209
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:198
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:203
+#, fuzzy, c-format
+msgid "Failed to create shared memory pool: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:219
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:293
+#, fuzzy
+msgid "Failed to create Wayland buffer object"
+msgstr "Không thể tạo thiết bị bộ đệm khung"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:281
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:288
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:292
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:296
+#, fuzzy, c-format
+msgid "Failed to capture screen contents: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:282
+#, fuzzy
+msgid "Uknown reason"
+msgstr "Bảng mã chưa biết"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:289
+#, fuzzy
+msgid "Invalid buffer constraints"
+msgstr "Định dạng không hợp lệ"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:293
+#: win/rfb_win32/Service.cxx:465
+msgid "Stopped"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:297
+#, fuzzy, c-format
+msgid "Unknown reason %d"
+msgstr "Bảng mã chưa biết %d"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:350
+msgid "No supported Wayland pixel format"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:148
+#, fuzzy, c-format
+msgid "Failed to access keyboard layout: %s"
+msgstr "Gặp lỗi khi lấy trạng thái LED bàn phím: %d"
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:171
+#, fuzzy
+msgid "Failed to parse keyboard layout"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:182
+#, fuzzy
+msgid "Failed to allocate keyboard state"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:197
+#, c-format
+msgid "Unsupported keymap format: %d"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/Object.cxx:57
+#, c-format
+msgid "Failed to bind to Wayland object %s"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:253
+msgid "Failed to capture screen contents"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/VirtualKeyboard.cxx:59
+#, fuzzy
+msgid "Failed to create virtual keyboard"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/w0vncserver/wayland/objects/VirtualPointer.cxx:60
+#, fuzzy
+msgid "Unknown mouse button"
+msgstr "Bảng mã chưa biết"
+
+#: unix/w0vncserver/wayland/objects/VirtualPointer.cxx:73
+#, fuzzy
+msgid "Failed to create virtual pointer"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/x0vncserver/Geometry.cxx:38
+msgid ""
+"Screen area shown to VNC clients in the format "
+"<width>x<height>+<offset_x>+<offset_y>, or empty to show the whole screen"
+msgstr ""
+
+#: unix/x0vncserver/Geometry.cxx:61 unix/x0vncserver/Geometry.cxx:94
+msgid "Specified desktop geometry is invalid"
+msgstr ""
+
+#: unix/x0vncserver/Geometry.cxx:66
+#, c-format
+msgid "Desktop geometry is set to %dx%d+%d+%d"
+msgstr ""
+
+#: unix/x0vncserver/Geometry.cxx:89
+msgid "Requested area is outsize of the desktop boundaries"
+msgstr ""
+
+#. TRANSLATORS: This is a X11 term
+#: unix/x0vncserver/Image.cxx:87 unix/x0vncserver/Image.cxx:252
+#: unix/xserver/hw/vnc/vncExtInit.cc:153
+#, fuzzy
+msgid "Pseudocolour is not supported"
+msgstr "Chỉ hỗ trợ hiển thị màu thật"
+
+#: unix/x0vncserver/Image.cxx:357
+msgid "Failed to create shared memory image, falling back to Xlib image"
+msgstr ""
+
+#: unix/x0vncserver/PollingManager.cxx:84
+#, c-format
+msgid "Image types do not match (%s, %s, %s)"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:69
+msgid "Use MIT-SHM extension if available"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:77 unix/xserver/hw/vnc/XserverDesktop.cc:72
+#: win/winvnc/QueryConnectDialog.cxx:41
+msgid ""
+"Number of seconds to show the 'Accept connection' dialog before rejecting "
+"the connection"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:104 unix/x0vncserver/XDesktop.cxx:105
+msgid "XKEYBOARD extension not present"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:137 unix/x0vncserver/XDesktop.cxx:141
+#, fuzzy, c-format
+msgid "Using %s codemap"
+msgstr "Đang dùng bảng mã %s"
+
+#: unix/x0vncserver/XDesktop.cxx:143
+#, fuzzy, c-format
+msgid "Unknown keycodes name '%s'"
+msgstr "Bảng mã chưa biết %d"
+
+#: unix/x0vncserver/XDesktop.cxx:164
+msgid "XTest extension not present, all connections will be view only"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:177
+msgid "DAMAGE extension not present, will have to poll the screen for changes"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:196
+msgid ""
+"XFIXES extension not present, will not be able to display the cursor or "
+"monitor the clipboard"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:215
+msgid "RANDR extension not present, will not be able to resize the desktop"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:337 unix/xserver/hw/vnc/XserverDesktop.cc:177
+#: win/winvnc/VNCServerWin32.cxx:250
+#, fuzzy
+msgid "Another connection is currently being queried."
+msgstr "Kết nối này là không an toàn"
+
+#: unix/x0vncserver/XDesktop.cxx:344 unix/xserver/hw/vnc/XserverDesktop.cc:192
+#: win/winvnc/QueryConnectDialog.cxx:94
+msgid "(anonymous)"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:568 unix/xserver/hw/vnc/vncInput.c:487
+#, c-format
+msgid "Failed to add new keysym XK_%s (0x%04x)"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:596 unix/xserver/hw/vnc/vncInput.c:502
+#, c-format
+msgid "Could not map keysym XK_%s (0x%04x) to keycode"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:627 unix/x0vncserver/XDesktop.cxx:701
+msgid "Failed to get screen layout"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:803
+msgid "Failed to find a suitable screen size"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:1063
+#, fuzzy, c-format
+msgid "Failed to update cursor: %s"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
+
+#: unix/x0vncserver/XSelection.cxx:87 unix/xserver/hw/vnc/vncSelection.c:142
+msgid "Could not set CLIPBOARD selection"
+msgstr ""
+
+#: unix/x0vncserver/XSelection.cxx:92 unix/xserver/hw/vnc/vncSelection.c:137
+msgid "Could not set PRIMARY selection"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:71
+msgid ""
+"Milliseconds per one polling cycle; actual interval may be dynamically "
+"adjusted to satisfy MaxProcessorUsage setting"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:77
+msgid "Maximum percentage of CPU time to be consumed"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:98
+msgid "File with IP access control rules"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:161
+#, c-format
+msgid "Error getting listening sockets from systemd: %s"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:198
+msgid "Could not read IP filtering rules, rejecting all clients"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:378
+#, fuzzy
+msgid "Invalid geometry"
+msgstr "Hình dạng đã cho không hợp lệ!"
+
+#: unix/x0vncserver/x0vncserver.cxx:389
+msgid "Listening for VNC connections on systemd sockets"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:548
+msgid "Terminated"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XorgGlue.c:86
+msgid "No pixmap format that matches the root window depth\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XorgGlue.c:99
+msgid "No visual that matches the root window visual\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XserverDesktop.cc:322
+msgid "Cannot find file descriptor for socket event"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XserverDesktop.cc:441
+msgid "User requested disconnection"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XserverDesktop.cc:568
+msgid "The attempt to prompt the user to accept the connection failed"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:112
+#, c-format
+msgid "Unsupported pixel depth: %d\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:133
+msgid "Incompatible bits per pixel for GPU buffer\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:138 unix/xserver/hw/vnc/vncDRI3.c:228
+msgid "Incompatible stride for GPU buffer\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:211
+msgid "Incompatible bits per pixel for pixmap\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:223
+#, fuzzy, c-format
+msgid "Failed to create GPU buffer: %s\n"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:301 unix/xserver/hw/vnc/vncDRI3.c:362
+#, fuzzy, c-format
+msgid "Could not map GPU buffer: %s\n"
+msgstr "Không thể tạo ảnh bộ đệm khung"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:465
+#, c-format
+msgid "Invalid render node path: %s\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:488 unix/xserver/hw/vnc/vncDRI3.c:507
+msgid "Could not find any available render nodes\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:492
+msgid "Failed to enumerate render nodes\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:526
+#, fuzzy
+msgid "Could not create GPU render device\n"
+msgstr "Không thể tạo thiết bị bộ đệm khung"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:530
+msgid "Built without GPU render support\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:91
+msgid "Avoid fake Shift presses for keys affected by NumLock"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:95
+msgid ""
+"Comma separated list of parameters that are allowed to be modified after "
+"startup"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:172
+msgid "VNC extension incorrectly initialized twice in same generation"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:179
+msgid "Too many screens for VNC extension\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:185
+#, fuzzy
+msgid "VNC extension running"
+msgstr "Thông tin kết nối VNC"
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:207 unix/xserver/hw/vnc/vncExtInit.cc:277
+msgid "Listening for VNC connections on inetd socket"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:268
+#, c-format
+msgid "Created VNC server for screen %d"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:274
+msgid "Failed to listen for VNC connections on inetd socket"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:358
+#, fuzzy, c-format
+msgid "Failed to disconnect clients: %s"
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:371
+#, c-format
+msgid "Reverse connection: %s:%d%s%s"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:372
+msgid " (view only)"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:375
+msgid "Failed to add reverse connection socket"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:378
+#, c-format
+msgid "Failed to establish reverse connection: %s"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:120 unix/xserver/hw/vnc/vncInput.c:124
+#: unix/xserver/hw/vnc/vncInput.c:128
+msgid "Failed to create TigerVNC input devices\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:588
+msgid "Unable to find a modifier key for Shift"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:597
+msgid "Unable to find the modifier key(s) for releasing Shift"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:609
+msgid "Unable to find a modifier key for AltGr"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:618
+msgid "Unable to find the modifier key(s) for releasing AltGr"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:637
+#, c-format
+msgid "Keysym XK_%s (0x%04x) has been generated by both keys %d and %d"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:122
+#, c-format
+msgid "Xvnc %s - built %s\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:124
+#, c-format
+msgid "Underlying X server release %d\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:221
+msgid "VNC parameters:\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:285 unix/xserver/hw/vnc/xvnc.c:288
+#, c-format
+msgid "Invalid pixmap depth %d passed to -pixdepths\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:312 unix/xserver/hw/vnc/xvnc.c:315
+#, fuzzy, c-format
+msgid "Invalid geometry %s passed to -geometry\n"
+msgstr "Hình dạng đã cho không hợp lệ!"
+
+#: unix/xserver/hw/vnc/xvnc.c:335 unix/xserver/hw/vnc/xvnc.c:338
+#: unix/xserver/hw/vnc/xvnc.c:354 unix/xserver/hw/vnc/xvnc.c:357
+#, c-format
+msgid "Invalid pixel format %s passed to -pixelformat\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:368
+#, c-format
+msgid "Failed to allocate a new file descriptor for -inetd: %s\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:389
+msgid "No free display number for -inetd\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:657
+msgid "Unable to disable a CRTC that is outside of the new screen dimensions\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:665
+#, fuzzy, c-format
+msgid "Unable to create a custom display mode for %dx%d\n"
+msgstr "Không thể tạo bộ đệm khung đặc tả nền tảng: %s"
+
+#: unix/xserver/hw/vnc/xvnc.c:675
+msgid "Unable to crop CRTC to new screen dimensions\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1100
+msgid "Failed to initialize Present extension\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1105
+msgid "Failed to initialize DRI3 extension\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1116
+msgid ""
+"VNC extension does not support -reset, terminating instead. Use -noreset to "
+"prevent termination.\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1161
+msgid "MAXFORMATS is too small for this server\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1222
+msgid "inetd client gone. Terminating...\n"
+msgstr ""
+
+#: vncviewer/AudioOutput.cxx:48
+msgid "No audio playback device available"
+msgstr ""
+
+#: vncviewer/AudioOutputPulse.cxx:152 vncviewer/AudioOutputPulse.cxx:174
+#, fuzzy, c-format
+msgid "Could not connect to sound server: %s"
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: vncviewer/AudioOutputPulse.cxx:180
+#, fuzzy
+msgid "Timed out connecting to sound server"
+msgstr "Kết nối này là an toàn"
+
+#: vncviewer/AudioOutputPulse.cxx:236
+#, fuzzy, c-format
+msgid "Could not create audio playback stream: %s"
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: vncviewer/AudioOutputPulse.cxx:266
+#, c-format
+msgid "Could not open audio playback device: %s"
+msgstr ""
+
+#: vncviewer/AudioOutputPulse.cxx:396
+#, fuzzy
+msgid "Could not write to audio playback device"
+msgstr "Không thể tạo thiết bị bộ đệm khung"
+
+#: vncviewer/AudioOutputPulse.cxx:454
+#, fuzzy
+msgid "Lost connection to sound server"
+msgstr "Kết nối này là an toàn"
+
+#: vncviewer/AudioOutputPulse.cxx:470
+msgid "Audio playback stream failed"
+msgstr ""
+
+#: vncviewer/AudioOutputWin32.cxx:113
+#, fuzzy
+msgid "Could not open audio playback device"
+msgstr "Không thể tạo thiết bị bộ đệm khung"
+
+#: vncviewer/AuthDialog.cxx:70
+msgid "VNC authentication"
+msgstr "Xác thực VNC"
+
+#: vncviewer/AuthDialog.cxx:84
+msgid "This connection is secure"
+msgstr "Kết nối này là an toàn"
+
+#: vncviewer/AuthDialog.cxx:88
+msgid "This connection is not secure"
+msgstr "Kết nối này là không an toàn"
+
+#: vncviewer/AuthDialog.cxx:110
+msgid "Username:"
+msgstr "Tài khoản:"
+
+#: vncviewer/AuthDialog.cxx:128
+msgid "Keep password for reconnect"
+msgstr ""
+
+#: vncviewer/CConn.cxx:187
+#, fuzzy, c-format
+msgid "Connected to socket %s"
+msgstr "đã kết nối đến ổ cắm mạng %s"
+
+#: vncviewer/CConn.cxx:194
+#, fuzzy, c-format
+msgid "Connected to host %s port %d"
 msgstr "đã kết nối đến máy %s cổng %d"
 
-#: vncviewer/CConn.cxx:184
+#: vncviewer/CConn.cxx:199
+#, fuzzy, c-format
+msgid ""
+"Failed to connect to \"%s\":\n"
+"\n"
+"%s"
+msgstr "Gặp lỗi khi đọc tập tin cấu hình, không thể mở %s: %s"
+
+#: vncviewer/CConn.cxx:219
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Tên máy tính: %.80s"
 
-#: vncviewer/CConn.cxx:189
+#: vncviewer/CConn.cxx:222
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Máy: %.80s cổng: %d"
 
-#: vncviewer/CConn.cxx:194
+#: vncviewer/CConn.cxx:226
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Cỡ: %d x %d"
 
-#: vncviewer/CConn.cxx:202
+#: vncviewer/CConn.cxx:233
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Định dạng điểm ảnh: %s"
 
-#: vncviewer/CConn.cxx:209
-#, c-format
-msgid "(server default %s)"
-msgstr "(máy chủ mặc định %s)"
-
-#: vncviewer/CConn.cxx:214
+#: vncviewer/CConn.cxx:236
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Bộ mã đã yêu cầu: %s"
 
-#: vncviewer/CConn.cxx:219
+#: vncviewer/CConn.cxx:240
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Bảng mã dùng lần cuối: %s"
 
-#: vncviewer/CConn.cxx:224
+#: vncviewer/CConn.cxx:244
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Ước tính tốc độ đường dây: %d kbit/s"
 
-#: vncviewer/CConn.cxx:229
+#: vncviewer/CConn.cxx:248
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Phiên bản giao thức: %d.%d"
 
-#: vncviewer/CConn.cxx:234
+#: vncviewer/CConn.cxx:252
 #, c-format
 msgid "Security method: %s"
 msgstr "Phương thức bảo mật: %s"
 
-#: vncviewer/CConn.cxx:358
+#: vncviewer/CConn.cxx:310 vncviewer/CConn.cxx:312
+msgid ""
+"The connection was dropped by the server before the session could be "
+"established."
+msgstr ""
+
+#: vncviewer/CConn.cxx:323
+#, fuzzy, c-format
+msgid "Authentication failed: %s"
+msgstr "Xác thực bị hủy bỏ"
+
+#: vncviewer/CConn.cxx:324
 #, c-format
-msgid "SetDesktopSize failed: %d"
-msgstr "SetDesktopSize gặp lỗi: %d"
+msgid ""
+"Failed to authenticate with the server. Reason given by the server:\n"
+"\n"
+"%s"
+msgstr ""
 
-#: vncviewer/CConn.cxx:428
-msgid "Invalid SetColourMapEntries from server!"
-msgstr "SetColourMapEntries từ máy phục vụ không hợp lệ!"
+#: vncviewer/CConn.cxx:486 vncviewer/CConn.cxx:502
+msgid "Failed to get certificate problem description"
+msgstr ""
 
-#: vncviewer/CConn.cxx:479
-msgid "Enabling continuous updates"
-msgstr "Đang bật cập nhật liên tục"
+#: vncviewer/CConn.cxx:489
+#, c-format
+msgid "Invalid server certificate: %s"
+msgstr ""
 
-#: vncviewer/CConn.cxx:556
+#: vncviewer/CConn.cxx:505
+#, c-format
+msgid "Server certificate problems: %s"
+msgstr ""
+
+#: vncviewer/CConn.cxx:529
+msgid "Server has an existing security exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:535
+msgid "Failed to load list of servers with a security exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:541
+msgid "Failed to decode server certificate"
+msgstr ""
+
+#: vncviewer/CConn.cxx:547
+msgid "Failed to format server certificate for display"
+msgstr ""
+
+#: vncviewer/CConn.cxx:564
+msgid "Server host is not previously known"
+msgstr ""
+
+#: vncviewer/CConn.cxx:572
+msgid "This certificate has been signed by an unknown authority:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:574 vncviewer/CConn.cxx:593 vncviewer/CConn.cxx:610
+#: vncviewer/CConn.cxx:627 vncviewer/CConn.cxx:647 vncviewer/CConn.cxx:679
+#: vncviewer/CConn.cxx:699 vncviewer/CConn.cxx:717 vncviewer/CConn.cxx:735
+#: vncviewer/CConn.cxx:756
+msgid ""
+"Someone could be trying to impersonate the site and you should not continue."
+msgstr ""
+
+#: vncviewer/CConn.cxx:576 vncviewer/CConn.cxx:595 vncviewer/CConn.cxx:612
+#: vncviewer/CConn.cxx:629 vncviewer/CConn.cxx:649 vncviewer/CConn.cxx:681
+#: vncviewer/CConn.cxx:701 vncviewer/CConn.cxx:719 vncviewer/CConn.cxx:737
+#: vncviewer/CConn.cxx:758
+msgid "Do you want to make an exception for this server?"
+msgstr ""
+
+#: vncviewer/CConn.cxx:578
+msgid "Unknown certificate issuer"
+msgstr ""
+
+#: vncviewer/CConn.cxx:579 vncviewer/CConn.cxx:598 vncviewer/CConn.cxx:615
+#: vncviewer/CConn.cxx:632 vncviewer/CConn.cxx:652 vncviewer/CConn.cxx:684
+#: vncviewer/CConn.cxx:704 vncviewer/CConn.cxx:722 vncviewer/CConn.cxx:740
+#: vncviewer/CConn.cxx:761
+msgid "Add exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:591
+msgid "This certificate is not yet valid:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:597
+msgid "Certificate is not yet valid"
+msgstr ""
+
+#: vncviewer/CConn.cxx:608
+msgid "This certificate has expired:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:614
+msgid "Expired certificate"
+msgstr ""
+
+#: vncviewer/CConn.cxx:625
+msgid "This certificate uses an insecure algorithm:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:631
+msgid "Insecure certificate algorithm"
+msgstr ""
+
+#: vncviewer/CConn.cxx:643
+#, c-format
+msgid ""
+"The specified hostname \"%s\" does not match the certificate provided by the "
+"server:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:651
+msgid "Certificate hostname mismatch"
+msgstr ""
+
+#: vncviewer/CConn.cxx:667
+msgid "Server host certificate has changed"
+msgstr ""
+
+#: vncviewer/CConn.cxx:675
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate has been signed by an unknown authority:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:683 vncviewer/CConn.cxx:703 vncviewer/CConn.cxx:721
+#: vncviewer/CConn.cxx:739 vncviewer/CConn.cxx:760
+msgid "Unexpected server certificate"
+msgstr ""
+
+#: vncviewer/CConn.cxx:696
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate is not yet valid:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:714
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate has expired:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:732
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate uses an insecure algorithm:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:751
+#, c-format
+msgid ""
+"This host is previously known with a different certificate, and the "
+"specified hostname \"%s\" does not match the new certificate provided by the "
+"server:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:778
+msgid ""
+"Failed to store server certificate to list of servers with a security "
+"exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:781
+msgid "Security exception added for server host"
+msgstr ""
+
+#: vncviewer/CConn.cxx:791
+#, c-format
+msgid ""
+"The server has provided the following identifying information:\n"
+"\n"
+"Fingerprint: %s\n"
+"\n"
+"Do you want to continue connecting to this server?"
+msgstr ""
+
+#: vncviewer/CConn.cxx:797
+msgid "Verify server key"
+msgstr ""
+
+#: vncviewer/CConn.cxx:798
+msgid "Continue"
+msgstr ""
+
+#: vncviewer/CConn.cxx:1010
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Băng thông %d kbit/s - đổi thành chất lượng %d"
 
-#: vncviewer/CConn.cxx:578
-#, c-format
-msgid "Throughput %d kbit/s - full color is now %s"
+#: vncviewer/CConn.cxx:1041
+#, fuzzy, c-format
+msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "Băng thông %d kbit/s - màu đầy đủ giờ là %s"
 
-#: vncviewer/CConn.cxx:580
-msgid "disabled"
-msgstr "tắt"
+#: vncviewer/CConn.cxx:1044
+#, fuzzy, c-format
+msgid "Throughput %d kbit/s - full color is now disabled"
+msgstr "Băng thông %d kbit/s - màu đầy đủ giờ là %s"
 
-#: vncviewer/CConn.cxx:580
-msgid "enabled"
-msgstr "bật"
-
-#: vncviewer/CConn.cxx:590
-#, c-format
-msgid "Using %s encoding"
-msgstr "Đang dùng bảng mã %s"
-
-#: vncviewer/CConn.cxx:637
+#: vncviewer/CConn.cxx:1063
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Đang dùng định dạng điểm ảnh %s"
 
-#: vncviewer/DesktopWindow.cxx:122
+#: vncviewer/DesktopWindow.cxx:154
 msgid "Invalid geometry specified!"
 msgstr "Hình dạng đã cho không hợp lệ!"
 
-#: vncviewer/DesktopWindow.cxx:451
-msgid "Adjusting window size to avoid accidental full screen request"
-msgstr "Chỉnh cỡ cửa sổ để tránh yêu cầu toàm màn hình ngẫu nhiên"
+#: vncviewer/DesktopWindow.cxx:175
+msgid "Reducing window size to fit on current monitor"
+msgstr ""
 
-#: vncviewer/DesktopWindow.cxx:495
-#, c-format
-msgid "Press %s to open the context menu"
+#: vncviewer/DesktopWindow.cxx:246
+#, fuzzy, c-format
+msgid "Press %sM to open the context menu"
 msgstr "Nhấn vào %s to open the context menu để mở trình đơn ngữ cảnh"
 
-#: vncviewer/DesktopWindow.cxx:794 vncviewer/DesktopWindow.cxx:802
-#: vncviewer/DesktopWindow.cxx:822
-msgid "Failure grabbing keyboard"
+#: vncviewer/DesktopWindow.cxx:323
+#, c-format
+msgid "%s - TidyVNC (keyboard grabbed)"
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:325
+#, c-format
+msgid "%s - TidyVNC"
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:691
+#, fuzzy
+msgid "Adjusting window size to avoid accidental full-screen request"
+msgstr "Chỉnh cỡ cửa sổ để tránh yêu cầu toàm màn hình ngẫu nhiên"
+
+#: vncviewer/DesktopWindow.cxx:927
+#, c-format
+msgid "Press %sEnter to leave full-screen mode"
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:1157
+msgid ""
+"Monitor pixel sizes differ; the remote monitor arrangement has been adjusted."
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:1171
+msgid "Per-monitor fullscreen unavailable; using a single spanning window."
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:1362 vncviewer/DesktopWindow.cxx:1363
+#: vncviewer/DesktopWindow.cxx:1371 vncviewer/DesktopWindow.cxx:1372
+#: vncviewer/DesktopWindow.cxx:1380 vncviewer/DesktopWindow.cxx:1381
+#, fuzzy
+msgid "Failure grabbing control of the keyboard"
 msgstr "Gặp lỗi khi điều khiển bàn phím"
 
-#: vncviewer/DesktopWindow.cxx:896
-msgid "Failure grabbing mouse"
-msgstr "Gặp lỗi khi điều khiển chuột"
+#: vncviewer/DesktopWindow.cxx:1398
+#, c-format
+msgid "Press %s to release keyboard control from the session"
+msgstr ""
 
-#: vncviewer/DesktopWindow.cxx:1120
+#: vncviewer/DesktopWindow.cxx:1700
 msgid "Invalid screen layout computed for resize request!"
 msgstr "Bố cục màn hình đã tính toán không hợp lệ cho yêu cầu đổi cỡ!"
 
-#: vncviewer/OptionsDialog.cxx:57
-msgid "VNC Viewer: Connection Options"
-msgstr "Bộ xem VNC: Các tùy chọn kết nối"
-
-#: vncviewer/OptionsDialog.cxx:83 vncviewer/ServerDialog.cxx:91
-#: vncviewer/vncviewer.cxx:282
-msgid "Cancel"
-msgstr "Thôi"
-
-#: vncviewer/OptionsDialog.cxx:88 vncviewer/vncviewer.cxx:281
-msgid "OK"
-msgstr "Đồng ý"
-
-#: vncviewer/OptionsDialog.cxx:423
-msgid "Compression"
-msgstr "Nén"
-
-#: vncviewer/OptionsDialog.cxx:439
-msgid "Auto select"
-msgstr "Chọn tự động"
-
-#: vncviewer/OptionsDialog.cxx:451
-msgid "Preferred encoding"
-msgstr "Bảng mã ưa thích"
-
-#: vncviewer/OptionsDialog.cxx:499
-msgid "Color level"
-msgstr "Mức màu"
-
-#: vncviewer/OptionsDialog.cxx:510
-msgid "Full (all available colors)"
-msgstr "Đầy đủ (mọi màu sẵn có)"
-
-#: vncviewer/OptionsDialog.cxx:517
-msgid "Medium (256 colors)"
-msgstr "Trung bình (256 màu)"
-
-#: vncviewer/OptionsDialog.cxx:524
-msgid "Low (64 colors)"
-msgstr "Thấp (64 màu)"
-
-#: vncviewer/OptionsDialog.cxx:531
-msgid "Very low (8 colors)"
-msgstr "Rất thấp (8 màu)"
-
-#: vncviewer/OptionsDialog.cxx:548
-msgid "Custom compression level:"
-msgstr "Mức nén tự chọn:"
-
-#: vncviewer/OptionsDialog.cxx:554
-msgid "level (1=fast, 6=best [4-6 are rarely useful])"
-msgstr "mức độ (1=nhanh, 6=tốt nhất [4-6 là hữu dụng hơn cả])"
-
-#: vncviewer/OptionsDialog.cxx:561
-msgid "Allow JPEG compression:"
-msgstr "Cho phép nén JPEG:"
-
-#: vncviewer/OptionsDialog.cxx:567
-msgid "quality (0=poor, 9=best)"
-msgstr "Chất lượng (0=kém, 9=tốt nhất)"
-
-#: vncviewer/OptionsDialog.cxx:578
-msgid "Security"
-msgstr "Bảo mật"
-
-#: vncviewer/OptionsDialog.cxx:593
-msgid "Encryption"
-msgstr "Mã hóa"
-
-#: vncviewer/OptionsDialog.cxx:604 vncviewer/OptionsDialog.cxx:657
-#: vncviewer/OptionsDialog.cxx:737
-msgid "None"
-msgstr "Không có gì"
-
-#: vncviewer/OptionsDialog.cxx:610
-msgid "TLS with anonymous certificates"
-msgstr "TLS với chứng nhận nặc danh"
-
-#: vncviewer/OptionsDialog.cxx:616
-msgid "TLS with X509 certificates"
-msgstr "TLS với chứng nhận X509"
-
-#: vncviewer/OptionsDialog.cxx:623
-msgid "Path to X509 CA certificate"
-msgstr "Đường dẫn chứng nhận CA X509"
-
-#: vncviewer/OptionsDialog.cxx:630
-msgid "Path to X509 CRL file"
-msgstr "Đường dẫn đến tập tin CRL X509"
-
-#: vncviewer/OptionsDialog.cxx:646
-msgid "Authentication"
-msgstr "Xác thực"
-
-#: vncviewer/OptionsDialog.cxx:663
-msgid "Standard VNC (insecure without encryption)"
-msgstr "VNC tiêu chuẩn (không bảo mật, không mã hóa)"
-
-#: vncviewer/OptionsDialog.cxx:669
-msgid "Username and password (insecure without encryption)"
-msgstr "Tài khoản và mật khẩu (không bảo mật, không mã hóa)"
-
-#: vncviewer/OptionsDialog.cxx:688
-msgid "Input"
-msgstr "Đầu vào"
-
-#: vncviewer/OptionsDialog.cxx:696
-msgid "View only (ignore mouse and keyboard)"
-msgstr "Chỉ xem (không bắt chuột và bàn phím)"
-
-#: vncviewer/OptionsDialog.cxx:702
-msgid "Accept clipboard from server"
-msgstr "Chấp nhận clipboard từ máy chủ"
-
-#: vncviewer/OptionsDialog.cxx:710
-msgid "Also set primary selection"
-msgstr "Cũng đặt chọn chính"
-
-#: vncviewer/OptionsDialog.cxx:717
-msgid "Send clipboard to server"
-msgstr "Gửi clipboard đến máy chủ"
-
-#: vncviewer/OptionsDialog.cxx:725
-msgid "Send primary selection as clipboard"
-msgstr "Gửi chọn chính là clipboard"
-
-#: vncviewer/OptionsDialog.cxx:732
-msgid "Pass system keys directly to server (full screen)"
-msgstr "Gửi các phím hệ thống trực tiếp đến máy phục vụ (toàn màn hình)"
-
-#: vncviewer/OptionsDialog.cxx:735
-msgid "Menu key"
-msgstr "Phím trình đơn"
-
-#: vncviewer/OptionsDialog.cxx:751
-msgid "Screen"
-msgstr "Màn hình"
-
-#: vncviewer/OptionsDialog.cxx:759
-msgid "Resize remote session on connect"
-msgstr "Đổi cỡ phiên máy từ xa khi kết nối"
-
-#: vncviewer/OptionsDialog.cxx:772
-msgid "Resize remote session to the local window"
-msgstr "Đổi cỡ phiên thành cửa sổ nội bộ"
-
-#: vncviewer/OptionsDialog.cxx:778
-msgid "Full-screen mode"
-msgstr "Chế độ toàn màn hình"
-
-#: vncviewer/OptionsDialog.cxx:784
-msgid "Enable full-screen mode over all monitors"
-msgstr "Bật chế độ toàn màn hình qua tất cả các màn hình"
-
-#: vncviewer/OptionsDialog.cxx:793
-msgid "Misc."
-msgstr "Linh tinh"
-
-#: vncviewer/OptionsDialog.cxx:801
-msgid "Shared (don't disconnect other viewers)"
-msgstr "Đã chia sẻ (đừng ngắt kết nối các bộ xem khác)"
-
-#: vncviewer/OptionsDialog.cxx:807
-msgid "Show dot when no cursor"
-msgstr "Hiển thị chấm khi không có con trỏ"
-
-#: vncviewer/ServerDialog.cxx:42
-msgid "VNC Viewer: Connection Details"
-msgstr "Phần mềm xem VNC: Chi tiết kết nối"
-
-#: vncviewer/ServerDialog.cxx:49 vncviewer/ServerDialog.cxx:54
-msgid "VNC server:"
-msgstr "Máy phục vụ VNC:"
-
-#: vncviewer/ServerDialog.cxx:64
-msgid "Options..."
-msgstr "Tùy chọn…"
-
-#: vncviewer/ServerDialog.cxx:69
-msgid "Load..."
-msgstr "Tải…"
-
-#: vncviewer/ServerDialog.cxx:74
-msgid "Save As..."
-msgstr "Lưu thành…"
-
-#: vncviewer/ServerDialog.cxx:86
-msgid "About..."
-msgstr "Giới thiệu…"
-
-#: vncviewer/ServerDialog.cxx:96
-msgid "Connect"
-msgstr "Kết nối"
-
-#: vncviewer/ServerDialog.cxx:137 vncviewer/ServerDialog.cxx:171
-msgid "TigerVNC configuration (*.tigervnc)"
-msgstr "Cấu hình TigerVNC (*.tigervnc)"
-
-#: vncviewer/ServerDialog.cxx:138
-msgid "Select a TigerVNC configuration file"
-msgstr "Chọn một tập tin cấu hình TigerVNC"
-
-#: vncviewer/ServerDialog.cxx:172
-msgid "Save the TigerVNC configuration to file"
-msgstr "Lưu cấu hình TigerVNC vào tập tin"
-
-#: vncviewer/ServerDialog.cxx:197
-#, c-format
-msgid "%s already exists. Do you want to overwrite?"
-msgstr "%s đã sẵn có. Bạn có muốn ghi đè không?"
-
-#: vncviewer/ServerDialog.cxx:198 vncviewer/vncviewer.cxx:279
-msgid "No"
-msgstr "Không"
-
-#: vncviewer/ServerDialog.cxx:198
-msgid "Overwrite"
-msgstr "Ghi đè"
-
-#: vncviewer/UserDialog.cxx:85
-msgid "Opening password file failed"
-msgstr "Gặp lỗi khi mở tập tin mật khẩu"
-
-#: vncviewer/UserDialog.cxx:105
-msgid "VNC authentication"
-msgstr "Xác thực VNC"
-
-#: vncviewer/UserDialog.cxx:112
-msgid "This connection is secure"
-msgstr "Kết nối này là an toàn"
-
-#: vncviewer/UserDialog.cxx:116
-msgid "This connection is not secure"
-msgstr "Kết nối này là không an toàn"
-
-#: vncviewer/UserDialog.cxx:133
-msgid "Username:"
-msgstr "Tài khoản:"
-
-#: vncviewer/UserDialog.cxx:140
-msgid "Password:"
-msgstr "Mật khẩu:"
-
-#: vncviewer/UserDialog.cxx:179
-msgid "Authentication cancelled"
-msgstr "Xác thực bị hủy bỏ"
-
-#: vncviewer/Viewport.cxx:377
-#, c-format
-msgid "Failed to update keyboard LED state: %lu"
-msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím: %lu"
-
-#: vncviewer/Viewport.cxx:383 vncviewer/Viewport.cxx:389
-#, c-format
-msgid "Failed to update keyboard LED state: %d"
-msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím: %d"
-
-#: vncviewer/Viewport.cxx:419
-msgid "Failed to update keyboard LED state"
-msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím"
-
-#: vncviewer/Viewport.cxx:446 vncviewer/Viewport.cxx:454
-#: vncviewer/Viewport.cxx:471
-#, c-format
-msgid "Failed to get keyboard LED state: %d"
-msgstr "Gặp lỗi khi lấy trạng thái LED bàn phím: %d"
-
-#: vncviewer/Viewport.cxx:817
-msgid "No key code specified on key press"
-msgstr "Không có mã mô tả cho phím bấm"
-
-#: vncviewer/Viewport.cxx:959
-#, c-format
-msgid "No scan code for extended virtual key 0x%02x"
-msgstr "Không có mã quét cho phím ảo mở rộng 0x%02x"
-
-#: vncviewer/Viewport.cxx:961
-#, c-format
-msgid "No scan code for virtual key 0x%02x"
-msgstr "Không có mã quét cho phím ảo 0x%02x"
-
-#: vncviewer/Viewport.cxx:967
-#, c-format
-msgid "Invalid scan code 0x%02x"
-msgstr "Mã quét không hợp lệ 0x%02x"
-
-#: vncviewer/Viewport.cxx:997
-#, c-format
-msgid "No symbol for extended virtual key 0x%02x"
-msgstr "Không có ký hiệu cho phím ảo mở rộng 0x%02x"
-
-#: vncviewer/Viewport.cxx:999
-#, c-format
-msgid "No symbol for virtual key 0x%02x"
-msgstr "Không có ký hiệu cho phím ảo 0x%02x"
-
-#: vncviewer/Viewport.cxx:1086
-#, c-format
-msgid "No symbol for key code 0x%02x (in the current state)"
-msgstr "Không có ký hiệu cho mã phím 0x%02x (trong trạng thái hiện tại)"
-
-#: vncviewer/Viewport.cxx:1119
+#: vncviewer/EmulateMB.cxx:228 vncviewer/EmulateMB.cxx:291
+msgid "Invalid state for 3 button emulation"
+msgstr ""
+
+#: vncviewer/KeyboardMacOS.mm:199 vncviewer/KeyboardX11.cxx:169
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Không có ký hiệu cho mã phím %d (trong trạng thái hiện tại)"
 
-#: vncviewer/Viewport.cxx:1170
-msgctxt "ContextMenu|"
-msgid "E&xit viewer"
-msgstr "T&hoát khỏi bộ xem"
+#: vncviewer/KeyboardMacOS.mm:271 vncviewer/KeyboardMacOS.mm:279
+#: vncviewer/KeyboardX11.cxx:220
+#, c-format
+msgid "Failed to get keyboard LED state: %d"
+msgstr "Gặp lỗi khi lấy trạng thái LED bàn phím: %d"
 
-#: vncviewer/Viewport.cxx:1173
+#: vncviewer/KeyboardMacOS.mm:296 vncviewer/KeyboardMacOS.mm:302
+#: vncviewer/KeyboardX11.cxx:265
+#, c-format
+msgid "Failed to update keyboard LED state: %d"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím: %d"
+
+#: vncviewer/KeyboardWin32.cxx:255
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Không có mã quét cho phím ảo mở rộng 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:257
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Không có mã quét cho phím ảo 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:263
+#, c-format
+msgid "Invalid scan code 0x%02x"
+msgstr "Mã quét không hợp lệ 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:292 vncviewer/KeyboardWin32.cxx:308
+#: vncviewer/KeyboardWin32.cxx:320
+msgid "Unmatched UTF-16 surrogate pair through VK_PACKET"
+msgstr ""
+
+#: vncviewer/KeyboardWin32.cxx:334
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Không có ký hiệu cho phím ảo mở rộng 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:336
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Không có ký hiệu cho phím ảo 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:613
+#, c-format
+msgid "Failed to update keyboard LED state: %lu"
+msgstr "Gặp lỗi khi cập nhật trạng thái LED bàn phím: %lu"
+
+#: vncviewer/MonitorIndicesParameter.cxx:52
+#: vncviewer/MonitorIndicesParameter.cxx:84
+msgid "Failed to get system monitor configuration"
+msgstr ""
+
+#: vncviewer/MonitorIndicesParameter.cxx:72
+#, c-format
+msgid "Monitor index %d does not exist"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:75
+msgid "TidyVNC options"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:110 vncviewer/ServerDialog.cxx:110
+#: vncviewer/vncviewer.cxx:335
+msgid "Cancel"
+msgstr "Thôi"
+
+#: vncviewer/OptionsDialog.cxx:115 vncviewer/vncviewer.cxx:334
+msgid "OK"
+msgstr "Đồng ý"
+
+#: vncviewer/OptionsDialog.cxx:556
+msgid "Compression"
+msgstr "Nén"
+
+#: vncviewer/OptionsDialog.cxx:573
+msgid "Auto select"
+msgstr "Chọn tự động"
+
+#: vncviewer/OptionsDialog.cxx:580
+#, fuzzy
+msgid "Allow JPEG compression"
+msgstr "Cho phép nén JPEG:"
+
+#: vncviewer/OptionsDialog.cxx:590
+msgid "Preferred encoding"
+msgstr "Bảng mã ưa thích"
+
+#: vncviewer/OptionsDialog.cxx:658
+msgid "Color level"
+msgstr "Mức màu"
+
+#: vncviewer/OptionsDialog.cxx:670
+msgid "Full"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:677
+msgid "Medium"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:684
+msgid "Low"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:691
+msgid "Very low"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:713
+#, fuzzy
+msgid "Custom compression level"
+msgstr "Mức nén tự chọn:"
+
+#: vncviewer/OptionsDialog.cxx:726
+#, fuzzy
+msgid "level (0=fast, 9=best)"
+msgstr "Chất lượng (0=kém, 9=tốt nhất)"
+
+#: vncviewer/OptionsDialog.cxx:745
+msgid "Quality level"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:756
+msgid "quality (0=poor, 9=best)"
+msgstr "Chất lượng (0=kém, 9=tốt nhất)"
+
+#: vncviewer/OptionsDialog.cxx:780
+msgid "Security"
+msgstr "Bảo mật"
+
+#: vncviewer/OptionsDialog.cxx:794
+msgid "Encryption"
+msgstr "Mã hóa"
+
+#: vncviewer/OptionsDialog.cxx:806 vncviewer/OptionsDialog.cxx:873
+msgid "None"
+msgstr "Không có gì"
+
+#: vncviewer/OptionsDialog.cxx:813
+msgid "TLS with anonymous certificates"
+msgstr "TLS với chứng nhận nặc danh"
+
+#: vncviewer/OptionsDialog.cxx:819
+msgid "TLS with X509 certificates"
+msgstr "TLS với chứng nhận X509"
+
+#: vncviewer/OptionsDialog.cxx:826
+msgid "Path to X509 CA certificate"
+msgstr "Đường dẫn chứng nhận CA X509"
+
+#: vncviewer/OptionsDialog.cxx:833
+msgid "Path to X509 CRL file"
+msgstr "Đường dẫn đến tập tin CRL X509"
+
+#: vncviewer/OptionsDialog.cxx:861
+msgid "Authentication"
+msgstr "Xác thực"
+
+#: vncviewer/OptionsDialog.cxx:879
+msgid "Standard VNC (insecure without encryption)"
+msgstr "VNC tiêu chuẩn (không bảo mật, không mã hóa)"
+
+#: vncviewer/OptionsDialog.cxx:885
+msgid "Username and password (insecure without encryption)"
+msgstr "Tài khoản và mật khẩu (không bảo mật, không mã hóa)"
+
+#: vncviewer/OptionsDialog.cxx:913
+msgid "Input"
+msgstr "Đầu vào"
+
+#: vncviewer/OptionsDialog.cxx:926
+msgid "View only (ignore mouse and keyboard)"
+msgstr "Chỉ xem (không bắt chuột và bàn phím)"
+
+#: vncviewer/OptionsDialog.cxx:933
+msgid "Mouse"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:945
+msgid "Emulate middle mouse button"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:951
+msgid "Show local cursor when not provided by server"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:956
+msgid "Cursor type"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:958
+msgid "Dot"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:959
+msgid "System"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:979
+msgid "Keyboard"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:990
+msgid "Always send all keyboard input in full screen"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1007
+msgid "Clipboard"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1019
+msgid "Accept clipboard from server"
+msgstr "Chấp nhận clipboard từ máy chủ"
+
+#: vncviewer/OptionsDialog.cxx:1034
+msgid "Send clipboard to server"
+msgstr "Gửi clipboard đến máy chủ"
+
+#: vncviewer/OptionsDialog.cxx:1042
+msgid "Send primary selection as clipboard"
+msgstr "Gửi chọn chính là clipboard"
+
+#: vncviewer/OptionsDialog.cxx:1063
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1070
+msgid "Modifier keys for keyboard shortcuts:"
+msgstr ""
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1083 vncviewer/ShortcutHandler.cxx:210
+#, fuzzy
+msgid "Ctrl"
+msgstr "&Ctrl"
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1091 vncviewer/ShortcutHandler.cxx:218
+msgid "Shift"
+msgstr ""
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1099 vncviewer/ShortcutHandler.cxx:226
+msgid "Alt"
+msgstr "Alt"
+
+#. TRANSLATORS: This refers to the
+#. keyboard key
+#. *
+#: vncviewer/OptionsDialog.cxx:1107 vncviewer/ShortcutHandler.cxx:234
+msgid "Win"
+msgstr ""
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1113
+#, fuzzy
+msgid "⌃ Ctrl"
+msgstr "&Ctrl"
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1115
+msgid "⇧ Shift"
+msgstr ""
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1117
+#, fuzzy
+msgid "⌥ Option"
+msgstr "Tùy chọn…"
+
+#. TRANSLATORS: This refers to the keyboard key
+#: vncviewer/OptionsDialog.cxx:1119
+msgid "⌘ Cmd"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1133
+msgid "Display"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1147
+msgid "Display mode"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1160
+msgid "Windowed"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1168
+msgid "Full screen on current monitor"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1176
+#, fuzzy
+msgid "Full screen on all monitors"
+msgstr "Bật chế độ toàn màn hình qua tất cả các màn hình"
+
+#: vncviewer/OptionsDialog.cxx:1184
+#, fuzzy
+msgid "Full screen on selected monitor(s)"
+msgstr "Bật chế độ toàn màn hình qua tất cả các màn hình"
+
+#: vncviewer/OptionsDialog.cxx:1222
+msgid ""
+"Full screen on multiple monitors is not supported when the system setting "
+"\"Displays have separate Spaces\" is enabled"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1226
+msgid ""
+"Full screen on multiple monitors is not supported by the current desktop "
+"environment"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1258
+msgid "Miscellaneous"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1266
+msgid "Shared (don't disconnect other viewers)"
+msgstr "Đã chia sẻ (đừng ngắt kết nối các bộ xem khác)"
+
+#: vncviewer/OptionsDialog.cxx:1272
+msgid "Ask to reconnect on connection errors"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1279
+msgid "Play audio from the server"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1395
+msgid "All keyboard shortcuts are disabled."
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1406
+#, c-format
+msgid "To release keyboard control from the session, press %s."
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1411
+#, c-format
+msgid "To pass all keyboard input to the session, press %sG."
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1416
+#, fuzzy, c-format
+msgid "To toggle full-screen mode, press %sEnter."
+msgstr "Bật chế độ toàn màn hình qua tất cả các màn hình"
+
+#: vncviewer/OptionsDialog.cxx:1420
+#, c-format
+msgid "To open the session context menu, press %sM."
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1424
+#, c-format
+msgid ""
+"To send a key combination that includes %s directly to the session, press "
+"%sSpace, release the space bar without releasing %s, and press the desired "
+"key."
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1467
+msgid "Invalid desktop scaling"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1513
+msgid "Scaling"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1516
+msgid "Scaling mode:"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1518
+msgid "Automatic fit (stretch)"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1518
+msgid "Fit preserving aspect ratio"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1518
+msgid "No scaling"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Exact dimensions"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Fit height"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Fit width"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Independent percentages"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Percentage"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1523
+msgid "Size or percentage:"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1530
+msgid ""
+"Examples: 1920x1080, 137.5, 125%x80%. Auto and exact dimensions may distort "
+"the aspect ratio."
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1532
+msgid "Scaling quality:"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1534
+msgid "Area (best for shrinking)"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1534
+msgid "Bilinear"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1534
+msgid "Nearest"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1536
+msgid "Fixed scaling units (fit modes ignore this):"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1538
+msgid "Device pixels"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1538
+msgid "Logical units"
+msgstr ""
+
+#: vncviewer/ServerDialog.cxx:74
+msgid "VNC server:"
+msgstr "Máy phục vụ VNC:"
+
+#: vncviewer/ServerDialog.cxx:83
+msgid "Options..."
+msgstr "Tùy chọn…"
+
+#: vncviewer/ServerDialog.cxx:87
+msgid "Load..."
+msgstr "Tải…"
+
+#: vncviewer/ServerDialog.cxx:91
+#, fuzzy
+msgid "Save as..."
+msgstr "Lưu thành…"
+
+#: vncviewer/ServerDialog.cxx:105
+msgid "About..."
+msgstr "Giới thiệu…"
+
+#: vncviewer/ServerDialog.cxx:114
+msgid "Connect"
+msgstr "Kết nối"
+
+#: vncviewer/ServerDialog.cxx:145
+#, fuzzy, c-format
+msgid "Unable to load the server history: %s"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: vncviewer/ServerDialog.cxx:173 vncviewer/ServerDialog.cxx:213
+msgid "TigerVNC configuration (*.tigervnc)"
+msgstr "Cấu hình TigerVNC (*.tigervnc)"
+
+#: vncviewer/ServerDialog.cxx:174
+msgid "Select a TigerVNC configuration file"
+msgstr "Chọn một tập tin cấu hình TigerVNC"
+
+#: vncviewer/ServerDialog.cxx:196 vncviewer/vncviewer.cxx:465
+#, fuzzy, c-format
+msgid ""
+"Unable to load the specified configuration file:\n"
+"\n"
+"%s"
+msgstr "Lưu cấu hình TigerVNC vào tập tin"
+
+#: vncviewer/ServerDialog.cxx:214
+msgid "Save the TigerVNC configuration to file"
+msgstr "Lưu cấu hình TigerVNC vào tập tin"
+
+#: vncviewer/ServerDialog.cxx:240
+#, c-format
+msgid "%s already exists. Do you want to overwrite?"
+msgstr "%s đã sẵn có. Bạn có muốn ghi đè không?"
+
+#: vncviewer/ServerDialog.cxx:241 vncviewer/vncviewer.cxx:332
+msgid "No"
+msgstr "Không"
+
+#: vncviewer/ServerDialog.cxx:241
+msgid "Overwrite"
+msgstr "Ghi đè"
+
+#: vncviewer/ServerDialog.cxx:257
+#, fuzzy, c-format
+msgid ""
+"Unable to save the specified configuration file:\n"
+"\n"
+"%s"
+msgstr "Lưu cấu hình TigerVNC vào tập tin"
+
+#: vncviewer/ServerDialog.cxx:290
+#, c-format
+msgid "Unable to save the default configuration: %s"
+msgstr ""
+
+#: vncviewer/ServerDialog.cxx:301
+#, c-format
+msgid "Unable to save the server history: %s"
+msgstr ""
+
+#: vncviewer/ServerDialog.cxx:374 vncviewer/ServerDialog.cxx:383
+#: vncviewer/parameters.cxx:881 vncviewer/parameters.cxx:888
+#: vncviewer/parameters.cxx:922 vncviewer/parameters.cxx:958
+#: vncviewer/parameters.cxx:966
+#, fuzzy, c-format
+msgid "Failed to read line %d in file \"%s\""
+msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
+
+#: vncviewer/ServerDialog.cxx:387 vncviewer/parameters.cxx:892
+msgid "Line too long"
+msgstr "Dòng quá dài"
+
+#: vncviewer/Viewport.cxx:455
+#, c-format
+msgid ""
+"Scaled desktop exceeds the dimension limit; temporarily using 100%% Device"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:985 vncviewer/Viewport.cxx:1070
+#: vncviewer/vncviewer.cxx:151
+#, c-format
+msgid ""
+"An unexpected error occurred when communicating with the server:\n"
+"\n"
+"%s"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:1134
+msgctxt "ContextMenu|"
+msgid "Disconn&ect"
+msgstr ""
+
+#: vncviewer/Viewport.cxx:1137
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "T&oàn màn hình"
 
-#: vncviewer/Viewport.cxx:1176
+#: vncviewer/Viewport.cxx:1140
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "Thu &nhỏ"
 
-#: vncviewer/Viewport.cxx:1178
+#: vncviewer/Viewport.cxx:1142
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Đổi cỡ Cửa &sổ sang phiên"
 
-#: vncviewer/Viewport.cxx:1183
+#: vncviewer/Viewport.cxx:1147
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:1186
+#: vncviewer/Viewport.cxx:1150
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:1192
-#, c-format
-msgctxt "ContextMenu|"
-msgid "Send %s"
-msgstr "Gửi %s"
-
-#: vncviewer/Viewport.cxx:1198
+#: vncviewer/Viewport.cxx:1154
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "Gửi Ctrl-Alt-&Del"
 
-#: vncviewer/Viewport.cxx:1201
+#: vncviewer/Viewport.cxx:1157
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Làm mới màn hình"
 
-#: vncviewer/Viewport.cxx:1204
+#: vncviewer/Viewport.cxx:1160
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "Tù&y chọn…"
 
-#: vncviewer/Viewport.cxx:1206
+#: vncviewer/Viewport.cxx:1162
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Thông t&in về kết nối…"
 
-#: vncviewer/Viewport.cxx:1208
+#: vncviewer/Viewport.cxx:1164
+#, fuzzy
 msgctxt "ContextMenu|"
-msgid "About &TigerVNC viewer..."
-msgstr "Giới thiệu Bộ xem &TigerVNC…"
+msgid "About &TidyVNC..."
+msgstr "Giới thiệu Bộ xem &TidyVNC…"
 
-#: vncviewer/Viewport.cxx:1211
-msgctxt "ContextMenu|"
-msgid "Dismiss &menu"
-msgstr "Thải bỏ &Trình đơn"
-
-#: vncviewer/Viewport.cxx:1300
+#: vncviewer/Viewport.cxx:1253
 msgid "VNC connection info"
 msgstr "Thông tin kết nối VNC"
 
-#: vncviewer/parameters.cxx:279 vncviewer/parameters.cxx:313
-#, c-format
-msgid "The name of the parameter %s was too large to write to the registry"
-msgstr "Tên của tham số %s là quá lớn để ghi vào đăng ký"
+#: vncviewer/Win32TouchHandler.cxx:46
+msgid "Window is registered for touch instead of gestures"
+msgstr ""
 
-#: vncviewer/parameters.cxx:285 vncviewer/parameters.cxx:292
-#, c-format
-msgid "The parameter %s was too large to write to the registry"
-msgstr "Tham số %s là quá lớn để ghi vào đăng ký"
-
-#: vncviewer/parameters.cxx:298 vncviewer/parameters.cxx:319
-#, c-format
-msgid "Failed to write parameter %s of type %s to the registry: %ld"
-msgstr "Gặp lỗi khi ghi tham số %s của kiểu %s vào sổ đăng ký: %ld"
-
-#: vncviewer/parameters.cxx:334 vncviewer/parameters.cxx:373
-#, c-format
-msgid "The name of the parameter %s was too large to read from the registry"
-msgstr "Tên của tham số %s là quá lớn để đọc từ sổ đăng ký"
-
-#: vncviewer/parameters.cxx:343 vncviewer/parameters.cxx:382
-#, c-format
-msgid "Failed to read parameter %s from the registry: %ld"
-msgstr "Gặp lỗi khi đọc tham số %s từ sổ đăng ký: %ld"
-
-#: vncviewer/parameters.cxx:352
-#, c-format
-msgid "The parameter %s was too large to read from the registry"
-msgstr "Tham số %s là quá lớn để đọc từ sổ đăng ký"
-
-#: vncviewer/parameters.cxx:402
-#, c-format
-msgid "Failed to create registry key: %ld"
-msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
-
-#: vncviewer/parameters.cxx:416 vncviewer/parameters.cxx:465
-#: vncviewer/parameters.cxx:527 vncviewer/parameters.cxx:660
-#, c-format
-msgid "Unknown parameter type for parameter %s"
-msgstr "Không hiểu kiểu tham số cho đối số %s"
-
-#: vncviewer/parameters.cxx:423 vncviewer/parameters.cxx:472
-#, c-format
-msgid "Failed to close registry key: %ld"
-msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
-
-#: vncviewer/parameters.cxx:439
-#, c-format
-msgid "Failed to open registry key: %ld"
-msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
-
-#: vncviewer/parameters.cxx:496
-msgid "Failed to write configuration file, can't obtain home directory path."
-msgstr "Gặp lỗi khi ghi tập tin cấu hình, không thể lấy đường dẫn thư mục riêng."
-
-#: vncviewer/parameters.cxx:509
-#, c-format
-msgid "Failed to write configuration file, can't open %s: %s"
-msgstr "Gặp lỗi khi ghi tập tin cấu hình, không thể mở %s: %s"
-
-#: vncviewer/parameters.cxx:554
-msgid "Failed to read configuration file, can't obtain home directory path."
-msgstr "Gặp lỗi khi đọc tập tin cấu hình, không thể lấy đường dẫn thư mục riêng."
-
-#: vncviewer/parameters.cxx:567
-#, c-format
-msgid "Failed to read configuration file, can't open %s: %s"
+#: vncviewer/Win32TouchHandler.cxx:81
+#, fuzzy, c-format
+msgid "Failed to set gesture configuration (error 0x%x)"
 msgstr "Gặp lỗi khi đọc tập tin cấu hình, không thể mở %s: %s"
 
-#: vncviewer/parameters.cxx:580 vncviewer/parameters.cxx:585
-#: vncviewer/parameters.cxx:610 vncviewer/parameters.cxx:623
-#: vncviewer/parameters.cxx:639
+#: vncviewer/Win32TouchHandler.cxx:93
 #, c-format
-msgid "Failed to read line %d in file %s: %s"
+msgid "Failed to get gesture information (error 0x%x)"
+msgstr ""
+
+#: vncviewer/Win32TouchHandler.cxx:361
+#, c-format
+msgid "Invalid mouse button %d, must be a number between 1 and 7."
+msgstr ""
+
+#: vncviewer/Win32TouchHandler.cxx:426
+#, c-format
+msgid "Unhandled key 0x%x - can't generate keyboard event."
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:103 vncviewer/touch.cxx:107
+#, c-format
+msgid "Unable to get X Input 2 event mask for window 0x%08lx"
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:105
+#, c-format
+msgid "Window 0x%08lx has no X Input 2 event mask"
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:113 vncviewer/touch.cxx:114
+#, c-format
+msgid "Window 0x%08lx has more than one X Input 2 event mask"
+msgstr ""
+
+#: vncviewer/XInputTouchHandler.cxx:144
+#, fuzzy, c-format
+msgid "Failure grabbing device %i"
+msgstr "Gặp lỗi khi điều khiển chuột"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:13
+#: vncviewer/vncviewer.desktop.in.in:2
+#, fuzzy
+msgid "TigerVNC"
+msgstr "Bộ xem TigerVNC"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:14
+#: vncviewer/vncviewer.desktop.in.in:4
+msgid "Connect to VNC server and display remote desktop"
+msgstr "Kết nối đến máy phục vụ VNC và hiển thị màn hình từ xa"
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
+msgid ""
+"Virtual Network Computing (VNC) is a remote display system that allows you "
+"to view and interact with a virtual desktop environment running on another "
+"computer on the network. Using VNC, you can run graphical applications on a "
+"remote machine and send only the display from these applications to your "
+"local device. This package contains a client which will enable you to "
+"connect to other desktops running a VNC server. VNC is platform-independent "
+"and supports various operating systems and architectures as both servers and "
+"clients."
+msgstr ""
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:23
+msgid ""
+"TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org "
+"code bases. TigerVNC started as a next-generation development effort for "
+"TightVNC on Unix and Linux platforms, but it split from its parent project "
+"in early 2009 so that TightVNC could focus on Windows platforms. TigerVNC "
+"supports a variant of Tight encoding that is greatly accelerated by the use "
+"of the libjpeg-turbo JPEG codec."
+msgstr ""
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:33
+msgid "TigerVNC connection to a CentOS machine"
+msgstr ""
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:37
+msgid "TigerVNC connection to a macOS machine"
+msgstr ""
+
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:41
+#, fuzzy
+msgid "TigerVNC connection to a Windows machine"
+msgstr "Thông tin kết nối VNC"
+
+#. developer_name tag deprecated with Appstream 1.0
+#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:46
+#, fuzzy
+msgid "The TigerVNC team"
+msgstr "Bộ xem TigerVNC"
+
+#: vncviewer/parameters.cxx:56
+msgid "Time in milliseconds to rate-limit successive pointer events"
+msgstr ""
+
+#: vncviewer/parameters.cxx:61
+msgid ""
+"Emulate middle mouse button by pressing left and right mouse buttons "
+"simultaneously"
+msgstr ""
+
+#: vncviewer/parameters.cxx:66
+msgid ""
+"[DEPRECATED] Show a dot cursor when the server sends an invisible cursor"
+msgstr ""
+
+#: vncviewer/parameters.cxx:71
+msgid "Show local cursor when not provided by the server"
+msgstr ""
+
+#: vncviewer/parameters.cxx:77
+msgid ""
+"Specify which local cursor type should be used when AlwaysCursor is active"
+msgstr ""
+
+#: vncviewer/parameters.cxx:83
+msgid ""
+"Show an error dialog on connection problems, rather than exiting immediately"
+msgstr ""
+
+#: vncviewer/parameters.cxx:89
+msgid ""
+"Show an error dialog on connection problems, rather than exiting "
+"immediately, and allow the user to reconnect"
+msgstr ""
+
+#: vncviewer/parameters.cxx:103
+msgid "Auto select pixel format and encoding"
+msgstr ""
+
+#: vncviewer/parameters.cxx:106
+#, fuzzy
+msgid "Use all available colors"
+msgstr "Đầy đủ (mọi màu sẵn có)"
+
+#: vncviewer/parameters.cxx:111
+msgid ""
+"Color level to use on slow connections, 0 = Very Low, 1 = Low, 2 = Medium"
+msgstr ""
+
+#: vncviewer/parameters.cxx:120
+#, fuzzy
+msgid "Preferred encoding to use"
+msgstr "Bảng mã ưa thích"
+
+#: vncviewer/parameters.cxx:134
+msgid "Use custom compression level as specified by CompressLevel"
+msgstr ""
+
+#: vncviewer/parameters.cxx:139
+msgid "Use specified compression level, 0 = Low, 9 = High"
+msgstr ""
+
+#: vncviewer/parameters.cxx:143
+msgid "JPEG quality level, 0 = Low, 9 = High"
+msgstr ""
+
+#: vncviewer/parameters.cxx:147
+msgid "Maximize viewer window"
+msgstr ""
+
+#: vncviewer/parameters.cxx:150
+msgid "Enable full screen as specified by FullScreenMode"
+msgstr ""
+
+#: vncviewer/parameters.cxx:156
+msgid "Specify which monitors to use when in full screen"
+msgstr ""
+
+#: vncviewer/parameters.cxx:162
+#, fuzzy
+msgid "[DEPRECATED] Enable full screen over all monitors"
+msgstr "Bật chế độ toàn màn hình qua tất cả các màn hình"
+
+#: vncviewer/parameters.cxx:167
+msgid ""
+"Use the given list of monitors in full screen when FullScreenMode is set to "
+"Selected"
+msgstr ""
+
+#: vncviewer/parameters.cxx:173
+msgid ""
+"Reconfigure the desktop size on the server to the specified size when "
+"connecting"
+msgstr ""
+
+#: vncviewer/parameters.cxx:178
+msgid "Specify size and position of viewer window"
+msgstr ""
+
+#: vncviewer/parameters.cxx:183
+msgid "Listen for incoming connections from VNC servers"
+msgstr ""
+
+#: vncviewer/parameters.cxx:187
+msgid ""
+"Desktop scaling: 100, Auto, FixedRatio, FitWidth, FitHeight, WxH, percent, "
+"or X%xY%"
+msgstr ""
+
+#: vncviewer/parameters.cxx:188
+msgid "Desktop resampling quality"
+msgstr ""
+
+#: vncviewer/parameters.cxx:190
+msgid "Units for desktop pixels and fixed scaling"
+msgstr ""
+
+#: vncviewer/parameters.cxx:195
+msgid ""
+"Dynamically resize the remote desktop size as the size of the local client "
+"window changes"
+msgstr ""
+
+#: vncviewer/parameters.cxx:201
+msgid "Don't send any mouse or keyboard events to the server"
+msgstr ""
+
+#: vncviewer/parameters.cxx:205
+#, fuzzy
+msgid "Don't disconnect other viewers upon connection"
+msgstr "Đã chia sẻ (đừng ngắt kết nối các bộ xem khác)"
+
+#: vncviewer/parameters.cxx:211
+msgid "Play audio sent by the server, if it offers any"
+msgstr ""
+
+#: vncviewer/parameters.cxx:217
+#, fuzzy
+msgid "Accept clipboard changes from the server"
+msgstr "Chấp nhận clipboard từ máy chủ"
+
+#: vncviewer/parameters.cxx:221
+#, fuzzy
+msgid "Send clipboard changes to the server"
+msgstr "Gửi clipboard đến máy chủ"
+
+#. TRANSLATORS: This refers to the two different X11
+#. clipboards
+#: vncviewer/parameters.cxx:235
+#, fuzzy
+msgid ""
+"Send the primary selection to the server as well as the clipboard selection"
+msgstr "Gửi chọn chính là clipboard"
+
+#. TRANSLATORS: The key names must be specified in
+#. English
+#: vncviewer/parameters.cxx:247
+msgid ""
+"The combination of modifier keys that triggers special actions in the viewer "
+"instead of being sent to the remote session (possible keys are a combination "
+"of Ctrl, Shift, Alt, and Super)"
+msgstr ""
+
+#: vncviewer/parameters.cxx:257
+#, fuzzy
+msgid ""
+"Pass special keys (like Alt+Tab) directly to the server when in full-screen "
+"mode"
+msgstr "Gửi các phím hệ thống trực tiếp đến máy phục vụ (toàn màn hình)"
+
+#: vncviewer/parameters.cxx:263
+msgid "SSH gateway to tunnel the connection via"
+msgstr ""
+
+#: vncviewer/parameters.cxx:535 vncviewer/parameters.cxx:568
+#, fuzzy
+msgid "Failed to create registry key"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: vncviewer/parameters.cxx:556 vncviewer/parameters.cxx:629
+#: vncviewer/parameters.cxx:673 vncviewer/parameters.cxx:751
+#, fuzzy
+msgid "Failed to close registry key"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: vncviewer/parameters.cxx:575 vncviewer/parameters.cxx:608
+#: vncviewer/parameters.cxx:795 vncviewer/parameters.cxx:807
+#, fuzzy, c-format
+msgid "Failed to save \"%s\": %s"
 msgstr "Gặp lỗi khi đọc dòng %d trong tập tin %s: %s"
 
-#: vncviewer/parameters.cxx:586
-msgid "Line too long"
-msgstr "Dòng quá dài"
+#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:724
+#, fuzzy
+msgid "Failed to open registry key"
+msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
 
-#: vncviewer/parameters.cxx:593
+#: vncviewer/parameters.cxx:663
+#, fuzzy, c-format
+msgid "Failed to read server history entry %d: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: vncviewer/parameters.cxx:705 vncviewer/parameters.cxx:735
+#, fuzzy, c-format
+msgid "Failed to read parameter \"%s\": %s"
+msgstr "Gặp lỗi khi đọc tham số %s từ sổ đăng ký: %ld"
+
+#: vncviewer/parameters.cxx:796 vncviewer/parameters.cxx:808
+#, fuzzy
+msgid "Could not encode parameter"
+msgstr "Không thể tạo ảnh bộ đệm khung"
+
+#: vncviewer/parameters.cxx:826 vncviewer/parameters.cxx:938
+msgid "Invalid format or too large value"
+msgstr "Định dạng không hợp lệ hay giá trị quá lớn"
+
+#: vncviewer/parameters.cxx:902
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Tập tin cấu hình %s ở định dạng không hợp lệ"
 
-#: vncviewer/parameters.cxx:611
+#: vncviewer/parameters.cxx:925
 msgid "Invalid format"
 msgstr "Định dạng không hợp lệ"
 
-#: vncviewer/parameters.cxx:624 vncviewer/parameters.cxx:640
-msgid "Invalid format or too large value"
-msgstr "Định dạng không hợp lệ hay giá trị quá lớn"
+#: vncviewer/parameters.cxx:969
+#, fuzzy
+msgid "Unknown parameter"
+msgstr "Không hiểu kiểu tham số cho đối số %s"
 
-#: vncviewer/parameters.cxx:667
-#, c-format
-msgid "Unknown parameter %s on line %d in file %s"
-msgstr "Không hiểu tham số %s trên dòng %d ở tập tin %s"
-
-#: vncviewer/vncviewer.cxx:100
-#, c-format
+#: vncviewer/parameters.cxx:983
 msgid ""
-"TigerVNC Viewer %d-bit v%s\n"
+"FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
+msgstr ""
+
+#: vncviewer/parameters.cxx:988
+msgid ""
+"DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' "
+"instead"
+msgstr ""
+
+#: vncviewer/touch.cxx:75
+#, c-format
+msgid "Got message (0x%x) for an unhandled window"
+msgstr ""
+
+#: vncviewer/touch.cxx:138 vncviewer/touch.cxx:160
+#, c-format
+msgid "Invalid window 0x%08lx specified for pointer grab"
+msgstr ""
+
+#: vncviewer/touch.cxx:183 vncviewer/touch.cxx:184
+#, fuzzy, c-format
+msgid "Failed to create touch handler: %s"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: vncviewer/touch.cxx:188
+#, c-format
+msgid "Couldn't attach event handler to window (error 0x%x)"
+msgstr ""
+
+#: vncviewer/touch.cxx:215
+msgid "Failed to get event data for X Input event"
+msgstr ""
+
+#: vncviewer/touch.cxx:228
+msgid "X Input event for unknown window"
+msgstr ""
+
+#: vncviewer/touch.cxx:252
+msgid "X Input extension not available."
+msgstr ""
+
+#: vncviewer/touch.cxx:259
+msgid "X Input 2 (or newer) is not available."
+msgstr ""
+
+#: vncviewer/touch.cxx:264
+msgid ""
+"X Input 2.2 (or newer) is not available. Touch gestures will not be "
+"supported."
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:96
+#, fuzzy, c-format
+msgid ""
+"TidyVNC v%s\n"
 "Built on: %s\n"
-"Copyright (C) 1999-%d TigerVNC Team and many others (see README.rst)\n"
-"See http://www.tigervnc.org for information on TigerVNC."
+"Copyright (C) 1999-%d TigerVNC team and many others (see README.rst)\n"
+"Based on TigerVNC.\n"
+"See https://github.com/jkeli/tidyvnc for information on TidyVNC."
 msgstr ""
 "TigerVNC Viewer %d-bít v%s\n"
 "Biên dịch vào: %s\n"
 "Copyright (C) 1999-%d Nhóm TigerVNC và nhiều người khác (xem README.rst)\n"
 "Truy cập http://www.tigervnc.org để biết thêm thông tin về TigerVNC."
 
-#: vncviewer/vncviewer.cxx:127
-msgid "About TigerVNC Viewer"
-msgstr "Giới thiệu về bộ xem TigerVNC"
+#: vncviewer/vncviewer.cxx:162 vncviewer/vncviewer.cxx:358
+#, fuzzy
+msgid "About TidyVNC"
+msgstr "Giới thiệu về bộ xem TidyVNC"
 
-#: vncviewer/vncviewer.cxx:140
+#: vncviewer/vncviewer.cxx:184
 msgid "Internal FLTK error. Exiting."
 msgstr "Lỗi bên trong FLTK. Nên thoát."
 
-#: vncviewer/vncviewer.cxx:158 vncviewer/vncviewer.cxx:170
+#: vncviewer/vncviewer.cxx:203
 #, c-format
-msgid "Error starting new TigerVNC Viewer: %s"
-msgstr "Gặp lỗi khi khởi chạy bộ xem TigerVNC mới: %s"
+msgid ""
+"%s\n"
+"\n"
+"Attempt to reconnect?"
+msgstr ""
 
-#: vncviewer/vncviewer.cxx:179
-#, c-format
-msgid "Termination signal %d has been received. TigerVNC Viewer will now exit."
-msgstr "Đã nhận được tín hiệu kết thúc %d. Bộ xem TigerVNC bây giờ sẽ thoát."
+#: vncviewer/vncviewer.cxx:234 vncviewer/vncviewer.cxx:246
+#, fuzzy, c-format
+msgid "Error starting new connection: %s"
+msgstr "Gặp lỗi khi khởi chạy bộ xem TidyVNC mới: %s"
 
-#: vncviewer/vncviewer.cxx:271 vncviewer/vncviewer.desktop.in.in:3
-msgid "TigerVNC Viewer"
-msgstr "Bộ xem TigerVNC"
+#: vncviewer/vncviewer.cxx:255
+#, fuzzy, c-format
+msgid "Termination signal %d has been received. TidyVNC will now exit."
+msgstr "Đã nhận được tín hiệu kết thúc %d. Bộ xem TidyVNC bây giờ sẽ thoát."
 
-#: vncviewer/vncviewer.cxx:280
+#: vncviewer/vncviewer.cxx:333
 msgid "Yes"
 msgstr "Có"
 
-#: vncviewer/vncviewer.cxx:283
+#: vncviewer/vncviewer.cxx:336
 msgid "Close"
 msgstr "Đóng"
 
-#: vncviewer/vncviewer.cxx:288
-msgid "About"
-msgstr "Giới thiệu"
+#: vncviewer/vncviewer.cxx:338
+msgid "Add to Favorites"
+msgstr ""
 
-#: vncviewer/vncviewer.cxx:291
-msgid "Hide"
-msgstr "Ẩn"
+#: vncviewer/vncviewer.cxx:339
+msgid "All Files (*)"
+msgstr ""
 
-#: vncviewer/vncviewer.cxx:294
-msgid "Quit"
-msgstr "Thoát"
+#: vncviewer/vncviewer.cxx:340
+msgid "Custom Filter"
+msgstr ""
 
-#: vncviewer/vncviewer.cxx:298
+#: vncviewer/vncviewer.cxx:341
+msgid "Please choose an existing file!"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:342
+msgid "Favorites"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:343
+#, fuzzy
+msgid "Filename:"
+msgstr "Tài khoản:"
+
+#: vncviewer/vncviewer.cxx:345
+msgid "My Computer"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:347
+msgid "File Systems"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:349
+msgid "Manage Favorites"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:350
+msgid "New Directory?"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:351
+#, fuzzy
+msgid "Create a new directory."
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: vncviewer/vncviewer.cxx:352
+msgid "Preview"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:353
+msgid "Save"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:354
+#, fuzzy
+msgid "Show:"
+msgstr "Hiện tất cả"
+
+#: vncviewer/vncviewer.cxx:355
+msgid "Show hidden files"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:360
 msgid "Services"
 msgstr "Dịch vụ"
 
-#: vncviewer/vncviewer.cxx:299
-msgid "Hide Others"
+#: vncviewer/vncviewer.cxx:361
+msgid "Hide TidyVNC"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:362
+#, fuzzy
+msgid "Hide others"
 msgstr "Ẩn các cái khác"
 
-#: vncviewer/vncviewer.cxx:300
-msgid "Show All"
+#: vncviewer/vncviewer.cxx:363
+#, fuzzy
+msgid "Show all"
 msgstr "Hiện tất cả"
 
-#: vncviewer/vncviewer.cxx:309
+#: vncviewer/vncviewer.cxx:364
+#, fuzzy
+msgid "Quit TidyVNC"
+msgstr "Giới thiệu về bộ xem TidyVNC"
+
+#: vncviewer/vncviewer.cxx:373
 msgctxt "SysMenu|"
 msgid "&File"
 msgstr "&Chính"
 
-#: vncviewer/vncviewer.cxx:312
+#: vncviewer/vncviewer.cxx:376
+#, fuzzy
 msgctxt "SysMenu|File|"
-msgid "&New Connection"
+msgid "&New connection"
 msgstr "Kết nối &mới"
 
-#: vncviewer/vncviewer.cxx:324
-msgid "Could not create VNC home directory: can't obtain home directory path."
-msgstr "Không thể tạo thư mục cá nhân cho VNC: không thể lấy đường dẫn thư mục cá nhân."
-
-#: vncviewer/vncviewer.cxx:329
+#: vncviewer/vncviewer.cxx:398
 #, c-format
-msgid "Could not create VNC home directory: %s."
+msgid ""
+"\n"
+"Usage: %s [parameters] [host][:displayNum]\n"
+"       %s [parameters] [host][::port]\n"
+"       %s [parameters] [unix socket]\n"
+"       %s [parameters] -listen [port]\n"
+"       %s [parameters] [.tigervnc file]\n"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:413
+#, c-format
+msgid ""
+"\n"
+"Options:\n"
+"\n"
+"  -display Xdisplay  - Specifies the X display for the viewer window\n"
+"  -geometry geometry - Initial position of the main TidyVNC window. See the\n"
+"                       man page for details.\n"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:485
+msgid ""
+"~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:489
+#, c-format
+msgid ""
+"%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC "
+"location."
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:500
+#, fuzzy
+msgid "Could not determine VNC data directory path"
 msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: vncviewer/vncviewer.cxx:506
+#, fuzzy, c-format
+msgid "Could not create VNC data directory \"%s\": %s"
+msgstr "Không thể tạo thư mục cá nhân cho VNC: %s."
+
+#: vncviewer/vncviewer.cxx:545
+#, fuzzy, c-format
+msgid "Failed to create tunnel: '%s' returned %d"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:581 vncviewer/vncviewer.cxx:583
+#: vncviewer/vncviewer.cxx:682 vncviewer/vncviewer.cxx:683
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Các tham số -listen và -via xung khắc nhau"
 
-#: vncviewer/vncviewer.cxx:598
+#: vncviewer/vncviewer.cxx:697
+msgid "Unable to listen for incoming connections"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:699
 #, c-format
 msgid "Listening on port %d"
 msgstr "Đang nghe trên cổng %d"
 
-#: vncviewer/vncviewer.desktop.in.in:4
-msgid "Remote Desktop Viewer"
+#: vncviewer/vncviewer.cxx:728
+#, c-format
+msgid ""
+"Failure waiting for incoming VNC connection:\n"
+"\n"
+"%s"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:749
+#, c-format
+msgid ""
+"Failure setting up encrypted tunnel:\n"
+"\n"
+"%s"
+msgstr ""
+
+#: vncviewer/vncviewer.desktop.in.in:3
+#, fuzzy
+msgid "Remote desktop viewer"
 msgstr "Trình xem màn hình từ xa"
 
-#: vncviewer/vncviewer.desktop.in.in:5
-msgid "Connect to VNC server and display remote desktop"
-msgstr "Kết nối đến máy phục vụ VNC và hiển thị màn hình từ xa"
+#: win/rfb_win32/CleanDesktop.cxx:51
+msgid "Failed to contact Active Desktop"
+msgstr ""
 
-#: vncviewer/vncviewer.desktop.in.in:7
-msgid "tigervnc"
-msgstr "tigervnc"
+#: win/rfb_win32/CleanDesktop.cxx:109
+#, c-format
+msgid "Failed to modify Active Desktop options: %ld"
+msgstr ""
+
+#: win/rfb_win32/CleanDesktop.cxx:126
+#, fuzzy, c-format
+msgid "Failed to get desktop item count: %ld"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: win/rfb_win32/Clipboard.cxx:68
+msgid "Bad clipboard chain change!"
+msgstr ""
+
+#: win/rfb_win32/Clipboard.cxx:134
+msgid "Unable to open clipboard"
+msgstr ""
+
+#: win/rfb_win32/Clipboard.cxx:149
+msgid "Unable to empty clipboard"
+msgstr ""
+
+#: win/rfb_win32/Clipboard.cxx:153
+#, fuzzy
+msgid "Unable to set clipboard"
+msgstr "Gửi chọn chính là clipboard"
+
+#: win/rfb_win32/CurrentUser.cxx:68
+#, c-format
+msgid "Desktop \"%s\" inaccessible"
+msgstr ""
+
+#: win/rfb_win32/CurrentUser.cxx:73
+#, fuzzy, c-format
+msgid "Unable to close desktop: %ld"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#: win/rfb_win32/CurrentUser.cxx:87
+#, fuzzy
+msgid "Failed to get current user token"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: win/rfb_win32/CurrentUser.cxx:99
+msgid "Cannot impersonate unsafe or null token"
+msgstr ""
+
+#: win/rfb_win32/CurrentUser.cxx:103
+msgid "Failed to impersonate user"
+msgstr ""
+
+#: win/rfb_win32/CurrentUser.cxx:121
+msgid "Failed to get current username"
+msgstr ""
+
+#: win/rfb_win32/DIBSectionBuffer.cxx:91
+#, fuzzy
+msgid "Failed to create bitmap"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: win/rfb_win32/DIBSectionBuffer.cxx:164 win/rfb_win32/DeviceContext.cxx:121
+msgid "Depth exceeds bits per pixel"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:57 win/rfb_win32/DeviceContext.cxx:60
+msgid "Unable to determine device pixel format"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:78
+msgid "16-bit high colour"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:86
+msgid "24/32-bit high colour"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:101
+#, c-format
+msgid "%d-bit with masks: (%lx, %lx, %lx)"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:136
+#, c-format
+msgid "%d-colour palettised"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:165
+#, fuzzy
+msgid "Failed to create DeviceDC"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: win/rfb_win32/DeviceFrameBuffer.cxx:47
+msgid ""
+"Use a slower capture method that ensures that alpha blended windows will "
+"appear correctly"
+msgstr ""
+
+#: win/rfb_win32/MsgWindow.cxx:88
+msgid "Unable to register MsgWindow window class"
+msgstr ""
+
+#: win/rfb_win32/MsgWindow.cxx:110
+msgid "Unable to create WMNotifier window instance"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:56
+msgid ""
+"How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - "
+"Driver hooking"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:59
+msgid "Disable local keyboard and pointer input while the server is in use"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:62
+msgid "Action to perform when all clients have disconnected"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:66
+msgid ""
+"Display device name of the monitor to be remoted, or empty to export the "
+"whole desktop"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:68
+msgid "Remove the desktop wallpaper when the server is in use"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:70
+msgid "Disable desktop user interface effects when the server is in use"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:137
+msgid "Ignoring DisconnectAction=Logoff - no current user"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:142
+msgid "Ignoring DisconnectAction=Lock - no current user"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:183
+msgid "Console is not session zero - reconnect to restore Console session"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:188
+msgid "Unable to switch into input desktop"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:211
+msgid "Unable to access desktop"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:381
+msgid "Unknown display event received"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:393
+msgid "Desktop is not started"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:460
+#, c-format
+msgid "Attaching to device %s"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:464
+msgid "Attaching to virtual desktop"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:99
+msgid "Warning: Two mouse buttons pressed in the same event"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:143
+msgid ""
+"Whether to assume the viewer has already interpreted dead key sequences into "
+"latin-1 characters"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:462
+#, c-format
+msgid "Ignoring unrecognised Latin-1 keysym 0x%x"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:478
+#, c-format
+msgid "Ignoring unknown keysym 0x%x"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:53
+msgid "Command: Report status"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:57
+msgid "Command: Parameters changed"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:61
+msgid "Command: OS shutdown"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:65
+msgid "Command: Stop"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:78
+msgid "Registering handler..."
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:82
+#, fuzzy, c-format
+msgid "Failed to register handler: %lu"
+msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
+
+#: win/rfb_win32/Service.cxx:117
+#, c-format
+msgid "Unable to set shutdown parameters: %lu"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:120 win/rfb_win32/Service.cxx:415
+msgid "Unable to start the service"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:139
+#, c-format
+msgid "Unable to set service status: %lu"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:272
+#, fuzzy, c-format
+msgid "Unable to open event log: %ld\n"
+msgstr "Gặp lỗi khi mở khóa đăng ký: %ld"
+
+#: win/rfb_win32/Service.cxx:286
+#, fuzzy, c-format
+msgid "Failed to write to event log: %ld\n"
+msgstr "Gặp lỗi khi tạo khóa đăng ký: %ld"
+
+#: win/rfb_win32/Service.cxx:334 win/rfb_win32/Service.cxx:379
+#: win/rfb_win32/Service.cxx:406 win/rfb_win32/Service.cxx:426
+#: win/rfb_win32/Service.cxx:447
+msgid "Unable to open Service Control Manager"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:343
+#, fuzzy
+msgid "Unable to create service"
+msgstr "không thể tạo phần DIB"
+
+#: win/rfb_win32/Service.cxx:384
+#, fuzzy
+msgid "Unable to locate the service"
+msgstr "không thể tạo phần DIB"
+
+#: win/rfb_win32/Service.cxx:386
+#, fuzzy
+msgid "Unable to remove the service"
+msgstr "không thể tạo phần DIB"
+
+#: win/rfb_win32/Service.cxx:411 win/rfb_win32/Service.cxx:431
+#: win/rfb_win32/Service.cxx:452
+msgid "Unable to open the service"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:436
+msgid "Unable to stop the service"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:457
+msgid "Unable to query the service"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:464
+msgid "Running"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:466
+msgid "Stopping"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:469
+#, c-format
+msgid "Unknown (%lu)"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:62
+#, c-format
+msgid "Unable to track socket address changes: 0x%08x"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:84
+msgid "Unable to add listening socket"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:112 win/rfb_win32/SocketManager.cxx:161
+#: win/rfb_win32/SocketManager.cxx:177
+msgid "Listening socket is not registered"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:123
+#, fuzzy
+msgid "Unable to add connection"
+msgstr "không thể tạo phần DIB"
+
+#: win/rfb_win32/SocketManager.cxx:150
+msgid "Socket is not registered"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:198
+msgid "Unable to adjust socket event mask"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:229
+msgid "Deleting listening socket"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:235
+#, c-format
+msgid "Unknown socket event: %lx"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:248
+msgid "Unable to get socket events"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:252
+msgid "Unable to disable socket events"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:272
+msgid "Unable to re-enable socket events"
+msgstr ""
+
+#: win/rfb_win32/TsSessions.cxx:61
+#, c-format
+msgid "Console session is %lu"
+msgstr ""
+
+#: win/rfb_win32/TsSessions.cxx:63
+msgid "Unable to connect session to Console"
+msgstr ""
+
+#: win/rfb_win32/WMHooks.cxx:150
+msgid "Failed to initialise hooks"
+msgstr ""
+
+#: win/rfb_win32/WMPoller.cxx:39
+msgid "Server should poll console windows for updates"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:43 win/winvnc/VNCServerWin32.cxx:63
+msgid ""
+"Only prompt for a local user to accept incoming connections if there is a "
+"user logged on"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:74
+#, fuzzy
+msgid "X.509 certificates"
+msgstr "TLS với chứng nhận X509"
+
+#: win/vncconfig/Authentication.h:79 win/vncconfig/Authentication.h:92
+#, fuzzy
+msgid "All"
+msgstr "Alt"
+
+#: win/vncconfig/Authentication.h:83
+#, fuzzy
+msgid "X.509 certificate"
+msgstr "TLS với chứng nhận X509"
+
+#: win/vncconfig/Authentication.h:87
+msgid "X.509 keys"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:96
+msgid "X.509 key"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:111
+msgid ""
+"The VNC authentication method is disabled, but a password is still stored "
+"for it.\n"
+"Do you want to remove the VNC authentication password from the registry?"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:149
+msgid ""
+"The VNC authentication method is enabled, but no password is specified.\n"
+"The password dialog will now be shown."
+msgstr ""
+
+#: win/vncconfig/Connections.h:42 win/winvnc/VNCServerWin32.cxx:57
+msgid "Filter describing which hosts are allowed access to this server"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:125
+msgid "Unable to convert AuthHosts setting to Hosts format."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:153
+msgid "Loading default settings"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:156
+#, c-format
+msgid "Error reading default settings: %s"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:164
+msgid "Loading local user settings"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:167
+#, c-format
+msgid "Error reading local user settings: %s"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:175
+msgid "Loading global user settings"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:178
+#, c-format
+msgid "Error reading global user settings: %s"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:191
+msgid ""
+"The AutoPortSelect setting is not supported by this release.The port number "
+"will default to 5900."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:203
+msgid ""
+"The QuerySetting option has been replaced by QueryConnect.Please see the "
+"documentation for details of the QueryConnect option."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:232
+msgid "The AllowShutdown option is not supported by this release."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:234
+msgid "The AllowEditClients option is not supported by this release."
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:95
+msgid "Starting vncconfig applet"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:136
+msgid ""
+"Windows reported an error trying to secure the VNC server settings for this "
+"user. Your settings may not be secure!"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:167
+msgid "VNC server properties (service-mode)"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:169
+msgid "VNC server properties (user-mode)"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:182
+msgid ""
+"You do not have sufficient access rights to run the VNC Configuration applet"
+msgstr ""
+
+#: win/winvnc/QueryConnectDialog.cxx:77
+msgid "Failed to change to active desktop"
+msgstr ""
+
+#: win/winvnc/STrayIcon.cxx:51
+msgid "Disable the Options entry in the VNC server tray menu"
+msgstr ""
+
+#: win/winvnc/STrayIcon.cxx:54
+msgid "Disable the Close entry in the VNC server tray menu"
+msgstr ""
+
+#: win/winvnc/STrayIcon.cxx:159
+msgid "Are you sure you want to close the server?"
+msgstr ""
+
+#: win/winvnc/VNCServerWin32.cxx:66
+msgid "Show the configuration applet in the system tray"
+msgstr ""
+
+#: win/winvnc/VNCServerWin32.cxx:110
+#, fuzzy
+msgid "VNC server (user):"
+msgstr "Máy phục vụ VNC:"
+
+#: win/winvnc/VNCServerWin32.cxx:112
+#, fuzzy
+msgid "VNC server (service):"
+msgstr "Máy phục vụ VNC:"
+
+#: win/winvnc/VNCServerWin32.cxx:119
+msgid "Not accepting connections"
+msgstr ""
+
+#: win/winvnc/VNCServerWin32.cxx:132
+msgid "Refreshing system tray icon"
+msgstr ""
+
+#: win/winvnc/VNCServerWin32.cxx:319
+#, fuzzy, c-format
+msgid "Unknown command %d queued"
+msgstr "Bảng mã chưa biết %d"
+
+#: win/winvnc/winvnc.cxx:64
+#, c-format
+msgid "%s - %s, version %s\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:74
+#, c-format
+msgid ""
+"Command-line options:\n"
+"  -connect [<host[::port]>]            - Connect an existing WinVNC server "
+"to a listening viewer.\n"
+"  -disconnect                          - Disconnect all clients from an "
+"existing WinVNC server.\n"
+"  -register <options...>               - Register WinVNC server as a system "
+"service.\n"
+"  -unregister                          - Remove WinVNC server from the list "
+"of system services.\n"
+"  -start                               - Start the WinVNC server system "
+"service.\n"
+"  -stop                                - Stop the WinVNC server system "
+"service.\n"
+"  -status                              - Query the WinVNC service status.\n"
+"  -help                                - Provide usage information.\n"
+"  -noconsole                           - Run without a console (i.e. no "
+"stderr/stdout)\n"
+"  <setting>=<value>                    - Set the named configuration "
+"parameter.\n"
+"    (Parameter values specified on the command-line override those specified "
+"by other configuration methods.)\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:86
+msgid "Log names:"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:88
+msgid "Log destinations:"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:90
+msgid "Available configuration parameters:"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:127 win/winvnc/winvnc.cxx:140
+msgid "Unable to locate existing VNC Server"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:132
+#, c-format
+msgid "Sending connect request to VNC Server...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:134
+#, fuzzy
+msgid "Connection failed."
+msgstr "Thông t&in về kết nối…"
+
+#: win/winvnc/winvnc.cxx:145
+#, c-format
+msgid "Sending disconnect request to VNC Server...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:147
+msgid "Failed to disconnect clients."
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:149
+#, c-format
+msgid "Attempting to start service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:152
+msgid "Started service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:154
+#, c-format
+msgid "Attempting to stop service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:157
+msgid "Stopped service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:159
+#, c-format
+msgid "Querying service status...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:163
+#, c-format
+msgid "The service \"%s\" is in the state: %s"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:168 win/winvnc/winvnc.cxx:173
+#, c-format
+msgid "Run in service mode\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:177
+#, c-format
+msgid "Attempting to register service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:198
+msgid "Registered service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:200
+#, c-format
+msgid "Attempting to unregister service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:203
+msgid "Unregistered service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:207
+msgid "Closing console"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:209
+#, fuzzy, c-format
+msgid "Unable to close console: %lu"
+msgstr "Gặp lỗi khi đóng khóa đăng ký: %ld"
+
+#, c-format
+#~ msgid "SetDesktopSize failed: %d"
+#~ msgstr "SetDesktopSize gặp lỗi: %d"
+
+#~ msgid "disabled"
+#~ msgstr "tắt"
+
+#~ msgid "enabled"
+#~ msgstr "bật"
+
+#~ msgid "VNC Viewer: Connection Options"
+#~ msgstr "Bộ xem VNC: Các tùy chọn kết nối"
+
+#~ msgid "Medium (256 colors)"
+#~ msgstr "Trung bình (256 màu)"
+
+#~ msgid "Low (64 colors)"
+#~ msgstr "Thấp (64 màu)"
+
+#~ msgid "Very low (8 colors)"
+#~ msgstr "Rất thấp (8 màu)"
+
+#~ msgid "level (1=fast, 6=best [4-6 are rarely useful])"
+#~ msgstr "mức độ (1=nhanh, 6=tốt nhất [4-6 là hữu dụng hơn cả])"
+
+#~ msgid "Menu key"
+#~ msgstr "Phím trình đơn"
+
+#~ msgid "Screen"
+#~ msgstr "Màn hình"
+
+#~ msgid "Resize remote session on connect"
+#~ msgstr "Đổi cỡ phiên máy từ xa khi kết nối"
+
+#~ msgid "Resize remote session to the local window"
+#~ msgstr "Đổi cỡ phiên thành cửa sổ nội bộ"
+
+#~ msgid "Full-screen mode"
+#~ msgstr "Chế độ toàn màn hình"
+
+#~ msgid "Misc."
+#~ msgstr "Linh tinh"
+
+#~ msgid "Show dot when no cursor"
+#~ msgstr "Hiển thị chấm khi không có con trỏ"
+
+#~ msgid "VNC Viewer: Connection Details"
+#~ msgstr "Phần mềm xem VNC: Chi tiết kết nối"
+
+#, c-format
+#~ msgid "No symbol for key code 0x%02x (in the current state)"
+#~ msgstr "Không có ký hiệu cho mã phím 0x%02x (trong trạng thái hiện tại)"
+
+#~ msgctxt "ContextMenu|"
+#~ msgid "E&xit viewer"
+#~ msgstr "T&hoát khỏi bộ xem"
+
+#, c-format
+#~ msgctxt "ContextMenu|"
+#~ msgid "Send %s"
+#~ msgstr "Gửi %s"
+
+#~ msgctxt "ContextMenu|"
+#~ msgid "Dismiss &menu"
+#~ msgstr "Thải bỏ &Trình đơn"
+
+#, c-format
+#~ msgid "The name of the parameter %s was too large to write to the registry"
+#~ msgstr "Tên của tham số %s là quá lớn để ghi vào đăng ký"
+
+#, c-format
+#~ msgid "The parameter %s was too large to write to the registry"
+#~ msgstr "Tham số %s là quá lớn để ghi vào đăng ký"
+
+#, c-format
+#~ msgid "Failed to write parameter %s of type %s to the registry: %ld"
+#~ msgstr "Gặp lỗi khi ghi tham số %s của kiểu %s vào sổ đăng ký: %ld"
+
+#, c-format
+#~ msgid "The name of the parameter %s was too large to read from the registry"
+#~ msgstr "Tên của tham số %s là quá lớn để đọc từ sổ đăng ký"
+
+#, c-format
+#~ msgid "The parameter %s was too large to read from the registry"
+#~ msgstr "Tham số %s là quá lớn để đọc từ sổ đăng ký"
+
+#~ msgid ""
+#~ "Failed to write configuration file, can't obtain home directory path."
+#~ msgstr ""
+#~ "Gặp lỗi khi ghi tập tin cấu hình, không thể lấy đường dẫn thư mục riêng."
+
+#, c-format
+#~ msgid "Failed to write configuration file, can't open %s: %s"
+#~ msgstr "Gặp lỗi khi ghi tập tin cấu hình, không thể mở %s: %s"
+
+#~ msgid "Failed to read configuration file, can't obtain home directory path."
+#~ msgstr ""
+#~ "Gặp lỗi khi đọc tập tin cấu hình, không thể lấy đường dẫn thư mục riêng."
+
+#, c-format
+#~ msgid "Unknown parameter %s on line %d in file %s"
+#~ msgstr "Không hiểu tham số %s trên dòng %d ở tập tin %s"
+
+#~ msgid "About"
+#~ msgstr "Giới thiệu"
+
+#~ msgid "Hide"
+#~ msgstr "Ẩn"
+
+#~ msgid "Quit"
+#~ msgstr "Thoát"
+
+#~ msgid ""
+#~ "Could not create VNC home directory: can't obtain home directory path."
+#~ msgstr ""
+#~ "Không thể tạo thư mục cá nhân cho VNC: không thể lấy đường dẫn thư mục cá "
+#~ "nhân."
+
+#~ msgid "tigervnc"
+#~ msgstr "tigervnc"
 
 #~ msgid "Not enough memory for framebuffer"
 #~ msgstr "Không đủ bộ nhớ cho bộ đệm khung"
 
-#~ msgid "Could not create framebuffer device"
-#~ msgstr "Không thể tạo thiết bị bộ đệm khung"
-
 #~ msgid "Could not create framebuffer bitmap"
 #~ msgstr "Không thể tạo ánh xạ bộ đệm khung"
 
-#~ msgid "Unable to create platform specific framebuffer: %s"
-#~ msgstr "Không thể tạo bộ đệm khung đặc tả nền tảng: %s"
-
 #~ msgid "Using platform independent framebuffer"
 #~ msgstr "Đang sử dụng bộ đệm khung độc lập nên tảng"
-
-#~ msgid "unable to create DIB section"
-#~ msgstr "không thể tạo phần DIB"
 
 #~ msgid "CreateCompatibleDC failed"
 #~ msgstr "CreateCompatibleDC gặp lỗi"
@@ -762,23 +4823,8 @@ msgstr "tigervnc"
 #~ msgid "Couldn't find suitable pixmap format"
 #~ msgstr "Không thể tìm thấy định dạng phù hợp pixmap"
 
-#~ msgid "Only true colour displays supported"
-#~ msgstr "Chỉ hỗ trợ hiển thị màu thật"
-
 #~ msgid "Using default colormap and visual, TrueColor, depth %d."
 #~ msgstr "Đang dùng bản đồ màu mặc định và ảo, TrueColor, độ sâu %d."
-
-#~ msgid "Could not create framebuffer image"
-#~ msgstr "Không thể tạo ảnh bộ đệm khung"
-
-#~ msgid "Unknown encoding %d"
-#~ msgstr "Bảng mã chưa biết %d"
-
-#~ msgid "Unknown encoding"
-#~ msgstr "Bảng mã chưa biết"
-
-#~ msgid "Alt"
-#~ msgstr "Alt"
 
 #~ msgid "CleanupSignalHandler called"
 #~ msgstr "CleanupSignalHandler được gọi"

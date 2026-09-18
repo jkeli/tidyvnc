@@ -93,10 +93,11 @@ static const char *about_text()
   // encodings, so we need to make sure we get a fresh string every
   // time.
   snprintf(buffer, sizeof(buffer),
-           _("TigerVNC v%s\n"
+           _("TidyVNC v%s\n"
              "Built on: %s\n"
              "Copyright (C) 1999-%d TigerVNC team and many others (see README.rst)\n"
-             "See https://www.tigervnc.org for information on TigerVNC."),
+             "Based on TigerVNC.\n"
+             "See https://github.com/jkeli/tidyvnc for information on TidyVNC."),
            PACKAGE_VERSION, BUILD_TIMESTAMP, 2026);
 
   return buffer;
@@ -158,7 +159,7 @@ void disconnect()
 
 void about_vncviewer()
 {
-  fl_message_title(_("About TigerVNC"));
+  fl_message_title(_("About TidyVNC"));
   fl_message("%s", about_text());
 }
 
@@ -251,7 +252,7 @@ static void CleanupSignalHandler(int sig)
 {
   // CleanupSignalHandler allows C++ object cleanup to happen because it calls
   // exit() rather than the default which is to abort.
-  vlog.info(_("Termination signal %d has been received. TigerVNC will now exit."), sig);
+  vlog.info(_("Termination signal %d has been received. TidyVNC will now exit."), sig);
   exit(1);
 }
 
@@ -325,7 +326,7 @@ static void init_fltk()
   fl_message_hotspot(false);
 
   // Avoid empty titles for popups
-  fl_message_title_default("TigerVNC");
+  fl_message_title_default("TidyVNC");
 
   // FLTK exposes these so that we can translate them.
   fl_no     = _("No");
@@ -354,13 +355,13 @@ static void init_fltk()
   Fl_File_Chooser::hidden_label = _("Show hidden files");
 
 #ifdef __APPLE__
-  Fl_Mac_App_Menu::about = _("About TigerVNC");
+  Fl_Mac_App_Menu::about = _("About TidyVNC");
   Fl_Mac_App_Menu::print = ""; // Don't want the print item
   Fl_Mac_App_Menu::services = _("Services");
-  Fl_Mac_App_Menu::hide = _("Hide TigerVNC");
+  Fl_Mac_App_Menu::hide = _("Hide TidyVNC");
   Fl_Mac_App_Menu::hide_others = _("Hide others");
   Fl_Mac_App_Menu::show = _("Show all");
-  Fl_Mac_App_Menu::quit = _("Quit TigerVNC");
+  Fl_Mac_App_Menu::quit = _("Quit TidyVNC");
 
   Fl_Sys_Menu_Bar::about(about_callback, nullptr);
 
@@ -412,7 +413,7 @@ static void usage(const char *programName)
   fprintf(stderr, _("\n"
           "Options:\n\n"
           "  -display Xdisplay  - Specifies the X display for the viewer window\n"
-          "  -geometry geometry - Initial position of the main TigerVNC window. See the\n"
+          "  -geometry geometry - Initial position of the main TidyVNC window. See the\n"
           "                       man page for details.\n"));
 #endif
 

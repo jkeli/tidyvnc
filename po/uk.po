@@ -5,9 +5,9 @@
 # Yuri Chornoivan <yurchor@ukr.net>, 2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2024, 2025.
 msgid ""
 msgstr ""
-"Project-Id-Version: tigervnc 1.15.90\n"
-"Report-Msgid-Bugs-To: tigervnc-devel@googlegroups.com\n"
-"POT-Creation-Date: 2025-11-07 10:53+0100\n"
+"Project-Id-Version: tidyvnc 1.15.90\n"
+"Report-Msgid-Bugs-To: https://github.com/jkeli/tidyvnc/issues\n"
+"POT-Creation-Date: 2026-09-18 09:05-0400\n"
 "PO-Revision-Date: 2025-11-13 14:45+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -16,20 +16,2565 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Lokalize 23.04.3\n"
 
-#: vncviewer/CConn.cxx:158
+#: common/core/Configuration.cxx:93
+msgid "default"
+msgstr ""
+
+#: common/core/Configuration.cxx:262
+#, c-format
+msgid "Alias for %s"
+msgstr ""
+
+#: common/core/Configuration.cxx:308 common/core/Configuration.cxx:358
+#: common/core/Configuration.cxx:463 common/core/Configuration.cxx:593
+#: common/core/Configuration.cxx:612 common/core/LogWriter.cxx:133
+#, c-format
+msgid "Parameter %s: Invalid value '%s'"
+msgstr ""
+
+#: common/core/Configuration.cxx:368
+#, c-format
+msgid "Parameter %s: Invalid value '%d'"
+msgstr ""
+
+#: common/core/LogWriter.cxx:89
+#, fuzzy, c-format
+msgid "Invalid log target: %s\n"
+msgstr "Некоректний індекс монітора, «%s»"
+
+#: common/core/LogWriter.cxx:104
+#, fuzzy, c-format
+msgid "Invalid log name: %s\n"
+msgstr "Некоректний індекс монітора, «%s»"
+
+#: common/core/LogWriter.cxx:117
+msgid ""
+"Specifies which log output should be directed to which target logger, and "
+"the level of output to log, in the format <log>:<target>:<level>[, ...]"
+msgstr ""
+
+#: common/network/Socket.cxx:64
+#, fuzzy
+msgid "Failed to initialise Winsock"
+msgstr "Не вдалося закрити ключ реєстру"
+
+#: common/network/Socket.cxx:127 common/rdr/TLSSocket.cxx:115
+#: common/rfb/CSecurityRSAAES.cxx:91 common/rfb/SSecurityRSAAES.cxx:112
+msgid "Failed to flush remaining socket data on close"
+msgstr ""
+
+#: common/network/Socket.cxx:130 common/rdr/TLSSocket.cxx:118
+#: common/rfb/CSecurityRSAAES.cxx:95 common/rfb/SSecurityRSAAES.cxx:116
+#, fuzzy, c-format
+msgid "Failed to flush remaining socket data on close: %s"
+msgstr "Не вдалося прочитати рядок %d у файлі «%s»"
+
+#: common/network/Socket.cxx:210
+#, fuzzy
+msgid "Failed to accept new connection"
+msgstr "не вдалося створити розділ DIB"
+
+#: common/network/Socket.cxx:230
+msgid "Failed to set socket to listening mode"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:79
+#, fuzzy
+msgid "Use IPv4 for incoming and outgoing connections"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: common/network/TcpSocket.cxx:82
+#, fuzzy
+msgid "Use IPv6 for incoming and outgoing connections"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: common/network/TcpSocket.cxx:94 common/network/TcpSocket.cxx:273
+#: common/network/TcpSocket.cxx:398 common/network/UnixSocket.cxx:62
+#: common/network/UnixSocket.cxx:128
+#, fuzzy
+msgid "Failed to create socket"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: common/network/TcpSocket.cxx:98
+#, fuzzy
+msgid "Failed to find free port"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: common/network/TcpSocket.cxx:102
+#, fuzzy
+msgid "Failed to get port number"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: common/network/TcpSocket.cxx:140
+msgid "Unmatched [ in hostname"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:179 common/network/TcpSocket.cxx:186
+#, fuzzy
+msgid "Invalid port specified"
+msgstr "Вказано некоректні геометричні параметри!"
+
+#: common/network/TcpSocket.cxx:231
+msgid "Failed get address for hostname"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:299
+msgid "No useful address found for hostname"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:301
+#, fuzzy
+msgid "Failed to connect to host"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: common/network/TcpSocket.cxx:316 common/network/UnixSocket.cxx:91
+#, fuzzy
+msgid "Failed to get peer name for socket"
+msgstr "Не вдалося отримати дані події для події X Input"
+
+#: common/network/TcpSocket.cxx:317 common/network/TcpSocket.cxx:331
+#: common/network/TcpSocket.cxx:345 common/network/TcpSocket.cxx:352
+msgid "(N/A)"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:330 common/network/TcpSocket.cxx:344
+#, fuzzy
+msgid "Failed to convert peer name to a string"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: common/network/TcpSocket.cxx:351 common/network/TcpSocket.cxx:757
+#, fuzzy
+msgid "Unknown address family"
+msgstr "Невідомий параметр"
+
+#: common/network/TcpSocket.cxx:380
+#, fuzzy, c-format
+msgid "Failed to set TCP_NODELAY: %d"
+msgstr "Не вдалося зберегти «%s»: %s"
+
+#: common/network/TcpSocket.cxx:406
+msgid "Failed to set IPV6_V6ONLY"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:424
+msgid "Failed to set SO_REUSEADDR"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:431 common/network/UnixSocket.cxx:143
+#, fuzzy
+msgid "Failed to set socket address"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: common/network/TcpSocket.cxx:543 common/network/TcpSocket.cxx:731
+#, fuzzy
+msgid "Failed to get address for hostname"
+msgstr "Не вдалося отримати стан лампочки клавіатури: %d"
+
+#: common/network/TcpSocket.cxx:707
+#, fuzzy
+msgid "Invalid filter specified"
+msgstr "Вказано некоректні геометричні параметри!"
+
+#: common/network/TcpSocket.cxx:743
+msgid "A mask is no longer supported for filters, use a prefix instead"
+msgstr ""
+
+#: common/network/TcpSocket.cxx:766
+#, c-format
+msgid "Invalid prefix length for filter: %u"
+msgstr ""
+
+#: common/network/UnixSocket.cxx:56 common/network/UnixSocket.cxx:123
+msgid "UNIX socket path is too long"
+msgstr ""
+
+#: common/network/UnixSocket.cxx:76
+#, fuzzy
+msgid "Failed to connect to socket"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: common/network/UnixSocket.cxx:100
+#, fuzzy
+msgid "Failed to get local name for socket"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: common/network/UnixSocket.cxx:109
+msgid "(unnamed UNIX socket)"
+msgstr ""
+
+#: common/network/UnixSocket.cxx:150
+msgid "Failed to set socket permissions"
+msgstr ""
+
+#: common/rdr/AESInStream.cxx:86
+msgid "Corrupted message received"
+msgstr ""
+
+#: common/rdr/BufferedInStream.cxx:69 common/rdr/BufferedOutStream.cxx:143
+#, c-format
+msgid "Buffer size of %lu bytes exceeds maximum of %lu bytes"
+msgstr ""
+
+#: common/rdr/FileInStream.cxx:40 common/rfb/SSecurityRSAAES.cxx:187
+#: vncviewer/CConn.cxx:390 vncviewer/ServerDialog.cxx:359
+#: vncviewer/ServerDialog.cxx:436 vncviewer/parameters.cxx:787
+#: vncviewer/parameters.cxx:867
+#, fuzzy, c-format
+msgid "Failed to open \"%s\""
+msgstr "Не вдалося вилучити «%s»: %s"
+
+#: common/rdr/FileInStream.cxx:57 common/rfb/SSecurityRSAAES.cxx:200
+#, fuzzy, c-format
+msgid "Failed reading from \"%s\""
+msgstr "Не вдалося прочитати рядок %d у файлі «%s»"
+
+#: common/rdr/HexInStream.cxx:51
+msgid "Input data is not hexadecimal"
+msgstr ""
+
+#: common/rdr/RandomStream.cxx:73
+msgid "No system random source available"
+msgstr ""
+
+#: common/rdr/RandomStream.cxx:93 common/rdr/RandomStream.cxx:101
+#: common/rfb/CSecurityDH.cxx:121 common/rfb/CSecurityDH.cxx:145
+#: common/rfb/CSecurityMSLogonII.cxx:109 common/rfb/CSecurityMSLogonII.cxx:131
+#: common/rfb/CSecurityRSAAES.cxx:162 common/rfb/CSecurityRSAAES.cxx:256
+#: common/rfb/SSecurityRSAAES.cxx:357 common/rfb/SSecurityRSAAES.cxx:366
+#: common/rfb/SSecurityVncAuth.cxx:91
+#, fuzzy
+msgid "Failed to generate random data"
+msgstr "Не вдалося отримати відомості щодо CRTC %d"
+
+#: common/rdr/TLSSocket.cxx:93
+#, c-format
+msgid "TLS handshake failed: %s"
+msgstr ""
+
+#: common/rdr/TLSSocket.cxx:95
+msgid "TLS handshake failed"
+msgstr ""
+
+#: common/rdr/TLSSocket.cxx:131 common/rdr/TLSSocket.cxx:134
+#, fuzzy, c-format
+msgid "Failed to terminate TLS cleanly: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: common/rdr/TLSSocket.cxx:164
+msgid "Failed receiving TLS data"
+msgstr ""
+
+#: common/rdr/TLSSocket.cxx:187
+msgid "Failed sending TLS data"
+msgstr ""
+
+#: common/rdr/ZlibInStream.cxx:55
+#, fuzzy
+msgid "Failed to flush remaining stream data"
+msgstr "Не вдалося закрити ключ реєстру"
+
+#: common/rdr/ZlibInStream.cxx:81 common/rdr/ZlibOutStream.cxx:50
+msgid "Failed to initialize zlib"
+msgstr ""
+
+#: common/rdr/ZlibInStream.cxx:112
+#, fuzzy
+msgid "Failed to decompress data"
+msgstr "Не вдалося відкрити ключ реєстру"
+
+#: common/rdr/ZlibOutStream.cxx:138 common/rdr/ZlibOutStream.cxx:172
+#, fuzzy
+msgid "Failed to compress data"
+msgstr "Не вдалося відкрити ключ реєстру"
+
+#: common/rfb/Blacklist.cxx:30
+msgid ""
+"Temporarily reject connections from a host if it repeatedly fails to "
+"authenticate"
+msgstr ""
+
+#: common/rfb/Blacklist.cxx:35
+msgid ""
+"The number of unauthenticated connection attempts allowed from any "
+"individual host before that host is black-listed"
+msgstr ""
+
+#: common/rfb/Blacklist.cxx:41
+msgid "The initial timeout applied when a host is first black-listed"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:69
+#, fuzzy
+msgid "Disable lossy JPEG compression"
+msgstr "Дозволити стискання JPEG"
+
+#: common/rfb/CConnection.cxx:197
+msgid "Reading version failed, not an RFB server?"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:202
+#, fuzzy, c-format
+msgid "Server supports RFB protocol version %d.%d"
+msgstr "Версія протоколу: %d.%d"
+
+#: common/rfb/CConnection.cxx:207 common/rfb/CConnection.cxx:211
+#, c-format
+msgid "Server gave unsupported RFB protocol version %d.%d"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:226
+#, fuzzy, c-format
+msgid "Using RFB protocol version %d.%d"
+msgstr "Версія протоколу: %d.%d"
+
+#: common/rfb/CConnection.cxx:258
+#, fuzzy, c-format
+msgid "Unknown 3.3 security type %d"
+msgstr "Невідомий тип параметра"
+
+#: common/rfb/CConnection.cxx:259
+#, fuzzy
+msgid "Unknown 3.3 security type"
+msgstr "Невідомий тип параметра"
+
+#: common/rfb/CConnection.cxx:302 common/rfb/CSecurityVeNCrypt.cxx:181
+#, c-format
+msgid "Choosing security type %s (%d)"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:309 common/rfb/CConnection.cxx:310
+msgid "No matching security types"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:354
+msgid "Unknown security result from server"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:359 common/rfb/SSecurityPlain.cxx:116
+#: common/rfb/SSecurityRSAAES.cxx:641 common/rfb/SSecurityRSAAES.cxx:671
+#: common/rfb/SSecurityVncAuth.cxx:121
+#, fuzzy
+msgid "Authentication failed"
+msgstr "Розпізнавання не пройдено: %s"
+
+#: common/rfb/CConnection.cxx:459
+#, fuzzy, c-format
+msgid "Failed to resize remote session: %d"
+msgstr "Не вдалося вилучити «%s»: %s"
+
+#: common/rfb/CConnection.cxx:598
+msgid "Enabling continuous updates"
+msgstr "Увімкнути неперервне оновлення"
+
+#: common/rfb/CConnection.cxx:623
+#, c-format
+msgid "Requesting audio (format %d, %d channels, %d Hz)"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:637 common/rfb/CConnection.cxx:645
+#: common/rfb/CConnection.cxx:653
+msgid "Unexpected audio message"
+msgstr ""
+
+#: common/rfb/CConnection.cxx:667
+msgid "Invalid SetColourMapEntries from server!"
+msgstr "Некоректне значення SetColourMapEntries від сервера!"
+
+#: common/rfb/CConnection.cxx:778 common/rfb/SConnection.cxx:513
+#: unix/w0vncserver/portals/Clipboard.cxx:549
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:521
+#: unix/xserver/hw/vnc/vncSelection.c:616 vncviewer/Viewport.cxx:628
+msgid "Invalid UTF-8 sequence in clipboard"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:49 common/rfb/SMsgReader.cxx:51
+msgid "Maximum permitted length of an incoming clipboard update"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:120
+#, c-format
+msgid "Unknown QEMU submessage %d"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:135
+#, c-format
+msgid "Unknown QEMU audio operation %d"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:144
+#, fuzzy
+msgid "Audio data is too large"
+msgstr "Параметр є надто великим"
+
+#: common/rfb/CMsgReader.cxx:194 common/rfb/SMsgReader.cxx:116
+#, fuzzy, c-format
+msgid "Unknown message type %d"
+msgstr "Невідомий тип параметра"
+
+#: common/rfb/CMsgReader.cxx:360 common/rfb/CMsgReader.cxx:386
+#: common/rfb/CMsgReader.cxx:436 common/rfb/SMsgReader.cxx:341
+#: common/rfb/SMsgReader.cxx:367 common/rfb/SMsgReader.cxx:417
+#, c-format
+msgid "Clipboard too large (%d bytes)"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:384 common/rfb/CMsgReader.cxx:406
+#: common/rfb/CMsgReader.cxx:431 common/rfb/CMsgReader.cxx:445
+#: common/rfb/CMsgReader.cxx:461 common/rfb/CMsgReader.cxx:491
+#: common/rfb/SMsgReader.cxx:365 common/rfb/SMsgReader.cxx:387
+#: common/rfb/SMsgReader.cxx:412 common/rfb/SMsgReader.cxx:425
+#: common/rfb/SMsgReader.cxx:441 common/rfb/SMsgReader.cxx:471
+msgid "Invalid extended clipboard message"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:520 common/rfb/SMsgReader.cxx:257
+msgid "Ignoring fence with too large payload"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:555
+#, c-format
+msgid "Invalid rectangle received: %dx%d at %d,%d exceeds %dx%d"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:558
+#, fuzzy
+msgid "Invalid rectangle received"
+msgstr "Вказано некоректні геометричні параметри!"
+
+#: common/rfb/CMsgReader.cxx:562
+msgid "Empty rectangle received"
+msgstr ""
+
+#: common/rfb/CMsgReader.cxx:571 common/rfb/CMsgReader.cxx:636
+#: common/rfb/CMsgReader.cxx:683 common/rfb/CMsgReader.cxx:745
+#, fuzzy
+msgid "Received cursor is too large"
+msgstr "Параметр є надто великим"
+
+#: common/rfb/CMsgReader.cxx:839
+#, fuzzy
+msgid "Unknown cursor type"
+msgstr "Невідомий тип параметра"
+
+#: common/rfb/CMsgReader.cxx:865 common/rfb/CMsgReader.cxx:870
+#, fuzzy
+msgid "Invalid desktop name received"
+msgstr "Вказано некоректні геометричні параметри!"
+
+#: common/rfb/CSecurityDH.cxx:92
+msgid "Received Diffie-Hellman key is too short"
+msgstr ""
+
+#: common/rfb/CSecurityDH.cxx:94
+msgid "Received Diffie-Hellman key is too long"
+msgstr ""
+
+#: common/rfb/CSecurityDH.cxx:106 common/rfb/CSecurityMSLogonII.cxx:94
+msgid "Received invalid Diffie-Hellman modulus"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:183
+#, fuzzy
+msgid "Failed to generate encryption key"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: common/rfb/CSecurityRSAAES.cxx:202
+msgid "Server encryption key is too short"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:204
+msgid "Server encryption key is too long"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:217
+msgid "Server encryption key is invalid"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:270 common/rfb/SSecurityRSAAES.cxx:380
+#, fuzzy
+msgid "Failed to encrypt data"
+msgstr "Не вдалося відкрити ключ реєстру"
+
+#: common/rfb/CSecurityRSAAES.cxx:290
+msgid "Client key length doesn't match length of random data"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:303 common/rfb/SSecurityRSAAES.cxx:413
+msgid "Failed to decrypt data"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:474 common/rfb/SSecurityRSAAES.cxx:583
+msgid "Incorrect hash received"
+msgstr ""
+
+#: common/rfb/CSecurityRSAAES.cxx:504
+msgid "Unknown RSA-AES subtype"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:57
+msgid "Path to the X.509 certificate for the trusted certificate authority"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:62
+#, fuzzy
+msgid "Path to the X.509 certificate revocation list"
+msgstr "Шлях до сертифіката CA X509"
+
+#: common/rfb/CSecurityTLS.cxx:88 common/rfb/SSecurityTLS.cxx:90
+msgid "Failed to initialize GnuTLS"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:145
+msgid "Server failed to initialize TLS session"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:149 common/rfb/SSecurityTLS.cxx:152
+msgid "Failed to initialize GnuTLS session"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:154 common/rfb/CSecurityTLS.cxx:205
+#: common/rfb/CSecurityTLS.cxx:217 common/rfb/CSecurityTLS.cxx:234
+#: common/rfb/SSecurityTLS.cxx:157 common/rfb/SSecurityTLS.cxx:215
+#: common/rfb/SSecurityTLS.cxx:227 common/rfb/SSecurityTLS.cxx:244
+msgid "Failed to configure GnuTLS priority"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:203 common/rfb/CSecurityTLS.cxx:215
+#: common/rfb/CSecurityTLS.cxx:232 common/rfb/SSecurityTLS.cxx:213
+#: common/rfb/SSecurityTLS.cxx:225 common/rfb/SSecurityTLS.cxx:242
+#, c-format
+msgid "Syntax error in GnuTLS priority string: %s"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:260
+msgid "Failed to load the system certificate trust store"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:263
+#, fuzzy
+msgid "Failed to load the user specified certificate authority"
+msgstr ""
+"Не вдалося завантажити вказаний файл налаштувань:\n"
+"\n"
+"%s"
+
+#: common/rfb/CSecurityTLS.cxx:266
+#, fuzzy
+msgid "Failed to load the user specified certificate revocation list"
+msgstr ""
+"Не вдалося завантажити вказаний файл налаштувань:\n"
+"\n"
+"%s"
+
+#: common/rfb/CSecurityTLS.cxx:286
+msgid "Failed to configure the server name for TLS handshake"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:308
+msgid "Unsupported certificate type"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:315
+#, c-format
+msgid "Server certificate verification failed: %s"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:318
+msgid "Server certificate verification failed"
+msgstr ""
+
+#: common/rfb/CSecurityTLS.cxx:330
+msgid "Empty certificate chain"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:111
+msgid "The server reported an unsupported VeNCrypt version"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:123
+msgid ""
+"The server reported that it could not support the client's VeNCrypt version"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:138
+msgid "The server reported no VeNCrypt sub-types"
+msgstr ""
+
+#: common/rfb/CSecurityVeNCrypt.cxx:179 common/rfb/SSecurityVeNCrypt.cxx:174
+msgid "No valid VeNCrypt sub-type"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:53
+msgid "Unable to determine the number of CPU cores on this system"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:56
+#, c-format
+msgid "Detected %d CPU core(s)"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:63
+#, c-format
+msgid "Creating %d decoder thread(s)"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:107 common/rfb/DecodeManager.cxx:114
+#, c-format
+msgid "Unknown encoding %d"
+msgstr "Невідоме кодування %d"
+
+#: common/rfb/DecodeManager.cxx:108 common/rfb/DecodeManager.cxx:115
+msgid "Unknown encoding"
+msgstr "Невідоме кодування"
+
+#. TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+#: common/rfb/DecodeManager.cxx:230 common/rfb/DecodeManager.cxx:244
+#: common/rfb/EncodeManager.cxx:204 common/rfb/EncodeManager.cxx:238
+#: common/rfb/EncodeManager.cxx:253
+msgid "rects"
+msgstr ""
+
+#. TRANSLATORS: Will get a SI prefix before (k/M/G/...)
+#: common/rfb/DecodeManager.cxx:232 common/rfb/DecodeManager.cxx:246
+#: common/rfb/EncodeManager.cxx:206 common/rfb/EncodeManager.cxx:240
+#: common/rfb/EncodeManager.cxx:255
+msgid "pixels"
+msgstr ""
+
+#. TRANSLATORS: Short form of bytes
+#: common/rfb/DecodeManager.cxx:236 common/rfb/DecodeManager.cxx:250
+#: common/rfb/EncodeManager.cxx:210 common/rfb/EncodeManager.cxx:244
+#: common/rfb/EncodeManager.cxx:259
+msgid "B"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:237 common/rfb/DecodeManager.cxx:251
+#: common/rfb/EncodeManager.cxx:211 common/rfb/EncodeManager.cxx:245
+#: common/rfb/EncodeManager.cxx:260
+msgid "ratio"
+msgstr ""
+
+#: common/rfb/DecodeManager.cxx:242 common/rfb/DecodeManager.cxx:248
+#: common/rfb/EncodeManager.cxx:251 common/rfb/EncodeManager.cxx:257
+msgid "Total:"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:118
+#, fuzzy
+msgid "Unknown encoder class"
+msgstr "Невідоме кодування"
+
+#: common/rfb/EncodeManager.cxx:125
+msgid "Solid"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:127
+msgid "Bitmap"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:129
+msgid "Bitmap RLE"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:131
+msgid "Indexed"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:133
+msgid "Indexed RLE"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:135
+#, fuzzy
+msgid "Full color"
+msgstr "&На весь екран"
+
+#: common/rfb/EncodeManager.cxx:140
+#, fuzzy
+msgid "Unknown encoder type"
+msgstr "Невідомий тип параметра"
+
+#: common/rfb/EncodeManager.cxx:190
+#, c-format
+msgid "Framebuffer updates: %u"
+msgstr ""
+
+#: common/rfb/EncodeManager.cxx:202 common/rfb/EncodeManager.cxx:208
+msgid "Copies"
+msgstr ""
+
+#: common/rfb/H264Decoder.cxx:132
+#, fuzzy
+msgid "Failed to create H.264 context"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: common/rfb/H264LibavDecoderContext.cxx:55
+#: common/rfb/H264WinDecoderContext.cxx:51
+#: common/rfb/H264WinDecoderContext.cxx:58
+msgid "Could not find video codec"
+msgstr ""
+
+#: common/rfb/H264LibavDecoderContext.cxx:59
+#, fuzzy
+msgid "Could not create video parser"
+msgstr "Не вдалося закодувати параметр"
+
+#: common/rfb/H264LibavDecoderContext.cxx:65
+msgid "Could not allocate video codec context"
+msgstr ""
+
+#: common/rfb/H264LibavDecoderContext.cxx:73
+#, fuzzy
+msgid "Could not allocate video frame"
+msgstr "Не вдалося закодувати параметр"
+
+#: common/rfb/H264LibavDecoderContext.cxx:81
+#, fuzzy
+msgid "Could not open video codec"
+msgstr "Не вдалося відкрити «%s»"
+
+#: common/rfb/H264WinDecoderContext.cxx:48
+msgid "Could not initialize MediaFoundation"
+msgstr ""
+
+#: common/rfb/H264WinDecoderContext.cxx:104
+msgid "Could not start video decoder"
+msgstr ""
+
+#: common/rfb/HextileDecoder.cxx:214
+msgid "Invalid Hextile coordinates"
+msgstr ""
+
+#: common/rfb/HextileEncoder.cxx:43
+msgid ""
+"Use improved compression algorithm for Hextile encoding which achieves "
+"better compression ratios at the cost of using more CPU time"
+msgstr ""
+
+#: common/rfb/JpegDecompressor.cxx:223
+msgid "Invalid JPEG data received"
+msgstr ""
+
+#: common/rfb/KeyRemapper.cxx:63
+msgid ""
+"Comma-separated list of incoming keysyms to remap.  Mappings are expressed "
+"as two hex values, prefixed by 0x, and separated by ->"
+msgstr ""
+
+#: common/rfb/KeyRemapper.cxx:83
+#, c-format
+msgid "Unknown operation %c>, assuming ->"
+msgstr ""
+
+#: common/rfb/KeyRemapper.cxx:88
+#, fuzzy, c-format
+msgid "Invalid mapping %s"
+msgstr "Некоректний індекс монітора, «%s»"
+
+#: common/rfb/PixelFormat.cxx:187
+#, fuzzy
+msgid "Invalid pixel format"
+msgstr "Некоректне форматування"
+
+#: common/rfb/RREDecoder.cxx:112
+#, fuzzy
+msgid "Invalid RRE coordinates"
+msgstr "Некоректне форматування"
+
+#: common/rfb/SConnection.cxx:133
+msgid "Reading version failed, not an RFB client?"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:138
+#, fuzzy, c-format
+msgid "Client needs protocol version %d.%d"
+msgstr "Версія протоколу: %d.%d"
+
+#: common/rfb/SConnection.cxx:144
+#, c-format
+msgid "Client needs protocol version %d.%d, server has %d.%d"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:150
+#, fuzzy, c-format
+msgid "Client uses unofficial protocol version %d.%d"
+msgstr "Версія протоколу: %d.%d"
+
+#: common/rfb/SConnection.cxx:158
+#, c-format
+msgid "Assuming compatibility with version %d.%d"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:175
+#, c-format
+msgid "No supported security type for %d.%d client"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:189
+msgid "No supported security types"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:223
+msgid "Requested security type is not available"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:225 common/rfb/SSecurityVeNCrypt.cxx:169
+#, c-format
+msgid "Client requests security type %s (%d)"
+msgstr ""
+
+#: common/rfb/SConnection.cxx:243
+#, fuzzy, c-format
+msgid "Authentication error: %s"
+msgstr "Розпізнавання не пройдено: %s"
+
+#: common/rfb/SConnection.cxx:319
+#, fuzzy, c-format
+msgid "Connection failed: %s"
+msgstr "Розпізнавання не пройдено: %s"
+
+#: common/rfb/SConnection.cxx:568 common/rfb/SConnection.cxx:586
+msgid "Connection rejected"
+msgstr ""
+
+#: common/rfb/SMsgReader.cxx:117
+#, fuzzy
+msgid "Unknown message type"
+msgstr "Невідомий тип параметра"
+
+#: common/rfb/SMsgReader.cxx:496
+#, fuzzy, c-format
+msgid "Unknown QEMU submessage type %d"
+msgstr "Невідомий тип параметра"
+
+#: common/rfb/SMsgReader.cxx:516
+msgid "Key event without keycode"
+msgstr ""
+
+#: common/rfb/SSecurityPlain.cxx:48
+msgid "Users permitted to access the server"
+msgstr ""
+
+#: common/rfb/SSecurityPlain.cxx:98
+#, fuzzy
+msgid "Username is too long"
+msgstr "Занадто довгий рядок"
+
+#: common/rfb/SSecurityPlain.cxx:102
+#, fuzzy
+msgid "Password is too long"
+msgstr "Занадто довгий рядок"
+
+#: common/rfb/SSecurityRSAAES.cxx:77
+msgid "Path to the RSA key for the RSA-AES security types"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:81
+msgid "Require a username for the RSA-AES security types"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:193 common/rfb/SSecurityRSAAES.cxx:220
+#: common/rfb/SSecurityRSAAES.cxx:231 common/rfb/SSecurityRSAAES.cxx:271
+msgid "Invalid RSA key"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:334
+msgid "Client encryption key is too short"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:336
+msgid "Client encryption key is too long"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:349
+msgid "Client encryption key is invalid"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:400
+msgid "Server key length doesn't match length of random data"
+msgstr ""
+
+#: common/rfb/SSecurityRSAAES.cxx:659 common/rfb/SSecurityVncAuth.cxx:108
+msgid "No password configured"
+msgstr ""
+
+#: common/rfb/SSecurityTLS.cxx:67
+#, fuzzy
+msgid "Path to the server's X.509 certificate"
+msgstr "Шлях до сертифіката CA X509"
+
+#: common/rfb/SSecurityTLS.cxx:72
+msgid "Path to the private key of the server's X.509 certificate"
+msgstr ""
+
+#: common/rfb/SSecurityTLS.cxx:290
+msgid "Failed to load the server certificate and private key"
+msgstr ""
+
+#: common/rfb/SSecurityVeNCrypt.cxx:109
+msgid "The client cannot support the server's VeNCrypt version"
+msgstr ""
+
+#: common/rfb/SSecurityVeNCrypt.cxx:119
+msgid "The client returned an unsupported VeNCrypt version"
+msgstr ""
+
+#: common/rfb/SSecurityVeNCrypt.cxx:149
+msgid "There are no VeNCrypt sub-types to send to the client"
+msgstr ""
+
+#: common/rfb/SSecurityVncAuth.cxx:53 vncviewer/parameters.cxx:96
+#, fuzzy
+msgid "Password file for VNC authentication"
+msgstr "Розпізнавання VNC"
+
+#: common/rfb/SSecurityVncAuth.cxx:57
+msgid "Obfuscated binary encoding of the password for VNC authentication"
+msgstr ""
+
+#: common/rfb/SSecurityVncAuth.cxx:144 unix/vncpasswd/vncpasswd.cxx:267
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:696
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:753
+#: unix/xserver/hw/vnc/vncDRI3.c:516
+#, fuzzy, c-format
+msgid "Failed to open \"%s\": %s"
+msgstr "Не вдалося вилучити «%s»: %s"
+
+#: common/rfb/Security.cxx:42
+msgid ""
+"GnuTLS priority string that controls the TLS session's handshake algorithms"
+msgstr ""
+
+#: common/rfb/Security.cxx:191 common/rfb/encodings.cxx:55
+msgid "[unknown]"
+msgstr ""
+
+#: common/rfb/SecurityClient.cxx:54 common/rfb/SecurityServer.cxx:50
+msgid "Specify which security scheme to use"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:36
+msgid ""
+"The number of seconds after which an idle VNC connection will be dropped "
+"(zero means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:41
+msgid ""
+"Terminate when no client has been connected for the specified number of "
+"seconds (zero means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:46
+msgid ""
+"Terminate when a client has been connected for the specified number of "
+"seconds (zero means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:51
+msgid ""
+"Terminate after the specified number of seconds of user inactivity (zero "
+"means no timeout)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:56
+msgid ""
+"Perform pixel comparison on framebuffer to reduce unnecessary updates (0: "
+"never, 1: always, 2: auto)"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:61
+msgid "The maximum number of updates per second sent to each client"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:65
+msgid ""
+"Always use protocol version 3.3 for backwards compatibility with badly-"
+"behaved clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:70
+msgid ""
+"Always treat incoming connections as shared, regardless of the client-"
+"specified setting"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:75
+msgid ""
+"Never treat incoming connections as shared, regardless of the client-"
+"specified setting"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:80
+msgid "Disconnect existing clients if an incoming connection is not shared"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:85
+msgid "Accept key events from clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:89
+msgid "Accept pointer events from clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:93 unix/vncconfig/vncconfig.cxx:86
+#, fuzzy
+msgid "Accept clipboard changes from clients"
+msgstr "Приймати вміст буфера з сервера"
+
+#: common/rfb/ServerCore.cxx:97
+#, fuzzy
+msgid "Send clipboard changes to clients"
+msgstr "Надіслати вміст буфера обміну до сервера"
+
+#: common/rfb/ServerCore.cxx:101
+msgid "Accept session size changes from clients"
+msgstr ""
+
+#: common/rfb/ServerCore.cxx:105
+#, fuzzy
+msgid "Prompt the local user to accept or reject incoming connections"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: common/rfb/TightDecoder.cxx:74
+msgid "Bad Tight subencoding value received"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:108
+msgid "Too large Tight rectangle"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:153
+msgid "Invalid bits per pixel for gradient filter"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:160
+msgid "Invalid Tight filter code received"
+msgstr ""
+
+#: common/rfb/TightDecoder.cxx:426
+#, fuzzy
+msgid "Failed to decode Tight rectangle"
+msgstr "Не вдалося закрити ключ реєстру"
+
+#: common/rfb/UnixPasswordValidator.cxx:41
+msgid "Service name for PAM password validation"
+msgstr ""
+
+#: common/rfb/UnixPasswordValidator.cxx:113
+#, fuzzy, c-format
+msgid "Failed to initialized PAM: %d"
+msgstr "Не вдалося зберегти «%s»: %s"
+
+#: common/rfb/UnixPasswordValidator.cxx:123
+#, c-format
+msgid "Failed to set PAM_XDISPLAY: %s (%d)"
+msgstr ""
+
+#: common/rfb/UnixPasswordValidator.cxx:131
+#, fuzzy, c-format
+msgid "PAM authentication failed: %s (%d)"
+msgstr "Розпізнавання не пройдено: %s"
+
+#: common/rfb/UnixPasswordValidator.cxx:137
+#, fuzzy, c-format
+msgid "PAM authorization failed: %s (%d)"
+msgstr "Розпізнавання не пройдено: %s"
+
+#: common/rfb/VNCSConnectionST.cxx:90
+#, c-format
+msgid "Closing %s: %s"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:212
+#, fuzzy
+msgid "Clean disconnection"
+msgstr "&Створити з'єднання"
+
+#: common/rfb/VNCSConnectionST.cxx:263
+msgid "Client does not support resizing the desktop"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:457
+#, fuzzy, c-format
+msgid "Server default pixel format: %s"
+msgstr "(типовий для сервера %s)"
+
+#: common/rfb/VNCSConnectionST.cxx:512
+#, fuzzy, c-format
+msgid "Client pixel format: %s"
+msgstr "Використовуємо формат у пікселях %s"
+
+#: common/rfb/VNCSConnectionST.cxx:670
+#, c-format
+msgid "Update request %dx%d at %d,%d exceeds framebuffer %dx%d"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:750
+msgid "Fence response of unexpected size received"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:764
+msgid "Fence response of unexpected type received"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:778
+msgid "Client tried to enable continuous updates when not allowed"
+msgstr ""
+
+#: common/rfb/VNCSConnectionST.cxx:850
+#, fuzzy
+msgid "Authentication timeout"
+msgstr "Розпізнавання"
+
+#: common/rfb/VNCSConnectionST.cxx:862
+#, fuzzy
+msgid "Idle for too long"
+msgstr "Занадто довгий рядок"
+
+#: common/rfb/VNCServerST.cxx:115
+msgid "Server shutting down"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:147
+#, c-format
+msgid "Blacklisted: %s"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:154
+msgid "Too many security failures"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:163
+#, c-format
+msgid "Accepted: %s"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:170
+#, fuzzy, c-format
+msgid "Error accepting client: %s"
+msgstr "Не вдалося встановити нове з'єднання: %s"
+
+#: common/rfb/VNCServerST.cxx:199
+#, fuzzy, c-format
+msgid "Closed: %s"
+msgstr "Закрити"
+
+#: common/rfb/VNCServerST.cxx:341
+#, c-format
+msgid "Removing screen %d (%x) as it is completely outside the new framebuffer"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:627
+msgid "Rejecting too large resize request"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:633
+#, fuzzy
+msgid "Invalid screen layout requested by client"
+msgstr ""
+"Результати обчислення компонування вікна для запиту щодо зміни розмірів є "
+"некоректними!"
+
+#: common/rfb/VNCServerST.cxx:647
+msgid "Desktop configured a different screen layout than requested"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:730
+msgid "Maximum idle time reached, exiting"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:733
+msgid "Maximum disconnected time reached, exiting"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:736
+msgid "Maximum connected time reached, exiting"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:756
+msgid "The server is already in use"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:789
+msgid "Non-shared connection requested"
+msgstr ""
+
+#: common/rfb/VNCServerST.cxx:794
+msgid "Server is already in use"
+msgstr ""
+
+#: common/rfb/ZRLEDecoder.cxx:71 common/rfb/ZRLEDecoder.cxx:249
+#: common/rfb/ZRLEDecoder.cxx:274
+#, fuzzy
+msgid "Failed to decode ZRLE rectangle"
+msgstr "Не вдалося оновити стан лампочки клавіатури"
+
+#: common/rfb/ZRLEEncoder.cxx:40
+#, fuzzy
+msgid "[DEPRECATED] Zlib compression level"
+msgstr "Нетиповий рівень стискання"
+
+#: common/rfb/ZRLEEncoder.cxx:48
+msgid ""
+"Warning: The ZlibLevel option is deprecated and is ignored by the server. "
+"The compression level can be set by the client instead."
+msgstr ""
+
+#: unix/common/randr.cxx:201
+msgid "One or more screens are mirrored. Cannot reconfigure screen layout."
+msgstr ""
+
+#: unix/common/randr.cxx:217 unix/common/randr.cxx:226
+msgid "Unable to create more screens, as needed by the new client layout."
+msgstr ""
+
+#: unix/common/randr.cxx:239
+#, fuzzy, c-format
+msgid "Failed to resize screen to %dx%d"
+msgstr "Не вдалося прочитати запис журналу сервера %d: %s"
+
+#: unix/common/randr.cxx:277 unix/common/randr.cxx:358
+#, c-format
+msgid "The required output '%s' is not usable"
+msgstr ""
+
+#: unix/common/randr.cxx:287 unix/common/randr.cxx:368
+#, c-format
+msgid "The output '%s' does not support the required mode %dx%d"
+msgstr ""
+
+#: unix/common/randr.cxx:309 unix/common/randr.cxx:390
+#, c-format
+msgid "Failed to reconfigure the output '%s' to %dx%d+%d+%d"
+msgstr ""
+
+#: unix/common/randr.cxx:341
+msgid "Cannot find an available output for new screen layout"
+msgstr ""
+
+#: unix/common/randr.cxx:417
+#, fuzzy, c-format
+msgid "Failed to disable the output '%s'"
+msgstr "Не вдалося зберегти «%s»: %s"
+
+#: unix/vncconfig/vncconfig.cxx:56 unix/x0vncserver/x0vncserver.cxx:84
+#: vncviewer/parameters.cxx:239
+msgid "The X display to use"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:57
+msgid "Don't display a window"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:58
+msgid "Start with window iconified"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:87 vncviewer/OptionsDialog.cxx:1027
+msgid "Also set primary selection"
+msgstr "Також встановити основне позначене"
+
+#: unix/vncconfig/vncconfig.cxx:88
+#, fuzzy
+msgid "Send clipboard to clients"
+msgstr "Надіслати вміст буфера обміну до сервера"
+
+#: unix/vncconfig/vncconfig.cxx:89
+#, fuzzy
+msgid "Send primary selection to clients"
+msgstr "Надіслати основне позначене як буфер обміну"
+
+#: unix/vncconfig/vncconfig.cxx:108
+msgid "VNC config"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:180
+#, fuzzy, c-format
+msgid ""
+"Usage: %s [parameters]\n"
+"       %s [parameters] -connect [-view-only] <host>[:<port>]\n"
+"       %s [parameters] -disconnect\n"
+"       %s [parameters] [-set] <Xvnc-param>=<value> ...\n"
+"       %s [parameters] -list\n"
+"       %s [parameters] -get <param>\n"
+"       %s [parameters] -desc <param>\n"
+msgstr ""
+"\n"
+"Користування: %s [параметри] [вузол][:номерДисплея]\n"
+"       %s [параметри] [вузол][::порт]\n"
+"       %s [параметри] [сокет unix]\n"
+"       %s [параметри] -listen [порт]\n"
+"       %s [параметри] [файл .tigervnc]\n"
+
+#: unix/vncconfig/vncconfig.cxx:189 unix/w0vncserver/w0vncserver.cxx:87
+#: unix/x0vncserver/x0vncserver.cxx:294 unix/xserver/hw/vnc/xvnc.c:223
+#: vncviewer/vncviewer.cxx:420
+#, c-format
+msgid ""
+"\n"
+"Parameters can be turned on with -<param> or off with -<param>=0\n"
+"Parameters which take a value can be specified as -<param> <value>\n"
+"Other valid forms are <param>=<value> -<param>=<value> --<param>=<value>\n"
+"Parameter names are case-insensitive.  The parameters are:\n"
+"\n"
+msgstr ""
+"\n"
+"Параметри можна увімкнути за допомогою -<парам> або вимкнути за допомогою "
+"-<парам>=0\n"
+"Параметри, які приймають значення можна вказати у формі -<парам> <значення>\n"
+"Інші коректні форми — <парам>=<значення> -<парам>=<значення> --"
+"<парам>=<значення>\n"
+"Назви параметрів слід вказувати з врахуванням регістру символів. Параметри:\n"
+"\n"
+
+#: unix/vncconfig/vncconfig.cxx:246 unix/x0vncserver/x0vncserver.cxx:358
+#, c-format
+msgid "%s: Unable to open display \"%s\"\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:252
+#, c-format
+msgid "%s: No VNC extension on display \"%s\"\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:268
+#, c-format
+msgid "%s: Connecting to %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:273
+#, c-format
+msgid "%s: Disconnecting all clients failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:285
+#, c-format
+msgid "%s: Getting the value of parameter %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:297
+#, c-format
+msgid "%s: Getting the description for parameter %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:314 unix/vncconfig/vncconfig.cxx:336
+#, fuzzy, c-format
+msgid "%s: Invalid parameter syntax '%s'\n"
+msgstr "Некоректний індекс монітора, «%s»"
+
+#: unix/vncconfig/vncconfig.cxx:316 unix/vncconfig/vncconfig.cxx:330
+#: unix/vncconfig/vncconfig.cxx:338 unix/vncpasswd/vncpasswd.cxx:211
+#: unix/vncpasswd/vncpasswd.cxx:222 unix/w0vncserver/w0vncserver-forget.cxx:72
+#: unix/w0vncserver/w0vncserver.cxx:149 unix/w0vncserver/w0vncserver.cxx:155
+#: unix/x0vncserver/x0vncserver.cxx:344 unix/x0vncserver/x0vncserver.cxx:350
+#: vncviewer/vncviewer.cxx:639 vncviewer/vncviewer.cxx:647
+#, c-format
+msgid "See '%s --help' for more information.\n"
+msgstr "Див. «%s --help», щоб дізнатися більше.\n"
+
+#: unix/vncconfig/vncconfig.cxx:325 unix/vncconfig/vncconfig.cxx:347
+#, c-format
+msgid "%s: Setting the parameter %s failed\n"
+msgstr ""
+
+#: unix/vncconfig/vncconfig.cxx:328 unix/vncpasswd/vncpasswd.cxx:209
+#: unix/w0vncserver/w0vncserver.cxx:147 unix/x0vncserver/x0vncserver.cxx:342
+#: vncviewer/vncviewer.cxx:637
+#, c-format
+msgid "%s: Unrecognized option '%s'\n"
+msgstr "%s: невідомий параметр «%s»\n"
+
+#: unix/vncpasswd/vncpasswd.cxx:51
+#, c-format
+msgid ""
+"Usage: %s [file]\n"
+"       %s -f\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:96
+#, fuzzy
+msgid "Writing VNC password to stdout failed"
+msgstr "Спроба відкриття файла паролів зазнала невдачі"
+
+#: unix/vncpasswd/vncpasswd.cxx:119
+#, c-format
+msgid "Cannot check password quality: %s\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:127
+#, c-format
+msgid "Password quality check failed:\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:141 vncviewer/AuthDialog.cxx:120
+msgid "Password:"
+msgstr "Пароль:"
+
+#: unix/vncpasswd/vncpasswd.cxx:150
+#, c-format
+msgid "Password not changed\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:155
+#, c-format
+msgid "Password can not be longer than 8 characters - try again\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:166
+#, c-format
+msgid "Password must be at least 6 characters - try again\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:171
+msgid "Verify:"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:178
+#, c-format
+msgid "Passwords don't match - try again\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:216
+#, c-format
+msgid "%s: Too long filename specified\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:221 unix/w0vncserver/w0vncserver-forget.cxx:71
+#: unix/w0vncserver/w0vncserver.cxx:154 unix/x0vncserver/x0vncserver.cxx:349
+#: vncviewer/vncviewer.cxx:646
+#, c-format
+msgid "%s: Extra argument '%s'\n"
+msgstr "%s: зайвий аргумент «%s»\n"
+
+#: unix/vncpasswd/vncpasswd.cxx:232 vncviewer/parameters.cxx:776
+#: vncviewer/parameters.cxx:854 vncviewer/vncviewer.cxx:478
+#, c-format
+msgid "Could not determine VNC config directory path"
+msgstr "Не вдалося визначити шлях до каталогу налаштувань VNC"
+
+#: unix/vncpasswd/vncpasswd.cxx:240 vncviewer/vncviewer.cxx:494
+#, c-format
+msgid "Could not create VNC config directory \"%s\": %s"
+msgstr "Не вдалося створити каталог налаштувань VNC «%s»: %s"
+
+#: unix/vncpasswd/vncpasswd.cxx:254
+#, c-format
+msgid "Would you like to enter a view-only password (y/n)? "
+msgstr ""
+
+#. TRANSLATORS: Should be character used to abbreviate "yes" above
+#: unix/vncpasswd/vncpasswd.cxx:259
+msgid "yY"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:262
+#, c-format
+msgid "A view-only password is not used\n"
+msgstr ""
+
+#: unix/vncpasswd/vncpasswd.cxx:275 unix/vncpasswd/vncpasswd.cxx:283
+#, fuzzy, c-format
+msgid "Failed writing to \"%s\": %s"
+msgstr "Не вдалося вилучити «%s»: %s"
+
+#: unix/w0vncserver/GSocketSource.cxx:240 unix/x0vncserver/x0vncserver.cxx:509
+#, fuzzy
+msgid "Client connection rejected"
+msgstr "Це з'єднання є безпечним"
+
+#: unix/w0vncserver/parameters.cxx:34 unix/x0vncserver/x0vncserver.cxx:87
+#: unix/xserver/hw/vnc/vncExtInit.cc:73 win/vncconfig/Connections.h:39
+#: win/winvnc/VNCServerWin32.cxx:54
+msgid "TCP port to listen for RFB protocol"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:37 unix/x0vncserver/x0vncserver.cxx:91
+#: unix/xserver/hw/vnc/vncExtInit.cc:76
+msgid "UNIX socket path to listen for RFB protocol"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:40 unix/x0vncserver/x0vncserver.cxx:95
+#: unix/xserver/hw/vnc/vncExtInit.cc:79
+msgid "UNIX socket access mode"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:43 unix/x0vncserver/x0vncserver.cxx:101
+#: unix/xserver/hw/vnc/vncExtInit.cc:85 win/vncconfig/Connections.h:44
+#: win/winvnc/VNCServerWin32.cxx:60
+msgid "Only allow connections from localhost"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:46 unix/x0vncserver/x0vncserver.cxx:81
+#: unix/xserver/hw/vnc/vncExtInit.cc:82
+msgid "Name of VNC desktop"
+msgstr ""
+
+#: unix/w0vncserver/parameters.cxx:49 unix/x0vncserver/x0vncserver.cxx:105
+#: unix/xserver/hw/vnc/vncExtInit.cc:88
+#, fuzzy
+msgid "Listen on the specified network address"
+msgstr "Не вказано коду клавіші при натисканні"
+
+#: unix/w0vncserver/parameters.cxx:53 unix/x0vncserver/XDesktop.cxx:72
+#: unix/xserver/hw/vnc/XserverDesktop.cc:67 win/rfb_win32/SInput.cxx:146
+msgid ""
+"Send keyboard events straight through and avoid mapping them to the current "
+"keyboard layout"
+msgstr ""
+
+#. TRANSLATORS: This refers to the two different X11
+#. clipboards
+#: unix/w0vncserver/parameters.cxx:59 unix/x0vncserver/XSelection.cxx:36
+#: unix/xserver/hw/vnc/vncExtInit.cc:103 vncviewer/parameters.cxx:228
+#, fuzzy
+msgid "Set the primary selection as well as the clipboard selection"
+msgstr "Надіслати основне позначене як буфер обміну"
+
+#. TRANSLATORS: This refers to the two different X11
+#. clipboards
+#: unix/w0vncserver/parameters.cxx:66 unix/x0vncserver/XSelection.cxx:43
+#: unix/xserver/hw/vnc/vncExtInit.cc:110
+#, fuzzy
+msgid ""
+"Send the primary selection to the client as well as the clipboard selection"
+msgstr "Надіслати основне позначене як буфер обміну"
+
+#: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:93
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:75
+#, fuzzy
+msgid "Remote desktop session stopped"
+msgstr "Засіб перегляду віддаленої стільниці"
+
+#: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:119
+#, c-format
+msgid "Invalid PipeWire chunk size: %d instead of %d"
+msgstr ""
+
+#: unix/w0vncserver/pipewire/PipeWirePixelBuffer.cxx:276
+#, fuzzy, c-format
+msgid "Failed to update cursor image: %s"
+msgstr "Не вдалося оновити стан лампочки клавіатури: %d"
+
+#: unix/w0vncserver/pipewire/PipeWireSource.cxx:90
+#, c-format
+msgid "PipeWire loop failed: %s"
+msgstr ""
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:77
+#, fuzzy
+msgid "Failed to create PipeWire context"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:84
+#, fuzzy
+msgid "Failed to connect to PipeWire server"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:124
+#, fuzzy
+msgid "Failed to create PipeWire stream"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:153
+#, fuzzy
+msgid "Failed to connect PipeWire stream"
+msgstr "Не вдалося закрити ключ реєстру"
+
+#: unix/w0vncserver/pipewire/PipeWireStream.cxx:175
+#, c-format
+msgid "Error communicating with PipeWire: %s"
+msgstr ""
+
+#: unix/w0vncserver/portals/Clipboard.cxx:153
+#: unix/w0vncserver/portals/Clipboard.cxx:183
+#: unix/w0vncserver/portals/Clipboard.cxx:197
+#: unix/w0vncserver/portals/Clipboard.cxx:211
+#: unix/w0vncserver/portals/Clipboard.cxx:222
+#: unix/w0vncserver/portals/Clipboard.cxx:234
+#: unix/w0vncserver/portals/Clipboard.cxx:277
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:177
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:197
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:307
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:323
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:438
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:442
+#, fuzzy, c-format
+msgid "Failed to update the clipboard: %s"
+msgstr "Не вдалося оновити стан лампочки клавіатури"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:212
+#: unix/w0vncserver/portals/Clipboard.cxx:400
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:308
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:439
+#, c-format
+msgid "Unsupported mime type '%s'"
+msgstr ""
+
+#: unix/w0vncserver/portals/Clipboard.cxx:255
+#, fuzzy, c-format
+msgid "Failed to release clipboard ownership: %s"
+msgstr "Не вдалося прочитати параметр «%s»: %s"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:326
+#: unix/w0vncserver/portals/Clipboard.cxx:355
+#: unix/w0vncserver/portals/Clipboard.cxx:512
+#: unix/w0vncserver/portals/Clipboard.cxx:515
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:254
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:480
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:483
+#, fuzzy, c-format
+msgid "Failed to retrieve the clipboard: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:338
+#: unix/w0vncserver/portals/Clipboard.cxx:476
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:447
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:501
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:614
+#, c-format
+msgid "Invalid response to request \"%s\""
+msgstr ""
+
+#: unix/w0vncserver/portals/Clipboard.cxx:513
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:481
+#, fuzzy
+msgid "Cancelled"
+msgstr "Скасувати"
+
+#: unix/w0vncserver/portals/Clipboard.cxx:540
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:510
+msgid "Non-ASCII character in clipboard"
+msgstr ""
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:73
+#, fuzzy, c-format
+msgid "Failed to create PipeWire pixel buffer: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:110
+#, fuzzy, c-format
+msgid "Failed to initialize clipboard access: %s"
+msgstr "Не вдалося оновити стан лампочки клавіатури: %d"
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:127
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:295
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:407
+#, fuzzy, c-format
+msgid "Failed to start remote desktop session: %s"
+msgstr "Не вдалося вилучити «%s»: %s"
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:129
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:449
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:457
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:462
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:472
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:502
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:511
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:515
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:516
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:527
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:539
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:606
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:616
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:630
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:125
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:181
+#, fuzzy
+msgid "Failed to start remote desktop session"
+msgstr "Не вдалося вилучити «%s»: %s"
+
+#: unix/w0vncserver/portals/PortalDesktop.cxx:157
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:188
+#: unix/xserver/hw/vnc/XserverDesktop.cc:185
+msgid "Unable to query the local user to accept the connection."
+msgstr ""
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:50
+#: unix/w0vncserver/portals/PortalProxy.cxx:225
+#, fuzzy, c-format
+msgid "Failed to connect to D-Bus: %s"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:61
+#, fuzzy, c-format
+msgid "Failed to connect to D-Bus interface \"%s\" at \"%s\" from \"%s\": %s"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:139
+#, fuzzy, c-format
+msgid "Failed to call D-Bus method \"%s\": %s"
+msgstr "Не вдалося зберегти «%s»: %s"
+
+#: unix/w0vncserver/portals/PortalProxy.cxx:244
+#: unix/w0vncserver/portals/PortalProxy.cxx:256
+#, fuzzy, c-format
+msgid "Failed to enumerate desktop portals: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:67
+msgid "Remember display choice when user connects"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:142
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:170
+#, fuzzy, c-format
+msgid "Failed to send keyboard event: %s"
+msgstr "Не вдалося отримати стан лампочки клавіатури: %d"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:191
+#, fuzzy, c-format
+msgid "Failed to send pointer motion event: %s"
+msgstr "Не вдалося прочитати рядок %d у файлі «%s»"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:225
+#, fuzzy, c-format
+msgid "Failed to send pointer button event: %s"
+msgstr "Не вдалося прочитати запис журналу сервера %d: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:267
+#, fuzzy, c-format
+msgid "Failed to send pointer scroll event: %s"
+msgstr "Не вдалося прочитати запис журналу сервера %d: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:309
+#, fuzzy, c-format
+msgid "Failed to close remote desktop session: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:347
+#, fuzzy, c-format
+msgid "Failed to request control of input devices: %s"
+msgstr ""
+"Не вдалося записати файл налаштувань, оскільки не вдалося відкрити %s: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:383
+#, fuzzy, c-format
+msgid "Failed to request monitors to share: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:456
+msgid "Connection to local session was cancelled"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:461
+#, fuzzy
+msgid "Failed to connect to local session"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:471
+#, fuzzy
+msgid "Failed to get handle to local session"
+msgstr "Не вдалося отримати налаштування монітора з боку системи"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:510
+#: unix/x0vncserver/XDesktop.cxx:1018 unix/xserver/hw/vnc/vncExtInit.cc:400
+#: win/winvnc/VNCServerWin32.cxx:313
+msgid "Connection rejected by local user"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:526
+#, fuzzy
+msgid "Failed to get input devices"
+msgstr "Не вдалося отримати дані події для події X Input"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:538
+#, fuzzy
+msgid "Failed to get image streams for local session"
+msgstr "Не вдалося отримати налаштування монітора з боку системи"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:569
+msgid "Display choice restore token was not provided"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:604
+#, fuzzy, c-format
+msgid "Failed to connect to PipeWire: %s"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:627
+#, fuzzy, c-format
+msgid "Failed to get PipeWire file descriptors: %s"
+msgstr "Не вдалося отримати відомості щодо жестів (помилка 0x%x)"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:649
+msgid "No image streams provided for the session"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:654
+#, c-format
+msgid "Only one image stream supported, got %d"
+msgstr ""
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:688
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:736
+#: unix/w0vncserver/w0vncserver-forget.cxx:80 vncviewer/CConn.cxx:513
+#: vncviewer/ServerDialog.cxx:346 vncviewer/ServerDialog.cxx:428
+#: vncviewer/vncviewer.cxx:512
+#, c-format
+msgid "Could not determine VNC state directory path"
+msgstr "Не вдалося визначити каталог стану VNC"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:708
+#, fuzzy, c-format
+msgid "Failed to load restore token from \"%s\""
+msgstr "Не вдалося прочитати запис журналу сервера %d: %s"
+
+#: unix/w0vncserver/portals/RemoteDesktop.cxx:742 vncviewer/vncviewer.cxx:518
+#, c-format
+msgid "Could not create VNC state directory \"%s\": %s"
+msgstr "Не вдалося створити каталог стану VNC «%s»: %s"
+
+#: unix/w0vncserver/w0vncserver-forget.cxx:40
+#, fuzzy, c-format
+msgid "TigerVNC server version %s\n"
+msgstr "Засіб перегляду TigerVNC"
+
+#: unix/w0vncserver/w0vncserver-forget.cxx:47
+#, c-format
+msgid ""
+"\n"
+"Usage: %s\n"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver-forget.cxx:88 vncviewer/parameters.cxx:588
+#: vncviewer/parameters.cxx:622
+#, c-format
+msgid "Failed to remove \"%s\": %s"
+msgstr "Не вдалося вилучити «%s»: %s"
+
+#: unix/w0vncserver/w0vncserver.cxx:74 unix/x0vncserver/x0vncserver.cxx:281
+#, c-format
+msgid "TigerVNC server version %s, built %s\n"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:82 unix/x0vncserver/x0vncserver.cxx:289
+#, c-format
+msgid ""
+"\n"
+"Usage: %s [<parameters>]\n"
+"       %s --version\n"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:163 unix/x0vncserver/x0vncserver.cxx:394
+#: unix/xserver/hw/vnc/vncExtInit.cc:224
+#, c-format
+msgid "Listening for VNC connections on %s (mode %04o)"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:181 unix/x0vncserver/x0vncserver.cxx:412
+#: unix/xserver/hw/vnc/vncExtInit.cc:244
+#, c-format
+msgid "Listening for VNC connections on local interfaces, port %d"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:184 unix/x0vncserver/x0vncserver.cxx:415
+#: unix/xserver/hw/vnc/vncExtInit.cc:247
+#, c-format
+msgid "Listening for VNC connections on interface %s, port %d"
+msgstr ""
+
+#: unix/w0vncserver/w0vncserver.cxx:195 unix/x0vncserver/x0vncserver.cxx:426
+#: unix/xserver/hw/vnc/vncExtInit.cc:255
+#, fuzzy
+msgid "No path or port configured for incoming connections"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: unix/w0vncserver/w0vncserver.cxx:211
+msgid "Desktop does not support remote connections"
+msgstr ""
+
+#: unix/w0vncserver/wayland/GWaylandSource.cxx:132
+#: unix/w0vncserver/wayland/objects/Display.cxx:87
+#, fuzzy, c-format
+msgid "Failed to communicate with Wayland server: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:88
+#, fuzzy, c-format
+msgid "Failed to create virtual pointer device: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:94
+#, fuzzy, c-format
+msgid "Failed to create virtual keyboard device: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:114
+msgid "Desktop does not support clipboard control"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandDesktop.cxx:124
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:180
+#, fuzzy, c-format
+msgid "Failed to create framebuffer: %s"
+msgstr "Не вдалося прочитати параметр «%s»: %s"
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:126
+#, fuzzy, c-format
+msgid "Failed to set cursor: %s"
+msgstr "Не вдалося зберегти «%s»: %s"
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:179
+#, c-format
+msgid "Cannot handle Wayland pixel format %d: %s"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:199
+#, fuzzy, c-format
+msgid "Failed to handle screen update: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:200
+msgid "Failed to handle screen update"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:358
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:627
+#, c-format
+msgid "Cannot handle Wayland transform %d"
+msgstr ""
+
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:470
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:512
+#: unix/w0vncserver/wayland/WaylandPixelBuffer.cxx:533
+#, c-format
+msgid "Cannot handle Wayland pixel format %d"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:128
+#, fuzzy
+msgid "Failed to create clipboard data device"
+msgstr "Не вдалося оновити стан лампочки клавіатури"
+
+#: unix/w0vncserver/wayland/objects/DataControl.cxx:561
+#, fuzzy
+msgid "Failed to create clipboard data source"
+msgstr "Не вдалося оновити стан лампочки клавіатури"
+
+#: unix/w0vncserver/wayland/objects/Display.cxx:58
+#, fuzzy
+msgid "Failed to connect to Wayland server"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: unix/w0vncserver/wayland/objects/Display.cxx:63
+#, fuzzy
+msgid "Failed to get Wayland registry"
+msgstr "Не вдалося відкрити ключ реєстру"
+
+#: unix/w0vncserver/wayland/objects/ImageCaptureSource.cxx:53
+#: unix/w0vncserver/wayland/objects/ImageCaptureSource.cxx:74
+#, fuzzy
+msgid "Failed to create screen capture source"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureCursorSession.cxx:75
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:99
+#, fuzzy
+msgid "Failed to create cursor capture session"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:81
+#, fuzzy
+msgid "Failed to create screen capture session"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureManager.cxx:90
+msgid "No pointer available for desktop session"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:172
+msgid "No Wayland pixel formats provided"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:191
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:199
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:209
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:198
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:203
+#, fuzzy, c-format
+msgid "Failed to create shared memory pool: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:219
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:293
+#, fuzzy
+msgid "Failed to create Wayland buffer object"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:281
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:288
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:292
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:296
+#, fuzzy, c-format
+msgid "Failed to capture screen contents: %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:282
+#, fuzzy
+msgid "Uknown reason"
+msgstr "Невідоме кодування"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:289
+#, fuzzy
+msgid "Invalid buffer constraints"
+msgstr "Некоректне форматування"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:293
+#: win/rfb_win32/Service.cxx:465
+msgid "Stopped"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:297
+#, fuzzy, c-format
+msgid "Unknown reason %d"
+msgstr "Невідоме кодування %d"
+
+#: unix/w0vncserver/wayland/objects/ImageCopyCaptureSession.cxx:350
+msgid "No supported Wayland pixel format"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:148
+#, fuzzy, c-format
+msgid "Failed to access keyboard layout: %s"
+msgstr "Не вдалося отримати стан лампочки клавіатури: %d"
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:171
+#, fuzzy
+msgid "Failed to parse keyboard layout"
+msgstr "Не вдалося оновити стан лампочки клавіатури"
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:182
+#, fuzzy
+msgid "Failed to allocate keyboard state"
+msgstr "Не вдалося оновити стан лампочки клавіатури"
+
+#: unix/w0vncserver/wayland/objects/Keyboard.cxx:197
+#, c-format
+msgid "Unsupported keymap format: %d"
+msgstr ""
+
+#: unix/w0vncserver/wayland/objects/Object.cxx:57
+#, fuzzy, c-format
+msgid "Failed to bind to Wayland object %s"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/w0vncserver/wayland/objects/ScreencopyManager.cxx:253
+#, fuzzy
+msgid "Failed to capture screen contents"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/w0vncserver/wayland/objects/VirtualKeyboard.cxx:59
+#, fuzzy
+msgid "Failed to create virtual keyboard"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/w0vncserver/wayland/objects/VirtualPointer.cxx:60
+#, fuzzy
+msgid "Unknown mouse button"
+msgstr "Невідоме кодування"
+
+#: unix/w0vncserver/wayland/objects/VirtualPointer.cxx:73
+#, fuzzy
+msgid "Failed to create virtual pointer"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/x0vncserver/Geometry.cxx:38
+msgid ""
+"Screen area shown to VNC clients in the format "
+"<width>x<height>+<offset_x>+<offset_y>, or empty to show the whole screen"
+msgstr ""
+
+#: unix/x0vncserver/Geometry.cxx:61 unix/x0vncserver/Geometry.cxx:94
+msgid "Specified desktop geometry is invalid"
+msgstr ""
+
+#: unix/x0vncserver/Geometry.cxx:66
+#, c-format
+msgid "Desktop geometry is set to %dx%d+%d+%d"
+msgstr ""
+
+#: unix/x0vncserver/Geometry.cxx:89
+msgid "Requested area is outsize of the desktop boundaries"
+msgstr ""
+
+#. TRANSLATORS: This is a X11 term
+#: unix/x0vncserver/Image.cxx:87 unix/x0vncserver/Image.cxx:252
+#: unix/xserver/hw/vnc/vncExtInit.cc:153
+#, fuzzy
+msgid "Pseudocolour is not supported"
+msgstr "Передбачено підтримку лише дисплеїв з True Color"
+
+#: unix/x0vncserver/Image.cxx:357
+msgid "Failed to create shared memory image, falling back to Xlib image"
+msgstr ""
+
+#: unix/x0vncserver/PollingManager.cxx:84
+#, c-format
+msgid "Image types do not match (%s, %s, %s)"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:69
+#, fuzzy
+msgid "Use MIT-SHM extension if available"
+msgstr "Розширення X Input є недоступним."
+
+#: unix/x0vncserver/XDesktop.cxx:77 unix/xserver/hw/vnc/XserverDesktop.cc:72
+#: win/winvnc/QueryConnectDialog.cxx:41
+msgid ""
+"Number of seconds to show the 'Accept connection' dialog before rejecting "
+"the connection"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:104 unix/x0vncserver/XDesktop.cxx:105
+msgid "XKEYBOARD extension not present"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:137 unix/x0vncserver/XDesktop.cxx:141
+#, fuzzy, c-format
+msgid "Using %s codemap"
+msgstr "Використовуємо кодування %s"
+
+#: unix/x0vncserver/XDesktop.cxx:143
+#, fuzzy, c-format
+msgid "Unknown keycodes name '%s'"
+msgstr "Невідоме кодування %d"
+
+#: unix/x0vncserver/XDesktop.cxx:164
+msgid "XTest extension not present, all connections will be view only"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:177
+msgid "DAMAGE extension not present, will have to poll the screen for changes"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:196
+msgid ""
+"XFIXES extension not present, will not be able to display the cursor or "
+"monitor the clipboard"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:215
+msgid "RANDR extension not present, will not be able to resize the desktop"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:337 unix/xserver/hw/vnc/XserverDesktop.cc:177
+#: win/winvnc/VNCServerWin32.cxx:250
+#, fuzzy
+msgid "Another connection is currently being queried."
+msgstr "Це з'єднання не є безпечним"
+
+#: unix/x0vncserver/XDesktop.cxx:344 unix/xserver/hw/vnc/XserverDesktop.cc:192
+#: win/winvnc/QueryConnectDialog.cxx:94
+msgid "(anonymous)"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:568 unix/xserver/hw/vnc/vncInput.c:487
+#, c-format
+msgid "Failed to add new keysym XK_%s (0x%04x)"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:596 unix/xserver/hw/vnc/vncInput.c:502
+#, c-format
+msgid "Could not map keysym XK_%s (0x%04x) to keycode"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:627 unix/x0vncserver/XDesktop.cxx:701
+#, fuzzy
+msgid "Failed to get screen layout"
+msgstr "Не вдалося отримати дані події для події X Input"
+
+#: unix/x0vncserver/XDesktop.cxx:803
+msgid "Failed to find a suitable screen size"
+msgstr ""
+
+#: unix/x0vncserver/XDesktop.cxx:1063
+#, fuzzy, c-format
+msgid "Failed to update cursor: %s"
+msgstr "Не вдалося зберегти «%s»: %s"
+
+#: unix/x0vncserver/XSelection.cxx:87 unix/xserver/hw/vnc/vncSelection.c:142
+msgid "Could not set CLIPBOARD selection"
+msgstr ""
+
+#: unix/x0vncserver/XSelection.cxx:92 unix/xserver/hw/vnc/vncSelection.c:137
+msgid "Could not set PRIMARY selection"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:71
+msgid ""
+"Milliseconds per one polling cycle; actual interval may be dynamically "
+"adjusted to satisfy MaxProcessorUsage setting"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:77
+msgid "Maximum percentage of CPU time to be consumed"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:98
+msgid "File with IP access control rules"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:161
+#, c-format
+msgid "Error getting listening sockets from systemd: %s"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:198
+msgid "Could not read IP filtering rules, rejecting all clients"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:378
+#, fuzzy
+msgid "Invalid geometry"
+msgstr "Вказано некоректні геометричні параметри!"
+
+#: unix/x0vncserver/x0vncserver.cxx:389
+msgid "Listening for VNC connections on systemd sockets"
+msgstr ""
+
+#: unix/x0vncserver/x0vncserver.cxx:548
+msgid "Terminated"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XorgGlue.c:86
+msgid "No pixmap format that matches the root window depth\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XorgGlue.c:99
+msgid "No visual that matches the root window visual\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XserverDesktop.cc:322
+msgid "Cannot find file descriptor for socket event"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XserverDesktop.cc:441
+msgid "User requested disconnection"
+msgstr ""
+
+#: unix/xserver/hw/vnc/XserverDesktop.cc:568
+msgid "The attempt to prompt the user to accept the connection failed"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:112
+#, c-format
+msgid "Unsupported pixel depth: %d\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:133
+msgid "Incompatible bits per pixel for GPU buffer\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:138 unix/xserver/hw/vnc/vncDRI3.c:228
+msgid "Incompatible stride for GPU buffer\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:211
+msgid "Incompatible bits per pixel for pixmap\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:223
+#, fuzzy, c-format
+msgid "Failed to create GPU buffer: %s\n"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:301 unix/xserver/hw/vnc/vncDRI3.c:362
+#, fuzzy, c-format
+msgid "Could not map GPU buffer: %s\n"
+msgstr "Не вдалося відкрити «%s»"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:465
+#, fuzzy, c-format
+msgid "Invalid render node path: %s\n"
+msgstr "Некоректний індекс монітора, «%s»"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:488 unix/xserver/hw/vnc/vncDRI3.c:507
+msgid "Could not find any available render nodes\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncDRI3.c:492
+#, fuzzy
+msgid "Failed to enumerate render nodes\n"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:526
+#, fuzzy
+msgid "Could not create GPU render device\n"
+msgstr "Не вдалося створити пристрій буфера кадрів"
+
+#: unix/xserver/hw/vnc/vncDRI3.c:530
+msgid "Built without GPU render support\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:91
+msgid "Avoid fake Shift presses for keys affected by NumLock"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:95
+msgid ""
+"Comma separated list of parameters that are allowed to be modified after "
+"startup"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:172
+msgid "VNC extension incorrectly initialized twice in same generation"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:179
+msgid "Too many screens for VNC extension\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:185
+#, fuzzy
+msgid "VNC extension running"
+msgstr "Дані щодо з’єднання VNC"
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:207 unix/xserver/hw/vnc/vncExtInit.cc:277
+#, fuzzy
+msgid "Listening for VNC connections on inetd socket"
+msgstr "З'єднання TigerVNC із комп'ютером, де працює Windows"
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:268
+#, c-format
+msgid "Created VNC server for screen %d"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:274
+#, fuzzy
+msgid "Failed to listen for VNC connections on inetd socket"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:358
+#, fuzzy, c-format
+msgid "Failed to disconnect clients: %s"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:371
+#, c-format
+msgid "Reverse connection: %s:%d%s%s"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:372
+msgid " (view only)"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:375
+msgid "Failed to add reverse connection socket"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncExtInit.cc:378
+#, fuzzy, c-format
+msgid "Failed to establish reverse connection: %s"
+msgstr "Не вдалося встановити нове з'єднання: %s"
+
+#: unix/xserver/hw/vnc/vncInput.c:120 unix/xserver/hw/vnc/vncInput.c:124
+#: unix/xserver/hw/vnc/vncInput.c:128
+#, fuzzy
+msgid "Failed to create TigerVNC input devices\n"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: unix/xserver/hw/vnc/vncInput.c:588
+msgid "Unable to find a modifier key for Shift"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:597
+msgid "Unable to find the modifier key(s) for releasing Shift"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:609
+msgid "Unable to find a modifier key for AltGr"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:618
+msgid "Unable to find the modifier key(s) for releasing AltGr"
+msgstr ""
+
+#: unix/xserver/hw/vnc/vncInput.c:637
+#, c-format
+msgid "Keysym XK_%s (0x%04x) has been generated by both keys %d and %d"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:122
+#, c-format
+msgid "Xvnc %s - built %s\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:124
+#, c-format
+msgid "Underlying X server release %d\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:221
+#, fuzzy
+msgid "VNC parameters:\n"
+msgstr "Невідомий параметр"
+
+#: unix/xserver/hw/vnc/xvnc.c:285 unix/xserver/hw/vnc/xvnc.c:288
+#, c-format
+msgid "Invalid pixmap depth %d passed to -pixdepths\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:312 unix/xserver/hw/vnc/xvnc.c:315
+#, fuzzy, c-format
+msgid "Invalid geometry %s passed to -geometry\n"
+msgstr "Вказано некоректні геометричні параметри!"
+
+#: unix/xserver/hw/vnc/xvnc.c:335 unix/xserver/hw/vnc/xvnc.c:338
+#: unix/xserver/hw/vnc/xvnc.c:354 unix/xserver/hw/vnc/xvnc.c:357
+#, c-format
+msgid "Invalid pixel format %s passed to -pixelformat\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:368
+#, c-format
+msgid "Failed to allocate a new file descriptor for -inetd: %s\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:389
+msgid "No free display number for -inetd\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:657
+msgid "Unable to disable a CRTC that is outside of the new screen dimensions\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:665
+#, fuzzy, c-format
+msgid "Unable to create a custom display mode for %dx%d\n"
+msgstr "Не вдалося створити специфічний для платформи буфер кадрів: %s"
+
+#: unix/xserver/hw/vnc/xvnc.c:675
+msgid "Unable to crop CRTC to new screen dimensions\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1100
+msgid "Failed to initialize Present extension\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1105
+msgid "Failed to initialize DRI3 extension\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1116
+msgid ""
+"VNC extension does not support -reset, terminating instead. Use -noreset to "
+"prevent termination.\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1161
+msgid "MAXFORMATS is too small for this server\n"
+msgstr ""
+
+#: unix/xserver/hw/vnc/xvnc.c:1222
+msgid "inetd client gone. Terminating...\n"
+msgstr ""
+
+#: vncviewer/AudioOutput.cxx:48
+msgid "No audio playback device available"
+msgstr ""
+
+#: vncviewer/AudioOutputPulse.cxx:152 vncviewer/AudioOutputPulse.cxx:174
+#, fuzzy, c-format
+msgid "Could not connect to sound server: %s"
+msgstr "Не вдалося створити каталог налаштувань VNC «%s»: %s"
+
+#: vncviewer/AudioOutputPulse.cxx:180
+#, fuzzy
+msgid "Timed out connecting to sound server"
+msgstr "Це з'єднання є безпечним"
+
+#: vncviewer/AudioOutputPulse.cxx:236
+#, fuzzy, c-format
+msgid "Could not create audio playback stream: %s"
+msgstr "Не вдалося створити каталог даних VNC «%s»: %s"
+
+#: vncviewer/AudioOutputPulse.cxx:266
+#, c-format
+msgid "Could not open audio playback device: %s"
+msgstr ""
+
+#: vncviewer/AudioOutputPulse.cxx:396
+#, fuzzy
+msgid "Could not write to audio playback device"
+msgstr "Не вдалося створити пристрій буфера кадрів"
+
+#: vncviewer/AudioOutputPulse.cxx:454
+#, fuzzy
+msgid "Lost connection to sound server"
+msgstr "Це з'єднання є безпечним"
+
+#: vncviewer/AudioOutputPulse.cxx:470
+msgid "Audio playback stream failed"
+msgstr ""
+
+#: vncviewer/AudioOutputWin32.cxx:113
+#, fuzzy
+msgid "Could not open audio playback device"
+msgstr "Не вдалося створити пристрій буфера кадрів"
+
+#: vncviewer/AuthDialog.cxx:70
+msgid "VNC authentication"
+msgstr "Розпізнавання VNC"
+
+#: vncviewer/AuthDialog.cxx:84
+msgid "This connection is secure"
+msgstr "Це з'єднання є безпечним"
+
+#: vncviewer/AuthDialog.cxx:88
+msgid "This connection is not secure"
+msgstr "Це з'єднання не є безпечним"
+
+#: vncviewer/AuthDialog.cxx:110
+msgid "Username:"
+msgstr "Користувач:"
+
+#: vncviewer/AuthDialog.cxx:128
+msgid "Keep password for reconnect"
+msgstr "Зберігати пароль для повторного з'єднання"
+
+#: vncviewer/CConn.cxx:187
 #, c-format
 msgid "Connected to socket %s"
 msgstr "З’єднано з сокетом %s"
 
-#: vncviewer/CConn.cxx:165
+#: vncviewer/CConn.cxx:194
 #, c-format
 msgid "Connected to host %s port %d"
 msgstr "З’єднано з вузлом %s, порт %d"
 
-#: vncviewer/CConn.cxx:170
+#: vncviewer/CConn.cxx:199
 #, c-format
 msgid ""
 "Failed to connect to \"%s\":\n"
@@ -40,61 +2585,65 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/CConn.cxx:190
+#: vncviewer/CConn.cxx:219
 #, c-format
 msgid "Desktop name: %.80s"
 msgstr "Назва робочої станції: %.80s"
 
-#: vncviewer/CConn.cxx:193
+#: vncviewer/CConn.cxx:222
 #, c-format
 msgid "Host: %.80s port: %d"
 msgstr "Вузол: %.80s порт: %d"
 
-#: vncviewer/CConn.cxx:197
+#: vncviewer/CConn.cxx:226
 #, c-format
 msgid "Size: %d x %d"
 msgstr "Розмір: %d x %d"
 
-#: vncviewer/CConn.cxx:204
+#: vncviewer/CConn.cxx:233
 #, c-format
 msgid "Pixel format: %s"
 msgstr "Формат у пікселях: %s"
 
-#: vncviewer/CConn.cxx:207
+#: vncviewer/CConn.cxx:236
 #, c-format
 msgid "Requested encoding: %s"
 msgstr "Запит щодо кодування: %s"
 
-#: vncviewer/CConn.cxx:211
+#: vncviewer/CConn.cxx:240
 #, c-format
 msgid "Last used encoding: %s"
 msgstr "Останнє використане кодування: %s"
 
-#: vncviewer/CConn.cxx:215
+#: vncviewer/CConn.cxx:244
 #, c-format
 msgid "Line speed estimate: %d kbit/s"
 msgstr "Оцінка швидкості лінії: %d кбіт/с"
 
-#: vncviewer/CConn.cxx:219
+#: vncviewer/CConn.cxx:248
 #, c-format
 msgid "Protocol version: %d.%d"
 msgstr "Версія протоколу: %d.%d"
 
-#: vncviewer/CConn.cxx:223
+#: vncviewer/CConn.cxx:252
 #, c-format
 msgid "Security method: %s"
 msgstr "Метод захисту: %s"
 
-#: vncviewer/CConn.cxx:284 vncviewer/CConn.cxx:286
-msgid "The connection was dropped by the server before the session could be established."
-msgstr "З'єднання було розірвано сервером до того, як виникла можливість розпочати сеанс."
+#: vncviewer/CConn.cxx:310 vncviewer/CConn.cxx:312
+msgid ""
+"The connection was dropped by the server before the session could be "
+"established."
+msgstr ""
+"З'єднання було розірвано сервером до того, як виникла можливість розпочати "
+"сеанс."
 
-#: vncviewer/CConn.cxx:296
+#: vncviewer/CConn.cxx:323
 #, c-format
 msgid "Authentication failed: %s"
 msgstr "Розпізнавання не пройдено: %s"
 
-#: vncviewer/CConn.cxx:297
+#: vncviewer/CConn.cxx:324
 #, c-format
 msgid ""
 "Failed to authenticate with the server. Reason given by the server:\n"
@@ -105,416 +2654,708 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/CConn.cxx:526
+#: vncviewer/CConn.cxx:486 vncviewer/CConn.cxx:502
+msgid "Failed to get certificate problem description"
+msgstr ""
+
+#: vncviewer/CConn.cxx:489
+#, c-format
+msgid "Invalid server certificate: %s"
+msgstr ""
+
+#: vncviewer/CConn.cxx:505
+#, c-format
+msgid "Server certificate problems: %s"
+msgstr ""
+
+#: vncviewer/CConn.cxx:529
+msgid "Server has an existing security exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:535
+msgid "Failed to load list of servers with a security exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:541
+#, fuzzy
+msgid "Failed to decode server certificate"
+msgstr "Не вдалося закрити ключ реєстру"
+
+#: vncviewer/CConn.cxx:547
+#, fuzzy
+msgid "Failed to format server certificate for display"
+msgstr "Не вдалося прочитати запис журналу сервера %d: %s"
+
+#: vncviewer/CConn.cxx:564
+msgid "Server host is not previously known"
+msgstr ""
+
+#: vncviewer/CConn.cxx:572
+msgid "This certificate has been signed by an unknown authority:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:574 vncviewer/CConn.cxx:593 vncviewer/CConn.cxx:610
+#: vncviewer/CConn.cxx:627 vncviewer/CConn.cxx:647 vncviewer/CConn.cxx:679
+#: vncviewer/CConn.cxx:699 vncviewer/CConn.cxx:717 vncviewer/CConn.cxx:735
+#: vncviewer/CConn.cxx:756
+msgid ""
+"Someone could be trying to impersonate the site and you should not continue."
+msgstr ""
+
+#: vncviewer/CConn.cxx:576 vncviewer/CConn.cxx:595 vncviewer/CConn.cxx:612
+#: vncviewer/CConn.cxx:629 vncviewer/CConn.cxx:649 vncviewer/CConn.cxx:681
+#: vncviewer/CConn.cxx:701 vncviewer/CConn.cxx:719 vncviewer/CConn.cxx:737
+#: vncviewer/CConn.cxx:758
+msgid "Do you want to make an exception for this server?"
+msgstr ""
+
+#: vncviewer/CConn.cxx:578
+#, fuzzy
+msgid "Unknown certificate issuer"
+msgstr "Невідомий параметр"
+
+#: vncviewer/CConn.cxx:579 vncviewer/CConn.cxx:598 vncviewer/CConn.cxx:615
+#: vncviewer/CConn.cxx:632 vncviewer/CConn.cxx:652 vncviewer/CConn.cxx:684
+#: vncviewer/CConn.cxx:704 vncviewer/CConn.cxx:722 vncviewer/CConn.cxx:740
+#: vncviewer/CConn.cxx:761
+msgid "Add exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:591
+msgid "This certificate is not yet valid:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:597
+msgid "Certificate is not yet valid"
+msgstr ""
+
+#: vncviewer/CConn.cxx:608
+msgid "This certificate has expired:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:614
+msgid "Expired certificate"
+msgstr ""
+
+#: vncviewer/CConn.cxx:625
+msgid "This certificate uses an insecure algorithm:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:631
+msgid "Insecure certificate algorithm"
+msgstr ""
+
+#: vncviewer/CConn.cxx:643
+#, c-format
+msgid ""
+"The specified hostname \"%s\" does not match the certificate provided by the "
+"server:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:651
+msgid "Certificate hostname mismatch"
+msgstr ""
+
+#: vncviewer/CConn.cxx:667
+msgid "Server host certificate has changed"
+msgstr ""
+
+#: vncviewer/CConn.cxx:675
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate has been signed by an unknown authority:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:683 vncviewer/CConn.cxx:703 vncviewer/CConn.cxx:721
+#: vncviewer/CConn.cxx:739 vncviewer/CConn.cxx:760
+msgid "Unexpected server certificate"
+msgstr ""
+
+#: vncviewer/CConn.cxx:696
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate is not yet valid:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:714
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate has expired:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:732
+msgid ""
+"This host is previously known with a different certificate, and the new "
+"certificate uses an insecure algorithm:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:751
+#, c-format
+msgid ""
+"This host is previously known with a different certificate, and the "
+"specified hostname \"%s\" does not match the new certificate provided by the "
+"server:"
+msgstr ""
+
+#: vncviewer/CConn.cxx:778
+msgid ""
+"Failed to store server certificate to list of servers with a security "
+"exception"
+msgstr ""
+
+#: vncviewer/CConn.cxx:781
+msgid "Security exception added for server host"
+msgstr ""
+
+#: vncviewer/CConn.cxx:791
+#, c-format
+msgid ""
+"The server has provided the following identifying information:\n"
+"\n"
+"Fingerprint: %s\n"
+"\n"
+"Do you want to continue connecting to this server?"
+msgstr ""
+
+#: vncviewer/CConn.cxx:797
+msgid "Verify server key"
+msgstr ""
+
+#: vncviewer/CConn.cxx:798
+msgid "Continue"
+msgstr ""
+
+#: vncviewer/CConn.cxx:1010
 #, c-format
 msgid "Throughput %d kbit/s - changing to quality %d"
 msgstr "Пропускна здатність %d кбіт/с — змінюємо якість на %d"
 
-#: vncviewer/CConn.cxx:557
+#: vncviewer/CConn.cxx:1041
 #, c-format
 msgid "Throughput %d kbit/s - full color is now enabled"
 msgstr "Пропускна здатність %d кбіт/с — увімкнено повноцінні кольори"
 
-#: vncviewer/CConn.cxx:560
+#: vncviewer/CConn.cxx:1044
 #, c-format
 msgid "Throughput %d kbit/s - full color is now disabled"
 msgstr "Пропускна здатність %d кбіт/с — вимкнено повноцінні кольори"
 
-#: vncviewer/CConn.cxx:579
+#: vncviewer/CConn.cxx:1063
 #, c-format
 msgid "Using pixel format %s"
 msgstr "Використовуємо формат у пікселях %s"
 
-#: vncviewer/DesktopWindow.cxx:152
+#: vncviewer/DesktopWindow.cxx:154
 msgid "Invalid geometry specified!"
 msgstr "Вказано некоректні геометричні параметри!"
 
-#: vncviewer/DesktopWindow.cxx:173
+#: vncviewer/DesktopWindow.cxx:175
 msgid "Reducing window size to fit on current monitor"
 msgstr "Зменшуємо розмір вікна, щоб умістити його на поточному моніторі"
 
-#: vncviewer/DesktopWindow.cxx:244
+#: vncviewer/DesktopWindow.cxx:246
 #, c-format
 msgid "Press %sM to open the context menu"
 msgstr "Натисніть %sM, щоб відкрити контекстне меню"
 
-#: vncviewer/DesktopWindow.cxx:312
+#: vncviewer/DesktopWindow.cxx:323
 #, c-format
-msgid "%s - TigerVNC (keyboard grabbed)"
-msgstr "%s - TigerVNC (клавіатуру перехоплено)"
+msgid "%s - TidyVNC (keyboard grabbed)"
+msgstr "%s - TidyVNC (клавіатуру перехоплено)"
 
-#: vncviewer/DesktopWindow.cxx:314
+#: vncviewer/DesktopWindow.cxx:325
 #, c-format
-msgid "%s - TigerVNC"
-msgstr "%s - TigerVNC"
+msgid "%s - TidyVNC"
+msgstr "%s - TidyVNC"
 
-#: vncviewer/DesktopWindow.cxx:705
+#: vncviewer/DesktopWindow.cxx:691
 msgid "Adjusting window size to avoid accidental full-screen request"
-msgstr "Коригувати розміри вікна, щоб уникнути випадкового запиту щодо переходу у повноекранний режим"
+msgstr ""
+"Коригувати розміри вікна, щоб уникнути випадкового запиту щодо переходу у "
+"повноекранний режим"
 
-#: vncviewer/DesktopWindow.cxx:915
+#: vncviewer/DesktopWindow.cxx:927
 #, c-format
 msgid "Press %sEnter to leave full-screen mode"
 msgstr "Натисніть %sEnter, щоб вийти з повноекранного режиму"
 
-#: vncviewer/DesktopWindow.cxx:1204 vncviewer/DesktopWindow.cxx:1205
-#: vncviewer/DesktopWindow.cxx:1213 vncviewer/DesktopWindow.cxx:1214
-#: vncviewer/DesktopWindow.cxx:1239 vncviewer/DesktopWindow.cxx:1240
+#: vncviewer/DesktopWindow.cxx:1157
+msgid ""
+"Monitor pixel sizes differ; the remote monitor arrangement has been adjusted."
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:1171
+msgid "Per-monitor fullscreen unavailable; using a single spanning window."
+msgstr ""
+
+#: vncviewer/DesktopWindow.cxx:1362 vncviewer/DesktopWindow.cxx:1363
+#: vncviewer/DesktopWindow.cxx:1371 vncviewer/DesktopWindow.cxx:1372
+#: vncviewer/DesktopWindow.cxx:1380 vncviewer/DesktopWindow.cxx:1381
 msgid "Failure grabbing control of the keyboard"
 msgstr "Не вдалося перехопити керування клавіатурою"
 
-#: vncviewer/DesktopWindow.cxx:1258
+#: vncviewer/DesktopWindow.cxx:1398
 #, c-format
 msgid "Press %s to release keyboard control from the session"
 msgstr "Натисніть %s, щоб зняти керування клавіатурою з боку сеансу"
 
-#: vncviewer/DesktopWindow.cxx:1525
+#: vncviewer/DesktopWindow.cxx:1700
 msgid "Invalid screen layout computed for resize request!"
-msgstr "Результати обчислення компонування вікна для запиту щодо зміни розмірів є некоректними!"
+msgstr ""
+"Результати обчислення компонування вікна для запиту щодо зміни розмірів є "
+"некоректними!"
 
-#: vncviewer/EmulateMB.cxx:227 vncviewer/EmulateMB.cxx:290
+#: vncviewer/EmulateMB.cxx:228 vncviewer/EmulateMB.cxx:291
 msgid "Invalid state for 3 button emulation"
 msgstr "Некоректний стан для емуляції 3 кнопок"
 
-#: vncviewer/KeyboardWin32.cxx:248
-#, c-format
-msgid "No scan code for extended virtual key 0x%02x"
-msgstr "Немає коду сканування для віртуальної клавіші розширення 0x%02x"
-
-#: vncviewer/KeyboardWin32.cxx:250
-#, c-format
-msgid "No scan code for virtual key 0x%02x"
-msgstr "Немає коду сканування для віртуальної клавіші 0x%02x"
-
-#: vncviewer/KeyboardWin32.cxx:256
-#, c-format
-msgid "Invalid scan code 0x%02x"
-msgstr "Некоректний код сканування 0x%02x"
-
-#: vncviewer/KeyboardWin32.cxx:284
-#, c-format
-msgid "No symbol for extended virtual key 0x%02x"
-msgstr "Немає символу для віртуальної клавіші розширення 0x%02x"
-
-#: vncviewer/KeyboardWin32.cxx:286
-#, c-format
-msgid "No symbol for virtual key 0x%02x"
-msgstr "Немає символу для віртуальної клавіші 0x%02x"
-
-#: vncviewer/KeyboardWin32.cxx:553
-#, c-format
-msgid "Failed to update keyboard LED state: %lu"
-msgstr "Не вдалося оновити стан лампочки клавіатури: %lu"
-
-#: vncviewer/KeyboardX11.cxx:167
+#: vncviewer/KeyboardMacOS.mm:199 vncviewer/KeyboardX11.cxx:169
 #, c-format
 msgid "No symbol for key code %d (in the current state)"
 msgstr "Немає символу для клавіші з кодом %d (у поточному стані)"
 
-#: vncviewer/KeyboardX11.cxx:218
+#: vncviewer/KeyboardMacOS.mm:271 vncviewer/KeyboardMacOS.mm:279
+#: vncviewer/KeyboardX11.cxx:220
 #, c-format
 msgid "Failed to get keyboard LED state: %d"
 msgstr "Не вдалося отримати стан лампочки клавіатури: %d"
 
-#: vncviewer/KeyboardX11.cxx:263
-msgid "Failed to update keyboard LED state"
-msgstr "Не вдалося оновити стан лампочки клавіатури"
+#: vncviewer/KeyboardMacOS.mm:296 vncviewer/KeyboardMacOS.mm:302
+#: vncviewer/KeyboardX11.cxx:265
+#, c-format
+msgid "Failed to update keyboard LED state: %d"
+msgstr "Не вдалося оновити стан лампочки клавіатури: %d"
 
-#: vncviewer/MonitorIndicesParameter.cxx:53
-#: vncviewer/MonitorIndicesParameter.cxx:85
+#: vncviewer/KeyboardWin32.cxx:255
+#, c-format
+msgid "No scan code for extended virtual key 0x%02x"
+msgstr "Немає коду сканування для віртуальної клавіші розширення 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:257
+#, c-format
+msgid "No scan code for virtual key 0x%02x"
+msgstr "Немає коду сканування для віртуальної клавіші 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:263
+#, c-format
+msgid "Invalid scan code 0x%02x"
+msgstr "Некоректний код сканування 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:292 vncviewer/KeyboardWin32.cxx:308
+#: vncviewer/KeyboardWin32.cxx:320
+msgid "Unmatched UTF-16 surrogate pair through VK_PACKET"
+msgstr ""
+
+#: vncviewer/KeyboardWin32.cxx:334
+#, c-format
+msgid "No symbol for extended virtual key 0x%02x"
+msgstr "Немає символу для віртуальної клавіші розширення 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:336
+#, c-format
+msgid "No symbol for virtual key 0x%02x"
+msgstr "Немає символу для віртуальної клавіші 0x%02x"
+
+#: vncviewer/KeyboardWin32.cxx:613
+#, c-format
+msgid "Failed to update keyboard LED state: %lu"
+msgstr "Не вдалося оновити стан лампочки клавіатури: %lu"
+
+#: vncviewer/MonitorIndicesParameter.cxx:52
+#: vncviewer/MonitorIndicesParameter.cxx:84
 msgid "Failed to get system monitor configuration"
 msgstr "Не вдалося отримати налаштування монітора з боку системи"
 
-#: vncviewer/MonitorIndicesParameter.cxx:73
+#: vncviewer/MonitorIndicesParameter.cxx:72
 #, c-format
 msgid "Monitor index %d does not exist"
 msgstr "Монітора із індексом %d не існує"
 
-#: vncviewer/OptionsDialog.cxx:70
-msgid "TigerVNC options"
-msgstr "Параметри TigerVNC"
+#: vncviewer/OptionsDialog.cxx:75
+msgid "TidyVNC options"
+msgstr "Параметри TidyVNC"
 
-#: vncviewer/OptionsDialog.cxx:104 vncviewer/ServerDialog.cxx:110
-#: vncviewer/vncviewer.cxx:397
+#: vncviewer/OptionsDialog.cxx:110 vncviewer/ServerDialog.cxx:110
+#: vncviewer/vncviewer.cxx:335
 msgid "Cancel"
 msgstr "Скасувати"
 
-#: vncviewer/OptionsDialog.cxx:109 vncviewer/vncviewer.cxx:396
+#: vncviewer/OptionsDialog.cxx:115 vncviewer/vncviewer.cxx:334
 msgid "OK"
 msgstr "Гаразд"
 
-#: vncviewer/OptionsDialog.cxx:532
+#: vncviewer/OptionsDialog.cxx:556
 msgid "Compression"
 msgstr "Стискання"
 
-#: vncviewer/OptionsDialog.cxx:549
+#: vncviewer/OptionsDialog.cxx:573
 msgid "Auto select"
 msgstr "Автовибір"
 
-#: vncviewer/OptionsDialog.cxx:556
+#: vncviewer/OptionsDialog.cxx:580
 msgid "Allow JPEG compression"
 msgstr "Дозволити стискання JPEG"
 
-#: vncviewer/OptionsDialog.cxx:566
+#: vncviewer/OptionsDialog.cxx:590
 msgid "Preferred encoding"
 msgstr "Бажане кодування"
 
-#: vncviewer/OptionsDialog.cxx:634
+#: vncviewer/OptionsDialog.cxx:658
 msgid "Color level"
 msgstr "Рівень відтворення кольору"
 
-#: vncviewer/OptionsDialog.cxx:646
+#: vncviewer/OptionsDialog.cxx:670
 msgid "Full"
 msgstr "Повний"
 
-#: vncviewer/OptionsDialog.cxx:653
+#: vncviewer/OptionsDialog.cxx:677
 msgid "Medium"
 msgstr "Середній"
 
-#: vncviewer/OptionsDialog.cxx:660
+#: vncviewer/OptionsDialog.cxx:684
 msgid "Low"
 msgstr "Низький"
 
-#: vncviewer/OptionsDialog.cxx:667
+#: vncviewer/OptionsDialog.cxx:691
 msgid "Very low"
 msgstr "Дуже низький"
 
-#: vncviewer/OptionsDialog.cxx:689
+#: vncviewer/OptionsDialog.cxx:713
 msgid "Custom compression level"
 msgstr "Нетиповий рівень стискання"
 
-#: vncviewer/OptionsDialog.cxx:702
+#: vncviewer/OptionsDialog.cxx:726
 msgid "level (0=fast, 9=best)"
 msgstr "рівень (0=швидко, 9=найкраще)"
 
-#: vncviewer/OptionsDialog.cxx:721
+#: vncviewer/OptionsDialog.cxx:745
 msgid "Quality level"
 msgstr "Рівень якості"
 
-#: vncviewer/OptionsDialog.cxx:732
+#: vncviewer/OptionsDialog.cxx:756
 msgid "quality (0=poor, 9=best)"
 msgstr "якість (0=найгірша, 9=найкраща)"
 
-#: vncviewer/OptionsDialog.cxx:756
+#: vncviewer/OptionsDialog.cxx:780
 msgid "Security"
 msgstr "Захист"
 
-#: vncviewer/OptionsDialog.cxx:770
+#: vncviewer/OptionsDialog.cxx:794
 msgid "Encryption"
 msgstr "Шифрування"
 
-#: vncviewer/OptionsDialog.cxx:782 vncviewer/OptionsDialog.cxx:849
+#: vncviewer/OptionsDialog.cxx:806 vncviewer/OptionsDialog.cxx:873
 msgid "None"
 msgstr "Немає"
 
-#: vncviewer/OptionsDialog.cxx:789
+#: vncviewer/OptionsDialog.cxx:813
 msgid "TLS with anonymous certificates"
 msgstr "TLS із анонімними сертифікатами"
 
-#: vncviewer/OptionsDialog.cxx:795
+#: vncviewer/OptionsDialog.cxx:819
 msgid "TLS with X509 certificates"
 msgstr "TLS з сертифікатами X509"
 
-#: vncviewer/OptionsDialog.cxx:802
+#: vncviewer/OptionsDialog.cxx:826
 msgid "Path to X509 CA certificate"
 msgstr "Шлях до сертифіката CA X509"
 
-#: vncviewer/OptionsDialog.cxx:809
+#: vncviewer/OptionsDialog.cxx:833
 msgid "Path to X509 CRL file"
 msgstr "Шлях до файла CRL X509"
 
-#: vncviewer/OptionsDialog.cxx:837
+#: vncviewer/OptionsDialog.cxx:861
 msgid "Authentication"
 msgstr "Розпізнавання"
 
-#: vncviewer/OptionsDialog.cxx:855
+#: vncviewer/OptionsDialog.cxx:879
 msgid "Standard VNC (insecure without encryption)"
 msgstr "Стандартний VNC (без захисту і шифрування)"
 
-#: vncviewer/OptionsDialog.cxx:861
+#: vncviewer/OptionsDialog.cxx:885
 msgid "Username and password (insecure without encryption)"
 msgstr "Ім’я користувача і пароль (без захисту і шифрування)"
 
-#: vncviewer/OptionsDialog.cxx:889
+#: vncviewer/OptionsDialog.cxx:913
 msgid "Input"
 msgstr "Введення"
 
-#: vncviewer/OptionsDialog.cxx:902
+#: vncviewer/OptionsDialog.cxx:926
 msgid "View only (ignore mouse and keyboard)"
 msgstr "Лише перегляд (ігнорувати сигнали від миші і клавіатури)"
 
-#: vncviewer/OptionsDialog.cxx:909
+#: vncviewer/OptionsDialog.cxx:933
 msgid "Mouse"
 msgstr "Миша"
 
-#: vncviewer/OptionsDialog.cxx:921
+#: vncviewer/OptionsDialog.cxx:945
 msgid "Emulate middle mouse button"
 msgstr "Емулювати середню кнопку миші"
 
-#: vncviewer/OptionsDialog.cxx:927
+#: vncviewer/OptionsDialog.cxx:951
 msgid "Show local cursor when not provided by server"
 msgstr "Показувати локальний курсор, якщо його не надано сервером"
 
-#: vncviewer/OptionsDialog.cxx:932
+#: vncviewer/OptionsDialog.cxx:956
 msgid "Cursor type"
 msgstr "Тип курсора"
 
-#: vncviewer/OptionsDialog.cxx:934
+#: vncviewer/OptionsDialog.cxx:958
 msgid "Dot"
 msgstr "Крапка"
 
-#: vncviewer/OptionsDialog.cxx:935
+#: vncviewer/OptionsDialog.cxx:959
 msgid "System"
 msgstr "Системний"
 
-#: vncviewer/OptionsDialog.cxx:955
+#: vncviewer/OptionsDialog.cxx:979
 msgid "Keyboard"
 msgstr "Клавіатура"
 
-#: vncviewer/OptionsDialog.cxx:966
+#: vncviewer/OptionsDialog.cxx:990
 msgid "Always send all keyboard input in full screen"
 msgstr "Завжди надсилати усіх вхідні дані з клавіатури у повноекранному режимі"
 
-#: vncviewer/OptionsDialog.cxx:983
+#: vncviewer/OptionsDialog.cxx:1007
 msgid "Clipboard"
 msgstr "Буфер обміну"
 
-#: vncviewer/OptionsDialog.cxx:995
+#: vncviewer/OptionsDialog.cxx:1019
 msgid "Accept clipboard from server"
 msgstr "Приймати вміст буфера з сервера"
 
-#: vncviewer/OptionsDialog.cxx:1003
-msgid "Also set primary selection"
-msgstr "Також встановити основне позначене"
-
-#: vncviewer/OptionsDialog.cxx:1010
+#: vncviewer/OptionsDialog.cxx:1034
 msgid "Send clipboard to server"
 msgstr "Надіслати вміст буфера обміну до сервера"
 
-#: vncviewer/OptionsDialog.cxx:1018
+#: vncviewer/OptionsDialog.cxx:1042
 msgid "Send primary selection as clipboard"
 msgstr "Надіслати основне позначене як буфер обміну"
 
-#: vncviewer/OptionsDialog.cxx:1039
+#: vncviewer/OptionsDialog.cxx:1063
 msgid "Keyboard shortcuts"
 msgstr "Клавіатурні скорочення"
 
-#: vncviewer/OptionsDialog.cxx:1046
+#: vncviewer/OptionsDialog.cxx:1070
 msgid "Modifier keys for keyboard shortcuts:"
 msgstr "Клавіші-модифікатори для скорочень:"
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
-#: vncviewer/OptionsDialog.cxx:1059 vncviewer/ShortcutHandler.cxx:209
+#: vncviewer/OptionsDialog.cxx:1083 vncviewer/ShortcutHandler.cxx:210
 msgid "Ctrl"
 msgstr "Ctrl"
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
-#: vncviewer/OptionsDialog.cxx:1067 vncviewer/ShortcutHandler.cxx:217
+#: vncviewer/OptionsDialog.cxx:1091 vncviewer/ShortcutHandler.cxx:218
 msgid "Shift"
 msgstr "Shift"
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
-#: vncviewer/OptionsDialog.cxx:1075 vncviewer/ShortcutHandler.cxx:225
+#: vncviewer/OptionsDialog.cxx:1099 vncviewer/ShortcutHandler.cxx:226
 msgid "Alt"
 msgstr "Alt"
 
 #. TRANSLATORS: This refers to the
 #. keyboard key
 #. *
-#: vncviewer/OptionsDialog.cxx:1083 vncviewer/ShortcutHandler.cxx:233
+#: vncviewer/OptionsDialog.cxx:1107 vncviewer/ShortcutHandler.cxx:234
 msgid "Win"
 msgstr "Win"
 
 #. TRANSLATORS: This refers to the keyboard key
-#: vncviewer/OptionsDialog.cxx:1089
+#: vncviewer/OptionsDialog.cxx:1113
 msgid "⌃ Ctrl"
 msgstr "⌃ Ctrl"
 
 #. TRANSLATORS: This refers to the keyboard key
-#: vncviewer/OptionsDialog.cxx:1091
+#: vncviewer/OptionsDialog.cxx:1115
 msgid "⇧ Shift"
 msgstr "⇧ Shift"
 
 #. TRANSLATORS: This refers to the keyboard key
-#: vncviewer/OptionsDialog.cxx:1093
+#: vncviewer/OptionsDialog.cxx:1117
 msgid "⌥ Option"
 msgstr "⌥ Option"
 
 #. TRANSLATORS: This refers to the keyboard key
-#: vncviewer/OptionsDialog.cxx:1095
+#: vncviewer/OptionsDialog.cxx:1119
 msgid "⌘ Cmd"
 msgstr "⌘ Cmd"
 
-#: vncviewer/OptionsDialog.cxx:1109
+#: vncviewer/OptionsDialog.cxx:1133
 msgid "Display"
 msgstr "Дисплей"
 
-#: vncviewer/OptionsDialog.cxx:1123
+#: vncviewer/OptionsDialog.cxx:1147
 msgid "Display mode"
 msgstr "Режим показу"
 
-#: vncviewer/OptionsDialog.cxx:1136
+#: vncviewer/OptionsDialog.cxx:1160
 msgid "Windowed"
 msgstr "У вікні"
 
-#: vncviewer/OptionsDialog.cxx:1144
+#: vncviewer/OptionsDialog.cxx:1168
 msgid "Full screen on current monitor"
 msgstr "Повноекранний режим на поточному моніторі"
 
-#: vncviewer/OptionsDialog.cxx:1152
+#: vncviewer/OptionsDialog.cxx:1176
 msgid "Full screen on all monitors"
 msgstr "Повноекранний режимі на усіх моніторах"
 
-#: vncviewer/OptionsDialog.cxx:1160
+#: vncviewer/OptionsDialog.cxx:1184
 msgid "Full screen on selected monitor(s)"
 msgstr "Повноекранний режим на позначених моніторах"
 
-#: vncviewer/OptionsDialog.cxx:1189
+#: vncviewer/OptionsDialog.cxx:1222
+msgid ""
+"Full screen on multiple monitors is not supported when the system setting "
+"\"Displays have separate Spaces\" is enabled"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1226
+msgid ""
+"Full screen on multiple monitors is not supported by the current desktop "
+"environment"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1258
 msgid "Miscellaneous"
 msgstr "Інше"
 
-#: vncviewer/OptionsDialog.cxx:1197
+#: vncviewer/OptionsDialog.cxx:1266
 msgid "Shared (don't disconnect other viewers)"
 msgstr "Спільний (не від’єднувати інші засоби перегляду)"
 
-#: vncviewer/OptionsDialog.cxx:1203
+#: vncviewer/OptionsDialog.cxx:1272
 msgid "Ask to reconnect on connection errors"
 msgstr "Питати про повторне з'єднання при помилка з'єднання"
 
-#: vncviewer/OptionsDialog.cxx:1310
+#: vncviewer/OptionsDialog.cxx:1279
+msgid "Play audio from the server"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1395
 msgid "All keyboard shortcuts are disabled."
 msgstr "Усі клавіатурні скорочення вимкнено."
 
-#: vncviewer/OptionsDialog.cxx:1321
+#: vncviewer/OptionsDialog.cxx:1406
 #, c-format
 msgid "To release keyboard control from the session, press %s."
 msgstr "Щоб зняти керування клавіатурою з сеансу, натисніть %s."
 
-#: vncviewer/OptionsDialog.cxx:1326
+#: vncviewer/OptionsDialog.cxx:1411
 #, c-format
 msgid "To pass all keyboard input to the session, press %sG."
 msgstr "Щоб передавати усі вхідні дані з клавіатури до сеансу, натисніть %sG."
 
-#: vncviewer/OptionsDialog.cxx:1331
+#: vncviewer/OptionsDialog.cxx:1416
 #, c-format
 msgid "To toggle full-screen mode, press %sEnter."
 msgstr "Щоб увімкнути або вимкнути повноекранний режим, натисніть %sEnter."
 
-#: vncviewer/OptionsDialog.cxx:1335
+#: vncviewer/OptionsDialog.cxx:1420
 #, c-format
 msgid "To open the session context menu, press %sM."
 msgstr "Щоб відкрити контекстне меню сеансу, натисніть %sM."
 
-#: vncviewer/OptionsDialog.cxx:1339
+#: vncviewer/OptionsDialog.cxx:1424
 #, c-format
-msgid "To send a key combination that includes %s directly to the session, press %sSpace, release the space bar without releasing %s, and press the desired key."
-msgstr "Щоб надіслати комбінацію клавіш, яка містить %s, безпосередньо до сеансу, натисніть %sПробіл, відпустіть клавішу пробілу, не відпускаючи %s, і натисніть бажану клавішу."
+msgid ""
+"To send a key combination that includes %s directly to the session, press "
+"%sSpace, release the space bar without releasing %s, and press the desired "
+"key."
+msgstr ""
+"Щоб надіслати комбінацію клавіш, яка містить %s, безпосередньо до сеансу, "
+"натисніть %sПробіл, відпустіть клавішу пробілу, не відпускаючи %s, і "
+"натисніть бажану клавішу."
+
+#: vncviewer/OptionsDialog.cxx:1467
+msgid "Invalid desktop scaling"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1513
+msgid "Scaling"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1516
+msgid "Scaling mode:"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1518
+msgid "Automatic fit (stretch)"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1518
+msgid "Fit preserving aspect ratio"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1518
+msgid "No scaling"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Exact dimensions"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Fit height"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Fit width"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Independent percentages"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1519
+msgid "Percentage"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1523
+msgid "Size or percentage:"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1530
+msgid ""
+"Examples: 1920x1080, 137.5, 125%x80%. Auto and exact dimensions may distort "
+"the aspect ratio."
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1532
+msgid "Scaling quality:"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1534
+msgid "Area (best for shrinking)"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1534
+msgid "Bilinear"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1534
+msgid "Nearest"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1536
+msgid "Fixed scaling units (fit modes ignore this):"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1538
+msgid "Device pixels"
+msgstr ""
+
+#: vncviewer/OptionsDialog.cxx:1538
+msgid "Logical units"
+msgstr ""
 
 #: vncviewer/ServerDialog.cxx:74
 msgid "VNC server:"
@@ -540,26 +3381,23 @@ msgstr "Про програму…"
 msgid "Connect"
 msgstr "З'єднатися"
 
-#: vncviewer/ServerDialog.cxx:146
-#, c-format
-msgid ""
-"Unable to load the server history:\n"
-"\n"
-"%s"
+#: vncviewer/ServerDialog.cxx:145
+#, fuzzy, c-format
+msgid "Unable to load the server history: %s"
 msgstr ""
 "Не вдалося завантажити журнал сервера:\n"
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:175 vncviewer/ServerDialog.cxx:215
+#: vncviewer/ServerDialog.cxx:173 vncviewer/ServerDialog.cxx:213
 msgid "TigerVNC configuration (*.tigervnc)"
 msgstr "налаштування TigerVNC (*.tigervnc)"
 
-#: vncviewer/ServerDialog.cxx:176
+#: vncviewer/ServerDialog.cxx:174
 msgid "Select a TigerVNC configuration file"
 msgstr "Виберіть файл налаштувань TigerVNC"
 
-#: vncviewer/ServerDialog.cxx:198 vncviewer/vncviewer.cxx:517
+#: vncviewer/ServerDialog.cxx:196 vncviewer/vncviewer.cxx:465
 #, c-format
 msgid ""
 "Unable to load the specified configuration file:\n"
@@ -570,24 +3408,24 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:216
+#: vncviewer/ServerDialog.cxx:214
 msgid "Save the TigerVNC configuration to file"
 msgstr "Зберегти налаштування TigerVNC до файла"
 
-#: vncviewer/ServerDialog.cxx:242
+#: vncviewer/ServerDialog.cxx:240
 #, c-format
 msgid "%s already exists. Do you want to overwrite?"
 msgstr "%s вже існує. Перезаписати?"
 
-#: vncviewer/ServerDialog.cxx:243 vncviewer/vncviewer.cxx:394
+#: vncviewer/ServerDialog.cxx:241 vncviewer/vncviewer.cxx:332
 msgid "No"
 msgstr "Ні"
 
-#: vncviewer/ServerDialog.cxx:243
+#: vncviewer/ServerDialog.cxx:241
 msgid "Overwrite"
 msgstr "Перезаписати"
 
-#: vncviewer/ServerDialog.cxx:259
+#: vncviewer/ServerDialog.cxx:257
 #, c-format
 msgid ""
 "Unable to save the specified configuration file:\n"
@@ -598,81 +3436,42 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:293
-#, c-format
-msgid ""
-"Unable to save the default configuration:\n"
-"\n"
-"%s"
+#: vncviewer/ServerDialog.cxx:290
+#, fuzzy, c-format
+msgid "Unable to save the default configuration: %s"
 msgstr ""
 "Не вдалося зберегти типові налаштування:\n"
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:305
-#, c-format
-msgid ""
-"Unable to save the server history:\n"
-"\n"
-"%s"
+#: vncviewer/ServerDialog.cxx:301
+#, fuzzy, c-format
+msgid "Unable to save the server history: %s"
 msgstr ""
 "Не вдалося зберегти журнал сервера:\n"
 "\n"
 "%s"
 
-#: vncviewer/ServerDialog.cxx:351 vncviewer/ServerDialog.cxx:433
-#: vncviewer/vncviewer.cxx:580
-msgid "Could not determine VNC state directory path"
-msgstr "Не вдалося визначити каталог стану VNC"
-
-#: vncviewer/ServerDialog.cxx:364 vncviewer/ServerDialog.cxx:441
-#: vncviewer/parameters.cxx:758 vncviewer/parameters.cxx:838
-#, c-format
-msgid "Could not open \"%s\""
-msgstr "Не вдалося відкрити «%s»"
-
-#: vncviewer/ServerDialog.cxx:379 vncviewer/ServerDialog.cxx:388
-#: vncviewer/parameters.cxx:852 vncviewer/parameters.cxx:859
-#: vncviewer/parameters.cxx:893 vncviewer/parameters.cxx:929
-#: vncviewer/parameters.cxx:937
+#: vncviewer/ServerDialog.cxx:374 vncviewer/ServerDialog.cxx:383
+#: vncviewer/parameters.cxx:881 vncviewer/parameters.cxx:888
+#: vncviewer/parameters.cxx:922 vncviewer/parameters.cxx:958
+#: vncviewer/parameters.cxx:966
 #, c-format
 msgid "Failed to read line %d in file \"%s\""
 msgstr "Не вдалося прочитати рядок %d у файлі «%s»"
 
-#: vncviewer/ServerDialog.cxx:392 vncviewer/parameters.cxx:863
+#: vncviewer/ServerDialog.cxx:387 vncviewer/parameters.cxx:892
 msgid "Line too long"
 msgstr "Занадто довгий рядок"
 
-#: vncviewer/UserDialog.cxx:130
-msgid "Opening password file failed"
-msgstr "Спроба відкриття файла паролів зазнала невдачі"
+#: vncviewer/Viewport.cxx:455
+#, c-format
+msgid ""
+"Scaled desktop exceeds the dimension limit; temporarily using 100%% Device"
+msgstr ""
 
-#: vncviewer/UserDialog.cxx:150
-msgid "VNC authentication"
-msgstr "Розпізнавання VNC"
-
-#: vncviewer/UserDialog.cxx:157
-msgid "This connection is secure"
-msgstr "Це з'єднання є безпечним"
-
-#: vncviewer/UserDialog.cxx:161
-msgid "This connection is not secure"
-msgstr "Це з'єднання не є безпечним"
-
-#: vncviewer/UserDialog.cxx:183
-msgid "Username:"
-msgstr "Користувач:"
-
-#: vncviewer/UserDialog.cxx:196
-msgid "Password:"
-msgstr "Пароль:"
-
-#: vncviewer/UserDialog.cxx:204
-msgid "Keep password for reconnect"
-msgstr "Зберігати пароль для повторного з'єднання"
-
-#: vncviewer/Viewport.cxx:767 vncviewer/Viewport.cxx:846
-#: vncviewer/vncviewer.cxx:157
+#: vncviewer/Viewport.cxx:985 vncviewer/Viewport.cxx:1070
+#: vncviewer/vncviewer.cxx:151
 #, c-format
 msgid ""
 "An unexpected error occurred when communicating with the server:\n"
@@ -683,62 +3482,62 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/Viewport.cxx:905
+#: vncviewer/Viewport.cxx:1134
 msgctxt "ContextMenu|"
 msgid "Disconn&ect"
 msgstr "Від'єд&натися"
 
-#: vncviewer/Viewport.cxx:908
+#: vncviewer/Viewport.cxx:1137
 msgctxt "ContextMenu|"
 msgid "&Full screen"
 msgstr "&На весь екран"
 
-#: vncviewer/Viewport.cxx:911
+#: vncviewer/Viewport.cxx:1140
 msgctxt "ContextMenu|"
 msgid "Minimi&ze"
 msgstr "М&інімізувати"
 
-#: vncviewer/Viewport.cxx:913
+#: vncviewer/Viewport.cxx:1142
 msgctxt "ContextMenu|"
 msgid "Resize &window to session"
 msgstr "Змінити &розміри вікна відповідно до сеансу"
 
-#: vncviewer/Viewport.cxx:918
+#: vncviewer/Viewport.cxx:1147
 msgctxt "ContextMenu|"
 msgid "&Ctrl"
 msgstr "&Ctrl"
 
-#: vncviewer/Viewport.cxx:921
+#: vncviewer/Viewport.cxx:1150
 msgctxt "ContextMenu|"
 msgid "&Alt"
 msgstr "&Alt"
 
-#: vncviewer/Viewport.cxx:925
+#: vncviewer/Viewport.cxx:1154
 msgctxt "ContextMenu|"
 msgid "Send Ctrl-Alt-&Del"
 msgstr "На&діслати Ctrl-Alt-Del"
 
-#: vncviewer/Viewport.cxx:928
+#: vncviewer/Viewport.cxx:1157
 msgctxt "ContextMenu|"
 msgid "&Refresh screen"
 msgstr "&Оновити вміст екрана"
 
-#: vncviewer/Viewport.cxx:931
+#: vncviewer/Viewport.cxx:1160
 msgctxt "ContextMenu|"
 msgid "&Options..."
 msgstr "П&араметри…"
 
-#: vncviewer/Viewport.cxx:933
+#: vncviewer/Viewport.cxx:1162
 msgctxt "ContextMenu|"
 msgid "Connection &info..."
 msgstr "Дані щодо з’&єднання…"
 
-#: vncviewer/Viewport.cxx:935
+#: vncviewer/Viewport.cxx:1164
 msgctxt "ContextMenu|"
-msgid "About &TigerVNC..."
-msgstr "Про &TigerVNC…"
+msgid "About &TidyVNC..."
+msgstr "Про &TidyVNC…"
 
-#: vncviewer/Viewport.cxx:1027
+#: vncviewer/Viewport.cxx:1253
 msgid "VNC connection info"
 msgstr "Дані щодо з’єднання VNC"
 
@@ -764,7 +3563,8 @@ msgstr "Некоректна кнопка миші, %d, номер кнопки 
 #: vncviewer/Win32TouchHandler.cxx:426
 #, c-format
 msgid "Unhandled key 0x%x - can't generate keyboard event."
-msgstr "Непридатна до обробки клавіша 0x%x — не вдалося створити подію клавіатури."
+msgstr ""
+"Непридатна до обробки клавіша 0x%x — не вдалося створити подію клавіатури."
 
 #: vncviewer/XInputTouchHandler.cxx:103 vncviewer/touch.cxx:107
 #, c-format
@@ -797,12 +3597,43 @@ msgid "Connect to VNC server and display remote desktop"
 msgstr "З'єднання із сервером VNC і показ віддаленої стільниці"
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:17
-msgid "Virtual Network Computing (VNC) is a remote display system that allows you to view and interact with a virtual desktop environment running on another computer on the network. Using VNC, you can run graphical applications on a remote machine and send only the display from these applications to your local device. This package contains a client which will enable you to connect to other desktops running a VNC server. VNC is platform-independent and supports various operating systems and architectures as both servers and clients."
-msgstr "Віртуальна мережева взаємодія комп'ютерів (Virtual Network Computing або VNC) є системою віддаленої стільниці, за допомогою якої ви можете переглядати та взаємодіяти із віртуальним стільничним середовищем, яке запущено на іншому комп'ютері у мережі. За допомогою VNC ви можете запускати програми із графічним інтерфейсом на віддаленому комп'ютері і отримувати лише зображення з цих програм на вашому локальному пристрої. У цьому пакунку міститься клієнтська частина, за допомогою якої ви можете з'єднуватися з іншими стільничними середовищами, де запущено сервер VNC. Протокол VNC є незалежним від платформи, у ньому передбачено підтримку різних операційних систем та апаратних архітектур, як на сервері, так і на клієнті."
+msgid ""
+"Virtual Network Computing (VNC) is a remote display system that allows you "
+"to view and interact with a virtual desktop environment running on another "
+"computer on the network. Using VNC, you can run graphical applications on a "
+"remote machine and send only the display from these applications to your "
+"local device. This package contains a client which will enable you to "
+"connect to other desktops running a VNC server. VNC is platform-independent "
+"and supports various operating systems and architectures as both servers and "
+"clients."
+msgstr ""
+"Віртуальна мережева взаємодія комп'ютерів (Virtual Network Computing або "
+"VNC) є системою віддаленої стільниці, за допомогою якої ви можете "
+"переглядати та взаємодіяти із віртуальним стільничним середовищем, яке "
+"запущено на іншому комп'ютері у мережі. За допомогою VNC ви можете запускати "
+"програми із графічним інтерфейсом на віддаленому комп'ютері і отримувати "
+"лише зображення з цих програм на вашому локальному пристрої. У цьому пакунку "
+"міститься клієнтська частина, за допомогою якої ви можете з'єднуватися з "
+"іншими стільничними середовищами, де запущено сервер VNC. Протокол VNC є "
+"незалежним від платформи, у ньому передбачено підтримку різних операційних "
+"систем та апаратних архітектур, як на сервері, так і на клієнті."
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:23
-msgid "TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org code bases. TigerVNC started as a next-generation development effort for TightVNC on Unix and Linux platforms, but it split from its parent project in early 2009 so that TightVNC could focus on Windows platforms. TigerVNC supports a variant of Tight encoding that is greatly accelerated by the use of the libjpeg-turbo JPEG codec."
-msgstr "TigerVNC — високошвидкісна версія VNC на основі програмного коду RealVNC 4 та X.org. Роботу над TigerVNC було розпочато у межах побудови наступного покоління для TightVNC на платформах Unix та Linux, але програма відокремилася від батьківського проєкту на початку 2009 року, коли проєкт TightVNC зосередився на платформах Windows. У TigerVNC передбачено підтримку варіанта кодування Tight, який значно пришвидшено використанням кодека JPEG libjpeg-turbo."
+msgid ""
+"TigerVNC is a high-speed version of VNC based on the RealVNC 4 and X.org "
+"code bases. TigerVNC started as a next-generation development effort for "
+"TightVNC on Unix and Linux platforms, but it split from its parent project "
+"in early 2009 so that TightVNC could focus on Windows platforms. TigerVNC "
+"supports a variant of Tight encoding that is greatly accelerated by the use "
+"of the libjpeg-turbo JPEG codec."
+msgstr ""
+"TigerVNC — високошвидкісна версія VNC на основі програмного коду RealVNC 4 "
+"та X.org. Роботу над TigerVNC було розпочато у межах побудови наступного "
+"покоління для TightVNC на платформах Unix та Linux, але програма "
+"відокремилася від батьківського проєкту на початку 2009 року, коли проєкт "
+"TightVNC зосередився на платформах Windows. У TigerVNC передбачено підтримку "
+"варіанта кодування Tight, який значно пришвидшено використанням кодека JPEG "
+"libjpeg-turbo."
 
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:33
 msgid "TigerVNC connection to a CentOS machine"
@@ -818,81 +3649,251 @@ msgstr "З'єднання TigerVNC із комп'ютером, де працює
 
 #. developer_name tag deprecated with Appstream 1.0
 #: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:46
-#: vncviewer/org.tigervnc.vncviewer.metainfo.xml.in:48
 msgid "The TigerVNC team"
 msgstr "Команда TigerVNC"
 
-#: vncviewer/parameters.cxx:386 vncviewer/parameters.cxx:411
-#: vncviewer/parameters.cxx:428 vncviewer/parameters.cxx:468
-#: vncviewer/parameters.cxx:488
-msgid "The name of the parameter is too large"
-msgstr "Назва параметра є надто довгою"
+#: vncviewer/parameters.cxx:56
+msgid "Time in milliseconds to rate-limit successive pointer events"
+msgstr ""
 
-#: vncviewer/parameters.cxx:390 vncviewer/parameters.cxx:395
-#: vncviewer/parameters.cxx:446
-msgid "The parameter is too large"
-msgstr "Параметр є надто великим"
+#: vncviewer/parameters.cxx:61
+msgid ""
+"Emulate middle mouse button by pressing left and right mouse buttons "
+"simultaneously"
+msgstr ""
 
-#: vncviewer/parameters.cxx:453 vncviewer/parameters.cxx:797
-#: vncviewer/parameters.cxx:909
-msgid "Invalid format or too large value"
-msgstr "Некоректне форматування або надто велике значення"
+#: vncviewer/parameters.cxx:66
+msgid ""
+"[DEPRECATED] Show a dot cursor when the server sends an invisible cursor"
+msgstr ""
 
-#: vncviewer/parameters.cxx:508 vncviewer/parameters.cxx:541
+#: vncviewer/parameters.cxx:71
+#, fuzzy
+msgid "Show local cursor when not provided by the server"
+msgstr "Показувати локальний курсор, якщо його не надано сервером"
+
+#: vncviewer/parameters.cxx:77
+msgid ""
+"Specify which local cursor type should be used when AlwaysCursor is active"
+msgstr ""
+
+#: vncviewer/parameters.cxx:83
+msgid ""
+"Show an error dialog on connection problems, rather than exiting immediately"
+msgstr ""
+
+#: vncviewer/parameters.cxx:89
+msgid ""
+"Show an error dialog on connection problems, rather than exiting "
+"immediately, and allow the user to reconnect"
+msgstr ""
+
+#: vncviewer/parameters.cxx:103
+msgid "Auto select pixel format and encoding"
+msgstr ""
+
+#: vncviewer/parameters.cxx:106
+#, fuzzy
+msgid "Use all available colors"
+msgstr "Повністю (усі доступні кольори)"
+
+#: vncviewer/parameters.cxx:111
+msgid ""
+"Color level to use on slow connections, 0 = Very Low, 1 = Low, 2 = Medium"
+msgstr ""
+
+#: vncviewer/parameters.cxx:120
+#, fuzzy
+msgid "Preferred encoding to use"
+msgstr "Бажане кодування"
+
+#: vncviewer/parameters.cxx:134
+msgid "Use custom compression level as specified by CompressLevel"
+msgstr ""
+
+#: vncviewer/parameters.cxx:139
+msgid "Use specified compression level, 0 = Low, 9 = High"
+msgstr ""
+
+#: vncviewer/parameters.cxx:143
+msgid "JPEG quality level, 0 = Low, 9 = High"
+msgstr ""
+
+#: vncviewer/parameters.cxx:147
+msgid "Maximize viewer window"
+msgstr ""
+
+#: vncviewer/parameters.cxx:150
+msgid "Enable full screen as specified by FullScreenMode"
+msgstr ""
+
+#: vncviewer/parameters.cxx:156
+msgid "Specify which monitors to use when in full screen"
+msgstr ""
+
+#: vncviewer/parameters.cxx:162
+#, fuzzy
+msgid "[DEPRECATED] Enable full screen over all monitors"
+msgstr "Повноекранний режимі на усіх моніторах"
+
+#: vncviewer/parameters.cxx:167
+msgid ""
+"Use the given list of monitors in full screen when FullScreenMode is set to "
+"Selected"
+msgstr ""
+
+#: vncviewer/parameters.cxx:173
+msgid ""
+"Reconfigure the desktop size on the server to the specified size when "
+"connecting"
+msgstr ""
+
+#: vncviewer/parameters.cxx:178
+msgid "Specify size and position of viewer window"
+msgstr ""
+
+#: vncviewer/parameters.cxx:183
+#, fuzzy
+msgid "Listen for incoming connections from VNC servers"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: vncviewer/parameters.cxx:187
+msgid ""
+"Desktop scaling: 100, Auto, FixedRatio, FitWidth, FitHeight, WxH, percent, "
+"or X%xY%"
+msgstr ""
+
+#: vncviewer/parameters.cxx:188
+msgid "Desktop resampling quality"
+msgstr ""
+
+#: vncviewer/parameters.cxx:190
+msgid "Units for desktop pixels and fixed scaling"
+msgstr ""
+
+#: vncviewer/parameters.cxx:195
+msgid ""
+"Dynamically resize the remote desktop size as the size of the local client "
+"window changes"
+msgstr ""
+
+#: vncviewer/parameters.cxx:201
+msgid "Don't send any mouse or keyboard events to the server"
+msgstr ""
+
+#: vncviewer/parameters.cxx:205
+#, fuzzy
+msgid "Don't disconnect other viewers upon connection"
+msgstr "Спільний (не від’єднувати інші засоби перегляду)"
+
+#: vncviewer/parameters.cxx:211
+msgid "Play audio sent by the server, if it offers any"
+msgstr ""
+
+#: vncviewer/parameters.cxx:217
+#, fuzzy
+msgid "Accept clipboard changes from the server"
+msgstr "Приймати вміст буфера з сервера"
+
+#: vncviewer/parameters.cxx:221
+#, fuzzy
+msgid "Send clipboard changes to the server"
+msgstr "Надіслати вміст буфера обміну до сервера"
+
+#. TRANSLATORS: This refers to the two different X11
+#. clipboards
+#: vncviewer/parameters.cxx:235
+#, fuzzy
+msgid ""
+"Send the primary selection to the server as well as the clipboard selection"
+msgstr "Надіслати основне позначене як буфер обміну"
+
+#. TRANSLATORS: The key names must be specified in
+#. English
+#: vncviewer/parameters.cxx:247
+msgid ""
+"The combination of modifier keys that triggers special actions in the viewer "
+"instead of being sent to the remote session (possible keys are a combination "
+"of Ctrl, Shift, Alt, and Super)"
+msgstr ""
+
+#: vncviewer/parameters.cxx:257
+#, fuzzy
+msgid ""
+"Pass special keys (like Alt+Tab) directly to the server when in full-screen "
+"mode"
+msgstr ""
+"Передавати натискання системних клавіш безпосередньо до сервера "
+"(повноекранний режим)"
+
+#: vncviewer/parameters.cxx:263
+msgid "SSH gateway to tunnel the connection via"
+msgstr ""
+
+#: vncviewer/parameters.cxx:535 vncviewer/parameters.cxx:568
 msgid "Failed to create registry key"
 msgstr "Не вдалося створити ключ реєстру"
 
-#: vncviewer/parameters.cxx:529 vncviewer/parameters.cxx:602
-#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:724
+#: vncviewer/parameters.cxx:556 vncviewer/parameters.cxx:629
+#: vncviewer/parameters.cxx:673 vncviewer/parameters.cxx:751
 msgid "Failed to close registry key"
 msgstr "Не вдалося закрити ключ реєстру"
 
-#: vncviewer/parameters.cxx:548 vncviewer/parameters.cxx:581
-#: vncviewer/parameters.cxx:766 vncviewer/parameters.cxx:778
+#: vncviewer/parameters.cxx:575 vncviewer/parameters.cxx:608
+#: vncviewer/parameters.cxx:795 vncviewer/parameters.cxx:807
 #, c-format
 msgid "Failed to save \"%s\": %s"
 msgstr "Не вдалося зберегти «%s»: %s"
 
-#: vncviewer/parameters.cxx:561 vncviewer/parameters.cxx:595
-#, c-format
-msgid "Failed to remove \"%s\": %s"
-msgstr "Не вдалося вилучити «%s»: %s"
-
-#: vncviewer/parameters.cxx:619 vncviewer/parameters.cxx:697
+#: vncviewer/parameters.cxx:646 vncviewer/parameters.cxx:724
 msgid "Failed to open registry key"
 msgstr "Не вдалося відкрити ключ реєстру"
 
-#: vncviewer/parameters.cxx:636
+#: vncviewer/parameters.cxx:663
 #, c-format
 msgid "Failed to read server history entry %d: %s"
 msgstr "Не вдалося прочитати запис журналу сервера %d: %s"
 
-#: vncviewer/parameters.cxx:678 vncviewer/parameters.cxx:708
+#: vncviewer/parameters.cxx:705 vncviewer/parameters.cxx:735
 #, c-format
 msgid "Failed to read parameter \"%s\": %s"
 msgstr "Не вдалося прочитати параметр «%s»: %s"
 
-#: vncviewer/parameters.cxx:747 vncviewer/parameters.cxx:825
-#: vncviewer/vncviewer.cxx:546
-msgid "Could not determine VNC config directory path"
-msgstr "Не вдалося визначити шлях до каталогу налаштувань VNC"
-
-#: vncviewer/parameters.cxx:767 vncviewer/parameters.cxx:779
+#: vncviewer/parameters.cxx:796 vncviewer/parameters.cxx:808
 msgid "Could not encode parameter"
 msgstr "Не вдалося закодувати параметр"
 
-#: vncviewer/parameters.cxx:873
+#: vncviewer/parameters.cxx:826 vncviewer/parameters.cxx:938
+msgid "Invalid format or too large value"
+msgstr "Некоректне форматування або надто велике значення"
+
+#: vncviewer/parameters.cxx:902
 #, c-format
 msgid "Configuration file %s is in an invalid format"
 msgstr "Файл налаштувань %s збережено у некоректному форматі"
 
-#: vncviewer/parameters.cxx:896
+#: vncviewer/parameters.cxx:925
 msgid "Invalid format"
 msgstr "Некоректне форматування"
 
-#: vncviewer/parameters.cxx:940
+#: vncviewer/parameters.cxx:969
 msgid "Unknown parameter"
 msgstr "Невідомий параметр"
+
+#: vncviewer/parameters.cxx:983
+msgid ""
+"FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
+msgstr ""
+"FullScreenAllMonitors вважається застарілим, замість нього слід встановити "
+"для FullScreenMode значення «all»"
+
+#: vncviewer/parameters.cxx:988
+msgid ""
+"DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' "
+"instead"
+msgstr ""
+"DotWhenNoCursor з застарілим, натомість встановіть для AlwaysCursor значення "
+"1, а для CursorType значення 'Dot'"
 
 #: vncviewer/touch.cxx:75
 #, c-format
@@ -922,40 +3923,46 @@ msgstr "Не вдалося отримати дані події для поді
 msgid "X Input event for unknown window"
 msgstr "Подія X Input для невідомого вікна"
 
-#: vncviewer/touch.cxx:254
+#: vncviewer/touch.cxx:252
 msgid "X Input extension not available."
 msgstr "Розширення X Input є недоступним."
 
-#: vncviewer/touch.cxx:261
+#: vncviewer/touch.cxx:259
 msgid "X Input 2 (or newer) is not available."
 msgstr "Немає доступу до X Input 2 (або новішої версії)."
 
-#: vncviewer/touch.cxx:266
-msgid "X Input 2.2 (or newer) is not available. Touch gestures will not be supported."
-msgstr "Немає доступу до X Input 2.2 (або новішої версії). Ви не зможете скористатися підтримкою сенсорних жестів."
-
-#: vncviewer/vncviewer.cxx:103
-#, c-format
+#: vncviewer/touch.cxx:264
 msgid ""
-"TigerVNC v%s\n"
+"X Input 2.2 (or newer) is not available. Touch gestures will not be "
+"supported."
+msgstr ""
+"Немає доступу до X Input 2.2 (або новішої версії). Ви не зможете "
+"скористатися підтримкою сенсорних жестів."
+
+#: vncviewer/vncviewer.cxx:96
+#, fuzzy, c-format
+msgid ""
+"TidyVNC v%s\n"
 "Built on: %s\n"
 "Copyright (C) 1999-%d TigerVNC team and many others (see README.rst)\n"
-"See https://www.tigervnc.org for information on TigerVNC."
+"Based on TigerVNC.\n"
+"See https://github.com/jkeli/tidyvnc for information on TidyVNC."
 msgstr ""
 "TigerVNC, v%s\n"
 "Зібрано: %s\n"
-"Авторські права належать команді TigerVNC та багатьом іншим (див. файл README.rst), 1999–%d\n"
+"Авторські права належать команді TigerVNC та багатьом іншим (див. файл "
+"README.rst), 1999–%d\n"
 "Докладніший опис TigerVNC можна знайти на https://www.tigervnc.org."
 
-#: vncviewer/vncviewer.cxx:173
-msgid "About TigerVNC"
-msgstr "Про TigerVNC"
+#: vncviewer/vncviewer.cxx:162 vncviewer/vncviewer.cxx:358
+msgid "About TidyVNC"
+msgstr "Про TidyVNC"
 
-#: vncviewer/vncviewer.cxx:195
+#: vncviewer/vncviewer.cxx:184
 msgid "Internal FLTK error. Exiting."
 msgstr "Внутрішня помилка FLTK. Завершуємо роботу."
 
-#: vncviewer/vncviewer.cxx:214
+#: vncviewer/vncviewer.cxx:203
 #, c-format
 msgid ""
 "%s\n"
@@ -966,59 +3973,121 @@ msgstr ""
 "\n"
 "Спробувати встановити з'єднання ще раз?"
 
-#: vncviewer/vncviewer.cxx:245 vncviewer/vncviewer.cxx:257
+#: vncviewer/vncviewer.cxx:234 vncviewer/vncviewer.cxx:246
 #, c-format
 msgid "Error starting new connection: %s"
 msgstr "Не вдалося встановити нове з'єднання: %s"
 
-#: vncviewer/vncviewer.cxx:266
+#: vncviewer/vncviewer.cxx:255
 #, c-format
-msgid "Termination signal %d has been received. TigerVNC will now exit."
-msgstr "Отримано сигнал переривання %d. Зараз TigerVNC завершить роботу."
+msgid "Termination signal %d has been received. TidyVNC will now exit."
+msgstr "Отримано сигнал переривання %d. Зараз TidyVNC завершить роботу."
 
-#: vncviewer/vncviewer.cxx:395
+#: vncviewer/vncviewer.cxx:333
 msgid "Yes"
 msgstr "Так"
 
-#: vncviewer/vncviewer.cxx:398
+#: vncviewer/vncviewer.cxx:336
 msgid "Close"
 msgstr "Закрити"
 
-#: vncviewer/vncviewer.cxx:403
-msgid "About"
-msgstr "Про програму"
+#: vncviewer/vncviewer.cxx:338
+msgid "Add to Favorites"
+msgstr ""
 
-#: vncviewer/vncviewer.cxx:406
-msgid "Hide"
-msgstr "Сховати"
+#: vncviewer/vncviewer.cxx:339
+msgid "All Files (*)"
+msgstr ""
 
-#: vncviewer/vncviewer.cxx:409
-msgid "Quit"
-msgstr "Вийти"
+#: vncviewer/vncviewer.cxx:340
+msgid "Custom Filter"
+msgstr ""
 
-#: vncviewer/vncviewer.cxx:413
+#: vncviewer/vncviewer.cxx:341
+msgid "Please choose an existing file!"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:342
+msgid "Favorites"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:343
+#, fuzzy
+msgid "Filename:"
+msgstr "Користувач:"
+
+#: vncviewer/vncviewer.cxx:345
+msgid "My Computer"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:347
+#, fuzzy
+msgid "File Systems"
+msgstr "Системний"
+
+#: vncviewer/vncviewer.cxx:349
+msgid "Manage Favorites"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:350
+msgid "New Directory?"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:351
+msgid "Create a new directory."
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:352
+msgid "Preview"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:353
+msgid "Save"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:354
+#, fuzzy
+msgid "Show:"
+msgstr "Показати всі"
+
+#: vncviewer/vncviewer.cxx:355
+msgid "Show hidden files"
+msgstr ""
+
+#: vncviewer/vncviewer.cxx:360
 msgid "Services"
 msgstr "Служби"
 
-#: vncviewer/vncviewer.cxx:414
+#: vncviewer/vncviewer.cxx:361
+#, fuzzy
+msgid "Hide TidyVNC"
+msgstr "%s - TidyVNC"
+
+#: vncviewer/vncviewer.cxx:362
 msgid "Hide others"
 msgstr "Сховати решту"
 
-#: vncviewer/vncviewer.cxx:415
+#: vncviewer/vncviewer.cxx:363
 msgid "Show all"
 msgstr "Показати всі"
 
-#: vncviewer/vncviewer.cxx:424
+#: vncviewer/vncviewer.cxx:364
+#, fuzzy
+msgid "Quit TidyVNC"
+msgstr "Про TidyVNC"
+
+#: vncviewer/vncviewer.cxx:373
 msgctxt "SysMenu|"
 msgid "&File"
 msgstr "&Файл"
 
-#: vncviewer/vncviewer.cxx:427
+#: vncviewer/vncviewer.cxx:376
+#, fuzzy
 msgctxt "SysMenu|File|"
-msgid "&New Connection"
+msgid "&New connection"
 msgstr "&Створити з'єднання"
 
-#: vncviewer/vncviewer.cxx:450
+#: vncviewer/vncviewer.cxx:398
 #, c-format
 msgid ""
 "\n"
@@ -1035,107 +4104,69 @@ msgstr ""
 "       %s [параметри] -listen [порт]\n"
 "       %s [параметри] [файл .tigervnc]\n"
 
-#: vncviewer/vncviewer.cxx:465
+#: vncviewer/vncviewer.cxx:413
 #, c-format
 msgid ""
 "\n"
 "Options:\n"
 "\n"
 "  -display Xdisplay  - Specifies the X display for the viewer window\n"
-"  -geometry geometry - Initial position of the main TigerVNC window. See the\n"
+"  -geometry geometry - Initial position of the main TidyVNC window. See the\n"
 "                       man page for details.\n"
 msgstr ""
 "\n"
 "Параметри:\n"
 "\n"
 "  -display дисплейX  - визначити дисплей X для показу вікна переглядача\n"
-"  -geometry геометрія - початкова позиція головного вікна TigerVNC.\n"
+"  -geometry геометрія - початкова позиція головного вікна TidyVNC.\n"
 "                       Див. сторінку man, щоб дізнатися більше.\n"
 
-#: vncviewer/vncviewer.cxx:472
+#: vncviewer/vncviewer.cxx:485
+msgid ""
+"~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."
+msgstr ""
+"~/.vnc вважається застарілим, будь ласка, ознайомтеся із «man vncviewer», "
+"щоб дізнатися більше про перенесення даних."
+
+#: vncviewer/vncviewer.cxx:489
 #, c-format
 msgid ""
-"\n"
-"Parameters can be turned on with -<param> or off with -<param>=0\n"
-"Parameters which take a value can be specified as -<param> <value>\n"
-"Other valid forms are <param>=<value> -<param>=<value> --<param>=<value>\n"
-"Parameter names are case-insensitive.  The parameters are:\n"
-"\n"
+"%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC "
+"location."
 msgstr ""
-"\n"
-"Параметри можна увімкнути за допомогою -<парам> або вимкнути за допомогою -<парам>=0\n"
-"Параметри, які приймають значення можна вказати у формі -<парам> <значення>\n"
-"Інші коректні форми — <парам>=<значення> -<парам>=<значення> --<парам>=<значення>\n"
-"Назви параметрів слід вказувати з врахуванням регістру символів. Параметри:\n"
-"\n"
+"%%APPDATA%%\\vnc вважається застарілим, будь ласка, переходьте на %%APPDATA%%"
+"\\TigerVNC."
 
-#: vncviewer/vncviewer.cxx:527
-msgid "FullScreenAllMonitors is deprecated, set FullScreenMode to 'all' instead"
-msgstr "FullScreenAllMonitors вважається застарілим, замість нього слід встановити для FullScreenMode значення «all»"
-
-#: vncviewer/vncviewer.cxx:532
-msgid "DotWhenNoCursor is deprecated, set AlwaysCursor to 1 and CursorType to 'Dot' instead"
-msgstr "DotWhenNoCursor з застарілим, натомість встановіть для AlwaysCursor значення 1, а для CursorType значення 'Dot'"
-
-#: vncviewer/vncviewer.cxx:553
-msgid "~/.vnc is deprecated, please consult 'man vncviewer' for paths to migrate to."
-msgstr "~/.vnc вважається застарілим, будь ласка, ознайомтеся із «man vncviewer», щоб дізнатися більше про перенесення даних."
-
-#: vncviewer/vncviewer.cxx:557
-#, c-format
-msgid "%%APPDATA%%\\vnc is deprecated, please switch to the %%APPDATA%%\\TigerVNC location."
-msgstr "%%APPDATA%%\\vnc вважається застарілим, будь ласка, переходьте на %%APPDATA%%\\TigerVNC."
-
-#: vncviewer/vncviewer.cxx:562
-#, c-format
-msgid "Could not create VNC config directory \"%s\": %s"
-msgstr "Не вдалося створити каталог налаштувань VNC «%s»: %s"
-
-#: vncviewer/vncviewer.cxx:568
+#: vncviewer/vncviewer.cxx:500
 msgid "Could not determine VNC data directory path"
 msgstr "Не вдалося визначити шлях до каталогу даних VNC"
 
-#: vncviewer/vncviewer.cxx:574
+#: vncviewer/vncviewer.cxx:506
 #, c-format
 msgid "Could not create VNC data directory \"%s\": %s"
 msgstr "Не вдалося створити каталог даних VNC «%s»: %s"
 
-#: vncviewer/vncviewer.cxx:586
-#, c-format
-msgid "Could not create VNC state directory \"%s\": %s"
-msgstr "Не вдалося створити каталог стану VNC «%s»: %s"
-
-#: vncviewer/vncviewer.cxx:705
-#, c-format
-msgid "%s: Unrecognized option '%s'\n"
-msgstr "%s: невідомий параметр «%s»\n"
-
-#: vncviewer/vncviewer.cxx:707 vncviewer/vncviewer.cxx:715
-#, c-format
-msgid "See '%s --help' for more information.\n"
-msgstr "Див. «%s --help», щоб дізнатися більше.\n"
-
-#: vncviewer/vncviewer.cxx:714
-#, c-format
-msgid "%s: Extra argument '%s'\n"
-msgstr "%s: зайвий аргумент «%s»\n"
+#: vncviewer/vncviewer.cxx:545
+#, fuzzy, c-format
+msgid "Failed to create tunnel: '%s' returned %d"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
 
 #. TRANSLATORS: "Parameters" are command line arguments, or settings
 #. from a file or the Windows registry.
-#: vncviewer/vncviewer.cxx:750 vncviewer/vncviewer.cxx:751
+#: vncviewer/vncviewer.cxx:682 vncviewer/vncviewer.cxx:683
 msgid "Parameters -listen and -via are incompatible"
 msgstr "Параметри -listen і -via є несумісними"
 
-#: vncviewer/vncviewer.cxx:765
+#: vncviewer/vncviewer.cxx:697
 msgid "Unable to listen for incoming connections"
 msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
 
-#: vncviewer/vncviewer.cxx:767
+#: vncviewer/vncviewer.cxx:699
 #, c-format
 msgid "Listening on port %d"
 msgstr "Очікуємо на дані на порту %d"
 
-#: vncviewer/vncviewer.cxx:796
+#: vncviewer/vncviewer.cxx:728
 #, c-format
 msgid ""
 "Failure waiting for incoming VNC connection:\n"
@@ -1146,7 +4177,7 @@ msgstr ""
 "\n"
 "%s"
 
-#: vncviewer/vncviewer.cxx:817
+#: vncviewer/vncviewer.cxx:749
 #, c-format
 msgid ""
 "Failure setting up encrypted tunnel:\n"
@@ -1161,31 +4192,711 @@ msgstr ""
 msgid "Remote desktop viewer"
 msgstr "Засіб перегляду віддаленої стільниці"
 
+#: win/rfb_win32/CleanDesktop.cxx:51
+#, fuzzy
+msgid "Failed to contact Active Desktop"
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/CleanDesktop.cxx:109
 #, c-format
-#~ msgid "(server default %s)"
-#~ msgstr "(типовий для сервера %s)"
+msgid "Failed to modify Active Desktop options: %ld"
+msgstr ""
+
+#: win/rfb_win32/CleanDesktop.cxx:126
+#, fuzzy, c-format
+msgid "Failed to get desktop item count: %ld"
+msgstr "Не вдалося отримати стан лампочки клавіатури: %d"
+
+#: win/rfb_win32/Clipboard.cxx:68
+msgid "Bad clipboard chain change!"
+msgstr ""
+
+#: win/rfb_win32/Clipboard.cxx:134
+msgid "Unable to open clipboard"
+msgstr ""
+
+#: win/rfb_win32/Clipboard.cxx:149
+msgid "Unable to empty clipboard"
+msgstr ""
+
+#: win/rfb_win32/Clipboard.cxx:153
+#, fuzzy
+msgid "Unable to set clipboard"
+msgstr "Надіслати основне позначене як буфер обміну"
+
+#: win/rfb_win32/CurrentUser.cxx:68
+#, c-format
+msgid "Desktop \"%s\" inaccessible"
+msgstr ""
+
+#: win/rfb_win32/CurrentUser.cxx:73
+#, fuzzy, c-format
+msgid "Unable to close desktop: %ld"
+msgstr "Не вдалося закрити ключ реєстру"
+
+#: win/rfb_win32/CurrentUser.cxx:87
+#, fuzzy
+msgid "Failed to get current user token"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: win/rfb_win32/CurrentUser.cxx:99
+msgid "Cannot impersonate unsafe or null token"
+msgstr ""
+
+#: win/rfb_win32/CurrentUser.cxx:103
+#, fuzzy
+msgid "Failed to impersonate user"
+msgstr "Не вдалося відкрити ключ реєстру"
+
+#: win/rfb_win32/CurrentUser.cxx:121
+#, fuzzy
+msgid "Failed to get current username"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: win/rfb_win32/DIBSectionBuffer.cxx:91
+#, fuzzy
+msgid "Failed to create bitmap"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: win/rfb_win32/DIBSectionBuffer.cxx:164 win/rfb_win32/DeviceContext.cxx:121
+msgid "Depth exceeds bits per pixel"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:57 win/rfb_win32/DeviceContext.cxx:60
+msgid "Unable to determine device pixel format"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:78
+msgid "16-bit high colour"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:86
+msgid "24/32-bit high colour"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:101
+#, c-format
+msgid "%d-bit with masks: (%lx, %lx, %lx)"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:136
+#, c-format
+msgid "%d-colour palettised"
+msgstr ""
+
+#: win/rfb_win32/DeviceContext.cxx:165
+#, fuzzy
+msgid "Failed to create DeviceDC"
+msgstr "Не вдалося створити ключ реєстру"
+
+#: win/rfb_win32/DeviceFrameBuffer.cxx:47
+msgid ""
+"Use a slower capture method that ensures that alpha blended windows will "
+"appear correctly"
+msgstr ""
+
+#: win/rfb_win32/MsgWindow.cxx:88
+msgid "Unable to register MsgWindow window class"
+msgstr ""
+
+#: win/rfb_win32/MsgWindow.cxx:110
+msgid "Unable to create WMNotifier window instance"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:56
+msgid ""
+"How to discover desktop updates; 0 - Polling, 1 - Application hooking, 2 - "
+"Driver hooking"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:59
+msgid "Disable local keyboard and pointer input while the server is in use"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:62
+msgid "Action to perform when all clients have disconnected"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:66
+msgid ""
+"Display device name of the monitor to be remoted, or empty to export the "
+"whole desktop"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:68
+msgid "Remove the desktop wallpaper when the server is in use"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:70
+msgid "Disable desktop user interface effects when the server is in use"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:137
+msgid "Ignoring DisconnectAction=Logoff - no current user"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:142
+msgid "Ignoring DisconnectAction=Lock - no current user"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:183
+msgid "Console is not session zero - reconnect to restore Console session"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:188
+msgid "Unable to switch into input desktop"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:211
+msgid "Unable to access desktop"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:381
+msgid "Unknown display event received"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:393
+msgid "Desktop is not started"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:460
+#, c-format
+msgid "Attaching to device %s"
+msgstr ""
+
+#: win/rfb_win32/SDisplay.cxx:464
+msgid "Attaching to virtual desktop"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:99
+msgid "Warning: Two mouse buttons pressed in the same event"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:143
+msgid ""
+"Whether to assume the viewer has already interpreted dead key sequences into "
+"latin-1 characters"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:462
+#, c-format
+msgid "Ignoring unrecognised Latin-1 keysym 0x%x"
+msgstr ""
+
+#: win/rfb_win32/SInput.cxx:478
+#, c-format
+msgid "Ignoring unknown keysym 0x%x"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:53
+msgid "Command: Report status"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:57
+msgid "Command: Parameters changed"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:61
+msgid "Command: OS shutdown"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:65
+msgid "Command: Stop"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:78
+msgid "Registering handler..."
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:82
+#, fuzzy, c-format
+msgid "Failed to register handler: %lu"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: win/rfb_win32/Service.cxx:117
+#, fuzzy, c-format
+msgid "Unable to set shutdown parameters: %lu"
+msgstr "Не вдалося прочитати параметр «%s»: %s"
+
+#: win/rfb_win32/Service.cxx:120 win/rfb_win32/Service.cxx:415
+#, fuzzy
+msgid "Unable to start the service"
+msgstr ""
+"Не вдалося зберегти журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/Service.cxx:139
+#, fuzzy, c-format
+msgid "Unable to set service status: %lu"
+msgstr ""
+"Не вдалося зберегти журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/Service.cxx:272
+#, c-format
+msgid "Unable to open event log: %ld\n"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:286
+#, fuzzy, c-format
+msgid "Failed to write to event log: %ld\n"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: win/rfb_win32/Service.cxx:334 win/rfb_win32/Service.cxx:379
+#: win/rfb_win32/Service.cxx:406 win/rfb_win32/Service.cxx:426
+#: win/rfb_win32/Service.cxx:447
+msgid "Unable to open Service Control Manager"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:343
+#, fuzzy
+msgid "Unable to create service"
+msgstr "не вдалося створити розділ DIB"
+
+#: win/rfb_win32/Service.cxx:384
+#, fuzzy
+msgid "Unable to locate the service"
+msgstr ""
+"Не вдалося завантажити журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/Service.cxx:386
+#, fuzzy
+msgid "Unable to remove the service"
+msgstr ""
+"Не вдалося зберегти журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/Service.cxx:411 win/rfb_win32/Service.cxx:431
+#: win/rfb_win32/Service.cxx:452
+#, fuzzy
+msgid "Unable to open the service"
+msgstr ""
+"Не вдалося завантажити журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/Service.cxx:436
+#, fuzzy
+msgid "Unable to stop the service"
+msgstr ""
+"Не вдалося зберегти журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/Service.cxx:457
+#, fuzzy
+msgid "Unable to query the service"
+msgstr ""
+"Не вдалося зберегти журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/Service.cxx:464
+msgid "Running"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:466
+msgid "Stopping"
+msgstr ""
+
+#: win/rfb_win32/Service.cxx:469
+#, c-format
+msgid "Unknown (%lu)"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:62
+#, c-format
+msgid "Unable to track socket address changes: 0x%08x"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:84
+#, fuzzy
+msgid "Unable to add listening socket"
+msgstr "Не вдалося виконати стеження за вхідними з'єднаннями"
+
+#: win/rfb_win32/SocketManager.cxx:112 win/rfb_win32/SocketManager.cxx:161
+#: win/rfb_win32/SocketManager.cxx:177
+msgid "Listening socket is not registered"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:123
+#, fuzzy
+msgid "Unable to add connection"
+msgstr "не вдалося створити розділ DIB"
+
+#: win/rfb_win32/SocketManager.cxx:150
+msgid "Socket is not registered"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:198
+msgid "Unable to adjust socket event mask"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:229
+msgid "Deleting listening socket"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:235
+#, c-format
+msgid "Unknown socket event: %lx"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:248
+msgid "Unable to get socket events"
+msgstr ""
+
+#: win/rfb_win32/SocketManager.cxx:252
+#, fuzzy
+msgid "Unable to disable socket events"
+msgstr ""
+"Не вдалося зберегти журнал сервера:\n"
+"\n"
+"%s"
+
+#: win/rfb_win32/SocketManager.cxx:272
+msgid "Unable to re-enable socket events"
+msgstr ""
+
+#: win/rfb_win32/TsSessions.cxx:61
+#, c-format
+msgid "Console session is %lu"
+msgstr ""
+
+#: win/rfb_win32/TsSessions.cxx:63
+msgid "Unable to connect session to Console"
+msgstr ""
+
+#: win/rfb_win32/WMHooks.cxx:150
+msgid "Failed to initialise hooks"
+msgstr ""
+
+#: win/rfb_win32/WMPoller.cxx:39
+msgid "Server should poll console windows for updates"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:43 win/winvnc/VNCServerWin32.cxx:63
+msgid ""
+"Only prompt for a local user to accept incoming connections if there is a "
+"user logged on"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:74
+#, fuzzy
+msgid "X.509 certificates"
+msgstr "TLS з сертифікатами X509"
+
+#: win/vncconfig/Authentication.h:79 win/vncconfig/Authentication.h:92
+#, fuzzy
+msgid "All"
+msgstr "Alt"
+
+#: win/vncconfig/Authentication.h:83
+#, fuzzy
+msgid "X.509 certificate"
+msgstr "TLS з сертифікатами X509"
+
+#: win/vncconfig/Authentication.h:87
+msgid "X.509 keys"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:96
+msgid "X.509 key"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:111
+msgid ""
+"The VNC authentication method is disabled, but a password is still stored "
+"for it.\n"
+"Do you want to remove the VNC authentication password from the registry?"
+msgstr ""
+
+#: win/vncconfig/Authentication.h:149
+msgid ""
+"The VNC authentication method is enabled, but no password is specified.\n"
+"The password dialog will now be shown."
+msgstr ""
+
+#: win/vncconfig/Connections.h:42 win/winvnc/VNCServerWin32.cxx:57
+msgid "Filter describing which hosts are allowed access to this server"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:125
+msgid "Unable to convert AuthHosts setting to Hosts format."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:153
+msgid "Loading default settings"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:156
+#, fuzzy, c-format
+msgid "Error reading default settings: %s"
+msgstr "Не вдалося встановити нове з'єднання: %s"
+
+#: win/vncconfig/Legacy.cxx:164
+msgid "Loading local user settings"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:167
+#, fuzzy, c-format
+msgid "Error reading local user settings: %s"
+msgstr "Не вдалося встановити нове з'єднання: %s"
+
+#: win/vncconfig/Legacy.cxx:175
+msgid "Loading global user settings"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:178
+#, c-format
+msgid "Error reading global user settings: %s"
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:191
+msgid ""
+"The AutoPortSelect setting is not supported by this release.The port number "
+"will default to 5900."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:203
+msgid ""
+"The QuerySetting option has been replaced by QueryConnect.Please see the "
+"documentation for details of the QueryConnect option."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:232
+msgid "The AllowShutdown option is not supported by this release."
+msgstr ""
+
+#: win/vncconfig/Legacy.cxx:234
+msgid "The AllowEditClients option is not supported by this release."
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:95
+msgid "Starting vncconfig applet"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:136
+msgid ""
+"Windows reported an error trying to secure the VNC server settings for this "
+"user. Your settings may not be secure!"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:167
+msgid "VNC server properties (service-mode)"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:169
+msgid "VNC server properties (user-mode)"
+msgstr ""
+
+#: win/vncconfig/vncconfig.cxx:182
+msgid ""
+"You do not have sufficient access rights to run the VNC Configuration applet"
+msgstr ""
+
+#: win/winvnc/QueryConnectDialog.cxx:77
+#, fuzzy
+msgid "Failed to change to active desktop"
+msgstr "Не вдалося створити обробник сенсорних даних: %s"
+
+#: win/winvnc/STrayIcon.cxx:51
+msgid "Disable the Options entry in the VNC server tray menu"
+msgstr ""
+
+#: win/winvnc/STrayIcon.cxx:54
+msgid "Disable the Close entry in the VNC server tray menu"
+msgstr ""
+
+#: win/winvnc/STrayIcon.cxx:159
+msgid "Are you sure you want to close the server?"
+msgstr ""
+
+#: win/winvnc/VNCServerWin32.cxx:66
+msgid "Show the configuration applet in the system tray"
+msgstr ""
+
+#: win/winvnc/VNCServerWin32.cxx:110
+#, fuzzy
+msgid "VNC server (user):"
+msgstr "Сервер VNC:"
+
+#: win/winvnc/VNCServerWin32.cxx:112
+#, fuzzy
+msgid "VNC server (service):"
+msgstr "Сервер VNC:"
+
+#: win/winvnc/VNCServerWin32.cxx:119
+#, fuzzy
+msgid "Not accepting connections"
+msgstr "Не вдалося встановити нове з'єднання: %s"
+
+#: win/winvnc/VNCServerWin32.cxx:132
+msgid "Refreshing system tray icon"
+msgstr ""
+
+#: win/winvnc/VNCServerWin32.cxx:319
+#, fuzzy, c-format
+msgid "Unknown command %d queued"
+msgstr "Невідоме кодування %d"
+
+#: win/winvnc/winvnc.cxx:64
+#, c-format
+msgid "%s - %s, version %s\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:74
+#, c-format
+msgid ""
+"Command-line options:\n"
+"  -connect [<host[::port]>]            - Connect an existing WinVNC server "
+"to a listening viewer.\n"
+"  -disconnect                          - Disconnect all clients from an "
+"existing WinVNC server.\n"
+"  -register <options...>               - Register WinVNC server as a system "
+"service.\n"
+"  -unregister                          - Remove WinVNC server from the list "
+"of system services.\n"
+"  -start                               - Start the WinVNC server system "
+"service.\n"
+"  -stop                                - Stop the WinVNC server system "
+"service.\n"
+"  -status                              - Query the WinVNC service status.\n"
+"  -help                                - Provide usage information.\n"
+"  -noconsole                           - Run without a console (i.e. no "
+"stderr/stdout)\n"
+"  <setting>=<value>                    - Set the named configuration "
+"parameter.\n"
+"    (Parameter values specified on the command-line override those specified "
+"by other configuration methods.)\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:86
+msgid "Log names:"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:88
+msgid "Log destinations:"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:90
+#, fuzzy
+msgid "Available configuration parameters:"
+msgstr "Вказано некоректні налаштування для %s"
+
+#: win/winvnc/winvnc.cxx:127 win/winvnc/winvnc.cxx:140
+msgid "Unable to locate existing VNC Server"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:132
+#, c-format
+msgid "Sending connect request to VNC Server...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:134
+#, fuzzy
+msgid "Connection failed."
+msgstr "Дані щодо з’&єднання…"
+
+#: win/winvnc/winvnc.cxx:145
+#, c-format
+msgid "Sending disconnect request to VNC Server...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:147
+#, fuzzy
+msgid "Failed to disconnect clients."
+msgstr ""
+"Не вдалося з'єднатися з «%s»:\n"
+"\n"
+"%s"
+
+#: win/winvnc/winvnc.cxx:149
+#, c-format
+msgid "Attempting to start service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:152
+msgid "Started service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:154
+#, c-format
+msgid "Attempting to stop service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:157
+msgid "Stopped service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:159
+#, c-format
+msgid "Querying service status...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:163
+#, c-format
+msgid "The service \"%s\" is in the state: %s"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:168 win/winvnc/winvnc.cxx:173
+#, c-format
+msgid "Run in service mode\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:177
+#, c-format
+msgid "Attempting to register service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:198
+msgid "Registered service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:200
+#, c-format
+msgid "Attempting to unregister service...\n"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:203
+msgid "Unregistered service successfully"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:207
+msgid "Closing console"
+msgstr ""
+
+#: win/winvnc/winvnc.cxx:209
+#, c-format
+msgid "Unable to close console: %lu"
+msgstr ""
+
+#~ msgid "The name of the parameter is too large"
+#~ msgstr "Назва параметра є надто довгою"
+
+#~ msgid "About"
+#~ msgstr "Про програму"
+
+#~ msgid "Hide"
+#~ msgstr "Сховати"
+
+#~ msgid "Quit"
+#~ msgstr "Вийти"
 
 #, c-format
 #~ msgid "SetDesktopSize failed: %d"
 #~ msgstr "Помилка SetDesktopSize: %d"
 
-#~ msgid "Invalid SetColourMapEntries from server!"
-#~ msgstr "Некоректне значення SetColourMapEntries від сервера!"
-
-#, c-format
-#~ msgid "Invalid configuration specified for %s"
-#~ msgstr "Вказано некоректні налаштування для %s"
-
-#, c-format
-#~ msgid "Invalid monitor index '%s'"
-#~ msgstr "Некоректний індекс монітора, «%s»"
-
 #, c-format
 #~ msgid "Unexpected character '%c'"
 #~ msgstr "Неочікуваний символ «%c»"
-
-#~ msgid "Pass system keys directly to server (full screen)"
-#~ msgstr "Передавати натискання системних клавіш безпосередньо до сервера (повноекранний режим)"
 
 #~ msgid "Menu key"
 #~ msgstr "Клавіша меню"
@@ -1198,25 +4909,12 @@ msgstr "Засіб перегляду віддаленої стільниці"
 #~ msgid "Send %s"
 #~ msgstr "Надіслати %s"
 
-#~ msgid "TigerVNC viewer"
-#~ msgstr "Засіб перегляду TigerVNC"
-
 #~ msgid "Show dot when no cursor"
 #~ msgstr "Показувати крапку, якщо немає курсора"
 
 #, c-format
-#~ msgid "Failed to update keyboard LED state: %d"
-#~ msgstr "Не вдалося оновити стан лампочки клавіатури: %d"
-
-#~ msgid "No key code specified on key press"
-#~ msgstr "Не вказано коду клавіші при натисканні"
-
-#, c-format
 #~ msgid "No symbol for key code 0x%02x (in the current state)"
 #~ msgstr "Немає символу для клавіші з кодом 0x%02x (у поточному стані)"
-
-#~ msgid "Unknown parameter type"
-#~ msgstr "Невідомий тип параметра"
 
 #~ msgid "VNC Viewer: Connection Options"
 #~ msgstr "Засіб перегляду VNC: параметри з’єднання"
@@ -1225,10 +4923,8 @@ msgstr "Засіб перегляду віддаленої стільниці"
 #~ msgstr "Інше"
 
 #~ msgid "Failed to get monitor name because X11 RandR could not be found"
-#~ msgstr "Не вдалося отримати назву монітора, оскільки не вдалося знайти RandR X11"
-
-#~ msgid "Failed to get information about CRTC %d"
-#~ msgstr "Не вдалося отримати відомості щодо CRTC %d"
+#~ msgstr ""
+#~ "Не вдалося отримати назву монітора, оскільки не вдалося знайти RandR X11"
 
 #~ msgid "Failed to get information about output %d for CRTC %d"
 #~ msgstr "Не вдалося отримати відомості щодо виведення %d для CRTC %d"
@@ -1244,9 +4940,6 @@ msgstr "Засіб перегляду віддаленої стільниці"
 
 #~ msgid "Enable full-screen"
 #~ msgstr "Увімкнути повноекранний режим"
-
-#~ msgid "Full (all available colors)"
-#~ msgstr "Повністю (усі доступні кольори)"
 
 #~ msgid "Medium (256 colors)"
 #~ msgstr "Середній (256 кольори)"
@@ -1280,26 +4973,28 @@ msgstr "Засіб перегляду віддаленої стільниці"
 #~ msgid "The parameter %s was too large to read from the registry"
 #~ msgstr "Параметр %s є надто довгим для читання з реєстру"
 
-#~ msgid "Failed to write configuration file, can't obtain home directory path."
-#~ msgstr "Не вдалося записати файл налаштувань, оскільки не вдалося визначити шлях до домашнього каталогу."
-
-#~ msgid "Failed to write configuration file, can't open %s: %s"
-#~ msgstr "Не вдалося записати файл налаштувань, оскільки не вдалося відкрити %s: %s"
+#~ msgid ""
+#~ "Failed to write configuration file, can't obtain home directory path."
+#~ msgstr ""
+#~ "Не вдалося записати файл налаштувань, оскільки не вдалося визначити шлях "
+#~ "до домашнього каталогу."
 
 #~ msgid "Failed to read configuration file, can't obtain home directory path."
-#~ msgstr "Не вдалося прочитати файл налаштувань, оскільки не вдалося визначити шлях до домашнього каталогу."
+#~ msgstr ""
+#~ "Не вдалося прочитати файл налаштувань, оскільки не вдалося визначити шлях "
+#~ "до домашнього каталогу."
 
 #~ msgid "Unknown parameter %s on line %d in file %s"
 #~ msgstr "Невідомий параметр %s у рядку %d файла %s"
 
-#~ msgid "Could not create VNC home directory: can't obtain home directory path."
-#~ msgstr "Не вдалося створити домашній каталог VNC: не вдалося отримати шлях до домашнього каталогу."
+#~ msgid ""
+#~ "Could not create VNC home directory: can't obtain home directory path."
+#~ msgstr ""
+#~ "Не вдалося створити домашній каталог VNC: не вдалося отримати шлях до "
+#~ "домашнього каталогу."
 
 #~ msgid "tigervnc"
 #~ msgstr "tigervnc"
-
-#~ msgid "Enabling continuous updates"
-#~ msgstr "Увімкнути неперервне оновлення"
 
 #~ msgid "disabled"
 #~ msgstr "вимкнено"
@@ -1307,26 +5002,14 @@ msgstr "Засіб перегляду віддаленої стільниці"
 #~ msgid "enabled"
 #~ msgstr "увімкнено"
 
-#~ msgid "Using %s encoding"
-#~ msgstr "Використовуємо кодування %s"
-
 #~ msgid "Not enough memory for framebuffer"
 #~ msgstr "Недостатньо пам’яті для буфера кадрів"
-
-#~ msgid "Could not create framebuffer device"
-#~ msgstr "Не вдалося створити пристрій буфера кадрів"
 
 #~ msgid "Could not create framebuffer bitmap"
 #~ msgstr "Не вдалося створити растрові дані буфера кадрів"
 
-#~ msgid "Unable to create platform specific framebuffer: %s"
-#~ msgstr "Не вдалося створити специфічний для платформи буфер кадрів: %s"
-
 #~ msgid "Using platform independent framebuffer"
 #~ msgstr "Використовуємо незалежний від платформи буфер кадрів"
-
-#~ msgid "unable to create DIB section"
-#~ msgstr "не вдалося створити розділ DIB"
 
 #~ msgid "CreateCompatibleDC failed"
 #~ msgstr "Помилка CreateCompatibleDC"
@@ -1343,17 +5026,9 @@ msgstr "Засіб перегляду віддаленої стільниці"
 #~ msgid "Couldn't find suitable pixmap format"
 #~ msgstr "Не вдалося визначити відповідний формат зображення"
 
-#~ msgid "Only true colour displays supported"
-#~ msgstr "Передбачено підтримку лише дисплеїв з True Color"
-
 #~ msgid "Using default colormap and visual, TrueColor, depth %d."
-#~ msgstr "Використовуємо типову карту кольорів і відтворення, TrueColor, глибина %d."
-
-#~ msgid "Unknown encoding %d"
-#~ msgstr "Невідоме кодування %d"
-
-#~ msgid "Unknown encoding"
-#~ msgstr "Невідоме кодування"
+#~ msgstr ""
+#~ "Використовуємо типову карту кольорів і відтворення, TrueColor, глибина %d."
 
 #~ msgid "Bad Name/Value pair on line: %d in file: %s"
 #~ msgstr "Помилкова пара назва/значення у рядку %d файла %s"
@@ -1361,32 +5036,68 @@ msgstr "Засіб перегляду віддаленої стільниці"
 #~ msgid "CleanupSignalHandler called"
 #~ msgstr "Викликано CleanupSignalHandler"
 
-#~ msgid "Could not convert the parameter-name %s to wchar_t* when reading from the Registry, the buffersize is to small."
-#~ msgstr "Не вдалося перетворити назву параметра %s на wchar_t* під час читання даних з реєстру. Розмір буфера є надто малим."
+#~ msgid ""
+#~ "Could not convert the parameter-name %s to wchar_t* when reading from the "
+#~ "Registry, the buffersize is to small."
+#~ msgstr ""
+#~ "Не вдалося перетворити назву параметра %s на wchar_t* під час читання "
+#~ "даних з реєстру. Розмір буфера є надто малим."
 
-#~ msgid "Could not convert the parameter-name %s to wchar_t* when writing to the Registry, the buffersize is to small."
-#~ msgstr "Не вдалося перетворити назву параметра %s на wchar_t* під час запису даних до реєстру. Розмір буфера є надто малим."
+#~ msgid ""
+#~ "Could not convert the parameter-name %s to wchar_t* when writing to the "
+#~ "Registry, the buffersize is to small."
+#~ msgstr ""
+#~ "Не вдалося перетворити назву параметра %s на wchar_t* під час запису "
+#~ "даних до реєстру. Розмір буфера є надто малим."
 
-#~ msgid "Could not convert the parameter-value %s to wchar_t* when writing to the Registry, the buffersize is to small."
-#~ msgstr "Не вдалося перетворити значення параметра %s на wchar_t* під час запису даних до реєстру. Розмір буфера є надто малим."
+#~ msgid ""
+#~ "Could not convert the parameter-value %s to wchar_t* when writing to the "
+#~ "Registry, the buffersize is to small."
+#~ msgstr ""
+#~ "Не вдалося перетворити значення параметра %s на wchar_t* під час запису "
+#~ "даних до реєстру. Розмір буфера є надто малим."
 
-#~ msgid "Could not convert the parameter-value for %s to utf8 char* when reading from the Registry, the buffer dest is to small."
-#~ msgstr "Не вдалося перетворити значення параметра %s на utf8 char* під час читання з реєстру. Буфер призначення є надто малим."
+#~ msgid ""
+#~ "Could not convert the parameter-value for %s to utf8 char* when reading "
+#~ "from the Registry, the buffer dest is to small."
+#~ msgstr ""
+#~ "Не вдалося перетворити значення параметра %s на utf8 char* під час "
+#~ "читання з реєстру. Буфер призначення є надто малим."
 
-#~ msgid "Could not read the line(%d) in the configuration file,the buffersize is to small."
-#~ msgstr "Не вдалося прочитати рядок %d у файлі налаштувань. Розмір буфера є надто малим."
+#~ msgid ""
+#~ "Could not read the line(%d) in the configuration file,the buffersize is "
+#~ "to small."
+#~ msgstr ""
+#~ "Не вдалося прочитати рядок %d у файлі налаштувань. Розмір буфера є надто "
+#~ "малим."
 
-#~ msgid "Decoding: The size of the buffer dest is to small, it needs to be 1 byte bigger."
-#~ msgstr "Декодування: розмір буфера призначення є надто малим. Його слід збільшити на 1 байт."
+#~ msgid ""
+#~ "Decoding: The size of the buffer dest is to small, it needs to be 1 byte "
+#~ "bigger."
+#~ msgstr ""
+#~ "Декодування: розмір буфера призначення є надто малим. Його слід збільшити "
+#~ "на 1 байт."
 
-#~ msgid "Encoding backslash: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-#~ msgstr "Кодування зворотної похилої риски: розмір буфера призначення є надто малим. Його слід збільшити на понад %d байтів."
+#~ msgid ""
+#~ "Encoding backslash: The size of the buffer dest is to small, it needs to "
+#~ "be more than %d bytes bigger."
+#~ msgstr ""
+#~ "Кодування зворотної похилої риски: розмір буфера призначення є надто "
+#~ "малим. Його слід збільшити на понад %d байтів."
 
-#~ msgid "Encoding escape sequence: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-#~ msgstr "Кодування екранованої послідовності: розмір буфера призначення є надто малим. Його слід збільшити на понад %d байтів."
+#~ msgid ""
+#~ "Encoding escape sequence: The size of the buffer dest is to small, it "
+#~ "needs to be more than %d bytes bigger."
+#~ msgstr ""
+#~ "Кодування екранованої послідовності: розмір буфера призначення є надто "
+#~ "малим. Його слід збільшити на понад %d байтів."
 
-#~ msgid "Encoding normal character: The size of the buffer dest is to small, it needs to be more than %d bytes bigger."
-#~ msgstr "Кодування звичайного символу: розмір буфера призначення є надто малим. Його слід збільшити на понад %d байтів."
+#~ msgid ""
+#~ "Encoding normal character: The size of the buffer dest is to small, it "
+#~ "needs to be more than %d bytes bigger."
+#~ msgstr ""
+#~ "Кодування звичайного символу: розмір буфера призначення є надто малим. "
+#~ "Його слід збільшити на понад %d байтів."
 
 #~ msgid "Error(%d) closing key:  Software\\TigerVNC\\vncviewer"
 #~ msgstr "Помилка (%d) закриття ключа:  Software\\TigerVNC\\vncviewer"
