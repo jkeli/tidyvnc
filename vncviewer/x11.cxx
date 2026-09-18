@@ -25,6 +25,9 @@
 #include <unistd.h>
 
 #include <FL/x.H>
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <cmath>
 
 #include "x11.h"
 
@@ -149,13 +152,18 @@ void x11_win_get_coords(Fl_Window* win, int* x, int* y, int* w, int* h)
   assert(w);
   assert(h);
 
-  XGetWindowAttributes(fl_display, fl_xid(win), &actual);
-
-  *x = actual.x;
-  *y = actual.y;
-
-  XTranslateCoordinates(fl_display, fl_xid(win), actual.root,
-                        0, 0, w, h, &cr);
+  // Match the logical geometry used by FLTK's ConfigureNotify handling.
+  // The native window/root positions and client dimensions are distinct.
+  *x=win->x(); *y=win->y(); *w=win->w(); *h=win->h();
+  if(!XGetWindowAttributes(fl_display,fl_xid(win),&actual)) return;
+  int nativeX,nativeY;
+  if(!XTranslateCoordinates(fl_display,fl_xid(win),actual.root,
+                             0,0,&nativeX,&nativeY,&cr)) return;
+  double scale=Fl::screen_scale(win->screen_num());
+  *x=int(std::rint(nativeX/scale));
+  *y=int(std::rint(nativeY/scale));
+  *w=int(std::ceil(actual.width/scale));
+  *h=int(std::ceil(actual.height/scale));
 }
 
 void x11_win_may_grab(Fl_Window* win)
