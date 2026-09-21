@@ -1,0 +1,4 @@
+module TidyVNC {
+  header "tidyvnc.h"
+  export *
+}

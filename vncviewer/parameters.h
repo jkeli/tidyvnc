@@ -24,6 +24,7 @@
 
 #include "MonitorIndicesParameter.h"
 #include "ScalingParameter.h"
+#include "EncodingParameter.h"
 
 #ifdef _WIN32
 #include <list>
@@ -41,15 +42,18 @@ extern core::EnumParameter cursorType;
 
 extern core::StringParameter passwordFile;
 
-extern core::BoolParameter autoSelect;
-extern core::BoolParameter fullColour;
+extern EncodingBoolParameter autoSelect;
+extern EncodingBoolParameter fullColour;
 extern core::AliasParameter fullColourAlias;
-extern core::IntParameter lowColourLevel;
+extern EncodingIntParameter lowColourLevel;
 extern core::AliasParameter lowColourLevelAlias;
-extern core::EnumParameter preferredEncoding;
-extern core::BoolParameter customCompressLevel;
-extern core::IntParameter compressLevel;
-extern core::IntParameter qualityLevel;
+extern EncodingEnumParameter preferredEncoding;
+extern EncodingBoolParameter customCompressLevel;
+extern EncodingIntParameter compressLevel;
+extern EncodingIntParameter qualityLevel;
+
+// Host-thread compatibility snapshot, never called by a native session worker.
+viewer::EncodingOptions snapshotEncodingOptions();
 
 extern core::BoolParameter maximize;
 extern core::BoolParameter fullScreen;

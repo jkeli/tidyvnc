@@ -41,6 +41,7 @@
 #include <core/string.h>
 
 #include <rfb/CSecurityRSAAES.h>
+#include <rfb/RSAAESKey.h>
 #include <rfb/CConnection.h>
 #include <rfb/Exception.h>
 
@@ -56,8 +57,8 @@ enum {
   ReadSubtype,
 };
 
-const int MinKeyLength = 1024;
-const int MaxKeyLength = 8192;
+const int MinKeyLength = rfb::rsaAESMinimumBits;
+const int MaxKeyLength = rfb::rsaAESMaximumBits;
 
 using namespace rfb;
 
@@ -210,6 +211,8 @@ bool CSecurityRSAAES::readPublicKey()
   serverKeyN = new uint8_t[size];
   is->readBytes(serverKeyN, size);
   is->readBytes(serverKeyE, size);
+  if (!rfb::validRSAKeyComponents(serverKeyLength, serverKeyN, serverKeyE, size))
+    throw protocol_error(_("Server encryption key encoding is invalid"));
   rsa_public_key_init(&serverKey);
   nettle_mpz_set_str_256_u(serverKey.n, size, serverKeyN);
   nettle_mpz_set_str_256_u(serverKey.e, size, serverKeyE);

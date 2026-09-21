@@ -605,3 +605,38 @@ int main(int argc, char** argv)
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+TEST(ShortcutHandler, BoundedStoragePreservesStateOnFailureAndReusesReleasedSlots)
+{
+  ShortcutHandler handler; handler.setModifiers(ShortcutHandler::Control);
+  EXPECT_EQ(handler.handleKeyPress(-1,XK_Control_L),ShortcutHandler::KeyNormal);
+  for (int i = 0; i < 1023; ++i)
+    EXPECT_EQ(handler.handleKeyPress(i,XK_a),ShortcutHandler::KeyShortcut);
+  EXPECT_THROW(handler.handleKeyPress(1024,XK_b),std::length_error);
+  EXPECT_EQ(handler.handleKeyPress(0,XK_a),ShortcutHandler::KeyShortcut);
+  EXPECT_EQ(handler.handleKeyRelease(0),ShortcutHandler::KeyShortcut);
+  EXPECT_EQ(handler.handleKeyPress(1024,XK_b),ShortcutHandler::KeyShortcut);
+  EXPECT_THROW(handler.setModifiers(16),std::invalid_argument);
+  EXPECT_EQ(handler.handleKeyRelease(1024),ShortcutHandler::KeyShortcut);
+  handler.reset();
+  EXPECT_EQ(handler.handleKeyPress(-1,XK_Control_R),ShortcutHandler::KeyNormal);
+  EXPECT_EQ(handler.handleKeyRelease(-1),ShortcutHandler::KeyUnarm);
+}
+TEST(ShortcutHandler, EveryModifierCombinationResetsAndSupportsSides)
+{
+  const uint32_t left[] = {XK_Control_L,XK_Shift_L,XK_Alt_L,XK_Super_L};
+  const uint32_t right[] = {XK_Control_R,XK_Shift_R,XK_Alt_R,XK_Hyper_R};
+  ShortcutHandler handler;
+  for (unsigned mask = 0; mask < 16; ++mask) {
+    SCOPED_TRACE(mask);
+    for (const auto* symbols : {left,right}) {
+      handler.setModifiers(mask);
+      for (unsigned i = 0; i < 4; ++i) if (mask & (1u<<i))
+        EXPECT_EQ(handler.handleKeyPress(i,symbols[i]),ShortcutHandler::KeyNormal);
+      EXPECT_EQ(handler.handleKeyPress(99,XK_Return),mask ? ShortcutHandler::KeyShortcut : ShortcutHandler::KeyNormal);
+      EXPECT_EQ(handler.handleKeyRelease(99),mask ? ShortcutHandler::KeyShortcut : ShortcutHandler::KeyNormal);
+      handler.reset();
+      EXPECT_EQ(handler.handleKeyPress(99,XK_Return),ShortcutHandler::KeyNormal);
+    }
+  }
+}

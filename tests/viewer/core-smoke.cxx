@@ -3,10 +3,10 @@
 #include <viewer/core/DesktopResampler.h>
 #include <viewer/core/FramePublisher.h>
 #include <viewer/core/ProtocolSession.h>
+#include <viewer/core/Endpoint.h>
 #include <rdr/MemInStream.h>
 #include <rdr/MemOutStream.h>
 #include <rfb/ClientCredentialCache.h>
-#include <network/TcpSocket.h>
 #include <cassert>
 #include <cstring>
 
@@ -23,10 +23,8 @@ int main()
   assert(wire.length() == 12);
   connection.close();
 
-  std::string host;
-  int port;
-  network::getHostAndPort("example.invalid::5901", &host, &port);
-  assert(host == "example.invalid" && port == 5901);
+  const auto endpoint = viewer::Endpoint::parse("Example.invalid:1");
+  assert(endpoint.host() == "example.invalid" && endpoint.port() == 5901);
 
   DisplayMetrics metrics;
   metrics.pixelsPerUnitX = metrics.pixelsPerUnitY = 2;

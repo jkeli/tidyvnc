@@ -22,6 +22,7 @@
 #define __CORE_LOG_WRITER_H__
 
 #include <stdarg.h>
+#include <vector>
 
 #include <core/Configuration.h>
 #include <core/Logger.h>
@@ -56,8 +57,8 @@ namespace core {
 
     const char *getName() {return m_name;}
 
-    void setLog(Logger *logger);
-    void setLevel(int level);
+    void setLog(Logger *logger) noexcept;
+    void setLevel(int level) noexcept;
     int getLevel(void) { return m_level; }
 
     inline void write(int level, const char* format, ...)
@@ -88,6 +89,10 @@ namespace core {
     static LogWriter* log_writers;
 
     static LogWriter* getLogWriter(const char* name);
+
+    // Startup-only registry snapshot in legacy lookup order. Names/nodes must
+    // outlive the consumer; do not construct/register writers concurrently.
+    static std::vector<LogWriter*> registeredWriters();
 
     static bool setLogParams(const char* params);
 

@@ -4,6 +4,9 @@
 #include <core/xdgdirs.h>
 #include <parameters.h>
 #include <LegacyImport.h>
+#include <rfb/CConnection.h>
+#include <viewer/core/ConnectionDocument.h>
+#include <viewer/core/DocumentOptions.h>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -12,6 +15,45 @@
 #include <unistd.h>
 
 namespace fs = std::filesystem;
+
+TEST(EncodingParameter, LegacyFrontendSharesSchemaAndValidation)
+{
+  struct Restore {
+    std::map<core::VoidParameter*, std::string> values;
+    ~Restore() { for (const auto& entry : values) entry.first->setParam(entry.second.c_str()); }
+  } restore;
+  using namespace viewer;
+  for (const auto& entry : encodingSchema()) {
+    auto* parameter = core::Configuration::global()->get(entry.name);
+    ASSERT_NE(parameter, nullptr);
+    restore.values[parameter] = parameter->getValueStr();
+    EXPECT_EQ(parameter->getDefaultStr(), entry.defaultValue);
+    if (entry.alias) {
+      ASSERT_TRUE(core::Configuration::setParam(entry.alias, entry.type == OptionType::Boolean ? "off" : "1"));
+      EXPECT_EQ(parameter->getValueStr(), entry.type == OptionType::Boolean ? "off" : "1");
+    }
+    const auto previous = parameter->getValueStr();
+    EXPECT_FALSE(parameter->setParam("invalid"));
+    EXPECT_EQ(parameter->getValueStr(), previous);
+  }
+  EXPECT_TRUE(qualityLevel.setParam("0x7"));
+  EXPECT_EQ(int(qualityLevel), 7);
+  EXPECT_FALSE(qualityLevel.setParam(""));
+  EXPECT_FALSE(qualityLevel.setParam(10));
+  EXPECT_TRUE(fullColour.setParam("YES"));
+  EXPECT_TRUE(preferredEncoding.setParam("rAw"));
+  const auto snapshot = snapshotEncodingOptions();
+  EXPECT_EQ(snapshot.qualityLevel(), 7);
+  EXPECT_EQ(snapshot.value(EncodingOption::PreferredEncoding), "Raw");
+  qualityLevel.setParam(1);
+  EXPECT_EQ(snapshot.qualityLevel(), 7);
+  for (const auto& choice : encodingChoices()) {
+    EXPECT_EQ(preferredEncoding.setParam(choice.name), choice.available);
+    EXPECT_EQ(std::string(preferredEncoding.getDescription()).find(choice.name) != std::string::npos,
+              choice.available);
+  }
+}
+
 class ViewerState : public testing::Test {
 protected:
   fs::path root;
@@ -154,4 +196,74 @@ TEST_F(ViewerState, RejectEmbeddedNullAndKeepRestrictiveImportPermissions) {
   struct stat st;
   ASSERT_EQ(stat(config().c_str(), &st), 0);
   EXPECT_EQ(st.st_mode & 0777, 0400);
+}
+
+TEST_F(ViewerState, SharedCodecPreservesUnknownAndDuplicateCompatibility) {
+  write(config(), "TigerVNC Configuration file Version 1.0\n"
+        "FutureOption=unknown\\q\n=unknown\\q\n"
+        "ServerName=first\nScalingFactor=125\n"
+        "servername=last\\\\path\nscalingfactor=150\n");
+  EXPECT_STREQ(loadViewerParameters(nullptr), "last\\path");
+  EXPECT_EQ(scalingFactor.getValueStr(), "150");
+  write(config(), "TidyVNC Configuration file Version 1.0\nShared=off\n");
+  EXPECT_STREQ(loadViewerParameters(nullptr), "");
+  write(config(), "TidyVNC Configuration file Version 1.0\n"
+        "ScalingFactor=200\nServerName=bad\\q\n");
+  EXPECT_THROW(loadViewerParameters(nullptr), std::exception);
+  EXPECT_EQ(scalingFactor.getValueStr(), "150");
+  write(config(), "TidyVNC Configuration file Version 1.0\n"
+        "ScalingFactor=200\nScalingQuality=invalid\n");
+  EXPECT_THROW(loadViewerParameters(nullptr), std::exception);
+  EXPECT_EQ(scalingFactor.getValueStr(), "150");
+}
+
+TEST_F(ViewerState, ExportLengthFailurePreservesDestination) {
+  saveViewerParameters(nullptr, "original");
+  const auto original = read(config());
+  for (const auto& tooLong : {std::string(243, 'x'), std::string(122, '\\')}) {
+    EXPECT_THROW(saveViewerParameters(nullptr, tooLong.c_str()), std::exception);
+    EXPECT_EQ(read(config()), original);
+  }
+  const auto longest = std::string(242, 'x');
+  saveViewerParameters(nullptr, longest.c_str());
+  EXPECT_STREQ(loadViewerParameters(nullptr), longest.c_str());
+  EXPECT_EQ(std::distance(fs::directory_iterator(config().parent_path()), fs::directory_iterator()), 1);
+}
+
+TEST_F(ViewerState, ResourceLimitFailureRestoresStateAndNeverImports) {
+  write(legacy(), "TigerVNC Configuration file Version 1.0\nScalingFactor=200\n");
+  auto input = std::string(viewer::ConnectionDocument::header()) + "\nScalingFactor=150\n";
+  input.append(viewer::ConnectionDocument::maximumBytes, '\n');
+  write(config(), input);
+  EXPECT_THROW(loadViewerParameters(nullptr), std::exception);
+  EXPECT_EQ(scalingFactor.getValueStr(), "100");
+  EXPECT_TRUE(legacyViewerFile(false).empty());
+}
+
+TEST_F(ViewerState, SharedDocumentValidatorMatchesRetainedParameters) {
+  struct Restore {
+    std::map<core::VoidParameter*,std::string> values;
+    ~Restore() { for (auto& pair : values) if (pair.first->getValueStr() != pair.second) pair.first->setParam(pair.second.c_str()); }
+  } restore;
+  const std::vector<std::pair<const char*,std::vector<const char*>>> fields = {
+    {"ViewOnly",{"","ON","true","yes","0","OFF","false","no"," on","maybe"}},
+    {"FullScreenMode",{"Current","selected","ALL"," all","unknown"}},
+    {"CursorType",{"Dot","system","hidden"}},
+    {"ScalingQuality",{"Nearest","BILINEAR","Area","invalid"}},
+    {"DesktopPixelUnits",{"Logical","DEVICE","pixels"}},
+    {"ScalingFactor",{"125%","auto","FixedRatio","0%","bad"}},
+    {"ShortcutModifiers",{"","  ","Ctrl, Option,Cmd","Win,Super","Ctrl,","Ctrl,,Alt","unknown"}},
+    {"QualityLevel",{"0x8","00","+7","10","bad"}},
+    {"SecurityTypes",{"None","none,None"," None ","unknown"}}
+  };
+  for (const auto& field : fields) {
+    auto* parameter = core::Configuration::global()->get(field.first); ASSERT_NE(parameter,nullptr);
+    restore.values[parameter] = parameter->getValueStr();
+    for (const auto* value : field.second) {
+      const auto accepted = parameter->setParam(value);
+      bool valid = false; viewer::DocumentAssignment canonical;
+      try { valid = viewer::documentOption({field.first,value,1},canonical); } catch (const viewer::DocumentError&) {}
+      EXPECT_EQ(valid,accepted) << field.first << ": " << value;
+    }
+  }
 }

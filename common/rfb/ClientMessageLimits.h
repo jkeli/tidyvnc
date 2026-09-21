@@ -9,11 +9,13 @@
 
 namespace rfb {
 
+  constexpr uint32_t defaultMaxCutText = 256 * 1024;
+
   // Value-only incoming message policy. The clipboard limit applies to plain
   // text, the extended wire payload, and each decompressed format separately.
   // It is not a total transport-buffer or aggregate decompression budget.
   struct ClientMessageLimits {
-    uint32_t maxCutText = 256 * 1024;
+    uint32_t maxCutText = defaultMaxCutText;
 
     void validate() const {
       if (maxCutText > INT_MAX)

@@ -1,6 +1,9 @@
 /* Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later. */
 #include <gtest/gtest.h>
 #include <viewer/core/PromptAuthentication.h>
+#include <viewer/core/CertificatePolicy.h>
+#include <rfb/RSAAESKey.h>
+#include "../viewer/host-key-fixture.h"
 #include <rdr/MemInStream.h>
 #include <rdr/MemOutStream.h>
 #include <rfb/PixelFormat.h>
@@ -44,6 +47,7 @@ TEST(PromptAuthentication, RepliesAreTypedBoundedAndSingleUse)
   EXPECT_EQ(h.auth->replyCredentials(prompt.id+1,1,"a","b"),PromptReply::StaleRequest);
   EXPECT_EQ(h.auth->replyCredentials(prompt.id,2,"a","b"),PromptReply::StaleRequest);
   EXPECT_EQ(h.auth->replyTrust(prompt.id,1,true),PromptReply::WrongKind);
+  EXPECT_EQ(h.auth->replyCredentials(prompt.id,1,"","file-password",true),PromptReply::WrongKind);
   EXPECT_EQ(h.auth->replyCredentials(prompt.id,1,"a",std::string(4097,'x')),PromptReply::TooLarge);
   EXPECT_EQ(h.auth->replyCredentials(prompt.id,1,"alice","secret"),PromptReply::Accepted);
   EXPECT_EQ(h.auth->replyCredentials(prompt.id,1,"other","other"),PromptReply::NoPendingRequest);
@@ -146,11 +150,11 @@ TEST(PromptAuthentication, TrustRequestsOwnIdentityAndPreserveMetadata)
 {
   Harness h;
   uint8_t bytes[]={7,8,9};
-  auto worker=std::async(std::launch::async,[&] { return h.auth->certificate(42,bytes,3); });
+  auto worker=std::async(std::launch::async,[&] { return h.auth->certificate(66,bytes,3); });
   auto prompt=h.ready.get_future().get();
   bytes[0]=0; // Copy completed before the notification.
   EXPECT_EQ(prompt.identity,(std::vector<uint8_t>{7,8,9}));
-  EXPECT_EQ(prompt.certificateStatus,42u); EXPECT_EQ(prompt.kind,PromptKind::Certificate);
+  EXPECT_EQ(prompt.certificateStatus,66u); EXPECT_EQ(prompt.kind,PromptKind::Certificate);
   EXPECT_EQ(h.auth->replyCredentials(prompt.id,1,"","secret"),PromptReply::WrongKind);
   EXPECT_EQ(h.auth->replyTrust(prompt.id,1,true),PromptReply::Accepted);
   EXPECT_TRUE(worker.get());
@@ -251,4 +255,99 @@ TEST(PromptAuthentication, CredentialReplyResumesRfbClientHandshake)
   for (int i=0; i<16 && !session.desktop().ready; ++i) ASSERT_TRUE(session.processMessage());
   EXPECT_TRUE(session.desktop().ready);
   EXPECT_GE(output.length(),30u);
+}
+
+TEST(PromptAuthentication, CertificatePolicyPreservesLegacyExceptionsAndRejectsUnknownBits)
+{
+  const uint32_t allowed = (1u<<1)|(1u<<6)|(1u<<7)|(1u<<8)|(1u<<9)|(1u<<10)|(1u<<14);
+  EXPECT_FALSE(certificatePolicy(0).mayOverride);
+  EXPECT_EQ(certificatePolicy(0).reasons,CertificateMissingProblem);
+  for (unsigned bit=0; bit<32; ++bit) {
+    const auto status=uint32_t(1)<<bit;
+    const auto policy=certificatePolicy(status);
+    EXPECT_EQ(policy.mayOverride,(status & allowed)!=0) << bit;
+    EXPECT_EQ(policy.fatalStatus,status & ~allowed);
+    EXPECT_NE(policy.reasons,0u);
+    const auto combined=certificatePolicy(status|allowed);
+    EXPECT_EQ(combined.mayOverride,(status & allowed)!=0);
+    EXPECT_EQ(combined.fatalStatus,status & ~allowed);
+  }
+  EXPECT_TRUE(certificatePolicy(allowed).mayOverride);
+  EXPECT_EQ(certificatePolicy((1u<<5)|(1u<<1)).reasons,CertificateRevoked|CertificateInvalid);
+  EXPECT_EQ(certificatePolicy(1u<<31).reasons,CertificateUnknownProblem);
+}
+TEST(PromptAuthentication, FatalCertificateCannotBeApprovedByAnyFrontendReply)
+{
+  for (auto status : {uint32_t(0),uint32_t(1u<<5),uint32_t(1u<<11),uint32_t(1u<<31),uint32_t((1u<<1)|(1u<<6)|(1u<<5))}) {
+    Harness h; uint8_t identity[]={1,2,3};
+    auto worker=std::async(std::launch::async,[&] { return h.auth->certificate(status,identity,3); });
+    const auto prompt=h.ready.get_future().get();
+    EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation+1,true),PromptReply::StaleRequest);
+    EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::PolicyRejected);
+    EXPECT_EQ(worker.wait_for(milliseconds(5)),std::future_status::timeout);
+    EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::PolicyRejected);
+    EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,false),PromptReply::Accepted);
+    EXPECT_FALSE(worker.get());
+  }
+}
+TEST(PromptAuthentication, OverridableCertificateDecisionRemainsAttemptScoped)
+{
+  Harness h; uint8_t identity[]={1,2,3};
+  auto worker=std::async(std::launch::async,[&] { return h.auth->certificate((1u<<1)|(1u<<6),identity,3); });
+  const auto prompt=h.ready.get_future().get();
+  EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::Accepted);
+  EXPECT_TRUE(worker.get());
+  EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::NoPendingRequest);
+}
+
+TEST(PromptAuthentication, RSAKeyEncodingBoundsAndComponents)
+{
+  uint32_t bits=777;
+  EXPECT_TRUE(rfb::validRSAKeyEncoding(host_key_fixture,sizeof(host_key_fixture),&bits));
+  EXPECT_EQ(bits,2048u);
+  for (size_t length : {size_t(0),size_t(3),sizeof(host_key_fixture)-1,size_t(2053)}) {
+    bits=777; EXPECT_FALSE(rfb::validRSAKeyEncoding(host_key_fixture,length,&bits)); EXPECT_EQ(bits,777u);
+  }
+  EXPECT_FALSE(rfb::validRSAKeyEncoding(nullptr,100));
+  for (int change=0; change<7; ++change) {
+    std::vector<uint8_t> key(std::begin(host_key_fixture),std::end(host_key_fixture));
+    if (change==0) key[4]=0;
+    if (change==1) key[4+255]&=0xfe;
+    if (change==2) std::fill(key.begin()+260,key.end(),0);
+    if (change==3) { std::fill(key.begin()+260,key.end(),0); key.back()=1; }
+    if (change==4) key.back()&=0xfe;
+    if (change==5) std::copy(key.begin()+4,key.begin()+260,key.begin()+260);
+    if (change==6) key[2]=0x20; // Declares 8192 bits with only 2048-bit fields.
+    bits=777; EXPECT_FALSE(rfb::validRSAKeyEncoding(key.data(),key.size(),&bits)); EXPECT_EQ(bits,777u);
+  }
+  for (uint32_t size : {1024u,1025u,8192u}) {
+    const size_t width=(size+7)/8; std::vector<uint8_t> key(4+2*width,0);
+    key[2]=size>>8; key[3]=size&255; key[4]=1u<<((size-1)%8); key[3+width]=1; key.back()=3;
+    EXPECT_TRUE(rfb::validRSAKeyEncoding(key.data(),key.size(),&bits)); EXPECT_EQ(bits,size);
+    if (size == 1025) {
+      key[3]=8; // Retained server declares byte-rounded 1032 for a 1025-bit key.
+      EXPECT_TRUE(rfb::validRSAKeyEncoding(key.data(),key.size(),&bits)); EXPECT_EQ(bits,1025u);
+    }
+  }
+}
+TEST(PromptAuthentication, MalformedHostApprovalLeavesRequestPending)
+{
+  Harness h; const uint8_t key[]={1,2,3};
+  auto worker=std::async(std::launch::async,[&] { return h.auth->hostKey(key,3,"fingerprint"); });
+  const auto prompt=h.ready.get_future().get();
+  EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation+1,true),PromptReply::StaleRequest);
+  EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::PolicyRejected);
+  EXPECT_EQ(worker.wait_for(milliseconds(5)),std::future_status::timeout);
+  EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,false),PromptReply::Accepted);
+  EXPECT_FALSE(worker.get());
+}
+TEST(PromptAuthentication, CanonicalHostApprovalUsesOwnedIdentity)
+{
+  Harness h;
+  auto worker=std::async(std::launch::async,[&] { return h.auth->hostKey(host_key_fixture,sizeof(host_key_fixture),host_key_fixture_compatibility); });
+  const auto prompt=h.ready.get_future().get();
+  EXPECT_EQ(prompt.identity,std::vector<uint8_t>(std::begin(host_key_fixture),std::end(host_key_fixture)));
+  EXPECT_EQ(prompt.fingerprint,host_key_fixture_compatibility);
+  EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::Accepted); EXPECT_TRUE(worker.get());
+  EXPECT_EQ(h.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::NoPendingRequest);
 }

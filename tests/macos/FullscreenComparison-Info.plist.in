@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>native-fullscreen-comparison</string>
+<key>CFBundleIdentifier</key><string>org.tidyvnc.fullscreen-comparison</string>
+<key>CFBundleName</key><string>TidyVNC Fullscreen Comparison</string>
+<key>CFBundleDisplayName</key><string>TidyVNC Fullscreen Comparison</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>0.1</string>
+<key>NSHighResolutionCapable</key><true/>
+<key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>NSLocalNetworkUsageDescription</key><string>Runs a local test desktop to compare fullscreen display behavior.</string>
+</dict></plist>

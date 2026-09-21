@@ -1,5 +1,7 @@
 /* Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later. */
 #include "PromptAuthentication.h"
+#include "CertificatePolicy.h"
+#include <rfb/RSAAESKey.h>
 #include <condition_variable>
 #include <limits>
 #include <mutex>
@@ -102,12 +104,18 @@ bool PromptAuthentication::takeRequest(AuthenticationPrompt& output)
   impl->delivered = true;
   return true;
 }
+void PromptAuthentication::cancelAttempt(uint64_t generation, PromptCancelReason reason)
+{
+  std::lock_guard<std::mutex> lock(impl->mutex);
+  if (generation == impl->generation) impl->interrupt(reason);
+}
 PromptReply PromptAuthentication::replyCredentials(uint64_t id, uint64_t generation,
-  const std::string& username, const std::string& password)
+  const std::string& username, const std::string& password, bool passwordOnly)
 {
   std::lock_guard<std::mutex> lock(impl->mutex);
   const auto result = impl->check(id, generation, true);
   if (result != PromptReply::Accepted) return result;
+  if (passwordOnly && impl->prompt.usernameRequired) return PromptReply::WrongKind;
   if (username.size() > maxText || password.size() > maxText) return PromptReply::TooLarge;
   try {
     if (impl->prompt.usernameRequired)
@@ -123,6 +131,12 @@ PromptReply PromptAuthentication::replyTrust(uint64_t id, uint64_t generation, b
   std::lock_guard<std::mutex> lock(impl->mutex);
   const auto result = impl->check(id, generation, false);
   if (result != PromptReply::Accepted) return result;
+  if (allowed && impl->prompt.kind == PromptKind::Certificate &&
+      !certificatePolicy(impl->prompt.certificateStatus).mayOverride)
+    return PromptReply::PolicyRejected;
+  if (allowed && impl->prompt.kind == PromptKind::HostKey &&
+      !rfb::validRSAKeyEncoding(impl->prompt.identity.data(),impl->prompt.identity.size()))
+    return PromptReply::PolicyRejected;
   impl->allowed = allowed;
   impl->status = Impl::Status::Replied;
   impl->changed.notify_all();
@@ -167,10 +181,15 @@ bool PromptAuthentication::request(AuthenticationPrompt prompt, std::string* use
 }
 void PromptAuthentication::credentials(bool secure, std::string* username, std::string* password)
 {
+  credentialsForSecurity(0, secure, username, password);
+}
+void PromptAuthentication::credentialsForSecurity(uint32_t securityType, bool secure, std::string* username, std::string* password)
+{
   if (!password) throw std::invalid_argument("Missing password output");
   AuthenticationPrompt prompt;
   prompt.kind = PromptKind::Credentials;
   prompt.secure = secure;
+  prompt.securityType = securityType;
   prompt.usernameRequired = username != nullptr;
   request(std::move(prompt), username, password);
 }

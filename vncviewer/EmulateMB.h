@@ -21,6 +21,7 @@
 
 #include <core/Rect.h>
 #include <core/Timer.h>
+#include <viewer/core/MiddleButtonEmulator.h>
 
 class EmulateMB : public core::Timer::Callback {
 public:
@@ -35,16 +36,8 @@ protected:
   void handleTimeout(core::Timer* t) override;
 
 private:
-  void sendAction(const core::Point& pos, uint16_t buttonMask,
-                  int action);
-
-  int createButtonMask(uint16_t buttonMask);
-
-private:
-  int state;
-  uint16_t emulatedButtonMask;
-  uint16_t lastButtonMask;
-  core::Point lastPos, origPos;
+  void send(const viewer::MiddleButtonEmulator::Batch& batch);
+  viewer::MiddleButtonEmulator emulator;
   core::Timer timer;
 };
 

@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <viewer/platform/MailboxWakeup.h>
 
 namespace viewer {
 
@@ -80,6 +81,8 @@ public:
   // Thread-safe bounded mailbox: replaces pending frames and unions damage.
   // False leaves output unchanged. A new subscription starts with a snapshot.
   bool take(ViewUpdate& output);
+  // Thread-safe weak readiness target; signals an initial mailbox check.
+  void setWakeup(std::weak_ptr<MailboxWakeup> wakeup);
 private:
   explicit FrameSubscription(std::shared_ptr<ViewMailbox> mailbox_);
   std::shared_ptr<ViewMailbox> mailbox;

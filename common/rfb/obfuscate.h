@@ -29,6 +29,10 @@ namespace rfb {
 
   std::vector<uint8_t> obfuscate(const char *str);
   std::string deobfuscate(const uint8_t *data, size_t len);
+  // Decode exactly one legacy block without allocating a plaintext string.
+  // Output capacity must be at least 8; returns bytes before the first NUL.
+  // The caller owns and clears all 8 output bytes. Input/output may alias.
+  size_t deobfuscate(const uint8_t *data, size_t len, uint8_t* output, size_t capacity);
 
 }
 

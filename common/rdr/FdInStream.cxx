@@ -100,6 +100,9 @@ size_t FdInStream::readFd(uint8_t* buf, size_t len)
     n = ::recv(fd, (char*)buf, len, 0);
   } while (n < 0 && errorNumber == EINTR);
 
+  // Readiness is advisory for nonblocking sockets.
+  if (n < 0 && (errorNumber == EAGAIN || errorNumber == EWOULDBLOCK))
+    return 0;
   if (n < 0)
     throw core::socket_error("read", errorNumber);
   if (n == 0)

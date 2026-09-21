@@ -9,6 +9,7 @@
 
 using namespace viewer;
 namespace {
+struct FrameWakeCounter : MailboxWakeup { unsigned count = 0; void wake() noexcept override { ++count; } };
 PixelView pixels(const std::vector<uint8_t>& data, uint32_t w = 4, uint32_t h = 4)
 {
   return {data.data(), data.size(), w, h, size_t(w)*4,
@@ -18,6 +19,23 @@ void expectDamage(const Damage& d, uint32_t x, uint32_t y, uint32_t w, uint32_t 
 {
   EXPECT_EQ(d.x, x); EXPECT_EQ(d.y, y); EXPECT_EQ(d.width, w); EXPECT_EQ(d.height, h);
 }
+}
+
+TEST(FramePublisher, ReadinessSignalsFramesCursorsAndGenerationClearWithWeakOwnership)
+{
+  FramePublisher publisher(1024); auto view = publisher.subscribe();
+  auto wake = std::make_shared<FrameWakeCounter>(); view->setWakeup(wake); EXPECT_EQ(wake->count,1u);
+  std::vector<uint8_t> data(64,12);
+  EXPECT_EQ(publisher.publishFrame(1,pixels(data),{0,0,4,4}),PublishResult::Published);
+  EXPECT_EQ(wake->count,2u);
+  EXPECT_EQ(publisher.publishCursor(1,pixels(data),1,1),PublishResult::Published); EXPECT_EQ(wake->count,3u);
+  EXPECT_EQ(publisher.hideCursor(1),PublishResult::Published); EXPECT_EQ(wake->count,4u);
+  publisher.reset(2); EXPECT_EQ(wake->count,5u);
+  ViewUpdate update; ASSERT_TRUE(view->take(update)); EXPECT_EQ(update.generation,2u);
+  EXPECT_FALSE(update.frame); EXPECT_FALSE(update.cursor);
+  auto retained = std::weak_ptr<FrameWakeCounter>(wake); wake.reset(); EXPECT_TRUE(retained.expired());
+  EXPECT_EQ(publisher.publishFrame(2,pixels(data),{0,0,4,4}),PublishResult::Published);
+  ASSERT_TRUE(view->take(update)); EXPECT_TRUE(update.frame);
 }
 
 TEST(FramePublisher, CopiesPaddedBottomOriginAndRetainsAfterTeardown)

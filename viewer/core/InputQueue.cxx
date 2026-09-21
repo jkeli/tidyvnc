@@ -3,6 +3,7 @@
 #include <deque>
 #include <mutex>
 #include <stdexcept>
+#include <limits>
 
 namespace viewer {
 struct InputQueue::Impl {
@@ -23,8 +24,19 @@ struct InputQueue::Impl {
     queue.clear(); buttons = 0;
     status.releasePending = status.connected;
   }
+  void policy(bool viewOnly, bool emulateMiddle) {
+    const bool middleChanged = status.emulateMiddle != emulateMiddle;
+    if (status.viewOnly != viewOnly || middleChanged) reroute();
+    status.viewOnly = viewOnly; status.emulateMiddle = emulateMiddle;
+    if (viewOnly || middleChanged) release();
+  }
+  void reroute() {
+    if (status.routingRevision == std::numeric_limits<uint64_t>::max())
+      throw std::overflow_error("Input routing revision exhausted");
+    ++status.routingRevision;
+  }
   void overflow() {
-    release(); status.focused = false; ++status.overflows;
+    reroute(); release(); status.focused = false; ++status.overflows;
   }
   InputResult push(const Command& command) {
     if (queue.size() == capacity) { overflow(); return InputResult::Overflow; }
@@ -70,14 +82,24 @@ InputResult InputQueue::pointer(uint64_t generation, int32_t x, int32_t y, uint1
 InputResult InputQueue::setFocused(uint64_t generation, bool focused) {
   std::lock_guard<std::mutex> lock(impl->mutex);
   if (generation != impl->status.generation) return InputResult::StaleGeneration;
+  if (impl->status.focused != focused) impl->reroute();
   impl->status.focused = focused;
   if (!focused) impl->release();
   return InputResult::Accepted;
 }
+InputResult InputQueue::releaseAll(uint64_t generation) {
+  std::lock_guard<std::mutex> lock(impl->mutex);
+  if (generation != impl->status.generation) return InputResult::StaleGeneration;
+  if (!impl->status.connected) return InputResult::NotConnected;
+  impl->reroute(); impl->release(); return InputResult::Accepted;
+}
 void InputQueue::setViewOnly(bool enabled) {
   std::lock_guard<std::mutex> lock(impl->mutex);
-  impl->status.viewOnly = enabled;
-  if (enabled) impl->release();
+  impl->policy(enabled, impl->status.emulateMiddle);
+}
+void InputQueue::setPolicy(bool viewOnly, bool emulateMiddle) {
+  std::lock_guard<std::mutex> lock(impl->mutex);
+  impl->policy(viewOnly, emulateMiddle);
 }
 InputStatus InputQueue::status() const {
   std::lock_guard<std::mutex> lock(impl->mutex);
@@ -101,10 +123,14 @@ bool InputQueue::take(Command& command) {
   std::lock_guard<std::mutex> lock(impl->mutex);
   if (!impl->status.connected) return false;
   if (impl->status.releasePending) {
-    command = Command(); impl->status.releasePending = false; return true;
+    command = Command(); impl->status.releasePending = false;
+  } else {
+    if (impl->queue.empty()) return false;
+    command = impl->queue.front(); impl->queue.pop_front();
   }
-  if (impl->queue.empty()) return false;
-  command = impl->queue.front(); impl->queue.pop_front(); return true;
+  command.routingRevision = impl->status.routingRevision;
+  command.emulateMiddle = impl->status.emulateMiddle;
+  return true;
 }
 void InputQueue::overflow() {
   std::lock_guard<std::mutex> lock(impl->mutex);

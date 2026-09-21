@@ -16210,7 +16210,7 @@
     {
       "path": "tests/unit/viewerstate.cxx",
       "text": "  write(legacy(), \"TigerVNC Configuration file Version 1.0\\nScalingFactor=200\\n\");",
-      "count": 2,
+      "count": 3,
       "action": "retain-interface",
       "reason": "Exact legacy-input compatibility fixture or regression-audit machinery"
     },
@@ -17552,11 +17552,11 @@
       "count": 1
     },
     {
-      "path": "vncviewer/parameters.cxx",
-      "text": "static const char* LEGACY_IDENTIFIER_STRING = \"TigerVNC Configuration file Version 1.0\";",
+      "path": "viewer/core/ConnectionDocument.cxx",
+      "text": "const char* ConnectionDocument::legacyHeader() { return \"TigerVNC Configuration file Version 1.0\"; }",
       "count": 1,
       "action": "retain-interface",
-      "reason": "Explicit legacy reader/import candidate/filter or compatibility documentation"
+      "reason": "Shared explicit connection-document reader retains the exact legacy input header; exports use current branding"
     },
     {
       "path": "vncviewer/parameters.cxx",
@@ -18005,6 +18005,62 @@
       "count": 1,
       "action": "retain-interface",
       "reason": "Explicit legacy connection-file compatibility requirement in native UI migration plan"
+    },
+    {
+      "path": "tests/unit/viewerstate.cxx",
+      "text": "  write(config(), \"TigerVNC Configuration file Version 1.0\\n\"",
+      "count": 1,
+      "action": "retain-interface",
+      "reason": "Legacy-input compatibility regression for unknown fields, duplicate assignment order and malformed-value rollback"
+    },
+    {
+      "path": "tests/macos/NativeConnectionDocumentTests.swift",
+      "text": "  let legacy = try NativeConnectionDocument(data: Data(\"TigerVNC Configuration file Version 1.0\\r\\nServerName=fixture\".utf8))",
+      "count": 1,
+      "action": "retain-interface",
+      "reason": "Native document bridge regression for the exact legacy version-1 input header"
+    },
+    {
+      "path": "tests/macos/NativeDocumentLaunchTests.swift",
+      "text": "    try check(router.route(filePaths:[\"/first.tidyvnc\",\"/second.tigervnc\"],workingDirectory:\"/invocation\"),\"cold launch batch admitted\")",
+      "count": 1,
+      "action": "retain-interface",
+      "reason": "Native file-launch regression preserving explicit legacy-extension inputs without changing the default association"
+    },
+    {
+      "path": "tests/macos/NativeDocumentLaunchTests.swift",
+      "text": "    try check(router.pendingCount == 0 && first.requests.map(\\.url.path) == [\"/first.tidyvnc\",\"/second.tigervnc\"],\"cold batch delivered in order\")",
+      "count": 1,
+      "action": "retain-interface",
+      "reason": "Native file-launch regression preserving explicit legacy-extension inputs without changing the default association"
+    },
+    {
+      "path": "platform/macos/Storage/NativeImportSources.swift",
+      "text": "    legacyDefaults = try [join(config,\"tigervnc/default.tigervnc\"),join(homeDirectory,\".vnc/default.tigervnc\")]",
+      "action": "retain-interface",
+      "reason": "Exact legacy defaults/history filenames for explicit read-only native import compatibility and isolated path-policy regression tests.",
+      "count": 1
+    },
+    {
+      "path": "platform/macos/Storage/NativeImportSources.swift",
+      "text": "    legacyHistory = try [join(state,\"tigervnc/tigervnc.history\"),join(homeDirectory,\".vnc/tigervnc.history\")]",
+      "action": "retain-interface",
+      "reason": "Exact legacy defaults/history filenames for explicit read-only native import compatibility and isolated path-policy regression tests.",
+      "count": 1
+    },
+    {
+      "path": "tests/macos/NativeImportFlowTests.swift",
+      "text": "  try check(fallback.legacyDefaults.map(\\.path) == [\"/fixture-home/.config/tigervnc/default.tigervnc\",\"/fixture-home/.vnc/default.tigervnc\"],\"legacy defaults precedence\")",
+      "action": "retain-interface",
+      "reason": "Exact legacy defaults/history filenames for explicit read-only native import compatibility and isolated path-policy regression tests.",
+      "count": 1
+    },
+    {
+      "path": "tests/macos/NativeImportFlowTests.swift",
+      "text": "  try check(fallback.legacyHistory.map(\\.path) == [\"/fixture-home/.local/state/tigervnc/tigervnc.history\",\"/fixture-home/.vnc/tigervnc.history\"],\"separate history paths\")",
+      "action": "retain-interface",
+      "reason": "Exact legacy defaults/history filenames for explicit read-only native import compatibility and isolated path-policy regression tests.",
+      "count": 1
     }
   ]
 }

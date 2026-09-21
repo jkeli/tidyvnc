@@ -23,7 +23,7 @@ def run(*command):
     subprocess.run(command, cwd=root, check=True)
 
 run('cmake', '-S', str(root), '-B', str(build), *args.cmake_arg,
-    '-DBUILD_VIEWER=OFF', '-DBUILD_PLATFORM_APPS=OFF',
+    '-DBUILD_VIEWER=OFF', '-DBUILD_PLATFORM_APPS=OFF', '-DBUILD_MACOS_NATIVE=OFF',
     '-DENABLE_NLS=OFF', '-DENABLE_AUDIO=OFF', '-DENABLE_H264=OFF',
     '-DCMAKE_DISABLE_FIND_PACKAGE_FLTK=TRUE',
     '-DCMAKE_DISABLE_FIND_PACKAGE_X11=TRUE',
@@ -42,7 +42,7 @@ for forbidden in ['vncviewer', 'winvnc', 'vncconfig', 'x0vncserver', 'w0vncserve
 seen = set()
 forbidden = re.compile(r'FLTK|fltk::|/FL/|["<]FL/|["<]vncviewer/|(?:^|[/\\])vncviewer(?:[/\\])|'
                        r'AppKit|Cocoa|Carbon|SwiftUI|WinUI|["<]X11/', re.I)
-pending = [names['viewer-core-smoke']]
+pending = [names['viewer-core-smoke'], names['viewer-c-abi-smoke']]
 while pending:
     target_id = pending.pop()
     if target_id in seen:
@@ -63,7 +63,7 @@ while pending:
                 if re.match(r'\s*#\s*include', line) and forbidden.search(line):
                     raise RuntimeError(f'GUI include in {path}: {line}')
     pending.extend(entry['id'] for entry in target.get('dependencies', []))
-for name in ['tidyvnc_viewer_core', 'tidyvnc_viewer_platform', 'rfbclient', 'network']:
+for name in ['tidyvnc_viewer_c', 'tidyvnc_viewer_core', 'tidyvnc_viewer_platform', 'rfbclient', 'network']:
     if names[name] not in seen:
         raise RuntimeError(f'Smoke consumer does not exercise {name}')
 if names.get('rfbserver') in seen:

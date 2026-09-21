@@ -43,11 +43,11 @@ LogWriter::~LogWriter() {
   // *** Should remove this logger here!
 }
 
-void LogWriter::setLog(Logger *logger) {
+void LogWriter::setLog(Logger *logger) noexcept {
   m_log = logger;
 }
 
-void LogWriter::setLevel(int level) {
+void LogWriter::setLevel(int level) noexcept {
   m_level = level;
 }
 
@@ -65,6 +65,13 @@ LogWriter::listLogWriters(int /*width*/) {
 }
 
 LogWriter* LogWriter::log_writers;
+
+std::vector<LogWriter*> LogWriter::registeredWriters() {
+  std::vector<LogWriter*> result;
+  for (auto* writer = log_writers; writer; writer = writer->m_next)
+    result.push_back(writer);
+  return result;
+}
 
 LogWriter*
 LogWriter::getLogWriter(const char* name) {

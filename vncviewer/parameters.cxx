@@ -34,6 +34,9 @@
 #include "LegacyImport.h"
 #include <vector>
 #include <utility>
+#include <memory>
+#include <viewer/core/ConnectionDocument.h>
+#include <viewer/core/DocumentOptions.h>
 #include <sys/stat.h>
 #ifndef _WIN32
 #include <unistd.h>
@@ -56,6 +59,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <assert.h>
+#include <viewer/core/PointerEventPolicy.h>
 
 static core::LogWriter vlog("Parameters");
 
@@ -63,7 +67,7 @@ core::IntParameter
   pointerEventInterval("PointerEventInterval",
                        _("Time in milliseconds to rate-limit "
                          "successive pointer events"),
-                       17, 0, INT_MAX);
+                       viewer::defaultPointerEventInterval, 0, INT_MAX);
 core::BoolParameter
   emulateMiddleButton("EmulateMiddleButton",
                       _("Emulate middle mouse button by pressing left "
@@ -106,50 +110,46 @@ core::StringParameter
 core::AliasParameter
   passwd("passwd", &passwordFile);
 
-core::BoolParameter
-  autoSelect("AutoSelect",
-             _("Auto select pixel format and encoding"),
-             true);
-core::BoolParameter
-  fullColour("FullColor", _("Use all available colors"), true);
+EncodingBoolParameter
+  autoSelect(viewer::EncodingOption::AutoSelect,
+             _("Auto select pixel format and encoding"));
+EncodingBoolParameter
+  fullColour(viewer::EncodingOption::FullColor, _("Use all available colors"));
 core::AliasParameter
   fullColourAlias("FullColour", &fullColour);
-core::IntParameter
-  lowColourLevel("LowColorLevel",
+EncodingIntParameter
+  lowColourLevel(viewer::EncodingOption::LowColorLevel,
                  _("Color level to use on slow connections, "
-                   "0 = Very Low, 1 = Low, 2 = Medium"),
-                 2, 0, 2);
+                   "0 = Very Low, 1 = Low, 2 = Medium"));
 core::AliasParameter
   lowColourLevelAlias("LowColourLevel", &lowColourLevel);
-core::EnumParameter
-  preferredEncoding("PreferredEncoding",
-                    core::format(
-                      "%s (%s)",
-                      _("Preferred encoding to use"),
-                      "Tight, JPEG, ZRLE, Hextile, "
-#ifdef HAVE_H264
-                      "H.264, "
-#endif
-                      "Raw)").c_str(),
-                    {"Tight", "JPEG", "ZRLE", "Hextile",
-#ifdef HAVE_H264
-                     "H.264",
-#endif
-                     "Raw"},
-                    "Tight");
-core::BoolParameter
-  customCompressLevel("CustomCompressLevel",
+EncodingEnumParameter
+  preferredEncoding(viewer::EncodingOption::PreferredEncoding,
+                    _("Preferred encoding to use"));
+EncodingBoolParameter
+  customCompressLevel(viewer::EncodingOption::CustomCompressLevel,
                       _("Use custom compression level as specified by "
-                        "CompressLevel"),
-                      false);
-core::IntParameter
-  compressLevel("CompressLevel",
-                _("Use specified compression level, 0 = Low, 9 = High"),
-                2, 0, 9);
-core::IntParameter
-  qualityLevel("QualityLevel",
-               _("JPEG quality level, 0 = Low, 9 = High"),
-               8, 0, 9);
+                        "CompressLevel"));
+EncodingIntParameter
+  compressLevel(viewer::EncodingOption::CompressLevel,
+                _("Use specified compression level, 0 = Low, 9 = High"));
+EncodingIntParameter
+  qualityLevel(viewer::EncodingOption::QualityLevel,
+               _("JPEG quality level, 0 = Low, 9 = High"));
+
+viewer::EncodingOptions snapshotEncodingOptions()
+{
+  return viewer::EncodingOptions().withPatch({
+    {"AutoSelect", autoSelect.getValueStr()},
+    {"FullColor", fullColour.getValueStr()},
+    {"LowColorLevel", lowColourLevel.getValueStr()},
+    {"PreferredEncoding", preferredEncoding.getValueStr()},
+    {"CustomCompressLevel", customCompressLevel.getValueStr()},
+    {"CompressLevel", compressLevel.getValueStr()},
+    {"NoJPEG", rfb::CConnection::noJpeg.getValueStr()},
+    {"QualityLevel", qualityLevel.getValueStr()}
+  }, viewer::OptionSource::Session);
+}
 
 core::BoolParameter
   maximize("Maximize", _("Maximize viewer window"), false);
@@ -271,8 +271,6 @@ core::StringParameter
   via("via", _("SSH gateway to tunnel the connection via"), "");
 #endif
 
-static const char* IDENTIFIER_STRING = "TidyVNC Configuration file Version 1.0";
-static const char* LEGACY_IDENTIFIER_STRING = "TigerVNC Configuration file Version 1.0";
 
 /*
  * We only save the sub set of parameters that can be modified from
@@ -347,90 +345,25 @@ private:
   std::vector<std::pair<core::VoidParameter*, std::string>> values;
 };
 
-// Encoding Table
-static const struct EscapeMap {
-  const char first;
-  const char second;
-} replaceMap[] = { { '\n', 'n' },
-                   { '\r', 'r' },
-                   { '\\', '\\' } };
-
-static bool encodeValue(const char* val, char* dest, size_t destSize) {
-
-  size_t pos = 0;
-
-  for (size_t i = 0; val[i] != '\0'; i++) {
-    bool normalCharacter;
-    
-    // Check for sequences which will need encoding
-    normalCharacter = true;
-    for (EscapeMap esc : replaceMap) {
-
-      if (val[i] == esc.first) {
-        dest[pos] = '\\';
-        pos++;
-        if (pos >= destSize)
-          return false;
-
-        dest[pos] = esc.second;
-        normalCharacter = false;
-        break;
-      }
-
-      if (normalCharacter) {
-        dest[pos] = val[i];
-      }
-    }
-
-    pos++;
-    if (pos >= destSize)
-      return false;
-  }
-
-  dest[pos] = '\0';
-  return true;
-}
-
-
-static bool decodeValue(const char* val, char* dest, size_t destSize) {
-
-  size_t pos = 0;
-  
-  for (size_t i = 0; val[i] != '\0'; i++) {
-    
-    // Check for escape sequences
-    if (val[i] == '\\') {
-      bool escapedCharacter;
-      
-      escapedCharacter = false;
-      for (EscapeMap esc : replaceMap) {
-        if (val[i+1] == esc.second) {
-          dest[pos] = esc.first;
-          escapedCharacter = true;
-          i++;
-          break;
-        }
-      }
-
-      if (!escapedCharacter)
-        return false;
-
-    } else {
-      dest[pos] = val[i];
-    }
-
-    pos++;
-    if (pos >= destSize) {
-      return false;
-    }
-  }
-  
-  dest[pos] = '\0';
-  return true;
-}
-
-
 #ifdef _WIN32
+// Registry strings retain the same escaping and bounded buffers as files.
+static bool encodeValue(const char* value, char* dest, size_t size) {
+  try {
+    const auto encoded = viewer::ConnectionDocument::encodeValue(value);
+    if (encoded.size() >= size) return false;
+    memcpy(dest, encoded.c_str(), encoded.size() + 1);
+    return true;
+  } catch (const viewer::DocumentError&) { return false; }
+}
+static bool decodeValue(const char* value, char* dest, size_t size) {
+  try {
+    const auto decoded = viewer::ConnectionDocument::decodeValue(value);
+    if (decoded.size() >= size) return false;
+    memcpy(dest, decoded.c_str(), decoded.size() + 1);
+    return true;
+  } catch (const viewer::DocumentError&) { return false; }
+}
+
 static void setKeyString(const char *_name, const char *_value, HKEY* hKey) {
   
   const DWORD buffersize = 256;
@@ -786,104 +719,61 @@ static char* loadFromReg() {
 
 
 void saveViewerParameters(const char *filename, const char *servername) {
-
-  const size_t buffersize = 256;
   char filepath[PATH_MAX];
-  char encodingBuffer[buffersize];
-
-  // Write to the registry or a predefined file if no filename was specified.
-  if(filename == nullptr) {
-
+  if (filename == nullptr) {
 #ifdef _WIN32
     saveToReg(servername);
     return;
 #endif
-    
     const char* configDir = core::gettidyvncconfigdir();
-    if (configDir == nullptr)
+    if (!configDir)
       throw std::runtime_error(_("Could not determine VNC config directory path"));
-
     snprintf(filepath, sizeof(filepath), "%s/default.tidyvnc", configDir);
   } else {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
 
-  /* Write parameters to file */
+  std::vector<viewer::DocumentAssignment> fields{{"ServerName", servername ? servername : ""}};
+  for (auto* param : parameterArray)
+    if (!param->isDefault()) fields.push_back({param->getName(), param->getValueStr()});
+  // Validate the complete output before opening/replacing any destination.
+  const auto document = viewer::ConnectionDocument::serialize(fields);
 #ifndef _WIN32
   core::AtomicFile output(filepath);
   FILE* f = output.stream();
 #else
-  FILE* f = fopen(filepath, "w+");
+  FILE* f = fopen(filepath, "wb");
 #endif
   if (!f)
-    throw core::posix_error(
-      core::format(_("Failed to open \"%s\""), filepath), errno);
-
-  fprintf(f, "%s\n", IDENTIFIER_STRING);
-  fprintf(f, "\n");
-
-  if (!encodeValue(servername ? servername : "", encodingBuffer, buffersize)) {
-#ifdef _WIN32
-    fclose(f);
-#endif
-    throw std::runtime_error(
-      core::format(_("Failed to save \"%s\": %s"), "ServerName",
-                   _("Could not encode parameter")));
-  }
-  fprintf(f, "ServerName=%s\n", encodingBuffer);
-
-  for (core::VoidParameter* param : parameterArray) {
-    if (param->isDefault())
-      continue;
-    if (!encodeValue(param->getValueStr().c_str(),
-                     encodingBuffer, buffersize)) {
-#ifdef _WIN32
-      fclose(f);
-#endif
-      throw std::runtime_error(
-        core::format(_("Failed to save \"%s\": %s"), param->getName(),
-                     _("Could not encode parameter")));
-    }
-    fprintf(f, "%s=%s\n", param->getName(), encodingBuffer);
-  }
+    throw core::posix_error(core::format(_("Failed to open \"%s\""), filepath), errno);
+  const bool writeError = fwrite(document.data(), 1, document.size(), f) != document.size();
 #ifndef _WIN32
+  if (writeError) throw core::posix_error("Write settings file", errno ? errno : EIO);
   output.commit();
 #else
-  bool writeError = ferror(f) != 0;
   if (fclose(f) != 0 || writeError)
     throw core::posix_error("Write settings file", errno ? errno : EIO);
 #endif
 }
 
-static bool findAndSetViewerParameterFromValue(
-  core::VoidParameter* parameters[], size_t parameters_len,
-  char* value, char* line)
-{
-  const size_t buffersize = 256;
-  char decodingBuffer[buffersize];
-
-  // Find and set the correct parameter
-  for (size_t i = 0; i < parameters_len; i++) {
-    if (strcasecmp(line, parameters[i]->getName()) == 0) {
-      if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
-        throw std::runtime_error(_("Invalid format or too large value"));
-      if (!parameters[i]->setParam(decodingBuffer))
-        throw std::runtime_error(_("Invalid parameter value"));
-      return false;
-    }
+static bool setDocumentParameter(core::VoidParameter* parameters[], size_t count,
+                                 const viewer::DocumentEntry& entry) {
+  for (size_t i = 0; i < count; ++i) {
+    if (strcasecmp(entry.name.c_str(), parameters[i]->getName()) != 0) continue;
+    viewer::DocumentAssignment validated;
+    (void)viewer::documentOption(entry, validated);
+    if (!parameters[i]->setParam(entry.value().c_str()))
+      throw std::runtime_error(_("Invalid parameter value"));
+    return true;
   }
-
-  return true;
+  return false;
 }
 
 char* loadViewerParameters(const char *filename) {
   ParameterSnapshot snapshot;
 
-  const size_t buffersize = 256;
   char filepath[PATH_MAX];
-  char line[buffersize];
-  char decodingBuffer[buffersize];
-  static char servername[sizeof(line)];
+  static char servername[256];
 
   memset(servername, '\0', sizeof(servername));
 
@@ -905,135 +795,36 @@ char* loadViewerParameters(const char *filename) {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
 
-  /* Read parameters from file */
-  FILE* f = fopen(filepath, "rb");
-  if (!f) {
-    if (!filename && errno == ENOENT)
-      return nullptr; // Only absent state uses defaults; errors never import old state.
-    throw core::posix_error(
-      core::format(_("Failed to open \"%s\""), filepath), errno);
+  std::unique_ptr<FILE, decltype(&fclose)> file(fopen(filepath, "rb"), fclose);
+  if (!file) {
+    if (!filename && errno == ENOENT) return nullptr;
+    throw core::posix_error(core::format(_("Failed to open \"%s\""), filepath), errno);
   }
-
-  int lineNr = 0;
-  bool validHeader = false;
-  while (!feof(f)) {
-
-    // Read the next line
-    lineNr++;
-    long beforeRead = ftell(f);
-    if (!fgets(line, sizeof(line), f)) {
-      if (feof(f))
-        break;
-
-      fclose(f);
-      throw core::posix_error(
-        core::format(_("Failed to read line %d in file \"%s\""),
-                     lineNr, filepath),
-        errno);
-    }
-
-    long afterRead = ftell(f);
-    if (beforeRead >= 0 && afterRead >= 0 &&
-        afterRead - beforeRead > static_cast<long>(strlen(line))) {
-      fclose(f);
-      throw std::runtime_error(_("Configuration file contains a null byte"));
-    }
-
-    if (strlen(line) == (sizeof(line) - 1)) {
-      fclose(f);
-      std::string msg = core::format(_("Failed to read line %d in "
-                                       "file \"%s\""),
-                                     lineNr, filepath);
-      throw std::runtime_error(
-        core::format("%s: %s", msg.c_str(), _("Line too long")));
-    }
-
-    // Make sure that the first line of the file has the file identifier string
-    if(lineNr == 1) {
-      size_t headerLength = strlen(line);
-      while (headerLength && (line[headerLength-1] == '\n' || line[headerLength-1] == '\r'))
-        line[--headerLength] = '\0';
-      if(strcmp(line, IDENTIFIER_STRING) == 0 ||
-         strcmp(line, LEGACY_IDENTIFIER_STRING) == 0) {
-        validHeader = true;
-        continue;
-      }
-
-      fclose(f);
-      throw std::runtime_error(core::format(
-        _("Configuration file %s is in an invalid format"), filepath));
-    }
-
-    // Skip empty lines and comments
-    if ((line[0] == '\n') || (line[0] == '#') || (line[0] == '\r'))
-      continue;
-
-    int len = strlen(line);
-    if (line[len-1] == '\n') {
-      line[len-1] = '\0';
-      len--;
-    }
-    if (line[len-1] == '\r') {
-      line[len-1] = '\0';
-      len--;
-    }
-
-    // Find the parameter value
-    char *value = strchr(line, '=');
-    if (value == nullptr) {
-      std::string msg = core::format(_("Failed to read line %d in "
-                                       "file \"%s\""),
-                                     lineNr, filepath);
-      fclose(f);
-      throw std::runtime_error(msg + ": " + _("Invalid format"));
-    }
-    *value = '\0'; // line only contains the parameter name below.
-    value++;
-    
-    bool invalidParameterName = true; // Will be set to false below if 
-                                      // the line contains a valid name.
-
+  std::string bytes;
+  char chunk[4096];
+  while (const auto count = fread(chunk, 1, sizeof(chunk), file.get())) {
+    if (count > viewer::ConnectionDocument::maximumBytes - bytes.size())
+      throw viewer::DocumentError(viewer::DocumentErrorCode::TooLarge);
+    bytes.append(chunk, count);
+  }
+  if (ferror(file.get())) throw core::posix_error("Read settings file", errno ? errno : EIO);
+  file.reset();
+  const auto document = viewer::ConnectionDocument::parse(bytes);
+  for (const auto& entry : document.entries()) {
     try {
-      if (strcasecmp(line, "ServerName") == 0) {
-
-        if(!decodeValue(value, decodingBuffer, sizeof(decodingBuffer)))
-          throw std::runtime_error(_("Invalid format or too large value"));
-        snprintf(servername, sizeof(decodingBuffer), "%s", decodingBuffer);
-        invalidParameterName = false;
-
-      } else {
-        invalidParameterName = findAndSetViewerParameterFromValue(
-          parameterArray,
-          sizeof(parameterArray) / sizeof(core::VoidParameter *),
-          value, line);
-
-        if (invalidParameterName) {
-          invalidParameterName = findAndSetViewerParameterFromValue(
-            readOnlyParameterArray,
-            sizeof(readOnlyParameterArray) /
-              sizeof(core::VoidParameter *),
-            value, line);
-        }
+      if (strcasecmp(entry.name.c_str(), "ServerName") == 0) {
+        const auto value = entry.value();
+        memcpy(servername, value.c_str(), value.size() + 1);
+      } else if (!setDocumentParameter(parameterArray, sizeof(parameterArray) / sizeof(*parameterArray), entry) &&
+                 !setDocumentParameter(readOnlyParameterArray, sizeof(readOnlyParameterArray) / sizeof(*readOnlyParameterArray), entry)) {
+        vlog.error("%s: %s", core::format(_("Failed to read line %d in file \"%s\""),
+                   int(entry.line), filepath).c_str(), _("Unknown parameter"));
       }
-    } catch(std::exception& e) {
-      // Just ignore this entry and continue with the rest
-      std::string msg = core::format(_("Failed to read line %d in "
-                                       "file \"%s\""),
-                                     lineNr, filepath);
-      fclose(f);
-      throw std::runtime_error(msg + ": " + e.what());
-    }
-
-    if (invalidParameterName) {
-      std::string msg = core::format(_("Failed to read line %d in "
-                                       "file \"%s\""),
-                                     lineNr, filepath);
-      vlog.error("%s: %s", msg.c_str(), _("Unknown parameter"));
+    } catch (const std::exception& error) {
+      throw std::runtime_error(core::format(_("Failed to read line %d in file \"%s\""),
+                               int(entry.line), filepath) + ": " + error.what());
     }
   }
-  fclose(f);
-  f = nullptr;
-  if (!validHeader) throw std::runtime_error(_("Empty configuration file"));
 
   migrateDeprecatedOptions();
 
@@ -1073,19 +864,17 @@ void importLegacyPreferences(const std::string& source)
   for (auto* p : readOnlyParameterArray)
     if (!p->isDefault()) p->setParam(p->getDefaultStr().c_str());
   loadViewerParameters(source.c_str());
-  core::AtomicFile file(destination.c_str());
-  fprintf(file.stream(), "%s\n", IDENTIFIER_STRING);
-  char encoded[256];
+  std::vector<viewer::DocumentAssignment> fields;
   for (auto* p : parameterArray) {
     std::string name(p->getName());
-    // These require a separate, explicit user decision in the Options dialog.
-    // No passwords, server addresses, commands or trust databases are copied.
+    // Separate, explicit choices; migration never adopts addresses or security.
     if (name == "X509CA" || name == "X509CRL" || name == "SecurityTypes") continue;
-    if (p->isDefault()) continue;
-    if (!encodeValue(p->getValueStr().c_str(), encoded, sizeof(encoded)))
-      throw std::runtime_error("Cannot encode imported preference");
-    fprintf(file.stream(), "%s=%s\n", p->getName(), encoded);
+    if (!p->isDefault()) fields.push_back({name, p->getValueStr()});
   }
+  const auto document = viewer::ConnectionDocument::serialize(fields);
+  core::AtomicFile file(destination.c_str());
+  if (fwrite(document.data(), 1, document.size(), file.stream()) != document.size())
+    throw core::posix_error("Write imported preferences", errno ? errno : EIO);
   struct stat sourceMode;
   if (stat(source.c_str(), &sourceMode) != 0 ||
       fchmod(fileno(file.stream()), sourceMode.st_mode & 0600) != 0)

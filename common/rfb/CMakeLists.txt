@@ -16,6 +16,7 @@ add_library(rfb STATIC
   PixelBuffer.cxx
   PixelFormat.cxx
   Security.cxx
+  RSAAESKey.cxx
   UpdateTracker.cxx
   encodings.cxx
   obfuscate.cxx)

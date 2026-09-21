@@ -15,6 +15,14 @@ namespace rfb {
     std::string priority;
     std::string caFile;
     std::string crlFile;
+    // Native/API hosts require every explicitly selected file to load. Legacy
+    // parameter consumers keep their existing warning-only compatibility policy.
+    bool requireConfiguredFiles = false;
+
+    static const char* anonymousPriority() { return "+ANON-ECDH:+ANON-DH"; }
+    std::string effectivePriority(bool anonymous) const {
+      return priority.empty() || !anonymous ? priority : priority + ":" + anonymousPriority();
+    }
 
     void validate() const {
       // GnuTLS takes C strings. Never silently truncate explicit policy values.

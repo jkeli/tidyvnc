@@ -23,6 +23,8 @@
 #include <FL/Fl.H>
 
 #include <core/Timer.h>
+#include <viewer/core/EncodingOptions.h>
+#include <chrono>
 
 #include <rfb/CConnection.h>
 #include <rfb/ClientCredentialCache.h>
@@ -76,7 +78,7 @@ protected:
 
   void framebufferUpdateStart() override;
   void framebufferUpdateEnd() override;
-  bool dataRect(const core::Rect& r, int encoding) override;
+  bool dataRect(const core::Rect& r, int wireEncoding) override;
 
   void setCursor(int width, int height, const core::Point& hotspot,
                  const uint8_t* data) override;
@@ -122,9 +124,10 @@ private:
 
   int lastServerEncoding;
 
-  struct timeval updateStartTime;
+  std::chrono::steady_clock::time_point updateStartTime;
   size_t updateStartPos;
-  unsigned long long bpsEstimate;
+  viewer::BandwidthEstimate bandwidth;
+  viewer::EncodingOptions encoding;
 
   rfb::ClientCredentialCache& credentials;
 };

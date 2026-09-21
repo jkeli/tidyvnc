@@ -5,12 +5,24 @@
 #include <vector>
 using namespace viewer;
 namespace {
+struct EventWakeCounter : MailboxWakeup { unsigned count = 0; void wake() noexcept override { ++count; } };
 std::vector<SessionEvent> drain(SessionEvents& queue) {
   std::vector<SessionEvent> events;
   SessionEvent event;
   while (queue.take(event)) events.push_back(event);
   return events;
 }
+}
+TEST(SessionEvents, ReadinessSignalsInitialPublicationCompletionAndSealWithWeakOwnership)
+{
+  SessionEvents events({},4); auto wake = std::make_shared<EventWakeCounter>();
+  events.setWakeup(wake); EXPECT_EQ(wake->count,1u); drain(events);
+  EXPECT_TRUE(events.publish(SessionEventKind::Bell,{})); EXPECT_EQ(wake->count,2u);
+  const auto operation = events.reserve(1); ASSERT_NE(operation,0u);
+  EXPECT_TRUE(events.complete(operation,OperationResult::Succeeded)); EXPECT_EQ(wake->count,3u);
+  events.seal(OperationResult::Cancelled); EXPECT_EQ(wake->count,4u);
+  auto retained = std::weak_ptr<EventWakeCounter>(wake); wake.reset(); EXPECT_TRUE(retained.expired());
+  events.setWakeup({}); EXPECT_EQ(drain(events).size(),2u);
 }
 TEST(SessionEvents, StartsWithOwnedCurrentSnapshot)
 {
@@ -126,4 +138,28 @@ TEST(SessionEvents, ConcurrentStatisticsProducerAndConsumerObserveOrderedSnapsho
   producer.get();
   while (queue.take(event)) { EXPECT_GT(event.sequence,sequence); sequence=event.sequence; frames=event.snapshot.frames; }
   EXPECT_EQ(frames,10000u); EXPECT_TRUE(queue.sealed());
+}
+
+TEST(SessionEvents, ReservesNextAttemptWithoutPublishingFromAdmissionThread)
+{
+  SessionEvents events({}, 8);
+  auto old = events.reserve(1);
+  EXPECT_EQ(events.reserveAttempt(2), 0u);
+  ASSERT_TRUE(events.complete(old, OperationResult::Succeeded));
+  EXPECT_EQ(events.reserveAttempt(1), 0u);
+  auto next = events.reserveAttempt(2); ASSERT_NE(next, 0u);
+  EXPECT_EQ(events.snapshot().generation, 1u);
+  EXPECT_EQ(events.reserveAttempt(3), 0u);
+  EXPECT_EQ(events.reserve(1), 0u); // Cannot mix old and prepared operations.
+  auto disconnect = events.reserve(2); ASSERT_NE(disconnect, 0u);
+  EXPECT_TRUE(events.complete(disconnect, OperationResult::Cancelled));
+  SessionSnapshot state; state.generation = 3;
+  EXPECT_THROW(events.publish(SessionEventKind::State, state), std::logic_error);
+  state.generation = 2;
+  EXPECT_TRUE(events.publish(SessionEventKind::State, state));
+  EXPECT_TRUE(events.complete(next, OperationResult::Succeeded));
+  auto drained = drain(events);
+  EXPECT_LT(drained.front().sequence, drained.back().sequence);
+  EXPECT_EQ(drained.back().operation, next);
+  EXPECT_EQ(drained.back().snapshot.generation, 2u);
 }

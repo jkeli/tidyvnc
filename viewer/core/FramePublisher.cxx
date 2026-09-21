@@ -77,9 +77,16 @@ AlphaMode PixelLease::alpha() const { return storage->alpha; }
 
 struct ViewMailbox {
   std::mutex mutex;
+  std::weak_ptr<MailboxWakeup> wakeup;
   ViewUpdate update;
 };
 FrameSubscription::FrameSubscription(std::shared_ptr<ViewMailbox> mailbox_) : mailbox(mailbox_) {}
+void FrameSubscription::setWakeup(std::weak_ptr<MailboxWakeup> wakeup)
+{
+  MailboxNotification notify;
+  std::lock_guard<std::mutex> lock(mailbox->mutex);
+  mailbox->wakeup = std::move(wakeup); notify.target = mailbox->wakeup.lock();
+}
 bool FrameSubscription::take(ViewUpdate& output)
 {
   std::lock_guard<std::mutex> lock(mailbox->mutex);
@@ -109,7 +116,9 @@ struct FramePublisher::Impl {
     for (auto& entry : subscribers) {
       auto mailbox = entry.lock();
       if (!mailbox) continue;
+      MailboxNotification notify;
       std::lock_guard<std::mutex> lock(mailbox->mutex);
+      notify.target = mailbox->wakeup.lock();
       auto& update = mailbox->update;
       if (update.frameChanged && update.frame) {
         if (update.frame->sizeGeneration == latest->sizeGeneration)
@@ -128,7 +137,9 @@ struct FramePublisher::Impl {
     for (auto& entry : subscribers) {
       auto mailbox = entry.lock();
       if (!mailbox) continue;
+      MailboxNotification notify;
       std::lock_guard<std::mutex> lock(mailbox->mutex);
+      notify.target = mailbox->wakeup.lock();
       mailbox->update.generation = generation;
       mailbox->update.cursorChanged = true;
       mailbox->update.cursor = cursor;
@@ -158,7 +169,9 @@ void FramePublisher::reset(uint64_t nextGeneration)
   for (auto& entry : impl->subscribers) {
     auto mailbox = entry.lock();
     if (!mailbox) continue;
+    MailboxNotification notify;
     std::lock_guard<std::mutex> lock(mailbox->mutex);
+    notify.target = mailbox->wakeup.lock();
     mailbox->update = ViewUpdate();
     mailbox->update.generation = nextGeneration;
     mailbox->update.frameChanged = mailbox->update.cursorChanged = true;

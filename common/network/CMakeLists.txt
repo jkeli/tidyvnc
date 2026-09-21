@@ -3,6 +3,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 endif()
 
 add_library(network STATIC
+  HostPort.cxx
   Socket.cxx
   TcpSocket.cxx)
 
@@ -12,6 +13,8 @@ endif()
 
 target_include_directories(network PUBLIC ${CMAKE_SOURCE_DIR}/common)
 target_link_libraries(network core rdr)
+find_package(Threads REQUIRED)
+target_link_libraries(network Threads::Threads)
 
 if(WIN32)
 	target_link_libraries(network ws2_32)

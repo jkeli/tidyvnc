@@ -18,62 +18,13 @@
 
 #ifndef __SHORTCUTHANDLER__
 #define __SHORTCUTHANDLER__
+#include <viewer/core/ShortcutState.h>
 
-#include <set>
-#include <map>
-
-#include <stdint.h>
-
-class ShortcutHandler {
+// Legacy frontend naming/localization stays outside the shared state machine.
+class ShortcutHandler : public viewer::ShortcutState {
 public:
-  ShortcutHandler();
-
-  void setModifiers(unsigned mask);
-
-  enum KeyAction {
-    KeyNormal,
-    KeyUnarm,
-    KeyShortcut,
-    KeyIgnore,
-  };
-
-  KeyAction handleKeyPress(int keyCode, uint32_t keySym);
-  KeyAction handleKeyRelease(int keyCode);
-
-  void reset();
-
-public:
-  enum Modifier {
-    Control = (1<<0),
-    Shift =   (1<<1),
-    Alt =     (1<<2),
-    Super =   (1<<3),
-  };
-
   static unsigned parseModifier(const char* key);
   static const char* modifierString(unsigned key);
-
-  static const char* modifierPrefix(unsigned mask,
-                                    bool justPrefix=false);
-
-private:
-  unsigned keySymToModifier(uint32_t keySym);
-
-private:
-  unsigned modifierMask;
-
-  enum State {
-    Idle,
-    Arming,
-    Armed,
-    Rearming,
-    Firing,
-    Wedged,
-  };
-  State state;
-
-  std::set<int> firedKeys;
-  std::map<int, uint32_t> pressedKeys;
+  static const char* modifierPrefix(unsigned mask, bool justPrefix=false);
 };
-
 #endif

@@ -5,6 +5,99 @@ N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,
 N1.11 real authentication/cancellation proof, and N1.12 bounded input/event queues
 are complete (see [viewer/README.md](../../viewer/README.md)).
 The full session/listener lifecycle and command catalog remain N1.5.
+N1.2 now includes owned endpoint values, checked shared address parsing and
+typed encoding/color snapshots/schema with shared FLTK/core selection policy.
+Security choices now expose shared canonical names, compiled availability and an
+exact allow-list parser, with native defaults/profile controls and initial session
+capture. Advanced TLS-priority controls now validate in storage actors through the
+shared GnuTLS preflight and preserve independent inheritance and session snapshots.
+Connection-local security can now change through disconnected generation/revision
+compare-and-replace, preserving session identity and applying on the next attempt.
+Shared-session and Retry controls now have defaults/profile inheritance and
+disconnected connection-local editors. Shared access is sent in ClientInit; Retry
+remains an explicit user action. Remote-layout snapshots, shared validation and
+server-completed requests now cross the C/Swift boundary. A native explicit resize
+sheet reports actual server results and drains cancellation before reopening.
+Automatic resize now coalesces viewport changes per session, respects scaling and
+input/capability gates, and captures initial size per accepted connection. Local
+policy controls use copied revision-checked drafts. Resize defaults/profile storage
+now preserves independent inheritance, explicit blank sizes and per-field sources.
+Explicit remote resize now includes an all/selected local-display chooser using
+shared DesktopLayout mapping, mixed-density normalization and topology review.
+Native canvas geometry now routes per-monitor rendering, inverse input and damage
+through the retained shared transform, with coherent asynchronous publication and
+window-resize ownership gates. Native surface focus now has scoped ownership,
+held-input release on transfer and focus-driven command/capture routing. Fullscreen
+canvas coordination now preflights every member, distributes shared pan and remaps
+logical/device monitor units with scaling. Fullscreen surface ownership/selection
+now has an AppKit window-owner prototype with explicit native-Space/borderless
+strategies and bounded transition rollback. A visible local-fixture comparison app
+now verifies native/borderless entry and exit on one Retina display and prevents
+Space work-area changes from cancelling entry; multi-monitor strategy comparison
+remains open. The experimental app now uses a connection-scoped native-Space owner,
+a current/all/selected display sheet, activation-aware menu routing and deferred
+windowed sheet/error presentation. Saved fullscreen startup/display policy and
+guarded reconnect restoration are implemented (see [FULLSCREEN.md](FULLSCREEN.md)).
+Automatic fullscreen resizing now submits the complete shared display layout with
+exclusive canvas ownership, transition/minimize handoff and drained latest-layout
+follow-up; physical acceptance remains open. Remaining settings, capabilities and general errors
+remain open; see [CANVAS.md](CANVAS.md).
+N1.6 now includes bounded session-owned monotonic timers, statistics throttling,
+publication retry and an owned macOS/Linux established-socket readiness adapter
+with cancellable waits and peer-closure observation during authentication.
+N1.5/N1.13 now include an application-owned bounded runtime for established
+attempts, with serialized protocol workers, independent FIN observers and joined
+asynchronous drain, consistent authenticating/terminal states, and bounded
+asynchronous refresh/encoding commands with reserved completions and cancellation.
+Endpoint setup now runs on those workers, using cancellable macOS asynchronous
+hostname resolution and nonblocking numeric TCP/Unix connects on macOS/Linux.
+Setup-to-transport cancellation, ordered resolving/connecting states and typed
+setup failures are covered. Reusable runtime sessions now retain one executor,
+mailboxes, prompt IDs and settings across generations, with reserved connect/
+disconnect completions and permanent joined close. Remote layout commands now
+validate owned topology, expose server capability/current layout, and complete
+on server reply, timeout or close with late-reply isolation. Clipboard now has
+bounded retained text, asynchronous offer/withdraw commands, independent direction
+policy, focus/generation routing and remote-origin echo suppression at the core
+boundary. The macOS pasteboard adapter, app-wide focus routing and independent
+direction controls are implemented; visible control/app activation verification
+remains N3.15. A separate bounded
+listener runtime now owns TCP bind/accept, pending-peer expiry and explicit
+handoff into session workers, with ordered events and joined shutdown. Linux
+hostname resolution, the remaining command catalog and native application service
+ownership remain open. Native display snapshots now provide opaque UUID identity,
+logical/work geometry, scales, generation notifications and missing-monitor
+selection resolution; physical topology/fullscreen acceptance remains N5.
+N2 now has a versioned, checked C boundary for reusable session lifecycle,
+events, retained images, input and authentication, plus nonblocking handle cleanup
+and joined runtime disposal. Encoding schema/choices and immutable sourced options
+now cross the same boundary for initial configuration and async live application.
+Pure C and loopback consumers exercise it without
+GUI dependencies. Retained callback subscriptions now use a bounded independent
+dispatcher, coalesced mailbox readiness, unsubscribe/context drain and immediate
+generation validation. The opt-in `TidyVNCNative` Swift 6 module now owns handles,
+copies prompt values, retains images, resolves async operations and coalesces
+MainActor delivery with invalidation/drain. Model tests use real loopback peers.
+An opt-in Xcode-built SwiftUI app now presents native authentication, a retained
+Core Graphics desktop, shared input mapping and asynchronous window/quit cleanup.
+Native defaults now include typed encoding preferences loaded before session
+construction. A separate live encoding draft uses the same fields with per-session
+Apply/Cancel, generation validation, uncertain-outcome reconciliation and joined
+sheet cleanup. Initial unlocked-app Settings cancellation and live encoding
+Cancel/Apply/reopen checks pass; complete interactive acceptance remains open.
+A native profile/history file-store foundation now provides typed records, bounded
+recent endpoints, private files, cooperative writer locking and atomic replacement.
+The app now shares recent history, records successful connections and offers
+selection/removal/clear with nonfatal storage recovery. A saved-profile editor now
+supports names, addresses, inherited/explicit clipboard and encoding fields,
+revision-checked save/delete and a fresh profile read before new-session creation.
+Remaining profile fields and migration/document flows are not yet integrated;
+complete interactive profile acceptance remains open.
+Native connection/profile forms now validate addresses through the shared core
+parser before Connect/Save, with specific inline errors and no DNS or network IO.
+The controlled loopback vertical slice is exercised through the visible app and
+AppKit tests. Full responsiveness/parity work remains; this is not a shipping
+frontend cutover or minimum-OS compatibility claim.
 N0 source audit, baseline validation and initial session
 isolation prerequisites (DES schedules, Tight gradient scratch and explicit
 authentication/TLS policies, session-owned JPEG negotiation and clipboard limits,
@@ -94,13 +187,14 @@ Important traps to address before building screens:
 
 The `viewer/core`, `viewer/platform` and `tests/viewer` build boundary is now
 implemented for shared rendering, display-metrics values, retained publication,
-a window-independent protocol session and headless validation. Full command/event
-lifecycle and the remaining directories below are still proposed:
+a window-independent protocol session and headless validation. `viewer/bridge`
+and the initial Swift layer/tests in `platform/macos` and `tests/macos` now exist.
+Full command/event lifecycle, native services and the app directory remain open:
 
 ```text
 common/{rfb,network,rdr,core}/    Existing protocol foundation
 viewer/core/                   Session, configuration, input policy, frames
-viewer/api/                    C ABI headers, implementation, module map
+viewer/bridge/                 C ABI headers, implementation, module map
 viewer/platform/               Service interfaces and shared test doubles
 platform/macos/                Native stores, display/input/clipboard, bridge
 apps/macos/TidyVNC/             SwiftUI app, models, assets, localization
@@ -309,6 +403,19 @@ Unencrypted/password-only modes cannot promise server authentication; preserve
 their explicit security indication and credential-send policy rather than invent
 a verified identity.
 
+The canonical credential identity is now implemented as NativeCredentialKey.
+The shared endpoint parser is exposed through immutable owned C handles; Swift
+hashes versioned, length-prefixed fields including the app namespace, transport,
+canonical host, exact scope, port, exact path/route, negotiated authentication
+method, password-only versus username/password shape, and exact username bytes.
+The retained value contains only an opaque SHA-256 account identifier. DNS aliases,
+trailing dots, scopes and Unicode-equivalent but byte-distinct user/path/route
+values do not merge. Callers must supply the logical server destination and a
+non-secret route identity, not treat a temporary local forwarding port as proof
+of the remote target. Keychain, retention and trust-gated reuse remain separate.
+The authentication sheet now describes the core's credential-protection policy
+without interpreting that flag as whole-connection encryption.
+
 Results distinguish missing entry, locked/unavailable store, denied access,
 interaction required, user cancellation and other failure. Callers specify
 whether OS interaction is allowed; background reconnect must not generate an
@@ -331,10 +438,38 @@ biometric requirement. Do not invent an entitlement or require biometric prompts
 for every reconnect. Apple documents important differences between macOS keychain
 implementations; access policy must be tested rather than inferred from iOS.
 
+The selected Keychain policy and signing prerequisites are recorded in
+[KEYCHAIN.md](KEYCHAIN.md). The SecItem adapter and bounded async store now provide
+lookup, explicit create/replace, exact delete and secret-free bounded metadata
+listing. Per-call interaction defaults to forbidden; missing entitlements and
+other OS failures remain typed. Owned secret storage is wiped on clear/deinit.
+NativeAuthenticationCredentials now integrates per-window use-once/session/remember
+choices, explicit session/saved-password submission, replace-on-success and exact-key
+Forget. The protocol worker captures the negotiated credential subtype in each
+owned prompt; no configured-method inference is used. Session values survive an
+unexpected interruption for explicit reconnect, but cancel/disconnect/close clear
+them. Save happens once the matching generation connects; failure is a separate
+nonfatal notice. Delayed lookup results cannot submit after cancellation or close.
+There is no automatic stored-secret retry or deletion. Real signed-app Keychain,
+OS prompt behavior and interactive acceptance remain open.
+
 Use narrowly scoped secret buffers, redact all diagnostics, clear owned mutable
 buffers at release and minimize Swift string copies. Do not claim guaranteed
 zeroization of every OS/Swift runtime copy. Replace current process-static saved
 credentials with session-scoped lifetime; disconnect/Forget clears retained data.
+
+The shared certificate exception mask and native one-time trust presentation now
+follow [TRUST.md](TRUST.md). Fatal/unknown certificate errors are rejected at the
+prompt reply boundary, independently of UI state. Typed reasons, DER decoding and
+correctly labeled SHA-256/compatibility fingerprints are implemented. A read-only legacy
+trust-store adapter now reuses existing host-scoped exceptions and displays expected
+and received public-key identities with cancellation/generation guards. Explicit
+destination-scoped certificate save/replace/forget, revision-checked atomic writes,
+recovery and management UI are implemented under the dedicated TidyVNC state path.
+Forgotten certificate scopes suppress legacy fallback. RSA-AES keys now have an
+independent kind/domain and file, shared encoding/reply policy, explicit scoped
+save/replace/forget and management. CA/CRL defaults/profile controls now select
+required per-session files. Physical/full native security acceptance remains open; see the precedence and write contract in TRUST.md.
 
 ### 7.3 Existing user data and launch behavior
 
@@ -390,6 +525,51 @@ scaling separate from server resolution requests and JPEG/compression quality.
 Use the existing transform for both image placement and inverse input mapping;
 convert AppKit's coordinate orientation at one tested boundary.
 
+Implemented increment (2026-09-19): the native connection sheet now exposes eight
+modes, custom values and logical/device units using a stateless shared-parser ABI.
+Copied Apply/Cancel drafts validate the current view geometry before publication;
+view/input share the applied transform, with temporary fit recovery after a display
+change exceeds limits. Nearest, bilinear and area controls now use the shared
+resampler; bilinear matches the retained frontend default. Filter-only Apply
+preserves pan, and Cancel discards the draft. Scaling defaults/profile persistence
+and native menu/accessibility pan actions are implemented. Pan moves by 80% of
+the viewport in the selected units, clamps to the shared geometry's edges and
+keeps remote input aligned with the displayed pixels during asynchronous rendering.
+Performance and full interactive keyboard/VoiceOver acceptance remain open;
+N4.7/N5 are not complete. See the scaling and panning evidence in TODO.md.
+
+The shared tile cache/resampler now feeds AppKit composition through bounded C
+calls and a native background actor/scheduler. Immutable native frames carry
+consumed-sequence damage; skipped work invalidates cache history. Unchanged CG
+tiles share their immutable storage, and identity uses the retained original image.
+Image and input geometry publish together; shared damage mapping limits redraw.
+Session-owned slots include detached renderers until their asynchronous cleanup
+finishes, and close/quit joins them. Tests cover displayed filter pixels, stale
+results, damage reuse and held-worker teardown. AppKit image streams now replay
+retained frames/cursors independently of SwiftUI observation; the shell observes
+frame availability and distinct control/statistics values. Physical display acceptance and
+end-to-end performance remain open; this does not complete N5.1/N5.2.
+
+The shared cursor sampler now has checked C exports and a Swift owner. It retains
+an original-sized premultiplied source copy, returns rounded/clamped hotspot
+geometry and renders bounded straight-RGBA tiles without an enlarged raster.
+Alpha goldens, all filters, extreme/anisotropic scaling, concurrent reads and
+source independence are tested. AppKit now uses sampled native images up to 128 ×
+128 backing pixels and clipped software tiles for larger cursors, with one active
+and one latest cursor job per view. Session close joins cursor and desktop jobs.
+Blank/empty cursors follow hidden/dot/system fallback policy; view-only uses the
+system arrow. Tests cover overlay pixels, clipping, motion reuse, backing-scale
+transitions and held-work teardown. A connection-local Input Settings sheet now
+exposes view-only, middle-button emulation and hidden/dot/system fallback with
+copied Apply/Cancel drafts. Middle-button behavior shares the retained viewer’s
+state machine, using a per-session 50 ms worker deadline in the native path.
+External policy changes, reconnect and close invalidate old drafts; enabling
+view-only releases core-held input and clears AppKit input composition/state.
+Default/profile persistence, physical acceptance and measured memory/latency
+remain open; N4.6 and N5.4 are not complete.
+
+
+
 The display adapter supplies immutable topology snapshots with stable opaque IDs,
 backing scales and generation. No persisted monitor array indices. Reconcile
 missing monitors, negative origins, hotplug and changing Spaces safely. Preserve
@@ -397,6 +577,30 @@ windowed/current/all/selected-monitor fullscreen, reconnect layout and spanning
 behavior; test native fullscreen versus coordinated borderless windows before
 selecting the implementation. Do not assume SwiftUI's window modifiers alone
 reproduce the current multi-display behavior.
+
+The current native single-window commands now support minimizing from fullscreen:
+release input/capture, request fullscreen exit, wait for the owning window's exit
+notification, then minimize and await completion. Duplicate commands are gated;
+detach, close, disconnect, rebind and reversed transitions cancel the pending intent.
+A bounded deadline clears failed transitions and exposes retry guidance without
+replacing SwiftUI's window delegate. Physical Spaces/multi-display acceptance is
+still required. The owned fullscreen prototype now also exits its temporary group
+and minimizes the original window, with success-only handoff and cancellation on
+sheet/lifecycle/topology changes. Native-Space and borderless minimize/restore have
+been observed on one Retina display. The app now uses the owned minimize route;
+visible app interaction and multi-monitor acceptance remain open.
+
+The native information sheet now reads negotiated desktop name, RFB version,
+security method, wire pixel format, requested/last received encoding and bandwidth
+estimate from bounded immutable core observations. A generation-checked C query
+copies metadata with its matching counters/state; the Swift bridge publishes them
+as one snapshot, retaining the existing statistics cadence and deduplication.
+Copy Diagnostics omits endpoint, desktop name, credentials and filesystem paths.
+A per-connection Show Connection Statistics toggle now exposes a passive overlay
+of dimensions, frames, last encoding, line-speed estimate, protocol and security.
+It consumes the same sampled observation, adds no timer/subscription, and resets
+on disconnect/reconnect/close. Broader metrics and interactive acceptance remain
+N4.12.
 
 Input carries remote coordinates, buttons, wheel units and physical key identity
 plus logical text where supported. Reuse audited keysym/scancode mappings. Handle
@@ -406,6 +610,32 @@ text event and key event for the same input without defined protocol semantics.
 One session owns remote pressed-key/button state across all its views. Focus
 loss, disconnect, sleep or capture revocation sends release-all/reset. View-only
 is enforced in the core, including synthetic menu shortcuts.
+
+The retained shortcut classifier is now shared through bounded core state and
+checked C handles. Native routing decisions cover command selection, modifier-only
+release and temporary Space bypass. AppKit now consumes these decisions, translates
+bounded layout candidates only for armed shortcuts, and routes native context
+menus and window actions. Connection-local modifier controls and fullscreen
+system-key capture use copied drafts. Typed app-default and saved-profile input
+patches resolve before session creation; live overrides retain fieldwise sources
+and never write defaults or profiles. Existing windows retain their settings when
+saved defaults change. Capture is scoped to the focused desktop,
+with release on focus loss, sleep, policy change, disconnect and close; unavailable
+capture has recovery guidance without prompting for permission automatically.
+Native Connection/toolbar/context menus route window actions and synthetic input
+to the owning desktop. The information sheet shows negotiated connection metadata and snapshot/input/
+clipboard fields. Actual global capture, physical layout/IME parity and physical
+window transitions still require acceptance;
+injected backend tests do not establish those behaviors.
+
+
+Scaling defaults and profile patches also resolve before the initial desktop
+presentation, covering the shared eight-mode parser, logical/device units and all
+three filters. Explicit saves canonicalize sizing text; reads preserve original
+stored bytes. A live scaling apply changes only its connection and marks only
+changed fields as session overrides. Display-limit preflight and fit fallback
+remain in the desktop adapter; saving syntax-valid sizing does not establish
+physical-display suitability or keyboard/VoiceOver acceptance.
 
 Clipboard send/receive settings are independently enforced; focus and session
 routing prevent broadcast to every connected server. Define text encoding,
@@ -447,6 +677,16 @@ catalog with stable IDs; keep existing gettext strings for retained FLTK/core
 consumers. Map structured core messages into native localization with a safe
 fallback. Preserve translator attribution; do not mark untranslated strings as
 translated or discard existing catalogs wholesale.
+
+The native connection model now presents structured failures using fixed redacted
+messages. DNS, refusal, routing, timeouts, suspected network/system policy,
+authentication, protocol and resource failures remain distinct. Socket errno is
+interpreted only for connection/transport failures; routing errors do not identify
+a Local Network denial. Unexpected peer closure creates a reconnect alert, while
+requested disconnect and cancellation remain silent. Retry is explicit and bound
+to the same problem identity, generation and unchanged endpoint, and Cancel/close
+revoke it. Authentication reply errors use the same safe fallback mapping. Native
+localization and interactive alert/keyboard/VoiceOver acceptance remain open.
 
 ## 10. macOS integration and packaging
 
@@ -574,3 +814,311 @@ Platform API details should be rechecked against the selected SDK during N0.
 - [Swift: Mixing Swift and C++](https://www.swift.org/documentation/cxx-interop/) — alternative interop path; the portable C ABI is the selected baseline.
 - [Microsoft: CredWriteW](https://learn.microsoft.com/en-us/windows/win32/api/wincred/nf-wincred-credwritew) — example future credential backend with its own storage/error semantics, not a Windows implementation commitment.
 - [Rebrand plan](../rebrand/PLAN.md), [migration policy](../rebrand/MIGRATION.md), [HiDPI plan](../hidpi/PLAN.md), [scaling plan](../client-scaling/PLAN.md) — preserve applicable native behavior and open validation gates; earlier Java requirements are superseded by native-only scope.
+
+
+Fullscreen policy update (2026-09-20): defaults/profile storage (schemas 10/9),
+per-field source-aware controls and generation-scoped startup/reconnect restoration
+are implemented. Old records remain unchanged until explicit save, missing display
+IDs survive fallback, and explicit exit/failure cancels reconnect intent. See
+[FULLSCREEN.md](FULLSCREEN.md) and the latest TODO evidence. CLI mapping, physical
+multi-monitor/Spaces and the remaining native UI gates are still open.
+
+
+Fullscreen statistics update (2026-09-20): the same passive, value-only panel now
+appears on every owned fullscreen surface. Connection menu/context toggles stay in
+fullscreen; existing sampled snapshots update reusable hosts without new timers
+or frame subscriptions. Desktop geometry, pointer routing and first responder are
+preserved, and transitions/disconnect/close clean up the overlays. See
+[FULLSCREEN.md](FULLSCREEN.md) for model/native-view evidence and the remaining
+physical VoiceOver/multi-display gates.
+
+The connection-document syntax and export boundary now lives in the portable
+viewer core and is consumed by retained FLTK load/save/import. Complete-output
+preflight fixes saves that exceeded the reader's full-line bound. Bounded parsing,
+owned ordered records and deferred decoding preserve unknown-option compatibility
+without global mutation. Native semantic application, bridge, panels and launch
+routing remain open; see [DOCUMENTS.md](DOCUMENTS.md).
+
+The shared document codec now has an additive four-function C boundary and an
+immutable Sendable Swift owner. It preserves deferred decoding, copied metadata,
+strict native UTF-8 handling, typed redacted failures and explicit non-secret
+exports without mutating settings or stores. Native document review, semantic
+configuration resolution, Open/Save and launch routing still remain open; see
+[DOCUMENTS.md](DOCUMENTS.md).
+
+Explicit connection files now have shared per-field semantic validation, including
+retained FLTK consumption, and an immutable native configuration-resolution model.
+It preserves explicit-file-after-CLI precedence, empty/missing endpoint behavior,
+post-file deprecated migrations, owned provenance and deliberate ignored-field
+review. Stable display mapping and relative-path bases are explicit host inputs.
+The model is verified through native session construction and real loopback ClientInit
+bytes; app file panels, preview identity, loss-aware export and launch routing remain
+open. See [DOCUMENTS.md](DOCUMENTS.md).
+
+Explicit Open now runs through a native panel and new connection-window review.
+An injected bounded regular-file reader resolves after native defaults/profile;
+review identity and fresh monitor mapping gate idle session construction. Window
+close and application quit revoke pending reads/pickers, and accepted resolution
+metadata is retained before Connect becomes available. Both normal and sanitizer
+native suites pass 49 tests, with a separate live Open/review/Ready UI check.
+Save/overwrite, detailed mapping recovery, imports and Finder/CLI routing remain
+open; see [DOCUMENTS.md](DOCUMENTS.md).
+
+Finder document events now route through both AppKit callbacks into the same
+per-file review windows. A bounded app-owned queue handles delivery before the
+SwiftUI window action is available, distinct repeated-file requests and quit
+revocation. A real SwiftUI fixture proves warm delivery with zero visible windows;
+live Finder cold/mixed-batch checks prove current and explicit legacy files reach
+review/recovery independently. Window titles identify each file. CLI invocation,
+Save/overwrite, imports and release association/consent gates remain open; see
+[DOCUMENTS.md](DOCUMENTS.md).
+
+Native connection export now has an immutable, non-secret compatibility model
+and synchronous capture of current applied connection settings. Omitted native
+resize settings, stable-ID-to-monitor conversion and ignored input require
+explicit review; custom TLS priority and unmappable displays fail before output.
+Hidden cursor fallback preserves the latest selected shape through export.
+Shared syntax and semantic preflight validate all emitted fields. Export review
+UI, destination selection, atomic Save/overwrite and imports remain open; see
+[DOCUMENTS.md](DOCUMENTS.md) and the latest TODO evidence.
+
+
+Native Save As now connects immutable export review to NSSavePanel and a private
+atomic writer with explicit overwrite, conflict checks and cancellation/quit
+joins. Save feedback preserves viewport geometry. Real UI checks verify create,
+overwrite and cancellation; 53 native tests pass in normal/ASan/TSan builds.
+Direct Command-Q while the system Save panel is open remains an explicit keyboard
+acceptance gap; Quit via the menu and Escape then Command-Q work. Imports,
+mapping recovery, remaining entry paths and release gates are still open. See
+[DOCUMENTS.md](DOCUMENTS.md) and the latest TODO evidence.
+
+
+Defaults import foundation update (2026-09-20): `NativeDefaultsImport` provides an
+explicit-origin, non-secret ordinary-settings projection with required omission /
+conversion review and original source lines. The preferences store admits imports
+only into absent native state and writes values plus an origin marker together in
+defaults schema 11; resets preserve the marker. Profile/history schema remains 9.
+No startup migration, XDG writer or credential/trust import is enabled. Candidate
+discovery, import UI and history migration remain open; see [IMPORTS.md](IMPORTS.md).
+
+Defaults source/review update (2026-09-20): `NativeImportPaths` and
+`NativeDefaultsImportService` implement explicit XDG/home discovery and bounded
+reads, with native-state precedence and no fallback on malformed/inaccessible
+sources. Legacy import remains a separate request and respects existing current
+XDG state. `NativeDefaultsImportState` owns exact preview approval, cancellation,
+close/join and mapping revalidation; commits use the reviewed snapshot. These
+services are not yet connected to startup or menus. First-use/import UI and
+separate history migration remain open; see [IMPORTS.md](IMPORTS.md).
+
+Defaults import UI update (2026-09-20): the File menu now opens a native defaults
+import window with separate current and legacy review actions, affected categories,
+redacted omissions, monitor mapping and explicit acknowledgement before commit.
+Idle ordinary connection windows offer import when native defaults are absent;
+dismissal is launch-local, and native-store errors never imply absence. Window
+close and app shutdown cancel/join import work. A successful import offers a new
+connection so existing windows retain their settings. The production view and
+controller have an isolated interactive/automated fixture. History migration and
+the remaining launch, mapping-recovery and release gates stay open.
+
+History import foundation update (2026-09-20): separate history projection and
+current/legacy source discovery now preserve the first 20 unique address strings,
+require omission review, validate every bounded source line and retain an immutable
+review with the shared native revision. Profile/history schema 10 records explicit
+history initialization so new profile-only data can coexist with an import while
+native/cleared history and all older records retain precedence. List, revision and
+origin marker commit together through the existing private-file CAS. Defaults
+schema remains 11. Separate history UI, first-use integration and end-to-end
+migration remain open; see [IMPORTS.md](IMPORTS.md).
+
+
+History import UI update (2026-09-20): a separate native review window and File-menu
+action now complement defaults import. Explicit current/legacy choices show the
+ordered address list and require acknowledgement for duplicates/older omissions.
+An independent first-use offer uses fresh native history eligibility; success refreshes
+the shared recent list without opening a connection. Close and app quit revoke callbacks
+and join IO before store shutdown. Isolated automated and live fixture checks cover
+consent, cancellation, native precedence and recent-list refresh. Broader mapping,
+entry-path, physical-device and release acceptance gates remain open.
+
+
+Explicit-file display recovery update (2026-09-20): unresolved or mirrored monitor
+numbering now opens a manual native chooser; automatic assignments can also be edited.
+The final review lists file-number/display-name pairs and still requires explicit
+Open before creating an idle session. Sparse bounded mapping keys, immutable
+file/base retention, connected-ID validation, topology revalidation and stale callback
+guards preserve the existing document boundary. Production views are covered by an
+isolated synthetic-display fixture. Import/export mapping recovery, physical display
+acceptance, CLI and other full-plan gates remain open; see DOCUMENTS.md.
+
+
+Export numbering recovery update (2026-09-20): Save As captures immutable session
+settings before presenting an export-only numbering chooser for saved displays that
+are disconnected or ambiguous. Automatic mappings can also be edited. Exact distinct
+positive ordinals are shown in final loss review and never change live fullscreen
+policy. Mapping and review share one sheet identity; only current review approval
+hands off to the destination panel. Production sheet/serialization/lifetime tests
+use isolated temporary output. Defaults-import mapping and broader acceptance remain
+open; see DOCUMENTS.md.
+
+
+Defaults-import display recovery update (2026-09-20): unresolved monitor numbers
+now open a native display chooser; automatic assignments are editable from review.
+Recovery retains only the ordinary-settings projection and redacted notices, never
+excluded values or original bytes. Connected-display assignments create a fresh
+review with separate omission consent. Stale callbacks, source changes, native-state
+conflicts and changed display availability cannot substitute or overwrite reviewed
+settings. The isolated fixture covers automatic/manual recovery, sparse numbers,
+many-to-one choices, cancellation and close. See IMPORTS.md and the latest TODO
+validation. CLI/entry-path, physical-device and release acceptance remain open.
+
+
+Invocation foundation update (2026-09-20): the shared argument lexer now serves
+both retained Configuration parsing and a stateless viewer invocation model. The
+catalog derives encoding entries from the shared schema and records availability
+for platform/TLS/audio/tunnel options. Ordered raw occurrences and exact argv
+positions survive for typed validation; parsing performs no IO or global mutation.
+Four C exports and a Swift owned-value wrapper expose the same model/catalog.
+Semantic CLI resolution and native startup/authentication/listen/tunnel routing
+remain required; no CLI parity is claimed. See [CLI.md](CLI.md).
+
+
+Invocation value-resolution update (2026-09-20): decoded field validation is shared
+with documents and exposed through an immutable canonical C/Swift copy. Native
+injected requests apply ordinary CLI settings after defaults/profile and before
+explicit files. Inactive cursor shape and deprecated migration flags survive file
+review and monitor remapping, with explicit off overrides and correct provenance.
+Unsupported adapters fail before source IO; cancellation prevents late session
+admission. The executable bootstrap and remaining adapters are still required.
+See CLI.md and the latest TODO validation; no full CLI/parity gate is closed.
+
+
+CLI/file display-precedence update (2026-09-20): validated CLI fullscreen values
+now remain pending until explicit-file fields are applied. Only surviving numeric
+selections require a connected-display mapping; replaced CLI lists and stale host
+assignments no longer reject a valid file. Inherited CLI selections enter the native
+mapping/review flow with accurate source labels and actual resolved assignments.
+CLI migration order, immutable recovery, cancellation, topology guards and no-store
+writes are retained. Executable startup/no-file CLI recovery and other adapters
+remain open; see CLI.md and the latest TODO evidence.
+
+
+Executable CLI startup update (2026-09-20): the native app now strictly decodes raw
+argv, handles help/version and redacted preflight failures before app/store startup,
+and classifies retained-style file/socket operands with captured cwd semantics.
+One process-local request belongs to the first ordinary window. Direct hosts connect
+when ready; no-host options open an idle form, and files retain explicit review and
+manual Connect. New windows and zero-window reopening do not replay options.
+Unresolved no-file monitor selections now use a scoped connected-display chooser
+with stale-identity/cancellation guards. Successful connections retain ordinary
+recent-history behavior; resolution does not write settings. Remaining adapters,
+credential-file/environment inputs, listen/tunnels and installed launch acceptance
+remain open. See CLI.md and the latest TODO evidence; no full CLI/parity or release
+gate is closed.
+
+
+Outgoing CLI family selection update (2026-09-20): UseIPv4/UseIPv6 now flow through
+owned per-session policy and the existing C connect options on each attempt.
+Hostname lookup and numeric-address rejection use the shared connector; reconnects
+retain policy, and Unix sockets remain usable with both IP families disabled.
+File review/display recovery preserve these CLI-only settings. Save As explicitly
+reviews their omission because the compatibility file has no matching fields.
+Native stores and C ABI are unchanged. Listen/tunnel behavior and other CLI adapters
+remain open; see CLI.md and the latest TODO evidence.
+
+
+Pointer timing update (2026-09-20): PointerEventInterval now reaches the protocol
+worker through an additive checked input-timing C creation API. Native sessions
+use the shared retained 17 ms default, with explicit zero disabling delay. Timing
+runs after middle-button emulation, bounds pending motion to one value, preserves
+immediate button/wheel transitions and flushes motion before keys. Generation and
+routing checks discard stale timers across focus/policy changes, overflow and
+attempt teardown. CLI/file recovery retains interval/provenance; exports review
+omitted timing. The ABI has 94 exports; native storage schemas are unchanged.
+Other CLI adapters and full-plan acceptance remain open. See CLI.md and TODO.md.
+
+Native CLI MaxCutText now uses the shared incoming clipboard default and a copied
+per-session reader policy through an additive C API. Full retained bounds, zero,
+file/export review, reconnect and independent UTF-8 retention budgets are covered.
+Logging, geometry/maximize, credential inputs, listen/tunnels and the remaining
+physical/installed/release gates still prevent declaring native parity.
+
+Native CLI geometry and Maximize now own initial ordinary-window placement, using a
+checked geometry parser shared with the retained viewer. Placement waits for session
+admission and window attachment, precedes automatic fullscreen, and cannot replay
+over later user resizing or a new connection window. Compatibility export reviews
+the omitted policy. Native logging, credential inputs, listen/tunnels and physical/
+installed/performance/release acceptance remain open.
+
+Logging sink prerequisite (2026-09-20): shared file/stdio output serializes records
+and file lifecycle changes, with caller-owned timestamp storage. Concurrency and
+legacy-format tests pass under normal, ASan and TSan builds. Global registration
+and writer configuration still require startup ownership; native Log remains
+unsupported pending its policy, lifetime and redaction work. See CLI.md and TODO.md.
+
+Logging policy update (2026-09-20): owned parsing and transactional catalog resolution
+now preserve retained route order and defined level syntax without global mutation.
+Invocation validation rejects level overflow before startup, even before help/version
+or an overriding assignment. Startup route application and redacted output remain
+unfinished; this prerequisite does not enable the native Log adapter.
+
+Redacted output prerequisite (2026-09-20): a native sink now intercepts formatting,
+retains known event context and audited numeric metadata, suppresses key events and
+uses fixed output for unknown/preformatted messages. String/pointer substitutions
+never reach printf. Its host must still establish process startup ownership and
+apply validated routes before enabling Log; the app does not activate it yet.
+
+Native process logging update (2026-09-20): stderr/stdout Log routes now activate
+after executable preflight and before runtime creation, with retained `*:stderr:30`
+default and redacted output. All routes/sinks prepare before publication; configuration
+commits once and runtime creation permanently closes admission. The process owner
+outlives joined runtime shutdown, then detaches writers before closing owned stream
+duplicates. This adds two C exports (99 total), with no session/store replay or schema
+change. File logging and remaining logging/help/installed acceptance stay open.
+
+
+Native file logging update (2026-09-20): `Log=*:file:30` now uses lazy private
+`/tmp/vncviewer.log` output with one backup and a persistent nonblocking lock
+sidecar. Unsafe/unavailable files or write failures switch to redacted stderr.
+The additive FILE_LOGGING host-path configure call shares the one-time startup
+gate (100 C exports). Tests use private paths and exercise separate-process
+ownership through runtime drain, redaction and rotation after owner exit.
+Logging/help/localization/installed acceptance remains open; see CLI.md and TODO.md.
+
+
+Password-file primitive update (2026-09-20): a shared caller-owned decoder and
+consuming raw-byte C/Swift prompt reply now preserve legacy non-UTF-8 passwords.
+The native reader bounds access to one regular-file block, with cancellation,
+metadata checks and explicit clearing. PASSWORD_FILE_REPLY adds one export (101
+total). Launch credential ownership, environment precedence, scoped retry/drain
+and native PasswordFile CLI admission remain open; these primitives do not enable
+ungated file reads or automatic credential persistence.
+
+
+Launch credential integration update (2026-09-20): PasswordFile/passwd and captured
+VNC_USERNAME/VNC_PASSWORD now belong to the first connection window, with exact
+endpoint scope, retained precedence, raw-byte replies, prompt/epoch admission and
+drained cancellation. Inputs are never persisted or passed to subsequent windows.
+The additional byte reply keeps existing UTF-8 API semantics (102 C exports).
+Storage setup copies only path variables. File failures support explicit native
+prompt recovery. See CREDENTIAL-INPUTS.md; installed/physical/release acceptance
+and the rest of the plan remain open.
+
+The reverse listener now crosses the C/Swift boundary with copied events, explicit
+handoff into configured reusable sessions, coalesced readiness callbacks and joined
+listener/session runtime shutdown. NativeListener owns MainActor delivery and
+listener-scoped peer tokens. The app integration below applies the incoming
+presentation and reverse identity policy; installed acceptance remains required.
+See LISTEN.md. No listener state polling was added to the native layer.
+
+Manual reverse connections now have a native listener window with port/family
+controls, explicit peer admission and independent incoming windows. Settings resolve
+through NativeSessionDefaults before handoff. Reverse identity is connection-only:
+temporary source ports cannot become saved history, credentials/trust decisions,
+exported destinations or outbound retry targets. Listener/window/quit cleanup uses
+the existing asynchronous drain contracts. Numeric CLI `-listen [port]` now opens
+and starts a listener once, carries CLI settings to incoming sessions and transfers
+captured credentials to only the first opened incoming window. Stop/close clears
+unclaimed inputs. Native ports use checked decimal 0–65535 instead of unchecked
+retained `atoi`; paths fail explicitly before IO. Configuration-file listen startup,
+full app interaction and installed reverse acceptance remain open; see LISTEN.md
+and the 2026-09-21 TODO evidence.

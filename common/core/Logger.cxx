@@ -46,6 +46,7 @@ Logger::~Logger() {
 void Logger::write(int level, const char *logname, const char* format,
                    va_list ap)
 {
+  std::lock_guard<std::recursive_mutex> lock(writeMutex);
   // - Format the supplied data, and pass it to the
   //   actual log_message function
   //   The log level is included as a hint for loggers capable of representing

@@ -50,19 +50,27 @@ std::vector<uint8_t> rfb::obfuscate(const char *str)
   return buf;
 }
 
-std::string rfb::deobfuscate(const uint8_t *data, size_t len)
+size_t rfb::deobfuscate(const uint8_t *data, size_t len, uint8_t* output, size_t capacity)
 {
-  char buf[9];
-
-  if (len != 8)
-    throw std::invalid_argument("Bad obfuscated password length");
-
-  assert(data != nullptr);
-
+  if (len != 8 || !data || !output || capacity < 8)
+    throw std::invalid_argument("Bad obfuscated password buffer");
   d3des_ctx context;
   d3des_set_key(&context, d3desObfuscationKey, DE1);
-  d3des_transform(&context, data, (uint8_t*)buf);
-  buf[8] = 0;
+  d3des_transform(&context, data, output);
+  size_t count = 0;
+  while (count < 8 && output[count]) ++count;
+  return count;
+}
 
-  return buf;
+std::string rfb::deobfuscate(const uint8_t *data, size_t len)
+{
+  struct Decoded {
+    uint8_t bytes[8];
+    ~Decoded() {
+      volatile uint8_t* pointer = bytes;
+      for (size_t i = 0; i < sizeof(bytes); ++i) pointer[i] = 0;
+    }
+  } decoded{};
+  const auto count = deobfuscate(data,len,decoded.bytes,sizeof(decoded.bytes));
+  return std::string(reinterpret_cast<const char*>(decoded.bytes),count);
 }

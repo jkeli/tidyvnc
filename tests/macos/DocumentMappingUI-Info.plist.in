@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>org.tidyvnc.document-mapping-ui-tests</string>
+<key>CFBundleExecutable</key><string>native-document-mapping-ui-tests</string>
+<key>CFBundleName</key><string>Document Mapping UI Tests</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleVersion</key><string>1</string>
+<key>NSHighResolutionCapable</key><true/>
+</dict></plist>

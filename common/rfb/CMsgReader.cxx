@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #include <vector>
+#include <memory>
 
 #include <core/LogWriter.h>
 #include <core/i18n.h>
@@ -48,7 +49,7 @@ static core::LogWriter vlog("CMsgReader");
 static core::IntParameter maxCutText("MaxCutText",
                                      _("Maximum permitted length of an "
                                        "incoming clipboard update"),
-                                     256*1024, 0, INT_MAX);
+                                     rfb::defaultMaxCutText, 0, INT_MAX);
 
 // The protocol allows any 32 bit length here, but a server has no
 // reason to send more than a fraction of a second of audio at a time,
@@ -436,6 +437,7 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
     size_t num;
     size_t lengths[16];
     uint8_t* buffers[16];
+    std::unique_ptr<uint8_t[]> ownedBuffers[16];
 
     zis.setUnderlying(is, len - 4);
 
@@ -477,7 +479,8 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
       if (!zis.hasData(lengths[num]))
         throw protocol_error(_("Invalid extended clipboard message"));
 
-      buffers[num] = new uint8_t[lengths[num]];
+      ownedBuffers[num].reset(new uint8_t[lengths[num]]);
+      buffers[num] = ownedBuffers[num].get();
       zis.readBytes(buffers[num], lengths[num]);
       num++;
     }
@@ -487,12 +490,6 @@ bool CMsgReader::readExtendedClipboard(int32_t len)
 
     handler->handleClipboardProvide(flags, lengths, buffers);
 
-    num = 0;
-    for (i = 0;i < 16;i++) {
-      if (!(flags & 1 << i))
-        continue;
-      delete [] buffers[num++];
-    }
   } else {
     switch (action) {
     case clipboardRequest:

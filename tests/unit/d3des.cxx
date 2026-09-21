@@ -131,3 +131,23 @@ TEST(D3DES, ConcurrentAuthenticationAndPasswordFiles)
     worker.join();
   EXPECT_FALSE(failed.load());
 }
+
+TEST(D3DES, PasswordFileCallerOwnedOutputPreservesRawBytesAndValidatesBeforeWrite)
+{
+  for (const std::string& password : {std::string(),std::string("short"),std::string("password"),std::string("\xf0\xe1\xf3\xf3\xf7\xef\xf2\xe4",8)}) {
+    auto input = rfb::obfuscate(password.c_str());
+    std::array<uint8_t,10> output; output.fill(0x55);
+    const auto size = rfb::deobfuscate(input.data(),input.size(),output.data(),8);
+    EXPECT_EQ(std::string(reinterpret_cast<const char*>(output.data()),size),password);
+    EXPECT_EQ(output[8],0x55); EXPECT_EQ(output[9],0x55);
+    const auto count = rfb::deobfuscate(input.data(),input.size(),input.data(),input.size());
+    EXPECT_EQ(std::string(reinterpret_cast<const char*>(input.data()),count),password);
+  }
+  std::array<uint8_t,8> untouched; untouched.fill(0x55); const auto before=untouched;
+  for (size_t size : {0u,7u,9u})
+    EXPECT_THROW(rfb::deobfuscate(obfuscatedPassword.data(),size,untouched.data(),8),std::invalid_argument);
+  EXPECT_THROW(rfb::deobfuscate(nullptr,8,untouched.data(),8),std::invalid_argument);
+  EXPECT_THROW(rfb::deobfuscate(obfuscatedPassword.data(),8,nullptr,8),std::invalid_argument);
+  EXPECT_THROW(rfb::deobfuscate(obfuscatedPassword.data(),8,untouched.data(),7),std::invalid_argument);
+  EXPECT_EQ(untouched,before);
+}

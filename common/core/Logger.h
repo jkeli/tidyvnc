@@ -23,6 +23,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <mutex>
 
 // Each log writer instance has a unique textual name,
 // and is attached to a particular Logger instance and
@@ -42,10 +43,15 @@ namespace core {
 
     const char *getName() {return m_name;}
 
+    // Callers must stop/join writers before destroying a logger. The sink lock
+    // serializes records and file changes, not the lifetime of this C++ object.
+
     // -=- Write data to a log
 
     virtual void write(int level, const char *logname, const char *text) = 0;
-    void write(int level, const char *logname, const char* format, va_list ap)
+    // A privacy-aware sink can intercept the format before any argument is
+    // expanded. The default implementation keeps legacy printf formatting.
+    virtual void write(int level, const char *logname, const char* format, va_list ap)
         __attribute__((__format__ (__printf__, 4, 0)));
 
     // -=- Register a logger
@@ -59,6 +65,12 @@ namespace core {
     static Logger* getLogger(const char* name);
 
     static void listLoggers();
+
+  protected:
+    // One formatted record can produce several virtual write() calls. Derived
+    // sinks use the same recursive lock for direct writes and sink lifecycle
+    // changes so those calls remain one record even across worker threads.
+    std::recursive_mutex writeMutex;
 
   private:
     bool registered;

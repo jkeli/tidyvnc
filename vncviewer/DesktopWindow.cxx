@@ -20,8 +20,10 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include <viewer/core/WindowGeometry.h>
 
 #include <algorithm>
+#include <stdexcept>
 
 #include <assert.h>
 #include <stdio.h>
@@ -134,25 +136,12 @@ DesktopWindow::DesktopWindow(int w, int h, CConn* cc_)
   // time.
   int geom_x = 0, geom_y = 0;
   if (strcmp(geometry, "") != 0) {
-    int matched;
-    matched = sscanf((const char*)geometry, "+%d+%d", &geom_x, &geom_y);
-    if (matched == 2) {
-      force_position(1);
-    } else {
-      int geom_w, geom_h;
-      matched = sscanf((const char*)geometry, "%dx%d+%d+%d", &geom_w, &geom_h, &geom_x, &geom_y);
-      switch (matched) {
-      case 4:
-        force_position(1);
-        /* fall through */
-      case 2:
-        w = geom_w;
-        h = geom_h;
-        break;
-      default:
-        geom_x = geom_y = 0;
-        vlog.error(_("Invalid geometry specified!"));
-      }
+    try {
+      const auto parsed = viewer::WindowGeometry::parse((const char*)geometry);
+      if (parsed.hasSize) { w = parsed.width; h = parsed.height; }
+      if (parsed.hasPosition) { geom_x = parsed.x; geom_y = parsed.y; force_position(1); }
+    } catch (const std::invalid_argument&) {
+      vlog.error(_("Invalid geometry specified!"));
     }
   }
 

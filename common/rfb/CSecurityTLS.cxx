@@ -198,7 +198,7 @@ bool CSecurityTLS::processMsg()
 
 void CSecurityTLS::setParam()
 {
-  static const char kx_anon_priority[] = "+ANON-ECDH:+ANON-DH";
+  const char* kx_anon_priority = rfb::ClientTLSOptions::anonymousPriority();
 
   int ret;
 
@@ -207,11 +207,7 @@ void CSecurityTLS::setParam()
     std::string prio;
     const char *err;
 
-    prio = options.priority;
-    if (anon) {
-      prio += ":";
-      prio += kx_anon_priority;
-    }
+    prio = options.effectivePriority(anon);
 
     ret = gnutls_priority_set_direct(session, prio.c_str(), &err);
     if (ret != GNUTLS_E_SUCCESS) {
@@ -275,13 +271,23 @@ void CSecurityTLS::setParam()
     if (gnutls_certificate_set_x509_system_trust(cert_cred) < 1)
       vlog.error(_("Failed to load the system certificate trust store"));
 
-    if (!options.caFile.empty() &&
-        gnutls_certificate_set_x509_trust_file(cert_cred, options.caFile.c_str(), GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error(_("Failed to load the user specified certificate authority"));
+    if (!options.caFile.empty()) {
+      ret = gnutls_certificate_set_x509_trust_file(cert_cred, options.caFile.c_str(), GNUTLS_X509_FMT_PEM);
+      if (options.requireConfiguredFiles && ret <= 0)
+        throw rdr::tls_error("Failed to load the selected certificate authority file",
+                             ret < 0 ? ret : GNUTLS_E_CERTIFICATE_ERROR);
+      if (ret < 0)
+        vlog.error(_("Failed to load the user specified certificate authority"));
+    }
 
-    if (!options.crlFile.empty() &&
-        gnutls_certificate_set_x509_crl_file(cert_cred, options.crlFile.c_str(), GNUTLS_X509_FMT_PEM) < 0)
-      vlog.error(_("Failed to load the user specified certificate revocation list"));
+    if (!options.crlFile.empty()) {
+      ret = gnutls_certificate_set_x509_crl_file(cert_cred, options.crlFile.c_str(), GNUTLS_X509_FMT_PEM);
+      if (options.requireConfiguredFiles && ret <= 0)
+        throw rdr::tls_error("Failed to load the selected certificate revocation list",
+                             ret < 0 ? ret : GNUTLS_E_CERTIFICATE_ERROR);
+      if (ret < 0)
+        vlog.error(_("Failed to load the user specified certificate revocation list"));
+    }
 
     ret = gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE, cert_cred);
     if (ret != GNUTLS_E_SUCCESS)

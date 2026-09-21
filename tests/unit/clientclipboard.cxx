@@ -21,6 +21,7 @@ public:
   std::vector<std::string> texts;
   int bells = 0;
   unsigned providedFlags = 0;
+  bool failProvide = false;
   void getUserPasswd(bool, std::string*, std::string*) override {}
   bool verifyCertificate(unsigned int, const uint8_t*, size_t) override { return false; }
   bool verifyHostKey(const uint8_t*, size_t, const char*) override { return false; }
@@ -31,6 +32,7 @@ public:
   void handleClipboardProvide(uint32_t flags, const size_t* lengths,
                               const uint8_t* const* data) override
   {
+    if (failProvide) throw std::runtime_error("fixture clipboard delivery failure");
     providedFlags = flags;
     unsigned num = 0;
     for (unsigned i = 0; i < 16; ++i) {
@@ -209,4 +211,23 @@ TEST(ClientClipboard, ConcurrentSessionsUseIndependentLimits)
   small.join();
   large.join();
   EXPECT_FALSE(failed);
+}
+
+TEST(ClientClipboard, ProvideCallbackFailureReleasesDecodedFormats)
+{
+  Connection connection(rfb::SecurityClient({rfb::secTypeNone}));
+  connection.failProvide = true;
+  rdr::MemOutStream wire;
+  extended(wire, rfb::clipboardUTF8 | rfb::clipboardHTML, {"text", "<p>text</p>"});
+  EXPECT_THROW(consume(connection, wire), std::runtime_error);
+  EXPECT_TRUE(connection.texts.empty());
+}
+
+TEST(ClientClipboard, TruncatedLaterFormatReleasesEarlierDecodedText)
+{
+  Connection connection(rfb::SecurityClient({rfb::secTypeNone}));
+  rdr::MemOutStream wire;
+  extended(wire, rfb::clipboardUTF8 | rfb::clipboardHTML, {"text"});
+  EXPECT_THROW(consume(connection, wire), std::runtime_error);
+  EXPECT_TRUE(connection.texts.empty());
 }

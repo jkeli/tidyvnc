@@ -130,6 +130,34 @@ endmacro()
 
 trioption(BUILD_VIEWER "Build TidyVNC viewer")
 option(BUILD_PLATFORM_APPS "Build platform servers and configuration tools" ON)
+option(BUILD_MACOS_NATIVE "Build the experimental macOS Swift bridge and its tests" OFF)
+if(BUILD_MACOS_NATIVE)
+  if(NOT APPLE)
+    message(FATAL_ERROR "BUILD_MACOS_NATIVE requires macOS and a Swift 6 toolchain")
+  endif()
+  if(CMAKE_VERSION VERSION_LESS 3.29)
+    message(FATAL_ERROR "BUILD_MACOS_NATIVE requires CMake 3.29 or later for explicit Swift compilation modes")
+  endif()
+  cmake_policy(SET CMP0157 NEW)
+  # Swift 6.4's incremental executable rebuild can reference a removed temporary
+  # module after an imported module changes. Compile these small native modules
+  # as a whole; retain normal Debug/Release optimization and debug-info settings.
+  set(CMAKE_Swift_COMPILATION_MODE wholemodule)
+  # Compiler probes must also keep generated Clang/Swift modules in the build
+  # tree, including when the user's home cache is unavailable in a sandbox.
+  if(NOT DEFINED ENV{CLANG_MODULE_CACHE_PATH})
+    set(ENV{CLANG_MODULE_CACHE_PATH} "${CMAKE_BINARY_DIR}/swift-module-cache")
+  endif()
+  include(CheckLanguage)
+  check_language(Swift)
+  if(NOT CMAKE_Swift_COMPILER)
+    message(FATAL_ERROR "BUILD_MACOS_NATIVE requires a Swift 6 toolchain (use the selected Xcode or command-line tools)")
+  endif()
+  enable_language(Swift)
+  if(CMAKE_Swift_COMPILER_VERSION VERSION_LESS 6.0)
+    message(FATAL_ERROR "BUILD_MACOS_NATIVE requires Swift 6 or later")
+  endif()
+endif()
 
 # X11 stuff. It's in a if() so that we can say REQUIRED
 if(UNIX AND NOT APPLE AND (BUILD_VIEWER OR BUILD_PLATFORM_APPS))
@@ -431,6 +459,9 @@ include(cmake/StaticBuild.cmake)
 
 add_subdirectory(common)
 add_subdirectory(viewer)
+if(BUILD_MACOS_NATIVE)
+  add_subdirectory(platform/macos)
+endif()
 
 if(BUILD_PLATFORM_APPS)
   if(WIN32)

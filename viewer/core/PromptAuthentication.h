@@ -11,7 +11,7 @@
 namespace viewer {
 enum class PromptKind { Credentials, Certificate, HostKey };
 enum class PromptCancelReason { Cancelled, TimedOut, PeerClosed };
-enum class PromptReply { Accepted, NoPendingRequest, StaleRequest, WrongKind, TooLarge, Expired };
+enum class PromptReply { Accepted, NoPendingRequest, StaleRequest, WrongKind, TooLarge, Expired, PolicyRejected };
 class PromptInterrupted : public rfb::auth_cancelled {
 public:
   explicit PromptInterrupted(PromptCancelReason reason_) : reason(reason_) {}
@@ -23,6 +23,7 @@ struct AuthenticationPrompt {
   std::string serverName;
   bool secure = false, usernameRequired = false;
   unsigned int certificateStatus = 0;
+  uint32_t securityType = 0; // Zero for trust prompts or legacy direct callers.
   std::vector<uint8_t> identity;
   std::string fingerprint;
 };
@@ -46,12 +47,16 @@ public:
   void beginAttempt(uint64_t generation, const std::string& serverName) override;
   void cancelPending() noexcept override;
   void cancel(PromptCancelReason reason = PromptCancelReason::Cancelled);
+  // A delayed cancellation from a prior attempt must not interrupt a new prompt.
+  void cancelAttempt(uint64_t generation, PromptCancelReason reason = PromptCancelReason::Cancelled);
   bool takeRequest(AuthenticationPrompt& output);
   PromptReply replyCredentials(uint64_t id, uint64_t generation,
-                              const std::string& username, const std::string& password);
+                              const std::string& username, const std::string& password,
+                              bool passwordOnly = false);
   PromptReply replyTrust(uint64_t id, uint64_t generation, bool allowed);
 
   void credentials(bool secure, std::string* username, std::string* password) override;
+  void credentialsForSecurity(uint32_t securityType, bool secure, std::string* username, std::string* password) override;
   bool certificate(unsigned int status, const uint8_t* bytes, size_t length) override;
   bool hostKey(const uint8_t* bytes, size_t length, const char* fingerprint) override;
 private:

@@ -4,6 +4,11 @@ endif()
 
 include(GoogleTest)
 
+# Match the selected GoogleTest library even when another dependency adds a
+# broad include prefix containing a different GoogleTest installation.
+get_target_property(TIDYVNC_GTEST_INCLUDE_DIRS GTest::gtest INTERFACE_INCLUDE_DIRECTORIES)
+include_directories(BEFORE SYSTEM ${TIDYVNC_GTEST_INCLUDE_DIRS})
+
 # Google Test requires a new C++ standard
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17")
 
@@ -11,9 +16,45 @@ enable_testing()
 
 include_directories(${CMAKE_SOURCE_DIR}/vncviewer)
 
+add_executable(logging logging.cxx)
+target_link_libraries(logging core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(logging)
+
 add_executable(configargs configargs.cxx)
 target_link_libraries(configargs rfb GTest::gtest_main)
 gtest_discover_tests(configargs)
+
+add_executable(windowgeometry windowgeometry.cxx)
+target_link_libraries(windowgeometry tidyvnc_viewer_core GTest::gtest_main)
+gtest_discover_tests(windowgeometry)
+
+add_executable(invocation invocation.cxx)
+target_link_libraries(invocation tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(invocation)
+
+add_executable(loggingpolicy loggingpolicy.cxx)
+target_link_libraries(loggingpolicy tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(loggingpolicy)
+
+add_executable(redactedlogger redactedlogger.cxx)
+target_link_libraries(redactedlogger tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(redactedlogger)
+
+add_executable(startuplogging startuplogging.cxx)
+target_link_libraries(startuplogging tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(startuplogging)
+
+add_executable(invocationabi invocationabi.cxx ../viewer/c-abi-test-support.cxx)
+target_link_libraries(invocationabi tidyvnc_viewer_c GTest::gtest_main Threads::Threads)
+gtest_discover_tests(invocationabi)
+
+add_executable(connectiondocument connectiondocument.cxx)
+target_link_libraries(connectiondocument tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(connectiondocument)
+
+add_executable(documentabi documentabi.cxx ../viewer/c-abi-test-support.cxx)
+target_link_libraries(documentabi tidyvnc_viewer_c GTest::gtest_main Threads::Threads)
+gtest_discover_tests(documentabi)
 
 add_executable(conv conv.cxx)
 target_link_libraries(conv rfb GTest::gtest_main)
@@ -68,11 +109,24 @@ add_executable(sessioninput sessioninput.cxx)
 target_link_libraries(sessioninput tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
 gtest_discover_tests(sessioninput PROPERTIES TIMEOUT 30)
 
+add_executable(remotedesktoplayout remotedesktoplayout.cxx)
+target_link_libraries(remotedesktoplayout tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(remotedesktoplayout PROPERTIES TIMEOUT 30)
+
+add_executable(sessionclipboard sessionclipboard.cxx)
+target_link_libraries(sessionclipboard tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(sessionclipboard PROPERTIES TIMEOUT 30)
+
 add_executable(sessionevents sessionevents.cxx)
 target_link_libraries(sessionevents tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
 gtest_discover_tests(sessionevents PROPERTIES TIMEOUT 30)
 
 if(GNUTLS_FOUND AND NOT WIN32)
+  add_executable(certificatekey certificatekey.cxx)
+  target_include_directories(certificatekey SYSTEM PRIVATE ${GNUTLS_INCLUDE_DIR})
+  target_link_libraries(certificatekey tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(certificatekey PROPERTIES TIMEOUT 30)
+
   add_executable(clienttls clienttls.cxx)
   target_link_libraries(clienttls rfbclient GTest::gtest_main Threads::Threads)
   gtest_discover_tests(clienttls)
@@ -97,6 +151,67 @@ add_executable(hostport hostport.cxx)
 target_link_libraries(hostport network GTest::gtest_main)
 gtest_discover_tests(hostport)
 
+add_executable(endpoint endpoint.cxx)
+target_link_libraries(endpoint tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(endpoint)
+
+add_executable(encodingoptions encodingoptions.cxx)
+target_link_libraries(encodingoptions tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(encodingoptions PROPERTIES TIMEOUT 30)
+
+add_executable(sessionencoding sessionencoding.cxx)
+target_link_libraries(sessionencoding tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(sessionencoding PROPERTIES TIMEOUT 30)
+
+add_executable(sessionscheduler sessionscheduler.cxx)
+target_link_libraries(sessionscheduler tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(sessionscheduler PROPERTIES TIMEOUT 30)
+
+add_executable(sessionworker sessionworker.cxx)
+target_link_libraries(sessionworker tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(sessionworker PROPERTIES TIMEOUT 30)
+
+add_executable(listenerworker listenerworker.cxx)
+target_link_libraries(listenerworker tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(listenerworker PROPERTIES TIMEOUT 30)
+
+if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_executable(privatefilelogger privatefilelogger.cxx)
+  target_link_libraries(privatefilelogger tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(privatefilelogger PROPERTIES TIMEOUT 30)
+  add_executable(processloggingabi processloggingabi.cxx ../viewer/c-abi-test-support.cxx)
+  target_link_libraries(processloggingabi tidyvnc_viewer_c tidyvnc_viewer_core Threads::Threads)
+  add_test(NAME ProcessLoggingABI.InstallationAndOwnedStreams COMMAND processloggingabi configure)
+  add_test(NAME ProcessLoggingABI.RuntimeClosesAdmission COMMAND processloggingabi freeze)
+  set_tests_properties(ProcessLoggingABI.InstallationAndOwnedStreams ProcessLoggingABI.RuntimeClosesAdmission PROPERTIES TIMEOUT 30)
+  find_package(Python3 QUIET COMPONENTS Interpreter)
+  if(Python3_Interpreter_FOUND)
+    set(TIDYVNC_LOGGING_FIXTURE_OPTIONS)
+    if(APPLE AND ENABLE_NLS)
+      list(APPEND TIDYVNC_LOGGING_FIXTURE_OPTIONS --macos-unbundled-nls)
+    endif()
+    add_test(NAME ProcessLoggingABI.PrivateFileProcessOwnership
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/processlogging-file.py
+        $<TARGET_FILE:processloggingabi> ${TIDYVNC_LOGGING_FIXTURE_OPTIONS})
+    set_tests_properties(ProcessLoggingABI.PrivateFileProcessOwnership PROPERTIES TIMEOUT 45)
+  endif()
+  add_executable(viewerabi viewerabi.cxx ../viewer/c-abi-test-support.cxx)
+  target_link_libraries(viewerabi tidyvnc_viewer_c tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(viewerabi DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 30)
+  add_executable(listenerabi listenerabi.cxx ../viewer/c-abi-test-support.cxx)
+  target_link_libraries(listenerabi tidyvnc_viewer_c tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(listenerabi DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 30)
+  add_executable(socketlistener socketlistener.cxx)
+  target_link_libraries(socketlistener tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(socketlistener PROPERTIES TIMEOUT 30)
+  add_executable(socketconnector socketconnector.cxx)
+  target_link_libraries(socketconnector tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(socketconnector PROPERTIES TIMEOUT 30)
+  add_executable(sessiontransport sessiontransport.cxx)
+  target_link_libraries(sessiontransport tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+  gtest_discover_tests(sessiontransport PROPERTIES TIMEOUT 30)
+endif()
+
 add_executable(parameters parameters.cxx)
 target_link_libraries(parameters core GTest::gtest_main)
 gtest_discover_tests(parameters)
@@ -106,7 +221,7 @@ target_link_libraries(pixelformat rfb GTest::gtest_main)
 gtest_discover_tests(pixelformat)
 
 add_executable(shortcuthandler shortcuthandler.cxx ../../vncviewer/ShortcutHandler.cxx)
-target_link_libraries(shortcuthandler core ${Intl_LIBRARIES} GTest::gtest_main)
+target_link_libraries(shortcuthandler tidyvnc_viewer_core ${Intl_LIBRARIES} GTest::gtest_main)
 gtest_discover_tests(shortcuthandler)
 
 add_executable(unicode unicode.cxx)
@@ -165,3 +280,11 @@ if(BUILD_VIEWER AND NOT WIN32)
   endif()
   gtest_discover_tests(viewerstate)
 endif()
+
+add_executable(frametilerenderer frametilerenderer.cxx ../viewer/c-abi-test-support.cxx)
+target_link_libraries(frametilerenderer tidyvnc_viewer_core GTest::gtest_main)
+gtest_discover_tests(frametilerenderer)
+
+add_executable(securityoptions securityoptions.cxx)
+target_link_libraries(securityoptions tidyvnc_viewer_core GTest::gtest_main)
+gtest_discover_tests(securityoptions)

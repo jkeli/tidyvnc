@@ -1,0 +1,176 @@
+// Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
+import Darwin
+import Foundation
+
+public enum NativeInvocationArguments {
+  // argv excludes argv[0]. Decode strictly before constructing Swift strings;
+  // replacement characters must not change an endpoint, option or file path.
+  public static func decode(_ arguments: [Data]) throws -> [String] {
+    guard arguments.count <= NativeInvocationSyntax.maximumArguments else {
+      throw NativeInvocationFailure(problem:.tooManyArguments,argument:0)
+    }
+    var total = 0, result: [String] = []
+    for (index,bytes) in arguments.enumerated() {
+      let argument = UInt32(index+1)
+      guard bytes.count <= NativeInvocationSyntax.maximumArgumentBytes,
+            bytes.count <= NativeInvocationSyntax.maximumBytes-total else {
+        throw NativeInvocationFailure(problem:.tooLarge,argument:argument)
+      }
+      total += bytes.count
+      guard !bytes.contains(0) else { throw NativeInvocationFailure(problem:.nullByte,argument:argument) }
+      guard let value = String(data:bytes,encoding:.utf8) else {
+        throw NativeInvocationFailure(problem:.invalidText,argument:argument)
+      }
+      result.append(value)
+    }
+    return result
+  }
+  // Kernel-provided C argv must contain argc valid pointers to terminated strings.
+  // The bounded scan does not depend on CommandLine.arguments' lossy conversion.
+  public static func read(argc: Int32, argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>) throws -> [String] {
+    guard argc >= 1 else { throw NativeInvocationFailure(problem:.invalidText,argument:0) }
+    guard argc-1 <= NativeInvocationSyntax.maximumArguments else {
+      throw NativeInvocationFailure(problem:.tooManyArguments,argument:0)
+    }
+    var input: [Data] = [], total = 0
+    for index in 1..<Int(argc) {
+      guard let value = argv[index] else { throw NativeInvocationFailure(problem:.invalidText,argument:UInt32(index)) }
+      let count = strnlen(value,NativeInvocationSyntax.maximumArgumentBytes+1)
+      guard count <= NativeInvocationSyntax.maximumArgumentBytes, count <= NativeInvocationSyntax.maximumBytes-total else {
+        throw NativeInvocationFailure(problem:.tooLarge,argument:UInt32(index))
+      }
+      total += count; input.append(Data(bytes:value,count:count))
+    }
+    return try decode(input)
+  }
+}
+
+public struct NativeInvocationTerminal: Sendable {
+  public let text: String
+  public let exitCode: Int32
+}
+public enum NativeInvocationPathKind: Sendable { case socket, file }
+public protocol NativeInvocationPathInspecting: Sendable {
+  func kind(at path: String) -> NativeInvocationPathKind
+}
+public struct NativeInvocationPathInspector: NativeInvocationPathInspecting {
+  public init() {}
+  public func kind(at path: String) -> NativeInvocationPathKind {
+    var info = stat()
+    // Match the retained path/socket distinction. Failed stat, missing files,
+    // directories and devices go through the bounded regular-file reader, which
+    // reports their error without reading a FIFO or another special file.
+    return path.withCString { stat($0,&info) == 0 && info.st_mode & S_IFMT == S_IFSOCK } ? .socket : .file
+  }
+}
+public struct NativeInvocationLaunch: Sendable {
+  public let invocation: NativeInvocationRequest
+  public let document: NativeDocumentOpenRequest?
+  public var listen: NativeListenOptions? = nil
+  public var credentials: NativeLaunchCredentialInputs? = nil
+  public var connectsOnReady: Bool { listen == nil && document == nil && !invocation.endpoint.isEmpty }
+}
+public enum NativeInvocationBootstrap {
+  public static func terminal(_ options: NativeInvocationOptions, version: String, copyright: String = "") throws -> NativeInvocationTerminal? {
+    guard options.action != .launch else { return nil }
+    _ = try NativeProcessLogging.selection(options)
+    var text = "TidyVNC v\(version)\nNative macOS viewer\n"
+    if !copyright.isEmpty { text += copyright + "\n" }
+    if options.action == .version { return .init(text:text,exitCode:0) }
+    text += """
+
+    Usage: vncviewer [parameters] [host][:display]
+           vncviewer [parameters] [host][::port]
+           vncviewer [parameters] [path/to/socket]
+           vncviewer [parameters] [./connection.tidyvnc]
+           vncviewer -listen [parameters] [port]
+
+    -h, --help       Show this help (exit status 1, matching the retained viewer).
+    -v, --version    Show the version.
+
+    Names are case-insensitive. Enable a boolean with -Name; disable it with
+    -Name=off. Values accept -Name value, Name=value, -Name=value or --Name=value.
+    Use ./ before a relative file name; a bare name is a server address.
+    Explicit files override CLI settings and open for review before connecting.
+    With no server address, a connection form opens. Native defaults use native
+    stores; importing compatibility defaults/history is a separate explicit action.
+
+    Parameters (* requires a native adapter; unavailable entries cannot be used):
+
+    """
+    let supported = try NativeInvocationResolution.supportedOptions()
+    var defaults = Dictionary(uniqueKeysWithValues:try NativeEncodingOptions.schema().map { ($0.name,$0.defaultValue) })
+    defaults["MaxCutText"] = String(try NativeMessageLimits.defaultMaxCutText())
+    defaults["PointerEventInterval"] = String(try NativePointerTiming.defaultMilliseconds())
+    defaults["Log"] = NativeProcessLogging.defaultPolicy
+    for option in try NativeInvocationSyntax.options() {
+      let status = !option.available ? " [unavailable]" : (supported.contains(option.name) ? "" : " *")
+      let alias = option.alias.isEmpty ? "" : " (alias: \(option.alias))"
+      let value = option.boolean ? "[on|off]" : "<value>"
+      let initial = defaults[option.name].map { " [default: \($0)]" } ?? ""
+      text += "  \(option.name) \(value)\(alias)\(initial)\(status)\n"
+    }
+    text += "\nLog targets: stderr, stdout, file, or empty to disable.\nFile: /tmp/vncviewer.log, created on first output with one .bak; failures use stderr.\n"
+    text += "Listen defaults to TCP port 5500; port 0 chooses an available port. Use a decimal port from 0 to 65535.\nConnection files and socket paths are not yet supported with -listen. Accept each incoming connection in the listener window.\n"
+    text += "Legacy password files apply only to password-only authentication. VNC_PASSWORD (with VNC_USERNAME when required) takes precedence.\nLaunch credentials belong to the first connection window (first accepted incoming window with -listen) and are never saved.\nStopping the listener clears unclaimed launch credentials.\n"
+    text += "Unsupported native adapters fail explicitly; their parameters are never ignored.\n"
+    return .init(text:text,exitCode:1)
+  }
+  // Startup-only metadata inspection, before AppKit/store initialization. No file
+  // contents, environment credentials, sockets or settings stores are opened.
+  public static func launch(_ options: NativeInvocationOptions, workingDirectory: String,
+                            inspector: any NativeInvocationPathInspecting = NativeInvocationPathInspector()) throws -> NativeInvocationLaunch {
+    guard workingDirectory.hasPrefix("/"), NativeTrustFiles.isValidPath(workingDirectory) else {
+      throw NativeInvocationResolutionFailure(reason:.relativePathNeedsBase,argument:0)
+    }
+    // Check every native option before inspecting a path. Numeric display mapping
+    // waits for current displays and optional explicit-file precedence in the UI.
+    _ = try NativeInvocationPreparation(options:options,endpoint:"",base:.init(),legacyDisplays:[],
+      workingDirectory:workingDirectory,monitorMapping:nil,deferDisplayMapping:true)
+    if options.assignments.last(where:{ $0.name == "listen" })?.value == "on" {
+      let operand = options.operand
+      if let operand, operand.contains("/") || operand.contains("\\") {
+        throw NativeInvocationResolutionFailure(reason:.listenFileUnsupported,argument:options.operandArgument)
+      }
+      var listen = NativeListenOptions()
+      if let operand {
+        guard !operand.isEmpty, operand.utf8.allSatisfy({ (48...57).contains($0) }),
+              let port = UInt32(operand), port <= 65535 else {
+          throw NativeInvocationResolutionFailure(reason:.invalidListenPort,argument:options.operandArgument)
+        }
+        listen.port = port
+      }
+      listen.ipv4 = options.assignments.last(where:{ $0.name == "UseIPv4" })?.value != "off"
+      listen.ipv6 = options.assignments.last(where:{ $0.name == "UseIPv6" })?.value != "off"
+      guard listen.ipv4 || listen.ipv6 else {
+        throw NativeInvocationResolutionFailure(reason:.invalidValue,
+          argument:options.assignments.last(where:{ $0.name == "UseIPv4" || $0.name == "UseIPv6" })?.argument ?? 0)
+      }
+      return .init(invocation:.init(options:options,endpoint:"",workingDirectory:workingDirectory),document:nil,listen:listen)
+    }
+    var endpoint = options.operand ?? ""
+    var document: NativeDocumentOpenRequest?
+    if endpoint.contains("/") || endpoint.contains("\\") {
+      let path = endpoint.hasPrefix("/") ? endpoint : workingDirectory + (workingDirectory.hasSuffix("/") ? "" : "/") + endpoint
+      guard NativeTrustFiles.isValidPath(path) else {
+        throw NativeInvocationResolutionFailure(reason:.invalidEndpoint,argument:options.operandArgument)
+      }
+      if inspector.kind(at:path) == .socket { endpoint = path }
+      else { document = .init(url:URL(fileURLWithPath:path),workingDirectory:workingDirectory); endpoint = "" }
+    }
+    if !endpoint.isEmpty {
+      do { try NativeEndpoint.validate(endpoint) }
+      catch { throw NativeInvocationResolutionFailure(reason:.invalidEndpoint,argument:options.operandArgument) }
+    }
+    return .init(invocation:.init(options:options,endpoint:endpoint,workingDirectory:workingDirectory),document:document)
+  }
+}
+
+// One process-local request, consumed once by the first ordinary connection
+// window. No Codable conformance, restoration payload, IPC or relaunch argv.
+@MainActor public final class NativeInvocationStartup {
+  private var pending: NativeInvocationLaunch?
+  public init(_ launch: NativeInvocationLaunch? = nil) { pending = launch }
+  public func take() -> NativeInvocationLaunch? { defer { pending = nil }; return pending }
+  public func stop() { pending?.credentials?.clear(); pending = nil }
+}

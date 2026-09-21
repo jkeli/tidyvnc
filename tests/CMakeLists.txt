@@ -7,6 +7,9 @@ add_subdirectory(perf)
 
 # Always build the independent consumer; no GoogleTest or GUI is required.
 add_subdirectory(viewer)
+if(BUILD_MACOS_NATIVE)
+  add_subdirectory(macos)
+endif()
 
 # Unit tests
 if(GTest_FOUND)

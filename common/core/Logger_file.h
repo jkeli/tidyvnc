@@ -37,6 +37,8 @@ namespace core {
     void setFilename(const char* filename);
     void setFile(FILE* file);
 
+    // Layout is startup configuration. Configure before publishing the sink to
+    // workers; file replacement/closure, unlike these legacy fields, is locked.
     int indent;
     int width;
 

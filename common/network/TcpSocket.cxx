@@ -48,6 +48,7 @@
 #include <core/string.h>
 
 #include <network/TcpSocket.h>
+#include <network/HostPort.h>
 
 #ifdef WIN32
 #include <core/winerrno.h>
@@ -105,88 +106,25 @@ int network::findFreeTcpPort (void)
   return ntohs(addr.sin_port);
 }
 
-static bool isAllSpace(const char *string) {
-  if (string == nullptr)
-    return false;
-  while(*string != '\0') {
-    if (! isspace(*string))
-      return false;
-    string++;
-  }
-  return true;
-}
-
 void network::getHostAndPort(const char* hi, std::string* host,
                              int* port, int basePort)
 {
-  const char* hostStart;
-  const char* hostEnd;
-  const char* portStart;
-
-  if (hi == nullptr)
-    throw std::invalid_argument("NULL host specified");
-
-  // Trim leading whitespace
-  while(isspace(*hi))
-    hi++;
-
-  assert(host);
-  assert(port);
-
-  if (hi[0] == '[') {
-    hostStart = &hi[1];
-    hostEnd = strchr(hostStart, ']');
-    if (hostEnd == nullptr)
+  if (hi == nullptr || host == nullptr || port == nullptr)
+    throw std::invalid_argument("NULL host/port specified");
+  try {
+    const HostPort parsed = parseHostAndPort(hi, basePort);
+    *host = parsed.host;
+    *port = parsed.port;
+  } catch (const HostPortError& error) {
+    switch (error.code) {
+    case HostPortErrorCode::UnmatchedBracket:
       throw std::runtime_error(_("Unmatched [ in hostname"));
-
-    portStart = hostEnd + 1;
-    if (isAllSpace(portStart))
-      portStart = nullptr;
-  } else {
-    hostStart = &hi[0];
-    hostEnd = strrchr(hostStart, ':');
-
-    if (hostEnd == nullptr) {
-      hostEnd = hostStart + strlen(hostStart);
-      portStart = nullptr;
-    } else {
-      if ((hostEnd > hostStart) && (hostEnd[-1] == ':'))
-        hostEnd--;
-      portStart = strchr(hostStart, ':');
-      if (portStart != hostEnd) {
-        // We found more : in the host. This is probably an IPv6 address
-        hostEnd = hostStart + strlen(hostStart);
-        portStart = nullptr;
-      }
+    case HostPortErrorCode::InvalidPort:
+      throw std::runtime_error(_("Invalid port specified"));
+    case HostPortErrorCode::InvalidHost:
+      throw std::runtime_error(_("Invalid host specified"));
     }
-  }
-
-  // Back up past trailing space
-  while(isspace(*(hostEnd - 1)) && hostEnd > hostStart)
-    hostEnd--;
-
-  if (hostStart == hostEnd)
-    *host = "localhost";
-  else
-    *host = std::string(hostStart, hostEnd - hostStart);
-
-  if (portStart == nullptr)
-    *port = basePort;
-  else {
-    char* end;
-
-    if (portStart[0] != ':')
-      throw std::runtime_error(_("Invalid port specified"));
-
-    if (portStart[1] != ':')
-      *port = strtol(portStart + 1, &end, 10);
-    else
-      *port = strtol(portStart + 2, &end, 10);
-    if (*end != '\0' && ! isAllSpace(end))
-      throw std::runtime_error(_("Invalid port specified"));
-
-    if ((portStart[1] != ':') && (*port < 100))
-      *port += basePort;
+    throw;
   }
 }
 

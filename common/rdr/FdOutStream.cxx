@@ -133,6 +133,9 @@ size_t FdOutStream::writeFd(const uint8_t* data, size_t length)
 #endif
   } while (n < 0 && (errorNumber == EINTR));
 
+  // Readiness is advisory for nonblocking sockets.
+  if (n < 0 && (errorNumber == EAGAIN || errorNumber == EWOULDBLOCK))
+    return 0;
   if (n < 0)
     throw core::socket_error("write", errorNumber);
 

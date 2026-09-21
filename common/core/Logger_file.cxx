@@ -44,6 +44,7 @@ Logger_File::~Logger_File()
 
 void Logger_File::write(int /*level*/, const char *logname, const char *message)
 {
+  std::lock_guard<std::recursive_mutex> lock(writeMutex);
   if (!m_file) {
     if (m_filename[0] == '\0')
       return;
@@ -62,7 +63,13 @@ void Logger_File::write(int /*level*/, const char *logname, const char *message)
   time_t current = time(nullptr);
   if (current != m_lastLogTime) {
     m_lastLogTime = current;
-    fprintf(m_file, "\n%s", ctime(&m_lastLogTime));
+    char timestamp[26];
+#ifdef WIN32
+    if (ctime_s(timestamp, sizeof(timestamp), &m_lastLogTime) == 0)
+#else
+    if (ctime_r(&m_lastLogTime, timestamp))
+#endif
+      fprintf(m_file, "\n%s", timestamp);
   }
 
   fprintf(m_file," %s:", logname);
@@ -92,6 +99,7 @@ void Logger_File::write(int /*level*/, const char *logname, const char *message)
 
 void Logger_File::setFilename(const char* filename)
 {
+  std::lock_guard<std::recursive_mutex> lock(writeMutex);
   closeFile();
   m_filename[0] = '\0';
   if (strlen(filename) >= sizeof(m_filename))
@@ -101,12 +109,14 @@ void Logger_File::setFilename(const char* filename)
 
 void Logger_File::setFile(FILE* file)
 {
+  std::lock_guard<std::recursive_mutex> lock(writeMutex);
   closeFile();
   m_file = file;
 }
 
 void Logger_File::closeFile()
 {
+  std::lock_guard<std::recursive_mutex> lock(writeMutex);
   if (m_file) {
     fclose(m_file);
     m_file = nullptr;

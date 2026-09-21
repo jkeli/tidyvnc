@@ -23,6 +23,7 @@
 #endif
 
 #include <assert.h>
+#include <viewer/core/CertificatePolicy.h>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -78,25 +79,12 @@
 
 static core::LogWriter vlog("CConn");
 
-// 8 colours (1 bit per component)
-static const rfb::PixelFormat verylowColourPF(8, 3,false, true,
-                                              1, 1, 1, 2, 1, 0);
-// 64 colours (2 bits per component)
-static const rfb::PixelFormat lowColourPF(8, 6, false, true,
-                                          3, 3, 3, 4, 2, 0);
-// 256 colours (2-3 bits per component)
-static const rfb::PixelFormat mediumColourPF(8, 8, false, true,
-                                             7, 7, 3, 5, 2, 0);
-
-// Time new bandwidth estimates are weighted against (in ms)
-static const unsigned bpsEstimateWindow = 1000;
-
 CConn::CConn(rfb::ClientCredentialCache& credentials_)
   : serverPort(0), sock(nullptr),
     msgTimer(this, &CConn::processNextMsg), desktop(nullptr),
     audioOutput(nullptr),
     updateCount(0), pixelCount(0),
-    lastServerEncoding((unsigned int)-1), bpsEstimate(20000000),
+    lastServerEncoding((unsigned int)-1), encoding(snapshotEncodingOptions()),
     credentials(credentials_)
 {
   setShared(::shared);
@@ -116,10 +104,10 @@ CConn::CConn(rfb::ClientCredentialCache& credentials_)
   }
 #endif
 
-  if (customCompressLevel)
-    setCompressLevel(::compressLevel);
+  if (encoding.customCompressLevel())
+    setCompressLevel(encoding.compressLevel());
 
-  setQualityLevel(::qualityLevel);
+  setQualityLevel(encoding.qualityLevel());
 
   OptionsDialog::addCallback(handleOptions, this);
 }
@@ -260,7 +248,7 @@ std::string CConn::connectionInfo()
   infoText += "\n";
 
   infoText += core::format(_("Line speed estimate: %d kbit/s"),
-                           (int)(bpsEstimate / 1000));
+                           (int)(bandwidth.bitsPerSecond() / 1000));
   infoText += "\n";
 
   infoText += core::format(_("Protocol version: %d.%d"),
@@ -438,16 +426,13 @@ void CConn::getUserPasswd(bool secure, std::string *user,
 // server the pixel format and encodings to use and request the first update.
 void CConn::initDone()
 {
-  // If using AutoSelect with old servers, start in FullColor
-  // mode. See comment in autoSelectFormatAndEncoding. 
-  if (server.beforeVersion(3, 8) && autoSelect)
-    fullColour.setParam(true);
-
   desktop = new DesktopWindow(server.width(), server.height(), this);
   fullColourPF = desktop->getPreferredPF();
 
   // Force a switch to the format and encoding we'd like
   updateEncoding();
+  updateCompressLevel();
+  updateQualityLevel();
   updatePixelFormat();
 }
 
@@ -460,14 +445,6 @@ bool CConn::verifyCertificate(unsigned int status,
   (void)length;
   throw std::logic_error("TLS support not enabled");
 #else
-  const unsigned allowed_errors =
-    GNUTLS_CERT_INVALID |
-    GNUTLS_CERT_SIGNER_NOT_FOUND |
-    GNUTLS_CERT_SIGNER_NOT_CA |
-    GNUTLS_CERT_NOT_ACTIVATED |
-    GNUTLS_CERT_EXPIRED |
-    GNUTLS_CERT_INSECURE_ALGORITHM |
-    GNUTLS_CERT_UNEXPECTED_OWNER;
   gnutls_datum_t status_str;
   unsigned int fatal_status;
 
@@ -482,7 +459,7 @@ bool CConn::verifyCertificate(unsigned int status,
 
   assert(status != 0);
 
-  fatal_status = status & (~allowed_errors);
+  fatal_status = viewer::certificatePolicy(status).fatalStatus;
 
   if (fatal_status != 0) {
     err = gnutls_certificate_verification_status_print(fatal_status,
@@ -839,7 +816,7 @@ void CConn::framebufferUpdateStart()
   CConnection::framebufferUpdateStart();
 
   // For bandwidth estimate
-  gettimeofday(&updateStartTime, nullptr);
+  updateStartTime = std::chrono::steady_clock::now();
   updateStartPos = sock->inStream().pos();
 
   // Update the screen prematurely for very slow updates
@@ -852,35 +829,20 @@ void CConn::framebufferUpdateStart()
 // appropriately, and then request another incremental update.
 void CConn::framebufferUpdateEnd()
 {
-  unsigned long long elapsed, bps, weight;
-  struct timeval now;
-
   CConnection::framebufferUpdateEnd();
 
   updateCount++;
-
-  // Calculate bandwidth everything managed to maintain during this update
-  gettimeofday(&now, nullptr);
-  elapsed = (now.tv_sec - updateStartTime.tv_sec) * 1000000;
-  elapsed += now.tv_usec - updateStartTime.tv_usec;
-  if (elapsed == 0)
-    elapsed = 1;
-  bps = (unsigned long long)(sock->inStream().pos() -
-                             updateStartPos) * 8 *
-                            1000000 / elapsed;
-  // Allow this update to influence things more the longer it took, to a
-  // maximum of 20% of the new value.
-  weight = elapsed * 1000 / bpsEstimateWindow;
-  if (weight > 200000)
-    weight = 200000;
-  bpsEstimate = ((bpsEstimate * (1000000 - weight)) +
-                 (bps * weight)) / 1000000;
+  const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+    std::chrono::steady_clock::now() - updateStartTime).count();
+  const auto position = sock->inStream().pos();
+  bandwidth.observe(position >= updateStartPos ? position - updateStartPos : 0,
+                    elapsed > 0 ? elapsed : 1);
 
   Fl::remove_timeout(handleUpdateTimeout, this);
   desktop->updateWindow();
 
   // Compute new settings based on updated bandwidth values
-  if (autoSelect) {
+  if (encoding.autoSelect()) {
     updateEncoding();
     updateQualityLevel();
     updatePixelFormat();
@@ -894,14 +856,14 @@ void CConn::bell()
   fl_beep();
 }
 
-bool CConn::dataRect(const core::Rect& r, int encoding)
+bool CConn::dataRect(const core::Rect& r, int wireEncoding)
 {
   bool ret;
 
-  if (encoding != rfb::encodingCopyRect)
-    lastServerEncoding = encoding;
+  if (wireEncoding != rfb::encodingCopyRect)
+    lastServerEncoding = wireEncoding;
 
-  ret = CConnection::dataRect(r, encoding);
+  ret = CConnection::dataRect(r, wireEncoding);
 
   if (ret)
     pixelCount += r.area();
@@ -978,92 +940,30 @@ void CConn::resizeFramebuffer()
 
 void CConn::updateEncoding()
 {
-  int encNum;
-
-  if (autoSelect)
-    encNum = rfb::encodingTight;
-  else
-    encNum = rfb::encodingNum(::preferredEncoding.getValueStr().c_str());
-
-  if (encNum != -1)
-    setPreferredEncoding(encNum);
+  setPreferredEncoding(encoding.selectedEncoding());
 }
 
 void CConn::updateCompressLevel()
 {
-  if (customCompressLevel)
-    setCompressLevel(::compressLevel);
-  else
-    setCompressLevel(-1);
+  setCompressLevel(encoding.selectedCompression());
 }
 
 void CConn::updateQualityLevel()
 {
-  int newQualityLevel;
-
-  if (!autoSelect)
-    newQualityLevel = ::qualityLevel;
-  else {
-    // Above 16Mbps (i.e. LAN), we choose the second highest JPEG
-    // quality, which should be perceptually lossless. If the bandwidth
-    // is below that, we choose a more lossy JPEG quality.
-
-    if (bpsEstimate > 16000000)
-      newQualityLevel = 8;
-    else
-      newQualityLevel = 6;
-
-    if (newQualityLevel != getQualityLevel()) {
-      vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
-                (int)(bpsEstimate/1000), newQualityLevel);
-    }
+  const int selected = encoding.selectedQuality(bandwidth.bitsPerSecond());
+  if (encoding.autoSelect() && selected != getQualityLevel()) {
+    vlog.info(_("Throughput %d kbit/s - changing to quality %d"),
+              (int)(bandwidth.bitsPerSecond()/1000), selected);
   }
-
-  setQualityLevel(newQualityLevel);
+  setQualityLevel(selected);
 }
 
 void CConn::updatePixelFormat()
 {
-  bool useFullColour;
-  rfb::PixelFormat pf;
-
-  if (server.beforeVersion(3, 8)) {
-    // Xvnc from TightVNC 1.2.9 sends out FramebufferUpdates with
-    // cursors "asynchronously". If this happens in the middle of a
-    // pixel format change, the server will encode the cursor with
-    // the old format, but the client will try to decode it
-    // according to the new format. This will lead to a
-    // crash. Therefore, we do not allow automatic format change for
-    // old servers.
-    return;
-  }
-
-  useFullColour = fullColour;
-
-  // If the bandwidth drops below 256 Kbps, we switch to palette mode.
-  if (autoSelect) {
-    useFullColour = (bpsEstimate > 256000);
-    if (useFullColour != (server.pf() == fullColourPF)) {
-      if (useFullColour)
-        vlog.info(_("Throughput %d kbit/s - full color is now enabled"),
-                  (int)(bpsEstimate/1000));
-      else
-        vlog.info(_("Throughput %d kbit/s - full color is now disabled"),
-                  (int)(bpsEstimate/1000));
-    }
-  }
-
-  if (useFullColour) {
-    pf = fullColourPF;
-  } else {
-    if (lowColourLevel == 0)
-      pf = verylowColourPF;
-    else if (lowColourLevel == 1)
-      pf = lowColourPF;
-    else
-      pf = mediumColourPF;
-  }
-
+  // Older servers can send asynchronous cursor updates in the old format.
+  // Retain their negotiated format; never mutate process defaults as a side effect.
+  if (server.beforeVersion(3, 8)) return;
+  const auto pf = encoding.selectedFormat(bandwidth.bitsPerSecond(), fullColourPF);
   if (pf != server.pf()) {
     char str[256];
     pf.print(str, 256);
@@ -1076,7 +976,8 @@ void CConn::handleOptions(void *data)
 {
   CConn *self = (CConn*)data;
 
-  self->setJpegAllowed(!rfb::CConnection::noJpeg);
+  self->encoding = snapshotEncodingOptions();
+  self->setJpegAllowed(self->encoding.jpegAllowed());
   self->updateEncoding();
   self->updateCompressLevel();
   self->updateQualityLevel();

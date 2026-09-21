@@ -44,6 +44,7 @@ namespace rfb {
 
     // Compiled authentication methods, independent of user configuration.
     static const std::list<uint32_t>& supportedTypes();
+    const ClientTLSOptions& clientTLSOptions() const { return tlsOptions; }
 
     /* Create client side CSecurity class instance */
     CSecurity* GetCSecurity(CConnection* cc, uint32_t secType);

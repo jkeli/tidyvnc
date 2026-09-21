@@ -1,0 +1,4 @@
+module NativeKeyMap {
+  header "NativeKeyMap.h"
+  export *
+}

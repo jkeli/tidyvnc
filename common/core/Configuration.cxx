@@ -26,6 +26,8 @@
 #endif
 
 #include <assert.h>
+#include <core/ParameterValue.h>
+#include <core/ParameterArgument.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -142,33 +144,12 @@ bool Configuration::remove(const char* param) {
 
 int Configuration::handleArg(int argc, char* argv[], int index)
 {
-  std::string param, val;
-  const char* equal = strchr(argv[index], '=');
-
-  if (equal == argv[index])
+  ParameterArgument argument;
+  if (!splitParameterArgument(argv[index], argument))
     return 0;
-
-  if (equal) {
-    param.assign(argv[index], equal-argv[index]);
-    val.assign(equal+1);
-  } else {
-    param.assign(argv[index]);
-  }
-
-  if ((param.length() > 0) && (param[0] == '-')) {
-    // allow gnu-style --<option>
-    if ((param.length() > 1) && (param[1] == '-'))
-      param = param.substr(2);
-    else
-      param = param.substr(1);
-  } else {
-    // All command line arguments need either an initial '-', or an '='
-    if (!equal)
-      return 0;
-  }
-
-  if (equal)
-    return set(param.c_str(), val.c_str()) ? 1 : 0;
+  const auto& param = argument.name;
+  if (argument.hasValue)
+    return set(param.c_str(), argument.value.c_str()) ? 1 : 0;
 
   VoidParameter* current = get(param.c_str());
   if (!current)
@@ -177,15 +158,7 @@ int Configuration::handleArg(int argc, char* argv[], int index)
   // We need to resolve an ambiguity for booleans
   if (dynamic_cast<BoolParameter*>(current) != nullptr) {
     if (index+1 < argc) {
-      // FIXME: Should not duplicate the list of values here
-      if ((strcasecmp(argv[index+1], "0") == 0) ||
-          (strcasecmp(argv[index+1], "1") == 0) ||
-          (strcasecmp(argv[index+1], "on") == 0) ||
-          (strcasecmp(argv[index+1], "off") == 0) ||
-          (strcasecmp(argv[index+1], "true") == 0) ||
-          (strcasecmp(argv[index+1], "false") == 0) ||
-          (strcasecmp(argv[index+1], "yes") == 0) ||
-          (strcasecmp(argv[index+1], "no") == 0)) {
+      if (isSeparateBooleanArgument(argv[index+1])) {
           return current->setParam(argv[index+1]) ? 2 : 0;
       }
     }
@@ -297,18 +270,12 @@ BoolParameter::BoolParameter(const char* name_, const char* desc_, bool v)
 bool
 BoolParameter::setParam(const char* v) {
   if (immutable) return true;
-
-  if (*v == 0 || strcasecmp(v, "1") == 0 || strcasecmp(v, "on") == 0
-      || strcasecmp(v, "true") == 0 || strcasecmp(v, "yes") == 0)
-    setParam(true);
-  else if (strcasecmp(v, "0") == 0 || strcasecmp(v, "off") == 0
-           || strcasecmp(v, "false") == 0 || strcasecmp(v, "no") == 0)
-    setParam(false);
-  else {
+  bool parsed;
+  if (!parseBooleanValue(v, parsed)) {
     vlog.error(_("Parameter %s: Invalid value '%s'"), getName(), v);
     return false;
   }
-
+  setParam(parsed);
   return true;
 }
 

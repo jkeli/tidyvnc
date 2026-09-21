@@ -1,0 +1,4 @@
+// Generated from the repository's build version; no independent version source.
+public enum NativeBuildInfo {
+  public static let version = "@VERSION@"
+}

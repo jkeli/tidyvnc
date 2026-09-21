@@ -4,7 +4,11 @@
 #endif
 #include <gtest/gtest.h>
 #include <viewer/core/PromptAuthentication.h>
+#include <viewer/core/SessionWorker.h>
+#include <viewer/platform/SocketTransport.h>
+#include <network/TcpSocket.h>
 #include <rfb/PixelFormat.h>
+#include "../viewer/host-key-fixture.h"
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 #include <rdr/TLSSocket.h>
@@ -14,10 +18,8 @@
 #include <poll.h>
 #include <signal.h>
 #include <sys/socket.h>
-#ifdef __APPLE__
-#include <sys/event.h>
-#endif
 #include <unistd.h>
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -82,22 +84,10 @@ void waitReadable(int fd) {
   pollfd event{fd,POLLIN,0};
   if (::poll(&event,1,5)<0 && errno!=EINTR) throw std::runtime_error("poll failed");
 }
-// A test host observes FIN without another consumer of protocol bytes. The
-// production readiness adapter remains N1.6; this proves its cancellation seam.
-bool peerClosed(int fd) {
-#ifdef __APPLE__
-  Descriptor queue(::kqueue()); require(queue.value>=0,"kqueue");
-  struct kevent change,event;
-  EV_SET(&change,fd,EVFILT_READ,EV_ADD,0,0,nullptr);
-  timespec timeout{0,0};
-  int count=::kevent(queue.value,&change,1,&event,1,&timeout);
-  require(count>=0,"kevent");
-  return count && (event.flags & EV_EOF);
-#else
-  pollfd event{fd,POLLIN|POLLRDHUP,0};
-  require(::poll(&event,1,0)>=0,"poll peer close");
-  return event.revents & (POLLRDHUP|POLLHUP|POLLERR);
-#endif
+std::unique_ptr<SessionTransport> takeClient(Descriptor& client) {
+  std::unique_ptr<network::Socket> socket(new network::TcpSocket(client.value));
+  client.value=-1;
+  return adoptSocketTransport(std::move(socket));
 }
 struct Certificate {
   Certificate() {
@@ -222,21 +212,34 @@ struct Outcome {
 class Attempt {
 public:
   Attempt(ProtocolSession& session_,PromptInbox& inbox_,bool encrypted,Certificate& certificate)
-    : session(session_),inbox(inbox_),peer(wires,encrypted,certificate) {
+    : session(session_),inbox(inbox_),peer(wires,encrypted,certificate),
+      transport(takeClient(wires.client)) {
     server=std::async(std::launch::async,[&] {
       try { peer.run(); return std::string(); }
       catch (const std::exception& e) { return std::string(e.what()); }
     });
+    observer=std::async(std::launch::async,[&] {
+      auto ready=transport->waitPeerClosure(steady_clock::now()+seconds(10));
+      if (ready.peerClosed && !ready.cancelled)
+        inbox.auth->cancel(PromptCancelReason::PeerClosed);
+    });
     client=std::async(std::launch::async,[&] {
-      rdr::FdInStream input(wires.client.value);
-      rdr::FdOutStream output(wires.client.value);
       Outcome outcome;
       try {
-        session.start("localhost",input,output);
+        session.start("localhost",transport->input(),transport->output());
         const auto deadline=steady_clock::now()+seconds(10);
         while (!session.desktop().ready) {
           require(steady_clock::now()<deadline,"Client deadline exceeded");
-          if (!session.processMessage()) waitReadable(wires.client.value);
+          bool progressed=session.processMessage();
+          transport->flush();
+          session.dispatchScheduled();
+          if (!progressed) {
+            auto next=deadline;
+            SessionScheduler::TimePoint scheduled;
+            if (session.nextDeadline(scheduled)) next=std::min(next,scheduled);
+            auto ready=transport->wait(next,transport->outputPending());
+            require(!ready.cancelled,"Client transport cancelled");
+          }
         }
         outcome.kind=Outcome::Ready;
       } catch (const PromptInterrupted& e) {
@@ -245,34 +248,122 @@ public:
       catch (const rfb::auth_error&) { outcome.kind=Outcome::Rejected; }
       catch (const std::exception& e) { outcome.error=e.what(); }
       session.close(); // Borrowed streams outlive protocol shutdown.
+      transport->control()->cancel();
       return outcome;
     });
   }
   ~Attempt() {
-    inbox.auth->cancel(); wires.stop();
+    inbox.auth->cancel(); transport->control()->cancel(); wires.stop();
     if (client.valid()) client.wait();
+    if (observer.valid()) observer.wait();
     if (server.valid()) server.wait();
   }
   Outcome finish() {
     require(client.wait_for(seconds(5))==std::future_status::ready,"Client did not drain");
     return client.get();
   }
-  void stopFromUI() { inbox.auth->cancel(); wires.stop(); }
+  void stopFromUI() { inbox.auth->cancel(); transport->control()->cancel(); wires.stop(); }
   void peerDisappears() {
     ::shutdown(wires.server.value,SHUT_RDWR);
-    const auto deadline=steady_clock::now()+seconds(2);
-    while (!peerClosed(wires.client.value)) {
-      require(steady_clock::now()<deadline,"FIN not observed"); waitReadable(wires.client.value);
-    }
-    inbox.auth->cancel(PromptCancelReason::PeerClosed);
+    require(observer.wait_for(seconds(2))==std::future_status::ready,"FIN not observed");
+    observer.get();
   }
   ProtocolSession& session;
   PromptInbox& inbox;
   Loopback wires;
   Peer peer;
+  std::unique_ptr<SessionTransport> transport;
   std::future<std::string> server;
+  std::future<void> observer;
   std::future<Outcome> client;
 };
+
+// Same independent TCP/TLS peer, now driven by the production thread owner.
+class WorkerAttempt {
+public:
+  WorkerAttempt(bool encrypted, Certificate& certificate, rfb::ClientTLSOptions tls = {}) : peer(wires, encrypted, certificate)
+  {
+    server = std::async(std::launch::async, [&] {
+      try { peer.run(); return std::string(); }
+      catch (const std::exception& error) { return std::string(error.what()); }
+    });
+    if (tls.priority.empty()) tls.priority = "NORMAL:-VERS-ALL:+VERS-TLS1.2";
+    worker = runtime.start(takeClient(wires.client), "localhost",
+      rfb::SecurityClient({static_cast<uint32_t>(encrypted ? rfb::secTypeX509Vnc : rfb::secTypeVncAuth)}, tls));
+  }
+  ~WorkerAttempt()
+  {
+    worker->closeAndDrain(); wires.stop();
+    if (server.valid()) server.wait();
+  }
+  AuthenticationPrompt prompt()
+  {
+    AuthenticationPrompt result;
+    const auto deadline = steady_clock::now() + seconds(3);
+    while (!worker->authentication()->takeRequest(result)) {
+      require(steady_clock::now() < deadline, "Worker prompt never arrived");
+      std::this_thread::sleep_for(milliseconds(1));
+    }
+    return result;
+  }
+  SessionRuntime runtime;
+  Loopback wires;
+  Peer peer;
+  std::future<std::string> server;
+  std::shared_ptr<SessionWorker> worker;
+};
+// Prepared adapter for the already-established loopback fixture. The runtime
+// still owns every reconnect, prompt, protocol and drain transition.
+class ReadyConnection : public ConnectionAttempt {
+public:
+  explicit ReadyConnection(std::unique_ptr<SessionTransport> value) : transport(std::move(value)) {}
+  std::string serverName() const override { return "localhost"; }
+  std::shared_ptr<TransportControl> control() const override { return transport->control(); }
+  std::unique_ptr<SessionTransport> run(const Progress& progress) override {
+    progress(ConnectionPhase::Connecting); return std::move(transport);
+  }
+private:
+  std::unique_ptr<SessionTransport> transport;
+};
+class ReusableNetworkAttempt {
+public:
+  ReusableNetworkAttempt(std::shared_ptr<SessionWorker> worker_, bool encrypted, Certificate& certificate)
+    : worker(std::move(worker_)), peer(wires, encrypted, certificate)
+  {
+    server = std::async(std::launch::async, [&] {
+      try { peer.run(); return std::string(); }
+      catch (const std::exception& error) { return std::string(error.what()); }
+    });
+    connect = worker->connect(std::unique_ptr<ConnectionAttempt>(new ReadyConnection(takeClient(wires.client))));
+    require(connect.status == CommandAdmission::Accepted, "Reconnect admission failed");
+  }
+  ~ReusableNetworkAttempt() { wires.stop(); if (server.valid()) server.wait(); }
+  AuthenticationPrompt prompt() {
+    AuthenticationPrompt result;
+    const auto deadline = steady_clock::now() + seconds(3);
+    while (!worker->authentication()->takeRequest(result)) {
+      require(steady_clock::now() < deadline, "Reconnect prompt never arrived");
+      std::this_thread::sleep_for(milliseconds(1));
+    }
+    return result;
+  }
+  SessionEvent completion(uint64_t id) {
+    SessionEvent result;
+    const auto deadline = steady_clock::now() + seconds(3);
+    for (;;) {
+      while (worker->events()->take(result))
+        if (result.kind == SessionEventKind::Completion && result.operation == id) return result;
+      require(steady_clock::now() < deadline, "Reconnect completion never arrived");
+      std::this_thread::sleep_for(milliseconds(1));
+    }
+  }
+  std::shared_ptr<SessionWorker> worker;
+  Loopback wires;
+  Peer peer;
+  std::future<std::string> server;
+  CommandSubmission connect{CommandAdmission::Busy};
+};
+
 }
 
 class AuthenticationSocket : public ::testing::TestWithParam<bool> {
@@ -298,6 +389,7 @@ protected:
     }
     EXPECT_EQ(prompt.kind,PromptKind::Credentials);
     EXPECT_EQ(prompt.secure,GetParam());
+    EXPECT_EQ(prompt.securityType,static_cast<uint32_t>(GetParam() ? rfb::secTypeX509Vnc : rfb::secTypeVncAuth));
     return prompt;
   }
   IgnoreBrokenPipe ignoreBrokenPipe;
@@ -312,6 +404,104 @@ TEST_P(AuthenticationSocket, ServerVerifiesPasswordBeforeSessionBecomesReady)
   EXPECT_EQ(inbox.auth->replyCredentials(prompt.id,prompt.generation,"","password"),PromptReply::Accepted);
   auto outcome=attempt.finish(); EXPECT_EQ(outcome.kind,Outcome::Ready) << outcome.error;
   EXPECT_TRUE(attempt.server.get().empty()); EXPECT_TRUE(attempt.peer.verified);
+}
+
+TEST_P(AuthenticationSocket, ProductionWorkerAuthenticatesAndJoinsBeforeDrainCompletion)
+{
+  WorkerAttempt attempt(GetParam(), certificate);
+  auto bridge = attempt.worker->authentication();
+  auto prompt = attempt.prompt();
+  if (GetParam()) {
+    ASSERT_EQ(prompt.kind, PromptKind::Certificate);
+    EXPECT_EQ(bridge->replyTrust(prompt.id, prompt.generation, true), PromptReply::Accepted);
+    prompt = attempt.prompt();
+  }
+  ASSERT_EQ(prompt.kind, PromptKind::Credentials);
+  EXPECT_EQ(bridge->replyCredentials(prompt.id, prompt.generation, "", "password"), PromptReply::Accepted);
+  const auto deadline = steady_clock::now() + seconds(3);
+  while (attempt.worker->events()->snapshot().state != SessionState::Connected && steady_clock::now() < deadline)
+    std::this_thread::sleep_for(milliseconds(1));
+  ASSERT_EQ(attempt.worker->events()->snapshot().state, SessionState::Connected);
+  ASSERT_EQ(attempt.server.wait_for(seconds(3)), std::future_status::ready);
+  EXPECT_TRUE(attempt.server.get().empty()); EXPECT_TRUE(attempt.peer.verified);
+  auto done = attempt.worker->closeAndDrain();
+  ASSERT_EQ(done.wait_for(seconds(3)), std::future_status::ready);
+  EXPECT_EQ(done.get().code, WorkerResultCode::Cancelled);
+  EXPECT_TRUE(attempt.worker->events()->sealed()); EXPECT_EQ(attempt.runtime.active(), 0u);
+}
+
+TEST_P(AuthenticationSocket, ReusableSessionAuthenticatesFreshSocketsWithStablePromptIdentity)
+{
+  SessionRuntime runtime;
+  rfb::ClientTLSOptions tls; tls.priority = "NORMAL:-VERS-ALL:+VERS-TLS1.2";
+  auto worker = runtime.createSession(rfb::SecurityClient(
+    {static_cast<uint32_t>(GetParam() ? rfb::secTypeX509Vnc : rfb::secTypeVncAuth)}, tls));
+  auto bridge = worker->authentication();
+  AuthenticationPrompt previous;
+  for (int n = 0; n < 2; ++n) {
+    ReusableNetworkAttempt attempt(worker, GetParam(), certificate);
+    auto prompt = attempt.prompt();
+    if (GetParam()) {
+      ASSERT_EQ(prompt.kind, PromptKind::Certificate);
+      EXPECT_EQ(bridge->replyTrust(prompt.id, prompt.generation, true), PromptReply::Accepted);
+      prompt = attempt.prompt();
+    }
+    ASSERT_EQ(prompt.kind, PromptKind::Credentials);
+    if (n) {
+      EXPECT_GT(prompt.id, previous.id); EXPECT_GT(prompt.generation, previous.generation);
+      EXPECT_EQ(bridge->replyCredentials(previous.id, previous.generation, "", "password"), PromptReply::StaleRequest);
+    }
+    EXPECT_EQ(bridge->replyCredentials(prompt.id, prompt.generation, "", "password"), PromptReply::Accepted);
+    auto connected = attempt.completion(attempt.connect.operation);
+    EXPECT_EQ(connected.result, OperationResult::Succeeded);
+    EXPECT_EQ(connected.snapshot.generation, prompt.generation);
+    ASSERT_EQ(attempt.server.wait_for(seconds(3)), std::future_status::ready);
+    EXPECT_TRUE(attempt.server.get().empty()); EXPECT_TRUE(attempt.peer.verified);
+    auto disconnect = worker->disconnect(prompt.generation);
+    ASSERT_EQ(disconnect.status, CommandAdmission::Accepted);
+    auto disconnected = attempt.completion(disconnect.operation);
+    EXPECT_EQ(disconnected.result, OperationResult::Succeeded);
+    EXPECT_EQ(disconnected.snapshot.state, SessionState::Closed);
+    EXPECT_FALSE(worker->events()->sealed()); EXPECT_EQ(worker->authentication(), bridge);
+    previous = prompt;
+  }
+  ASSERT_EQ(worker->closeAndDrain().wait_for(seconds(3)), std::future_status::ready);
+  EXPECT_EQ(runtime.active(), 0u);
+}
+
+TEST_P(AuthenticationSocket, ProductionWorkerObservesFinWhilePromptIsParked)
+{
+  WorkerAttempt attempt(GetParam(), certificate);
+  auto prompt = attempt.prompt();
+  EXPECT_NE(prompt.id, 0u);
+  ::shutdown(attempt.wires.server.value, SHUT_RDWR);
+  auto done = attempt.worker->drained();
+  ASSERT_EQ(done.wait_for(seconds(3)), std::future_status::ready);
+  EXPECT_EQ(done.get().code, WorkerResultCode::PeerClosed);
+  EXPECT_EQ(attempt.worker->events()->snapshot().state, SessionState::Closed);
+  EXPECT_EQ(attempt.worker->events()->snapshot().endReason, SessionEndReason::PeerClosed);
+  EXPECT_EQ(attempt.worker->authentication()->replyTrust(prompt.id, prompt.generation, true), PromptReply::NoPendingRequest);
+}
+TEST_P(AuthenticationSocket, ProductionWorkerReportsRejectedPasswordAsOneFailedAttempt)
+{
+  WorkerAttempt attempt(GetParam(), certificate);
+  auto bridge = attempt.worker->authentication();
+  auto prompt = attempt.prompt();
+  if (GetParam()) {
+    EXPECT_EQ(bridge->replyTrust(prompt.id, prompt.generation, true), PromptReply::Accepted);
+    prompt = attempt.prompt();
+  }
+  EXPECT_EQ(bridge->replyCredentials(prompt.id, prompt.generation, "", "incorrect"), PromptReply::Accepted);
+  auto done = attempt.worker->drained();
+  ASSERT_EQ(done.wait_for(seconds(3)), std::future_status::ready);
+  EXPECT_EQ(done.get().code, WorkerResultCode::AuthenticationRejected);
+  EXPECT_EQ(attempt.worker->events()->snapshot().state, SessionState::Failed);
+  EXPECT_EQ(attempt.worker->events()->snapshot().endReason, SessionEndReason::AuthenticationRejected);
+  SessionEvent event; unsigned terminals = 0;
+  while (attempt.worker->events()->take(event))
+    if (event.kind == SessionEventKind::State &&
+        (event.snapshot.state == SessionState::Closed || event.snapshot.state == SessionState::Failed)) ++terminals;
+  EXPECT_EQ(terminals, 1u);
 }
 TEST_P(AuthenticationSocket, IncorrectPasswordIsRejectedByServer)
 {
@@ -417,3 +607,189 @@ TEST_P(AuthenticationSocket, OtherSecuritySessionCompletesWhileFirstPromptIsPark
 }
 INSTANTIATE_TEST_SUITE_P(Loopback,AuthenticationSocket,::testing::Bool(),
   [](const ::testing::TestParamInfo<bool>& info) { return info.param ? "X509Vnc" : "Vnc"; });
+
+#ifdef HAVE_NETTLE
+TEST(AuthenticationSocket, RSAAESWireKeysReachOwnedTrustPromptBeforeCredentials)
+{
+  IgnoreBrokenPipe ignore;
+  for (bool malformed : {false,true}) {
+  for (uint8_t type : {rfb::secTypeRA2,rfb::secTypeRA2ne,rfb::secTypeRA256,rfb::secTypeRAne256}) {
+    SCOPED_TRACE(unsigned(type));
+    SessionRuntime runtime; Loopback wires;
+    auto server=std::async(std::launch::async,[&] {
+      rdr::FdInStream input(wires.server.value); rdr::FdOutStream output(wires.server.value);
+      const auto deadline=steady_clock::now()+seconds(5);
+      auto read=[&](uint8_t* data,size_t count) {
+        while (!input.hasData(count)) { require(steady_clock::now()<deadline,"RSA fixture timeout"); waitReadable(wires.server.value); }
+        input.readBytes(data,count);
+      };
+      const uint8_t version[]="RFB 003.008\n"; uint8_t reply[12];
+      output.writeBytes(version,12); output.flush(); read(reply,12); require(!memcmp(version,reply,12),"RFB version");
+      output.writeU8(1); output.writeU8(type); output.flush(); read(reply,1); require(reply[0]==type,"RSA security type");
+      std::vector<uint8_t> key(std::begin(host_key_fixture),std::end(host_key_fixture));
+      if (malformed) key[4]=0;
+      output.writeBytes(key.data(),key.size()); output.flush();
+    });
+    auto worker=runtime.start(takeClient(wires.client),"rsa-fixture.invalid",rfb::SecurityClient({type}));
+    if (malformed) {
+      const auto deadline=steady_clock::now()+seconds(4);
+      while (worker->events()->snapshot().state != SessionState::Failed && steady_clock::now()<deadline) std::this_thread::sleep_for(milliseconds(1));
+      EXPECT_EQ(worker->events()->snapshot().state,SessionState::Failed);
+      EXPECT_EQ(worker->events()->snapshot().endReason,SessionEndReason::ProtocolFailure);
+      AuthenticationPrompt absent; EXPECT_FALSE(worker->authentication()->takeRequest(absent));
+      worker->closeAndDrain().wait(); wires.stop(); ASSERT_NO_THROW(server.get()); continue;
+    }
+    AuthenticationPrompt prompt; const auto deadline=steady_clock::now()+seconds(4); bool ready=false;
+    while (!(ready=worker->authentication()->takeRequest(prompt)) && steady_clock::now()<deadline) std::this_thread::sleep_for(milliseconds(1));
+    ASSERT_TRUE(ready); EXPECT_EQ(prompt.kind,PromptKind::HostKey);
+    EXPECT_EQ(prompt.identity,std::vector<uint8_t>(std::begin(host_key_fixture),std::end(host_key_fixture)));
+    EXPECT_EQ(prompt.fingerprint,host_key_fixture_compatibility);
+    EXPECT_EQ(worker->authentication()->replyCredentials(prompt.id,prompt.generation,"","unused"),PromptReply::WrongKind);
+    EXPECT_EQ(worker->authentication()->replyTrust(prompt.id,prompt.generation,false),PromptReply::Accepted);
+    EXPECT_EQ(worker->closeAndDrain().wait_for(seconds(3)),std::future_status::ready);
+    wires.stop(); ASSERT_NO_THROW(server.get());
+  }
+  }
+}
+#endif
+
+namespace {
+struct TLSFile {
+  explicit TLSFile(const std::string& bytes) {
+    char pattern[] = "/tmp/tidyvnc-tls-files-XXXXXX";
+    Descriptor fd(::mkstemp(pattern)); require(fd.value >= 0,"TLS fixture file"); path = pattern;
+    size_t offset = 0;
+    while (offset < bytes.size()) {
+      const auto count = ::write(fd.value,bytes.data()+offset,bytes.size()-offset);
+      require(count > 0,"TLS fixture write"); offset += count;
+    }
+  }
+  ~TLSFile() { ::unlink(path.c_str()); }
+  std::string path;
+};
+std::string certificatePEM(gnutls_x509_crt_t certificate) {
+  gnutls_datum_t data{};
+  tlsCheck(gnutls_x509_crt_export2(certificate,GNUTLS_X509_FMT_PEM,&data));
+  std::string result(reinterpret_cast<char*>(data.data),data.size); gnutls_free(data.data); return result;
+}
+struct Authority {
+  Authority(Certificate& leaf) {
+    tlsCheck(gnutls_x509_privkey_init(&key));
+    tlsCheck(gnutls_x509_privkey_generate(key,GNUTLS_PK_RSA,2048,0));
+    tlsCheck(gnutls_x509_crt_init(&certificate));
+    tlsCheck(gnutls_x509_crt_set_version(certificate,3));
+    const uint8_t serial = 2;
+    tlsCheck(gnutls_x509_crt_set_serial(certificate,&serial,1));
+    tlsCheck(gnutls_x509_crt_set_activation_time(certificate,time(nullptr)-3600));
+    tlsCheck(gnutls_x509_crt_set_expiration_time(certificate,time(nullptr)+86400));
+    tlsCheck(gnutls_x509_crt_set_dn(certificate,"CN=TidyVNC isolated test CA",nullptr));
+    tlsCheck(gnutls_x509_crt_set_key(certificate,key));
+    tlsCheck(gnutls_x509_crt_set_basic_constraints(certificate,1,-1));
+    tlsCheck(gnutls_x509_crt_set_key_usage(certificate,GNUTLS_KEY_KEY_CERT_SIGN|GNUTLS_KEY_CRL_SIGN));
+    tlsCheck(gnutls_x509_crt_sign2(certificate,certificate,key,GNUTLS_DIG_SHA256,0));
+    tlsCheck(gnutls_x509_crt_sign2(leaf.certificate,certificate,key,GNUTLS_DIG_SHA256,0));
+    gnutls_certificate_free_credentials(leaf.credentials); leaf.credentials = nullptr;
+    tlsCheck(gnutls_certificate_allocate_credentials(&leaf.credentials));
+    tlsCheck(gnutls_certificate_set_x509_key(leaf.credentials,&leaf.certificate,1,leaf.key));
+  }
+  ~Authority() { gnutls_x509_crt_deinit(certificate); gnutls_x509_privkey_deinit(key); }
+  std::string crl(Certificate& leaf, bool revoked) {
+    gnutls_x509_crl_t list;
+    tlsCheck(gnutls_x509_crl_init(&list));
+    tlsCheck(gnutls_x509_crl_set_version(list,2));
+    tlsCheck(gnutls_x509_crl_set_this_update(list,time(nullptr)-60));
+    tlsCheck(gnutls_x509_crl_set_next_update(list,time(nullptr)+3600));
+    if (revoked) tlsCheck(gnutls_x509_crl_set_crt(list,leaf.certificate,time(nullptr)-30));
+    tlsCheck(gnutls_x509_crl_sign2(list,certificate,key,GNUTLS_DIG_SHA256,0));
+    gnutls_datum_t data{}; tlsCheck(gnutls_x509_crl_export2(list,GNUTLS_X509_FMT_PEM,&data));
+    std::string result(reinterpret_cast<char*>(data.data),data.size);
+    gnutls_free(data.data); gnutls_x509_crl_deinit(list); return result;
+  }
+  gnutls_x509_privkey_t key = nullptr;
+  gnutls_x509_crt_t certificate = nullptr;
+};
+void waitForFailure(WorkerAttempt& attempt) {
+  const auto deadline = steady_clock::now()+seconds(3);
+  while (attempt.worker->events()->snapshot().state != SessionState::Failed && steady_clock::now() < deadline)
+    std::this_thread::sleep_for(milliseconds(1));
+  ASSERT_EQ(attempt.worker->events()->snapshot().state,SessionState::Failed);
+  EXPECT_EQ(attempt.worker->events()->snapshot().endReason,SessionEndReason::ProtocolFailure);
+  AuthenticationPrompt request;
+  EXPECT_FALSE(attempt.worker->authentication()->takeRequest(request));
+  auto done = attempt.worker->closeAndDrain();
+  ASSERT_EQ(done.wait_for(seconds(3)),std::future_status::ready);
+  ASSERT_EQ(attempt.server.wait_for(seconds(3)),std::future_status::ready);
+  (void)attempt.server.get();
+  EXPECT_FALSE(attempt.peer.verified);
+}
+}
+TEST(AuthenticationTLSFiles, IncompatibleExplicitPriorityFailsBeforeCredentials)
+{
+  IgnoreBrokenPipe ignore;
+  Certificate certificate;
+  rfb::ClientTLSOptions options;
+  options.priority = "NORMAL:-VERS-ALL:+VERS-TLS1.3";
+  WorkerAttempt attempt(true,certificate,options);
+  waitForFailure(attempt); // Independent peer permits TLS 1.2 only.
+}
+
+TEST(AuthenticationTLSFiles, SelectedCAAndCRLValidateChainBeforeCredentials)
+{
+  IgnoreBrokenPipe ignore;
+  Certificate certificate; Authority authority(certificate);
+  TLSFile ca(certificatePEM(authority.certificate)), crl(authority.crl(certificate,false));
+  rfb::ClientTLSOptions options; options.requireConfiguredFiles = true;
+  options.caFile = ca.path; options.crlFile = crl.path;
+  WorkerAttempt attempt(true,certificate,options);
+  options.caFile.clear(); options.crlFile.clear(); // Worker owns its own paths.
+  const auto prompt = attempt.prompt();
+  ASSERT_EQ(prompt.kind,PromptKind::Credentials); // No exception prompt for a valid chain.
+  EXPECT_EQ(attempt.worker->authentication()->replyCredentials(prompt.id,prompt.generation,"","password"),PromptReply::Accepted);
+  ASSERT_EQ(attempt.server.wait_for(seconds(3)),std::future_status::ready);
+  EXPECT_TRUE(attempt.server.get().empty()); EXPECT_TRUE(attempt.peer.verified);
+  const auto deadline = steady_clock::now()+seconds(3);
+  while (attempt.worker->events()->snapshot().state != SessionState::Connected && steady_clock::now() < deadline)
+    std::this_thread::sleep_for(milliseconds(1));
+  EXPECT_EQ(attempt.worker->events()->snapshot().state,SessionState::Connected);
+}
+TEST(AuthenticationTLSFiles, RevokedCertificateCannotBeApprovedOrReachCredentials)
+{
+  IgnoreBrokenPipe ignore;
+  Certificate certificate; Authority authority(certificate);
+  TLSFile ca(certificatePEM(authority.certificate)), crl(authority.crl(certificate,true));
+  rfb::ClientTLSOptions options; options.requireConfiguredFiles = true;
+  options.caFile = ca.path; options.crlFile = crl.path;
+  WorkerAttempt attempt(true,certificate,options);
+  const auto request = attempt.prompt();
+  ASSERT_EQ(request.kind,PromptKind::Certificate);
+  EXPECT_NE(request.certificateStatus & GNUTLS_CERT_REVOKED,0u);
+  auto auth = attempt.worker->authentication();
+  EXPECT_EQ(auth->replyTrust(request.id,request.generation,true),PromptReply::PolicyRejected);
+  EXPECT_EQ(attempt.worker->events()->snapshot().state,SessionState::Authenticating);
+  EXPECT_EQ(auth->replyTrust(request.id,request.generation,false),PromptReply::Accepted);
+  auto done = attempt.worker->closeAndDrain();
+  ASSERT_EQ(done.wait_for(seconds(3)),std::future_status::ready);
+  ASSERT_EQ(attempt.server.wait_for(seconds(3)),std::future_status::ready);
+  (void)attempt.server.get();
+  EXPECT_FALSE(attempt.peer.verified);
+}
+TEST(AuthenticationTLSFiles, RequiredFilesFailClosedOnMissingEmptyMalformedOrWrongKind)
+{
+  IgnoreBrokenPipe ignore;
+  Certificate certificate; Authority authority(certificate);
+  TLSFile ca(certificatePEM(authority.certificate)), crl(authority.crl(certificate,false));
+  TLSFile malformed("not PEM\n"), empty(""), missing(""); ::unlink(missing.path.c_str());
+  for (bool checkCA : {true,false}) {
+    for (const auto& path : {malformed.path,empty.path,missing.path,checkCA ? crl.path : ca.path}) {
+      SCOPED_TRACE(checkCA ? "CA" : "CRL");
+      rfb::ClientTLSOptions options; options.requireConfiguredFiles = true;
+      options.caFile = checkCA ? path : ca.path; options.crlFile = checkCA ? crl.path : path;
+      WorkerAttempt attempt(true,certificate,options); waitForFailure(attempt);
+    }
+  }
+  // Retained option consumers keep their warning-only load-error behavior.
+  rfb::ClientTLSOptions legacy; legacy.caFile = missing.path; legacy.crlFile = malformed.path;
+  WorkerAttempt attempt(true,certificate,legacy);
+  const auto request = attempt.prompt(); EXPECT_EQ(request.kind,PromptKind::Certificate);
+  EXPECT_EQ(attempt.worker->authentication()->replyTrust(request.id,request.generation,false),PromptReply::Accepted);
+}

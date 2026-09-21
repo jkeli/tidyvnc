@@ -46,26 +46,27 @@
 #include <rdr/FdOutStream.h>
 
 #include <network/Socket.h>
+#include <mutex>
+#include <memory>
 
 using namespace network;
 
 static core::LogWriter vlog("Socket");
 
 // -=- Socket initialisation
-static bool socketsInitialised = false;
 void network::initSockets() {
-  if (socketsInitialised)
-    return;
+  static std::once_flag socketsInitialised;
+  std::call_once(socketsInitialised, [] {
 #ifdef WIN32
-  WORD requiredVersion = MAKEWORD(2,0);
-  WSADATA initResult;
-  
-  if (WSAStartup(requiredVersion, &initResult) != 0)
-    throw core::socket_error(_("Failed to initialise Winsock"), errorNumber);
+    WORD requiredVersion = MAKEWORD(2,0);
+    WSADATA initResult;
+
+    if (WSAStartup(requiredVersion, &initResult) != 0)
+      throw core::socket_error(_("Failed to initialise Winsock"), errorNumber);
 #else
-  signal(SIGPIPE, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN);
 #endif
-  socketsInitialised = true;
+  });
 }
 
 bool network::isSocketListening(int sock)
@@ -168,8 +169,10 @@ void Socket::setFd(int fd)
   fcntl(fd, F_SETFD, FD_CLOEXEC);
 #endif
 
-  instream = new rdr::FdInStream(fd);
-  outstream = new rdr::FdOutStream(fd);
+  std::unique_ptr<rdr::FdInStream> input(new rdr::FdInStream(fd));
+  std::unique_ptr<rdr::FdOutStream> output(new rdr::FdOutStream(fd));
+  instream = input.release();
+  outstream = output.release();
   isShutdownRead_ = false;
   isShutdownWrite_ = false;
 }
