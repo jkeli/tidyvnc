@@ -3,6 +3,8 @@
 The portable listener has a C ABI, a Swift owner and a native listener window under
 File > Listen for Connections. Native `-listen [port]` launches the same presentation
 and starts listening once. Explicit connection-file listen startup remains pending.
+The current checkpoint and proposed preparation/review work are recorded in
+[RESUME.md](RESUME.md). No partial file-listener implementation is committed.
 
 ## Ownership and admission
 

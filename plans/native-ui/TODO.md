@@ -1,6 +1,10 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
+**Resume here:** [RESUME.md](RESUME.md), updated 2026-09-21, records committed
+checkpoint `1ba1fe0e`, current connection-file listen work, validation and next steps.
+The interrupted file-listener prototype was removed before that commit; numeric
+CLI listening is implemented, while explicit-file listening remains unsupported.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -83,7 +87,8 @@ may disappear merely because it is absent from an initial mockup.
     suppression and reconnect-safe budgets. Native clipboard integration stays open.
   - [x] Listener C/Swift boundary: copied ordered events, explicit peer handoff into
     configured reusable sessions, coalesced callbacks and joined runtime shutdown.
-    Native CLI/presentation and reverse identity/persistence policy remain open.
+    Manual/numeric CLI presentation and connection-only reverse identity are now
+    implemented; explicit-file listening and installed acceptance remain open.
   - [x] Separate bounded listener runtime, ordered Starting/Listening/Stopping/
     terminal events, bounded incoming peers, expiry, explicit accept/reject,
     peer handoff into session workers and joined asynchronous close.

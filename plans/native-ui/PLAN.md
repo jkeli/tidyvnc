@@ -1,5 +1,9 @@
 # Native UI architecture and macOS SwiftUI migration
 
+For the current implementation checkpoint and restart instructions, see
+[RESUME.md](RESUME.md) (2026-09-21, commit `1ba1fe0e`). The immediate next work is
+reviewed connection-file listener startup. The entire plan remains in scope.
+
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,
 N1.11 real authentication/cancellation proof, and N1.12 bounded input/event queues
