@@ -13,7 +13,7 @@ func check(_ condition: @autoclosure () throws -> Bool, _ message: String) throw
 }
 final class Peer {
   let raw: UnsafeMutableRawPointer
-  init() { raw = native_test_peer_create(0)! }
+  init(reconnecting: Bool = false) { raw = reconnecting ? native_test_peer_create_reconnecting(0)! : native_test_peer_create(0)! }
   var endpoint: String { "127.0.0.1::\(native_test_peer_port(raw))" }
   func count(_ bytes: [UInt8]) -> UInt32 {
     bytes.withUnsafeBufferPointer { native_test_peer_count_clipboard(raw, $0.baseAddress, UInt32($0.count)) }
@@ -26,11 +26,17 @@ final class Peer {
   var content = NativePasteboardContent.unavailable
   var readError: NativePasteboardError?, writeError: NativePasteboardError?
   var racingWrite: String?
-  func read(expectedChange: Int, maximumBytes: Int) throws -> NativePasteboardContent {
+  var suspendRead = false
+  var readContinuation: CheckedContinuation<Void, Never>?
+  func resumeRead() { suspendRead = false; readContinuation?.resume(); readContinuation = nil }
+  func currentChange() -> Int { changeCount }
+  func read(expectedChange: Int, maximumBytes: Int) async throws -> NativePasteboardContent {
     reads += 1
-    if let readError { throw readError }
     if expectedChange != changeCount { throw NativePasteboardError.changed }
-    return content
+    let snapshot = content
+    if suspendRead { await withCheckedContinuation { readContinuation = $0 } }
+    if let readError { throw readError }
+    return snapshot
   }
   func writeRemote(_ text: String, maximumBytes: Int) throws -> Int {
     writes += 1
@@ -43,29 +49,33 @@ final class Peer {
 @MainActor func configuration() -> NativeSessionConfiguration {
   var value = NativeSessionConfiguration(); value.securityTypes = [1]; return value
 }
-@MainActor func adapterContract() throws {
+@MainActor func adapterContract() async throws {
   let board = NSPasteboard(name: NSPasteboard.Name("io.github.jkeli.tidyvnc.tests.\(UUID().uuidString)"))
   defer { board.releaseGlobally() }
   let adapter = NativePasteboard(board)
   board.clearContents(); board.setString("local\r\ntext", forType: .string)
   let old = board.changeCount
-  try check(try adapter.read(expectedChange: old, maximumBytes: 32) == .text("local\r\ntext"), "local plain text snapshot")
-  _ = try adapter.writeRemote("remote\ntext", maximumBytes: 32)
+  let snapshot1 = try await adapter.read(expectedChange: old, maximumBytes: 32)
+  try check(snapshot1 == .text("local\r\ntext"), "local plain text snapshot")
+  _ = try await adapter.writeRemote("remote\ntext", maximumBytes: 32)
   try check(board.string(forType: .string) == "remote\ntext", "real isolated pasteboard remote write")
-  try check(try adapter.read(expectedChange: board.changeCount, maximumBytes: 32) == .remote, "remote marker suppresses echo")
-  do { _ = try adapter.read(expectedChange: old, maximumBytes: 32); throw Failure(message: "stale read accepted") }
+  let snapshot2 = try await adapter.read(expectedChange: board.changeCount, maximumBytes: 32)
+  try check(snapshot2 == .remote, "remote marker suppresses echo")
+  do { _ = try await adapter.read(expectedChange: old, maximumBytes: 32); throw Failure(message: "stale read accepted") }
   catch NativePasteboardError.changed {}
   board.clearContents(); board.setString("", forType: .string)
-  try check(try adapter.read(expectedChange: board.changeCount, maximumBytes: 1) == .text(""), "empty text is distinct from unavailable")
+  let snapshot3 = try await adapter.read(expectedChange: board.changeCount, maximumBytes: 1)
+  try check(snapshot3 == .text(""), "empty text is distinct from unavailable")
   board.clearContents(); board.setString("éé", forType: .string)
-  do { _ = try adapter.read(expectedChange: board.changeCount, maximumBytes: 3); throw Failure(message: "UTF-8 byte limit ignored") }
+  do { _ = try await adapter.read(expectedChange: board.changeCount, maximumBytes: 3); throw Failure(message: "UTF-8 byte limit ignored") }
   catch NativePasteboardError.tooLarge {}
   let count = board.changeCount
-  do { _ = try adapter.writeRemote("a\0b", maximumBytes: 32); throw Failure(message: "NUL accepted") }
+  do { _ = try await adapter.writeRemote("a\0b", maximumBytes: 32); throw Failure(message: "NUL accepted") }
   catch NativePasteboardError.invalidText {}
   try check(board.changeCount == count, "invalid write preserves existing contents")
   board.clearContents(); board.setData(Data([1,2,3]), forType: .png)
-  try check(try adapter.read(expectedChange: board.changeCount, maximumBytes: 32) == .unavailable, "non-text format remains local")
+  let snapshot4 = try await adapter.read(expectedChange: board.changeCount, maximumBytes: 32)
+  try check(snapshot4 == .unavailable, "non-text format remains local")
   print("PASS isolated NSPasteboard formats, provenance, byte limits, stale reads and non-destructive validation")
 }
 @MainActor func routedPasteboard() async throws {
@@ -191,9 +201,100 @@ final class WeakReference<T: AnyObject> {
   try await runtime.shutdown()
   print("PASS automatic observation and weak coordinator disposal without a persistent timer/task")
 }
+// Exercise the actual serial executor with a blocking operation. The main actor
+// must continue, and a cancelled queued operation must never touch the board.
+final class WorkerProbe: @unchecked Sendable {
+  let release = DispatchSemaphore(value: 0)
+  private let lock = NSLock()
+  private var started = false, queuedRan = false
+  func markStarted() { lock.lock(); defer { lock.unlock() }; started = true }
+  func markQueued() { lock.lock(); defer { lock.unlock() }; queuedRan = true }
+  var state: (Bool, Bool) { lock.lock(); defer { lock.unlock() }; return (started, queuedRan) }
+}
+@MainActor func blockedWorker() async throws {
+  let board = NSPasteboard(name: .init("io.github.jkeli.tidyvnc.tests.\(UUID().uuidString)"))
+  defer { board.releaseGlobally() }
+  let worker = PasteboardWorker(board), probe = WorkerProbe()
+  let first = Task {
+    try await worker.perform { _ in
+      probe.markStarted()
+      guard probe.release.wait(timeout: .now() + 5) == .success else { throw Failure(message: "Main actor did not release worker") }
+      return Thread.isMainThread
+    }
+  }
+  defer { probe.release.signal() }
+  try await until("blocking worker started while MainActor remains responsive") { probe.state.0 }
+  let second = Task { try await worker.perform { _ in probe.markQueued(); return 1 } }
+  try await Task.sleep(for: .milliseconds(20))
+  try check(!probe.state.1, "worker operations are serialized")
+  second.cancel(); probe.release.signal()
+  let ranOnMain = try await first.value
+  try check(!ranOnMain, "blocking pasteboard work runs off main thread")
+  do { _ = try await second.value; throw Failure(message: "cancelled queued operation ran") }
+  catch is CancellationError {}
+  try check(!probe.state.1, "cancelled work never accesses pasteboard")
+  print("PASS blocked serial worker leaves MainActor responsive and skips cancelled queued access")
+}
+@MainActor func delayedReadRouting() async throws {
+  let runtime = try NativeRuntime(), peer = Peer(reconnecting: true), otherPeer = Peer()
+  let session = try runtime.makeSession(configuration: configuration())
+  let other = try runtime.makeSession(configuration: configuration())
+  _ = try await session.connect(endpoint: peer.endpoint)
+  _ = try await other.connect(endpoint: otherPeer.endpoint)
+  try session.setFocused(true); try other.setFocused(false)
+  let board = FakePasteboard()
+  let coordinator = NativeClipboardCoordinator(pasteboard: board, automaticPolling: false)
+  var messages: [String] = []
+  coordinator.register(session) { if let message = $0 { messages.append(message) } }
+  coordinator.register(other)
+  // Each gate simulates an OS read which ignores cancellation until it returns.
+  for scenario in 0..<7 {
+    try session.setClipboardPolicy(send: true, receive: true)
+    try session.setViewOnly(false)
+    try other.setFocused(false); try session.setFocused(true)
+    await Task.yield()
+    let stale = "delayed-\(scenario)"
+    board.local(stale); board.suspendRead = true; coordinator.poll()
+    try await until("read held open") { board.readContinuation != nil }
+    let reads = board.reads
+    for _ in 0..<100 { coordinator.poll() }
+    switch scenario {
+    case 0: board.local("replacement")
+    case 1: try session.setFocused(false); try other.setFocused(true)
+    case 2: try session.setClipboardPolicy(send: false, receive: true)
+    case 3: try session.setViewOnly(true)
+    case 4: coordinator.setApplicationActive(false)
+    case 5:
+      _ = try await session.disconnect()
+      _ = try await session.connect(endpoint: peer.endpoint)
+      try session.setFocused(true)
+    default: coordinator.stop()
+    }
+    // Change the board in focus/policy cases too, so any fresh eligible read is
+    // distinguishable from leaking the old result after cancellation.
+    if scenario != 0 { board.local("fresh-\(scenario)") }
+    for _ in 0..<100 { coordinator.poll() }
+    try await Task.sleep(for: .milliseconds(20))
+    try check(board.reads == reads, "no overlapping or unbounded reads while stalled")
+    board.resumeRead()
+    coordinator.poll()
+    if scenario == 0 {
+      try await until("latest clipboard after delayed read") { peer.count("replacement") == 1 }
+    } else if scenario == 1 {
+      try await until("new focus receives only fresh copy") { otherPeer.count("fresh-1") == 1 }
+    }
+    try await Task.sleep(for: .milliseconds(20))
+    try check(peer.count(stale) == 0 && otherPeer.count(stale) == 0, "stale clipboard never reaches either server")
+    if scenario == 4 { coordinator.setApplicationActive(true) }
+  }
+  await coordinator.close()
+  try check(messages.isEmpty, "discarded reads do not report errors")
+  try await runtime.shutdown()
+  print("PASS delayed reads coalesce and reject clipboard, focus, policy, view-only, activation, reconnect and stop changes")
+}
 @main struct NativeClipboardTests {
   @MainActor static func main() async {
-    do { try adapterContract(); try await routedPasteboard(); try await fakeFailuresAndCoalescing(); try await automaticObservationAndLifetime() }
+    do { try await blockedWorker(); try await adapterContract(); try await delayedReadRouting(); try await routedPasteboard(); try await fakeFailuresAndCoalescing(); try await automaticObservationAndLifetime() }
     catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }
 }

@@ -201,7 +201,8 @@ publishes callback-driven `NativeClipboardUpdate` values and observable focus;
 terminal state/close/reconnect clears obsolete presentation.
 
 `NativePasteboardAccess` is an injected MainActor contract, implemented by
-`NativePasteboard` using NSPasteboard. The app owns one `NativeClipboardCoordinator`
+`NativePasteboard` using NSPasteboard on a dedicated serial dispatch queue. All
+change-count checks, reads and writes are asynchronous to the main actor. The app owns one `NativeClipboardCoordinator`
 and registers each window's session weakly. Only one focused, connected, non-view-only
 desktop in the active app may share clipboard text. Ambiguous focus routes to none.
 Every focus/state/policy transition immediately invalidates queued host work, even
@@ -211,11 +212,15 @@ The toolbar's Clipboard sharing menu controls send and receive independently for
 each connection, including before connecting. Both default on, matching the core.
 
 A cancellable task observes change count every 250ms only while sending is eligible.
-There is at most one admitted transfer and one pending latest value. Jobs capture
-session generation and a routing epoch, recheck native change count before admission,
-and use checked async offer/withdraw. Native remote writes validate the receive route
-immediately before writing, without suspending MainActor. A custom type with a fresh
-UUID marks remote origin without storing an endpoint; focus changes, reconnects or
+There is at most one native operation/transfer in flight; poll ticks coalesce and
+only the latest pending remote update is retained. Reads capture session generation
+and a routing epoch, recheck both after suspension and native change count before
+admission, and use checked async offer/withdraw. Remote writes validate the receive
+route before worker admission. Cancellation skips queued native access; already
+executing OS calls cannot be interrupted, but their obsolete results are discarded.
+Focus changes cannot atomically revoke an OS write already executing. Shutdown
+asynchronously drains the admitted operation without blocking the UI thread.
+A custom type with a fresh UUID marks remote origin without storing an endpoint; focus changes, reconnects or
 app restarts cannot turn that copy into a local offer to another session. An ordinary
 new local copy replaces the marker. Registering a session never replays cached remote
 text. Unavailable/non-text copies withdraw protocol availability without clearing the
