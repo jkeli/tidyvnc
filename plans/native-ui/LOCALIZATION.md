@@ -136,3 +136,27 @@ add `--named-output` to select its `--verify --output DIRECTORY` interface. That
 fixture checks real AppKit window bounds, omission acknowledgement, stale reviews,
 source consent and IO drain with temporary source files and an in-memory store.
 It does not establish user-app interaction, VoiceOver, or import RTL acceptance.
+
+
+The source catalog now has **683** entries. Listener UI, status and fixed model
+errors are covered, including recovery after invalid ports/families, bind failure,
+queue overflow, delivery failure and unavailable incoming peers. Protocol family
+names and port syntax remain literal arguments in complete localized sentences.
+The port input has an explicit localized accessibility name. Shared document
+review/mapping content and controller-origin errors remain unfinished.
+
+Listener controls remain outside a single details scroller; peer actions have a
+separate row. The 660×472 content minimum is checked with ordinary and expanded
+text, including recovery states. A dark minimum-size end capture and scroll
+assertion cover the second peer's actions and complete policy notice. Run:
+
+```sh
+python3 tests/macos/localization-expansion.py \
+  build/native-ui-swift/tests/macos/native-listener-ui-tests.app/Contents/MacOS/native-listener-ui-tests \
+  apps/macos/Localizable.xcstrings /tmp/tidyvnc-listener-expanded --named-output
+```
+
+This fixture runs real loopback connections with isolated preferences; it does not
+use the user's profiles or credentials. It does not implement `--rtl`, and neither
+fixture rendering nor synthetic English expansion establishes VoiceOver, installed
+app, physical-network or translated-language acceptance.

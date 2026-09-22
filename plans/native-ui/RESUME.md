@@ -4,6 +4,36 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Listener localization and scrolling
+
+The catalog now has **683** English source entries. Listener headings, actions,
+status, preparation notices and fixed model recovery errors use stable IDs.
+Protocol names, addresses and numeric port syntax stay literal; port/family
+sentences use reorderable arguments. Shared document-review/mapping views and
+errors originating in their controllers still need localization.
+
+The listener keeps network/start/stop controls above one scrolling details area.
+Peer actions have their own row, and controls can stack when a horizontal row
+cannot fit. The TCP port field has an explicit localized accessibility name.
+The content minimum remains 660×472. Ordinary and expanded fixtures cover idle,
+incoming, stopped, invalid-port, missing-family, bind-error and file-review states.
+A scrolling assertion and dark capture show both peers' actions and the complete
+policy notice reachable at the minimum size. Synthetic expansion is not a shipping
+translation or RTL/VoiceOver/actual-user-app acceptance.
+
+Final listener UI/model CTest passes **1/1 (1.75 s)**, as does the expanded fixture.
+The final app build, strict deep signature, **683** packaged values/fallback/
+interpolation, **32** terminal cases, branding baseline **1650** and diff checks
+pass. Loopback handoff/authentication, file consent, credential consumption and
+shutdown assertions remain in the fixture. Protocol and persistence policy are
+unchanged. Full-suite/sanitizers were not rerun; deployment warnings remain.
+No CUA/user-app action was attempted. Exact evidence paths are in TODO.
+
+Continue document/defaults-import, app menus/connection/status and controlled
+controller/gateway error localization, plus actual window/accessibility acceptance.
+The entire unchecked parity, physical, installed-app, deployment, CI, performance
+and release plan remains in scope.
+
 ## Latest follow-up (2026-09-22) — Hosted window minimums
 
 Fresh regressions reproduced the history-import sizing bug in defaults import and

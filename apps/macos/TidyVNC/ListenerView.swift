@@ -14,66 +14,77 @@ struct ListenerView: View {
   }
   private var listener: some View {
     VStack(alignment:.leading,spacing:18) {
-      Text("Listen for Connections").font(.title2.bold())
-      Text("Start a listener, then ask the remote VNC server to connect to this Mac. Each accepted connection opens its own window.")
-        .fixedSize(horizontal:false,vertical:true).foregroundStyle(.secondary)
-      HStack {
-        Text("TCP port")
-        TextField("5500",text:$model.port).textFieldStyle(.roundedBorder).frame(width:100)
-          .accessibilityIdentifier("listener.port").disabled(!model.canStart)
-          .onSubmit { model.start() }
-        Toggle("IPv4",isOn:$model.ipv4).disabled(!model.canStart).accessibilityIdentifier("listener.ipv4")
-        Toggle("IPv6",isOn:$model.ipv6).disabled(!model.canStart).accessibilityIdentifier("listener.ipv6")
-        Spacer()
-        if model.canStop {
-          Button("Stop Listening") { model.stop() }.accessibilityIdentifier("listener.stop")
-        } else {
-          Button("Start Listening") { model.start() }.disabled(!model.canStart).accessibilityIdentifier("listener.start")
-        }
+      Text(String(localized:"listener.listen.for.connections", defaultValue:"Listen for Connections")).font(.title2.bold())
+      ViewThatFits(in:.horizontal) {
+        HStack { networkControls; Spacer(); listenAction }
+        VStack(alignment:.leading,spacing:12) { networkControls; listenAction }
       }
-      Text(status).font(.headline).accessibilityIdentifier("listener.status")
-      if !model.addresses.isEmpty {
-        ForEach(Array(model.addresses.enumerated()),id:\.offset) { _,address in
-          Text("\(address.host.contains(":") ? "IPv6" : "IPv4") port \(String(address.port))")
-            .monospacedDigit().textSelection(.enabled)
-        }
-      }
-      if let issue = model.issue { Text(issue).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("listener.error") }
-      Divider()
-      HStack { Text("Incoming Connections").font(.headline); Spacer(); Text("\(model.incoming.count)").foregroundStyle(.secondary) }
       ScrollView {
-        VStack(alignment:.leading,spacing:12) {
-          if model.incoming.isEmpty { Text("No incoming connections are waiting.").foregroundStyle(.secondary).padding(.vertical,12) }
-          ForEach(model.incoming) { peer in
-            HStack {
-              VStack(alignment:.leading,spacing:4) {
-                Text(peer.address.host).font(.headline).textSelection(.enabled)
-                Text("Source port \(String(peer.address.port))").font(.caption).foregroundStyle(.secondary)
-              }
-              Spacer()
-              if model.reserved.contains(peer.id) { ProgressView("Opening…").controlSize(.small) }
-              else {
-                Button("Reject") { model.reject(peer) }.disabled(!model.canAccept(peer))
-                  .accessibilityIdentifier("listener.reject.\(peer.id)")
-                Button("Accept") { model.accept(peer) }.disabled(!model.canAccept(peer))
-                  .accessibilityIdentifier("listener.accept.\(peer.id)")
-              }
-            }.padding(12).background(.quaternary,in:RoundedRectangle(cornerRadius:8))
+        VStack(alignment:.leading,spacing:18) {
+          Text(String(localized:"listener.start.a.listener.then.ask.the.remote.vnc.server.to.connect.to", defaultValue:"Start a listener, then ask the remote VNC server to connect to this Mac. Each accepted connection opens its own window."))
+            .fixedSize(horizontal:false,vertical:true).foregroundStyle(.secondary)
+          Text(status).font(.headline).accessibilityIdentifier("listener.status")
+          if !model.addresses.isEmpty {
+            ForEach(Array(model.addresses.enumerated()),id:\.offset) { _,address in
+              Text(String(localized:"listener.address.port", defaultValue:"\(address.host.contains(":") ? "IPv6" : "IPv4") port \(String(address.port))"))
+                .monospacedDigit().textSelection(.enabled)
+            }
           }
+          if let issue = model.issue { Text(issue).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("listener.error") }
+          Divider()
+          HStack { Text(String(localized:"listener.incoming.connections", defaultValue:"Incoming Connections")).font(.headline); Spacer(); Text(model.incoming.count.formatted()).foregroundStyle(.secondary) }
+          VStack(alignment:.leading,spacing:12) {
+            if model.incoming.isEmpty { Text(String(localized:"listener.no.incoming.connections.are.waiting", defaultValue:"No incoming connections are waiting.")).foregroundStyle(.secondary).padding(.vertical,12) }
+            ForEach(model.incoming) { peer in
+              VStack(alignment:.leading,spacing:12) {
+                VStack(alignment:.leading,spacing:4) {
+                  Text(peer.address.host).font(.headline).textSelection(.enabled)
+                  Text(String(localized:"listener.source.port", defaultValue:"Source port \(String(peer.address.port))")).font(.caption).foregroundStyle(.secondary)
+                }
+                if model.reserved.contains(peer.id) { ProgressView(String(localized:"listener.opening", defaultValue:"Opening…")).controlSize(.small) }
+                else {
+                  HStack {
+                    Button(String(localized:"listener.reject", defaultValue:"Reject")) { model.reject(peer) }.disabled(!model.canAccept(peer))
+                      .accessibilityIdentifier("listener.reject.\(peer.id)")
+                    Button(String(localized:"listener.accept", defaultValue:"Accept")) { model.accept(peer) }.disabled(!model.canAccept(peer))
+                      .accessibilityIdentifier("listener.accept.\(peer.id)")
+                  }
+                }
+              }.frame(maxWidth:.infinity,alignment:.leading).padding(12).background(.quaternary,in:RoundedRectangle(cornerRadius:8))
+            }
+          }.frame(maxWidth:.infinity,alignment:.leading)
+          Text(String(localized:"listener.waiting.connections.expire.after.30.seconds.stopping.the.listener.leaves.accepted.connections", defaultValue:"Waiting connections expire after 30 seconds. Stopping the listener leaves accepted connections open. Incoming connections use connection-only passwords and trust decisions; they are not saved to history."))
+            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
         }.frame(maxWidth:.infinity,alignment:.leading)
-      }.frame(minHeight:130)
-      Text("Waiting connections expire after 30 seconds. Stopping the listener leaves accepted connections open. Incoming connections use connection-only passwords and trust decisions; they are not saved to history.")
-        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+      }
     }.padding(24).frame(minWidth:660,minHeight:472)
+  }
+  private var networkControls: some View {
+    HStack {
+      Text(String(localized:"listener.tcp.port", defaultValue:"TCP port"))
+      TextField("5500",text:$model.port).textFieldStyle(.roundedBorder).frame(width:100)
+        .accessibilityIdentifier("listener.port").disabled(!model.canStart)
+        .accessibilityLabel(String(localized:"listener.tcp.port", defaultValue:"TCP port"))
+        .onSubmit { model.start() }
+      Toggle("IPv4",isOn:$model.ipv4).disabled(!model.canStart).accessibilityIdentifier("listener.ipv4")
+      Toggle("IPv6",isOn:$model.ipv6).disabled(!model.canStart).accessibilityIdentifier("listener.ipv6")
+    }
+  }
+  @ViewBuilder private var listenAction: some View {
+    if model.canStop {
+      Button(String(localized:"listener.stop.listening", defaultValue:"Stop Listening")) { model.stop() }.accessibilityIdentifier("listener.stop")
+    } else {
+      Button(String(localized:"listener.start.listening", defaultValue:"Start Listening")) { model.start() }.disabled(!model.canStart).accessibilityIdentifier("listener.start")
+    }
   }
   private var status: String {
     switch model.phase {
-    case .idle: "Ready to listen"
-    case .starting: "Starting listener…"
-    case .listening: "Listening for connections"
-    case .stopping: "Stopping listener…"
-    case .stopped: "Listener stopped"
-    case .failed: "Listener could not continue"
+    case .idle: String(localized:"listener.ready.to.listen", defaultValue:"Ready to listen")
+    case .starting: String(localized:"listener.starting.listener", defaultValue:"Starting listener…")
+    case .listening: String(localized:"listener.listening.for.connections", defaultValue:"Listening for connections")
+    case .stopping: String(localized:"listener.stopping.listener", defaultValue:"Stopping listener…")
+    case .stopped: String(localized:"listener.listener.stopped", defaultValue:"Listener stopped")
+    case .failed: String(localized:"listener.listener.could.not.continue", defaultValue:"Listener could not continue")
     }
   }
 }
@@ -85,10 +96,10 @@ private struct ListenerPreparationView: View {
   var body: some View {
     ScrollView {
       VStack(alignment:.leading,spacing:16) {
-        Text("Listen for Connections").font(.title2.bold())
-        Text("IPv4: \(model.ipv4 ? "enabled" : "disabled") · IPv6: \(model.ipv6 ? "enabled" : "disabled")")
+        Text(String(localized:"listener.listen.for.connections", defaultValue:"Listen for Connections")).font(.title2.bold())
+        Text(String(localized:"listener.families", defaultValue:"IPv4: \(model.ipv4 ? String(localized:"listener.family.enabled", defaultValue:"enabled") : String(localized:"listener.family.disabled", defaultValue:"disabled")) · IPv6: \(model.ipv6 ? String(localized:"listener.family.enabled", defaultValue:"enabled") : String(localized:"listener.family.disabled", defaultValue:"disabled"))"))
         if model.preparationCancelled {
-          Text("Listener launch cancelled. Close this window and reopen the file to try again.")
+          Text(String(localized:"listener.listener.launch.cancelled.close.this.window.and.reopen.the.file.to.try", defaultValue:"Listener launch cancelled. Close this window and reopen the file to try again."))
         } else if let mapping = preparation.documentMapping {
           DocumentMonitorMappingView(mapping:mapping,displays:displays,issue:preparation.documentIssue,
             resolve:{ preparation.resolveDocumentMapping(mapping.id,assignments:$0) },
@@ -99,12 +110,12 @@ private struct ListenerPreparationView: View {
             accept:{ model.acceptDocument(review.id) },cancel:{ model.cancelDocument(review.id) },listening:true)
         } else if let issue = preparation.documentIssue ?? preparation.invocationIssue {
           Text(issue).foregroundStyle(.red).accessibilityIdentifier("listener.document.error")
-          Button("Reload Connection File") { preparation.load() }.disabled(model.closing)
+          Button(String(localized:"listener.reload.connection.file", defaultValue:"Reload Connection File")) { preparation.load() }.disabled(model.closing)
         } else if preparation.error != nil {
-          Text("Saved defaults could not be loaded. Retry, or review the file using built-in defaults.")
-          Button("Retry Defaults") { preparation.load() }.disabled(model.closing)
-          Button("Use Built-in Defaults") { preparation.useBuiltInDefaults() }.disabled(model.closing)
-        } else { ProgressView("Loading listener settings…") }
+          Text(String(localized:"listener.saved.defaults.could.not.be.loaded.retry.or.review.the.file.using", defaultValue:"Saved defaults could not be loaded. Retry, or review the file using built-in defaults."))
+          Button(String(localized:"listener.retry.defaults", defaultValue:"Retry Defaults")) { preparation.load() }.disabled(model.closing)
+          Button(String(localized:"settings.inheritance.use.builtin.defaults", defaultValue:"Use Built-in Defaults")) { preparation.useBuiltInDefaults() }.disabled(model.closing)
+        } else { ProgressView(String(localized:"listener.loading.listener.settings", defaultValue:"Loading listener settings…")) }
       }.frame(maxWidth:.infinity,alignment:.leading).padding(24)
     }.frame(minWidth:660,minHeight:472)
   }
@@ -121,7 +132,7 @@ private struct ListenerPreparationView: View {
     self.model = model; self.onClosed = onClosed; self.onActivate = onActivate
     let window = NSWindow(contentRect:NSRect(x:0,y:0,width:700,height:560),
       styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
-    window.title = "Listen for Connections"; window.isReleasedWhenClosed = false
+    window.title = String(localized:"listener.listen.for.connections", defaultValue:"Listen for Connections"); window.isReleasedWhenClosed = false
     super.init(window:window); window.delegate = self
     let content = NSHostingController(rootView:ListenerView(model:model)); content.sizingOptions = [.minSize]
     hosting = content; window.contentViewController = content

@@ -7739,6 +7739,462 @@
           }
         }
       }
+    },
+    "listener.listen.for.connections": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen for Connections"
+          }
+        }
+      }
+    },
+    "listener.start.a.listener.then.ask.the.remote.vnc.server.to.connect.to": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a listener, then ask the remote VNC server to connect to this Mac. Each accepted connection opens its own window."
+          }
+        }
+      }
+    },
+    "listener.incoming.connections": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incoming Connections"
+          }
+        }
+      }
+    },
+    "listener.no.incoming.connections.are.waiting": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No incoming connections are waiting."
+          }
+        }
+      }
+    },
+    "listener.opening": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening…"
+          }
+        }
+      }
+    },
+    "listener.reject": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject"
+          }
+        }
+      }
+    },
+    "listener.accept": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept"
+          }
+        }
+      }
+    },
+    "listener.waiting.connections.expire.after.30.seconds.stopping.the.listener.leaves.accepted.connections": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting connections expire after 30 seconds. Stopping the listener leaves accepted connections open. Incoming connections use connection-only passwords and trust decisions; they are not saved to history."
+          }
+        }
+      }
+    },
+    "listener.tcp.port": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TCP port"
+          }
+        }
+      }
+    },
+    "listener.stop.listening": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Listening"
+          }
+        }
+      }
+    },
+    "listener.start.listening": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Listening"
+          }
+        }
+      }
+    },
+    "listener.ready.to.listen": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to listen"
+          }
+        }
+      }
+    },
+    "listener.starting.listener": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting listener…"
+          }
+        }
+      }
+    },
+    "listener.listening.for.connections": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening for connections"
+          }
+        }
+      }
+    },
+    "listener.stopping.listener": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping listener…"
+          }
+        }
+      }
+    },
+    "listener.listener.stopped": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listener stopped"
+          }
+        }
+      }
+    },
+    "listener.listener.could.not.continue": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listener could not continue"
+          }
+        }
+      }
+    },
+    "listener.listener.launch.cancelled.close.this.window.and.reopen.the.file.to.try": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listener launch cancelled. Close this window and reopen the file to try again."
+          }
+        }
+      }
+    },
+    "listener.reload.connection.file": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload Connection File"
+          }
+        }
+      }
+    },
+    "listener.saved.defaults.could.not.be.loaded.retry.or.review.the.file.using": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved defaults could not be loaded. Retry, or review the file using built-in defaults."
+          }
+        }
+      }
+    },
+    "listener.retry.defaults": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry Defaults"
+          }
+        }
+      }
+    },
+    "listener.loading.listener.settings": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading listener settings…"
+          }
+        }
+      }
+    },
+    "listener.address.port": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ port %@"
+          }
+        }
+      }
+    },
+    "listener.source.port": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source port %@"
+          }
+        }
+      }
+    },
+    "listener.family.enabled": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "enabled"
+          }
+        }
+      }
+    },
+    "listener.family.disabled": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disabled"
+          }
+        }
+      }
+    },
+    "listener.families": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IPv4: %@ · IPv6: %@"
+          }
+        }
+      }
+    },
+    "listener.saved.defaults.are.unavailable.reopen.the.application.to.review.this.listener.file": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved defaults are unavailable. Reopen the application to review this listener file."
+          }
+        }
+      }
+    },
+    "listener.enter.a.tcp.port.from.0.to.65535.port.0.chooses.an": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a TCP port from 0 to 65535. Port 0 chooses an available port."
+          }
+        }
+      }
+    },
+    "listener.enable.ipv4.or.ipv6.to.listen.for.connections": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable IPv4 or IPv6 to listen for connections."
+          }
+        }
+      }
+    },
+    "listener.the.listener.could.not.bind.this.port.check.whether.another.listener.is": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The listener could not bind this port. Check whether another listener is using it, or choose a different port."
+          }
+        }
+      }
+    },
+    "listener.the.incoming.connection.queue.filled.before.it.could.be.processed.start.the": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The incoming connection queue filled before it could be processed. Start the listener again."
+          }
+        }
+      }
+    },
+    "listener.the.listener.stopped.because.it.could.not.receive.incoming.connections.start.it": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The listener stopped because it could not receive incoming connections. Start it again to retry."
+          }
+        }
+      }
+    },
+    "listener.listener.updates.could.not.be.delivered.stop.and.restart.the.listener": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listener updates could not be delivered. Stop and restart the listener."
+          }
+        }
+      }
+    },
+    "listener.the.listener.could.not.start.check.its.port.and.network.settings.then": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The listener could not start. Check its port and network settings, then retry."
+          }
+        }
+      }
+    },
+    "listener.a.reviewed.display.is.disconnected.reconnect.it.or.close.this.listener.and": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A reviewed display is disconnected. Reconnect it, or close this listener and reopen the file to choose displays."
+          }
+        }
+      }
+    },
+    "listener.a.connection.window.could.not.be.opened.try.again.or.reject.the": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A connection window could not be opened. Try again or reject the incoming connection."
+          }
+        }
+      }
+    },
+    "listener.this.incoming.connection.is.no.longer.available": {
+      "comment": "Native listener presentation. Interpolated protocol names and ports remain literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This incoming connection is no longer available."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

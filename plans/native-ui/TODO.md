@@ -2,10 +2,12 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **645** entries;
-profile/history/import localization joins the migrated settings groups. Defaults
-import and listener fixtures now also prove preserved hosted content minima. Next: remaining menu/connection/document/listener/status
-localization and fixed controller/gateway errors. Interactive/physical/installed acceptance and release gates stay open.
+implementation, validation and next steps. The catalog now has **683** entries;
+listener localization joins profile/history/import and migrated settings groups.
+Listener fixtures prove stable content minima and scrolling to remaining peer
+actions and policy notices with expanded text. Next: remaining menu/connection/
+document/defaults-import/status localization and fixed controller/gateway errors.
+Interactive/physical/installed acceptance and release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
 file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
@@ -8882,3 +8884,49 @@ Images: `/tmp/tidyvnc-listen-ui-images/*minimum*.png`,
 `build/native-ui-swift/tests/macos/{import-ui-render,defaults-mapping-ui-render}/*minimum*.png`.
 All process handles completed. Continue the entire unchecked checklist, including
 remaining localization and actual startup/reverse-window/accessibility acceptance.
+
+
+### 2026-09-22 — Listener localization and expanded scrolling
+
+Localized listener titles/actions/status, preparation guidance and fixed model
+recovery errors. Address-family/port messages have whole-sentence catalog entries
+with literal protocol/port arguments; TCP port entry syntax remains unchanged.
+The catalog has **683** English source entries. Shared document review/mapping
+presentation and controller-origin errors remain part of unfinished N4.16.
+
+Network controls and Start/Stop stay above a single scrolling details area;
+ViewThatFits can stack controls when needed. Peer actions use a separate row.
+The TCP port field has an explicit localized accessibility name. The existing
+660×472 content floor remains stable through normal and preparation states.
+
+NativeListenerUITests now accepts `--output DIRECTORY`, so the expansion runner
+can use it with `--named-output`; `listener.` is in the default expansion prefixes.
+Added minimum-size invalid-port, no-family, bind-error and scrolled incoming
+captures. A scroll assertion checks content overflow and a nonzero scroll offset;
+visual inspection of the final dark end capture confirms both peer action rows
+and the entire waiting/password/trust/history notice are visible. Light expanded
+validation/bind errors and file-review viewport were also inspected. Captures show
+the current viewport, not all content at once. The fixture does not implement RTL.
+
+Validation:
+
+- Native listener target build passes. Initial UI/model CTest **1/1 (1.62 s)**;
+  final run with scrolling assertion **1/1 (1.75 s)**. Final expanded fixture passes.
+  Existing real loopback admission, authentication, stopped-listener isolation,
+  CLI/file launch consent, one-use credentials and shutdown assertions still run.
+- Final app build and strict deep signature pass. Bundle regression verifies
+  **683** values, fallbacks and interpolation, including listener ports and family
+  states. Actual executable terminal cases **32/32** pass; branding baseline
+  **1650** and diff checks pass.
+- Expansion emits the existing temporary-app sandbox-extension diagnostic but
+  exits successfully with all assertions passed. No full-suite/sanitizer rerun;
+  newer dependency target warnings still prevent minimum-macOS acceptance.
+- No new actual-user-app, VoiceOver, RTL, physical network/display/input,
+  installed-app or release acceptance. No CUA action attempted.
+
+Evidence: `/tmp/tidyvnc-listener-localization-{build,tests,expanded,final-build,
+final-tests,final-expanded,app,bundle,terminal,branding}.log`.
+Images: `/tmp/tidyvnc-listener-expanded-final/` and
+`/tmp/tidyvnc-listen-ui-images/`. All process handles completed. Continue the entire
+unchecked checklist; remaining localization includes shared document/defaults-import
+flows, app menus/connection/status and controlled controller/gateway errors.

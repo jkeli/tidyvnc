@@ -28,8 +28,12 @@ final class Peer: @unchecked Sendable {
   }
   deinit { native_test_peer_destroy(raw) }
 }
-@MainActor func render(_ controller: ListenerWindowController,_ name: String, minimum: Bool = false, dark: Bool = false) async throws {
-  let root = URL(fileURLWithPath:"/tmp/tidyvnc-listen-ui-images")
+@MainActor func render(_ controller: ListenerWindowController,_ name: String, minimum: Bool = false, dark: Bool = false, scrollToEnd: Bool = false) async throws {
+  let arguments = CommandLine.arguments
+  let output = arguments.firstIndex(of:"--output").flatMap { index in
+    arguments.indices.contains(index+1) ? arguments[index+1] : nil
+  } ?? "/tmp/tidyvnc-listen-ui-images"
+  let root = URL(fileURLWithPath:output)
   try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
   guard let window = controller.window, let view = window.contentView else { throw Failure(message:"Missing listener window") }
   window.setContentSize(minimum ? NSSize(width:660,height:472) : NSSize(width:700,height:560))
@@ -37,6 +41,18 @@ final class Peer: @unchecked Sendable {
   view.appearance = window.appearance
   view.layoutSubtreeIfNeeded(); window.displayIfNeeded()
   try await Task.sleep(for:.milliseconds(60))
+  func scrollViews(_ view: NSView) -> [NSScrollView] {
+    (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews($0) }
+  }
+  guard let scroll = scrollViews(view).first, let document = scroll.documentView else {
+    throw Failure(message:"Missing listener details scroll area")
+  }
+  document.scroll(NSPoint(x:0,y:scrollToEnd ? document.bounds.maxY : 0))
+  scroll.reflectScrolledClipView(scroll.contentView)
+  if scrollToEnd {
+    try check(document.bounds.height > scroll.contentView.bounds.height && scroll.contentView.bounds.origin.y > 0,
+      "remaining peers and listener policy notice are reachable by scrolling")
+  }
   try check(abs(window.contentMinSize.width-660) < 1 && abs(window.contentMinSize.height-472) < 1,
     "listener minimum survives hosting: \(window.contentMinSize)")
   guard let fitting = controller.contentSizeThatFits(view.bounds.size) else { throw Failure(message:"Missing listener content") }
@@ -62,8 +78,10 @@ final class Peer: @unchecked Sendable {
   try await render(controller,"idle-minimum",minimum:true)
   listener.port = "65536"; listener.start()
   try check(listener.issue != nil && listener.phase == .idle,"port validation before opening sockets")
+  try await render(controller,"invalid-port-minimum",minimum:true)
   listener.port = "0"; listener.ipv4 = false; listener.ipv6 = false; listener.start()
   try check(listener.issue != nil && listener.phase == .idle,"one address family required")
+  try await render(controller,"no-family-minimum-dark",minimum:true,dark:true)
   listener.ipv4 = true; listener.start(); listener.stop()
   try await until("stop during start") { listener.phase == .stopped }
   try check(listener.addresses.isEmpty,"stopped launch never publishes a late listener")
@@ -74,6 +92,7 @@ final class Peer: @unchecked Sendable {
   try await until("two incoming") { listener.incoming.count == 2 }
   try await render(controller,"incoming")
   try await render(controller,"incoming-minimum-dark",minimum:true,dark:true)
+  try await render(controller,"incoming-minimum-end-dark",minimum:true,dark:true,scrollToEnd:true)
   let a = listener.incoming[0], b = listener.incoming[1]
   listener.accept(a); listener.accept(a)
   try check(models.count == 1,"one window reservation per peer")
@@ -91,7 +110,10 @@ final class Peer: @unchecked Sendable {
   let conflict = ListenerModel(runtime:runtime) { _ in false }; conflict.port = String(port); conflict.ipv6 = false
   conflict.start(); try await until("bind conflict") { conflict.phase == .failed }
   try check(conflict.issue != nil,"bind failure recovery notice")
-  await conflict.close()
+  let conflictController = ListenerWindowController(model:conflict) { _ in }
+  conflictController.showWindow(nil)
+  try await render(conflictController,"bind-error-minimum",minimum:true)
+  await conflictController.shutdown()
   listener.stop(); try await until("stop") { listener.phase == .stopped }
   try check(models.allSatisfy { $0.session?.snapshot.state == .connected },"stopping leaves accepted windows connected")
   try await render(controller,"stopped")
