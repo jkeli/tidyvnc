@@ -6,13 +6,13 @@ public enum NativeDocumentSaveError: Error, Equatable, Sendable, CustomStringCon
   case invalidDestination, denied, changed, overwriteRequired, busy, writeFailed, committedUncertain
   public var description: String {
     switch self {
-    case .invalidDestination: "Choose a regular .tidyvnc file in an existing folder. Symbolic links and special files cannot be replaced."
-    case .denied: "The connection file cannot be written here. Check access or choose another location."
-    case .changed: "The destination changed after selection. Choose it again before saving."
-    case .overwriteRequired: "Confirm replacement of the existing connection file before saving."
-    case .busy: "Another save is using this folder. Try again when it finishes."
-    case .writeFailed: "The connection file could not be saved. The destination was not replaced."
-    case .committedUncertain: "The file was replaced, but the final save check failed. Inspect the destination before retrying."
+    case .invalidDestination: String(localized:"document.choose.a.regular.tidyvnc.file.in.an.existing.folder.symbolic.links.and", defaultValue:"Choose a regular .tidyvnc file in an existing folder. Symbolic links and special files cannot be replaced.")
+    case .denied: String(localized:"document.the.connection.file.cannot.be.written.here.check.access.or.choose.another", defaultValue:"The connection file cannot be written here. Check access or choose another location.")
+    case .changed: String(localized:"document.the.destination.changed.after.selection.choose.it.again.before.saving", defaultValue:"The destination changed after selection. Choose it again before saving.")
+    case .overwriteRequired: String(localized:"document.confirm.replacement.of.the.existing.connection.file.before.saving", defaultValue:"Confirm replacement of the existing connection file before saving.")
+    case .busy: String(localized:"document.another.save.is.using.this.folder.try.again.when.it.finishes", defaultValue:"Another save is using this folder. Try again when it finishes.")
+    case .writeFailed: String(localized:"document.the.connection.file.could.not.be.saved.the.destination.was.not.replaced", defaultValue:"The connection file could not be saved. The destination was not replaced.")
+    case .committedUncertain: String(localized:"document.the.file.was.replaced.but.the.final.save.check.failed.inspect.the", defaultValue:"The file was replaced, but the final save check failed. Inspect the destination before retrying.")
     }
   }
 }

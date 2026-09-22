@@ -45,19 +45,19 @@ public struct NativeInvocationResolutionFailure: Error, Sendable, Equatable, Cus
   public var description: String {
     let message: String
     switch reason {
-    case .notLaunch: message = "Help and version requests do not create a connection."
-    case .unsupportedOption: message = "A command-line option needs a native adapter that is not available yet."
-    case .invalidEndpoint: message = "The command-line server address is invalid."
-    case .invalidValue: message = "A command-line value cannot be applied to this connection."
-    case .displayMappingRequired: message = "Resolve the command-line monitor selection before continuing."
-    case .relativePathNeedsBase: message = "Resolve the command-line file path before continuing."
-    case .invalidListenPort: message = "The listen port must be a decimal number from 0 to 65535."
-    case .listenSocketUnsupported: message = "Listening on a Unix socket is not supported. Supply a TCP port or connection file instead."
-    case .invalidTunnelTarget: message = "SSH forwarding requires a supported TCP server address. Unix socket targets are not supported."
-    case .tunnelListenUnsupported: message = "SSH forwarding cannot be combined with listening for connections."
-    case .customTunnelCommandUnsupported: message = "VNC_VIA_CMD shell customizations are not supported. Unset VNC_VIA_CMD to use native SSH forwarding."
+    case .notLaunch: message = String(localized:"document.help.and.version.requests.do.not.create.a.connection", defaultValue:"Help and version requests do not create a connection.")
+    case .unsupportedOption: message = String(localized:"document.a.command.line.option.needs.a.native.adapter.that.is.not.available", defaultValue:"A command-line option needs a native adapter that is not available yet.")
+    case .invalidEndpoint: message = String(localized:"document.the.command.line.server.address.is.invalid", defaultValue:"The command-line server address is invalid.")
+    case .invalidValue: message = String(localized:"document.a.command.line.value.cannot.be.applied.to.this.connection", defaultValue:"A command-line value cannot be applied to this connection.")
+    case .displayMappingRequired: message = String(localized:"document.resolve.the.command.line.monitor.selection.before.continuing", defaultValue:"Resolve the command-line monitor selection before continuing.")
+    case .relativePathNeedsBase: message = String(localized:"document.resolve.the.command.line.file.path.before.continuing", defaultValue:"Resolve the command-line file path before continuing.")
+    case .invalidListenPort: message = String(localized:"document.the.listen.port.must.be.a.decimal.number.from.0.to.65535", defaultValue:"The listen port must be a decimal number from 0 to 65535.")
+    case .listenSocketUnsupported: message = String(localized:"document.listening.on.a.unix.socket.is.not.supported.supply.a.tcp.port", defaultValue:"Listening on a Unix socket is not supported. Supply a TCP port or connection file instead.")
+    case .invalidTunnelTarget: message = String(localized:"document.ssh.forwarding.requires.a.supported.tcp.server.address.unix.socket.targets.are", defaultValue:"SSH forwarding requires a supported TCP server address. Unix socket targets are not supported.")
+    case .tunnelListenUnsupported: message = String(localized:"document.ssh.forwarding.cannot.be.combined.with.listening.for.connections", defaultValue:"SSH forwarding cannot be combined with listening for connections.")
+    case .customTunnelCommandUnsupported: message = String(localized:"document.vnc.via.cmd.shell.customizations.are.not.supported.unset.vnc.via.cmd", defaultValue:"VNC_VIA_CMD shell customizations are not supported. Unset VNC_VIA_CMD to use native SSH forwarding.")
     }
-    return argument == 0 ? message : "Argument \(argument): \(message)"
+    return argument == 0 ? message : String(localized:"document.error.argument", defaultValue:"Argument \(argument.formatted()): \(message)")
   }
 }
 

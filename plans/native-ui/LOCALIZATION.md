@@ -138,12 +138,12 @@ source consent and IO drain with temporary source files and an in-memory store.
 It does not establish user-app interaction, VoiceOver, or import RTL acceptance.
 
 
-The source catalog now has **683** entries. Listener UI, status and fixed model
+The listener checkpoint brought the source catalog to **683** entries. Listener UI, status and fixed model
 errors are covered, including recovery after invalid ports/families, bind failure,
 queue overflow, delivery failure and unavailable incoming peers. Protocol family
 names and port syntax remain literal arguments in complete localized sentences.
 The port input has an explicit localized accessibility name. Shared document
-review/mapping content and controller-origin errors remain unfinished.
+review/mapping content and file-related errors are covered by the follow-up below.
 
 Listener controls remain outside a single details scroller; peer actions have a
 separate row. The 660×472 content minimum is checked with ordinary and expanded
@@ -160,3 +160,30 @@ This fixture runs real loopback connections with isolated preferences; it does n
 use the user's profiles or credentials. It does not implement `--rtl`, and neither
 fixture rendering nor synthetic English expansion establishes VoiceOver, installed
 app, physical-network or translated-language acceptance.
+
+
+The source catalog now has **796** entries. Document review, mapping and export
+flows include reader/writer/codec/resolution diagnostics and shared invocation
+resolution failures. File and command-line monitor labels use separate complete
+sentences so translations need not splice a source prefix into English grammar.
+Line annotations also use complete format entries. Names, endpoint/filename text
+and unknown-field names are literal arguments; unknown values are never displayed.
+Number formatting is presentation-only: compatibility serialization, protocol
+identifiers, stored display IDs and accepted numeric input syntax are untouched.
+
+Document review and display mapping keep actions outside one details scroller;
+mapping errors and unavailable-display guidance stay visible above the actions,
+with a specific error taking precedence over generic unavailable-display guidance.
+pickers have persistent labels with matching accessibility names. Outbound fixture
+content is checked at 640×420, listener at 660×472, export at 560×600. The ordinary
+review may fit completely; when expanded text overflows, the fixture checks and
+captures scrolling to the remaining assignments and guidance. The export fixture
+also scrolls through all loss notices without changing the sheet identity or
+handing off to the writer early.
+
+Use the expansion command above with either
+`native-document-mapping-ui-tests.app/Contents/MacOS/native-document-mapping-ui-tests`
+or `native-export-mapping-ui-tests.app/Contents/MacOS/native-export-mapping-ui-tests`
+and `--named-output`. `document.` is included by default. These fixtures do not
+implement `--rtl`. Remaining app menus/connection/status, defaults-import, file
+panels and other controlled errors still require localization; N4.16 stays open.

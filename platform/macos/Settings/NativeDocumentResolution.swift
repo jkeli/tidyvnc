@@ -22,12 +22,12 @@ public struct NativeDocumentResolutionFailure: Error, Equatable, Sendable, Custo
   public let line: UInt32
   public var description: String {
     switch reason {
-    case .reviewRequired: "Review the ignored connection-file fields before continuing."
-    case .invalidEndpoint: "The connection file contains an invalid server address."
-    case .displayMappingRequired: "Resolve the connection file's monitor selection before continuing."
-    case .relativePathNeedsBase: "Resolve the connection file's relative verification-file path before continuing."
-    case .unrepresentableField: "The connection file contains a setting this native viewer cannot apply."
-    case .invalidListenPort: "The connection file's ServerName must be empty or a decimal listen port from 0 to 65535."
+    case .reviewRequired: String(localized:"document.review.the.ignored.connection.file.fields.before.continuing", defaultValue:"Review the ignored connection-file fields before continuing.")
+    case .invalidEndpoint: String(localized:"document.the.connection.file.contains.an.invalid.server.address", defaultValue:"The connection file contains an invalid server address.")
+    case .displayMappingRequired: String(localized:"document.resolve.the.connection.file.s.monitor.selection.before.continuing", defaultValue:"Resolve the connection file's monitor selection before continuing.")
+    case .relativePathNeedsBase: String(localized:"document.resolve.the.connection.file.s.relative.verification.file.path.before.continuing", defaultValue:"Resolve the connection file's relative verification-file path before continuing.")
+    case .unrepresentableField: String(localized:"document.the.connection.file.contains.a.setting.this.native.viewer.cannot.apply", defaultValue:"The connection file contains a setting this native viewer cannot apply.")
+    case .invalidListenPort: String(localized:"document.the.connection.file.s.servername.must.be.empty.or.a.decimal.listen", defaultValue:"The connection file's ServerName must be empty or a decimal listen port from 0 to 65535.")
     }
   }
 }

@@ -8195,6 +8195,1362 @@
           }
         }
       }
+    },
+    "document.review.connection.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Connection File"
+          }
+        }
+      }
+    },
+    "document.no.server.address.is.stored.in.this.file.enter.one.after.opening": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No server address is stored in this file. Enter one after opening."
+          }
+        }
+      }
+    },
+    "document.file.settings.override.saved.defaults.and.command.line.settings.for.every.accepted": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File settings override saved defaults and command-line settings for every accepted incoming connection. Start Listening binds this port; port 0 chooses an available port. Saved preferences are unchanged."
+          }
+        }
+      }
+    },
+    "document.file.settings.override.saved.defaults.for.this.new.connection.opening.does.not": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File settings override saved defaults for this new connection. Opening does not connect or change saved preferences."
+          }
+        }
+      }
+    },
+    "document.these.fields.will.be.ignored": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These fields will be ignored:"
+          }
+        }
+      }
+    },
+    "document.displays.for.this.connection": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Displays for this connection"
+          }
+        }
+      }
+    },
+    "document.unavailable.display": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable display"
+          }
+        }
+      }
+    },
+    "document.these.assignments.follow.the.current.display.arrangement.left.to.right.and.then": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These assignments follow the current display arrangement, left to right and then top to bottom. Change them if this file came from another arrangement."
+          }
+        }
+      }
+    },
+    "document.these.are.the.display.assignments.you.chose.for.this.connection": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are the display assignments you chose for this connection."
+          }
+        }
+      }
+    },
+    "document.change.display.assignments": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change Display Assignments…"
+          }
+        }
+      }
+    },
+    "document.ignore.listed.fields.and.listen": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignore Listed Fields and Listen"
+          }
+        }
+      }
+    },
+    "document.ignore.listed.fields.and.open": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignore Listed Fields and Open"
+          }
+        }
+      }
+    },
+    "document.saved.display": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved display"
+          }
+        }
+      }
+    },
+    "document.listen.port": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TCP listen port: %@"
+          }
+        }
+      }
+    },
+    "document.server": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server: %@"
+          }
+        }
+      }
+    },
+    "document.notice.platform": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line %@: %@ — Unavailable on macOS"
+          }
+        }
+      }
+    },
+    "document.notice.unknown": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line %@: %@ — Unknown field"
+          }
+        }
+      }
+    },
+    "document.monitor.commandline.assignment": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command-line monitor %@: %@"
+          }
+        }
+      }
+    },
+    "document.monitor.file.assignment": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File monitor %@: %@"
+          }
+        }
+      }
+    },
+    "document.choose.displays.for.command.line.options": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Displays for Command-Line Options"
+          }
+        }
+      }
+    },
+    "document.choose.displays.for.this.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Displays for This File"
+          }
+        }
+      }
+    },
+    "document.the.connection.file.inherits.these.command.line.monitor.numbers.choose.which.connected": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file inherits these command-line monitor numbers. Choose which connected display each number should use."
+          }
+        }
+      }
+    },
+    "document.monitor.numbers.belong.to.the.computer.that.saved.the.file.choose.which": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor numbers belong to the computer that saved the file. Choose which connected display each number should use here."
+          }
+        }
+      }
+    },
+    "document.review.connection": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Connection"
+          }
+        }
+      }
+    },
+    "document.choose.which.connected.display.each.command.line.monitor.number.should.use.for": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose which connected display each command-line monitor number should use for this connection."
+          }
+        }
+      }
+    },
+    "document.connect": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect"
+          }
+        }
+      }
+    },
+    "document.choose.a.display": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a display"
+          }
+        }
+      }
+    },
+    "document.disconnected.display": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnected display"
+          }
+        }
+      }
+    },
+    "document.several.monitor.numbers.may.use.the.same.display.that.display.will.be": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Several monitor numbers may use the same display; that display will be used once. This choice applies only to this connection and does not change saved settings."
+          }
+        }
+      }
+    },
+    "document.display.information.is.unavailable.connect.a.display.and.refresh.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display information is unavailable. Connect a display and refresh before continuing."
+          }
+        }
+      }
+    },
+    "document.refresh.displays": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Displays"
+          }
+        }
+      }
+    },
+    "document.monitor.commandline.label": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command-line monitor %@"
+          }
+        }
+      }
+    },
+    "document.monitor.file.label": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File monitor %@"
+          }
+        }
+      }
+    },
+    "document.review.connection.export": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Connection Export"
+          }
+        }
+      }
+    },
+    "document.this.file.will.contain.settings.without.a.server.address": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file will contain settings without a server address."
+          }
+        }
+      }
+    },
+    "document.the.file.will.contain.a.snapshot.of.this.connection.s.settings.passwords": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file will contain a snapshot of this connection's settings. Passwords and saved trust decisions are excluded."
+          }
+        }
+      }
+    },
+    "document.display.numbers.in.the.exported.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display numbers in the exported file"
+          }
+        }
+      }
+    },
+    "document.change.exported.monitor.numbers": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change Exported Monitor Numbers…"
+          }
+        }
+      }
+    },
+    "document.settings.the.file.cannot.preserve": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings the file cannot preserve"
+          }
+        }
+      }
+    },
+    "document.continue.to.save": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to Save…"
+          }
+        }
+      }
+    },
+    "document.choose.exported.monitor.numbers": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Exported Monitor Numbers"
+          }
+        }
+      }
+    },
+    "document.the.file.format.uses.monitor.numbers.instead.of.saved.display.identities.assign": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file format uses monitor numbers instead of saved display identities. Assign the numbers the receiving viewer should use, including for displays currently disconnected from this Mac."
+          }
+        }
+      }
+    },
+    "document.use.a.different.positive.whole.number.for.each.display.these.choices.affect": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a different positive whole number for each display. These choices affect only the exported file; this connection keeps its selected displays."
+          }
+        }
+      }
+    },
+    "document.review.export": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Export"
+          }
+        }
+      }
+    },
+    "document.saving.connection.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving connection file…"
+          }
+        }
+      }
+    },
+    "document.dismiss": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        }
+      }
+    },
+    "document.export.monitor.assignment": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: monitor %@"
+          }
+        }
+      }
+    },
+    "document.save.success": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved %@"
+          }
+        }
+      }
+    },
+    "document.the.connection.file.is.empty": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file is empty."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.header.is.unsupported": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file header is unsupported."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.contains.a.null.byte": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file contains a null byte."
+          }
+        }
+      }
+    },
+    "document.a.connection.file.line.exceeds.its.byte.limit": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A connection-file line exceeds its byte limit."
+          }
+        }
+      }
+    },
+    "document.a.connection.file.assignment.is.malformed": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A connection-file assignment is malformed."
+          }
+        }
+      }
+    },
+    "document.a.connection.file.value.contains.an.invalid.escape": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A connection-file value contains an invalid escape."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.exceeds.its.size.limit": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file exceeds its size limit."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.contains.too.many.assignments": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file contains too many assignments."
+          }
+        }
+      }
+    },
+    "document.a.field.cannot.be.exported.to.a.connection.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A field cannot be exported to a connection file."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.is.not.valid.utf.8": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file is not valid UTF-8."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.entry.does.not.exist": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection-file entry does not exist."
+          }
+        }
+      }
+    },
+    "document.a.connection.file.option.has.an.invalid.value": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A connection-file option has an invalid value."
+          }
+        }
+      }
+    },
+    "document.a.connection.file.option.is.unavailable.in.this.build": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A connection-file option is unavailable in this build."
+          }
+        }
+      }
+    },
+    "document.connection.file.export.size.changed": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection-file export size changed"
+          }
+        }
+      }
+    },
+    "document.error.line": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line %@: %@"
+          }
+        }
+      }
+    },
+    "document.review.the.ignored.connection.file.fields.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the ignored connection-file fields before continuing."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.contains.an.invalid.server.address": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file contains an invalid server address."
+          }
+        }
+      }
+    },
+    "document.resolve.the.connection.file.s.monitor.selection.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve the connection file's monitor selection before continuing."
+          }
+        }
+      }
+    },
+    "document.resolve.the.connection.file.s.relative.verification.file.path.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve the connection file's relative verification-file path before continuing."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.contains.a.setting.this.native.viewer.cannot.apply": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file contains a setting this native viewer cannot apply."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.s.servername.must.be.empty.or.a.decimal.listen": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file's ServerName must be empty or a decimal listen port from 0 to 65535."
+          }
+        }
+      }
+    },
+    "document.remote.resize.settings.are.not.supported.by.this.connection.file.format.the": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote-resize settings are not supported by this connection-file format. The receiving viewer will use its own settings."
+          }
+        }
+      }
+    },
+    "document.ipv4.and.ipv6.settings.are.not.supported.by.this.connection.file.format": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IPv4 and IPv6 settings are not supported by this connection-file format. The receiving viewer will use its own IP version settings."
+          }
+        }
+      }
+    },
+    "document.pointer.event.timing.is.not.supported.by.this.connection.file.format.the": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pointer-event timing is not supported by this connection-file format. The receiving viewer will use its own pointer timing."
+          }
+        }
+      }
+    },
+    "document.the.incoming.clipboard.size.limit.is.not.supported.by.this.connection.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The incoming clipboard size limit is not supported by this connection-file format. The receiving viewer will use its own limit."
+          }
+        }
+      }
+    },
+    "document.initial.window.size.position.and.maximization.are.not.supported.by.this.connection": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial window size, position and maximization are not supported by this connection-file format. The receiving viewer will use its own window settings."
+          }
+        }
+      }
+    },
+    "document.stable.display.identities.become.the.monitor.numbers.listed.in.this.review.the": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stable display identities become the monitor numbers listed in this review. The receiving viewer interprets those numbers using its own display arrangement."
+          }
+        }
+      }
+    },
+    "document.the.ssh.gateway.cannot.be.saved.in.this.connection.file.format.opening": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The SSH gateway cannot be saved in this connection-file format. Opening the exported file will connect directly unless you configure the SSH gateway separately."
+          }
+        }
+      }
+    },
+    "document.fields.ignored.when.opening.the.original.file.will.not.be.copied.to": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fields ignored when opening the original file will not be copied to the exported file."
+          }
+        }
+      }
+    },
+    "document.review.the.settings.that.cannot.be.preserved.before.exporting": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the settings that cannot be preserved before exporting."
+          }
+        }
+      }
+    },
+    "document.this.file.format.cannot.preserve.the.custom.tls.priority.policy.use.a": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file format cannot preserve the custom TLS priority policy. Use a native profile to retain it."
+          }
+        }
+      }
+    },
+    "document.the.selected.displays.cannot.be.mapped.to.current.monitor.numbers.resolve.the": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected displays cannot be mapped to current monitor numbers. Resolve the display selection before exporting."
+          }
+        }
+      }
+    },
+    "document.a.connection.setting.cannot.be.represented.in.this.file.correct.it.before": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A connection setting cannot be represented in this file. Correct it before exporting."
+          }
+        }
+      }
+    },
+    "document.finish.the.current.connection.operation.or.settings.edit.before.exporting": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish the current connection operation or settings edit before exporting."
+          }
+        }
+      }
+    },
+    "document.assign.a.different.positive.monitor.number.to.every.saved.display.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assign a different positive monitor number to every saved display before continuing."
+          }
+        }
+      }
+    },
+    "document.help.and.version.requests.do.not.create.a.connection": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help and version requests do not create a connection."
+          }
+        }
+      }
+    },
+    "document.a.command.line.option.needs.a.native.adapter.that.is.not.available": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A command-line option needs a native adapter that is not available yet."
+          }
+        }
+      }
+    },
+    "document.the.command.line.server.address.is.invalid": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The command-line server address is invalid."
+          }
+        }
+      }
+    },
+    "document.a.command.line.value.cannot.be.applied.to.this.connection": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A command-line value cannot be applied to this connection."
+          }
+        }
+      }
+    },
+    "document.resolve.the.command.line.monitor.selection.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve the command-line monitor selection before continuing."
+          }
+        }
+      }
+    },
+    "document.resolve.the.command.line.file.path.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolve the command-line file path before continuing."
+          }
+        }
+      }
+    },
+    "document.the.listen.port.must.be.a.decimal.number.from.0.to.65535": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The listen port must be a decimal number from 0 to 65535."
+          }
+        }
+      }
+    },
+    "document.listening.on.a.unix.socket.is.not.supported.supply.a.tcp.port": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening on a Unix socket is not supported. Supply a TCP port or connection file instead."
+          }
+        }
+      }
+    },
+    "document.ssh.forwarding.requires.a.supported.tcp.server.address.unix.socket.targets.are": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH forwarding requires a supported TCP server address. Unix socket targets are not supported."
+          }
+        }
+      }
+    },
+    "document.ssh.forwarding.cannot.be.combined.with.listening.for.connections": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH forwarding cannot be combined with listening for connections."
+          }
+        }
+      }
+    },
+    "document.vnc.via.cmd.shell.customizations.are.not.supported.unset.vnc.via.cmd": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VNC_VIA_CMD shell customizations are not supported. Unset VNC_VIA_CMD to use native SSH forwarding."
+          }
+        }
+      }
+    },
+    "document.error.argument": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Argument %@: %@"
+          }
+        }
+      }
+    },
+    "document.the.connection.file.could.not.be.read.check.its.location.and.access": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file could not be read. Check its location and access, then retry."
+          }
+        }
+      }
+    },
+    "document.select.a.regular.connection.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a regular connection file."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.exceeds.the.1.mib.limit": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file exceeds the 1 MiB limit."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.changed.while.being.read.retry.to.review.its.current": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file changed while being read. Retry to review its current contents."
+          }
+        }
+      }
+    },
+    "document.opening.the.connection.file.was.cancelled": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening the connection file was cancelled."
+          }
+        }
+      }
+    },
+    "document.the.display.arrangement.changed.review.the.file.s.monitor.selection.again": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The display arrangement changed. Review the file's monitor selection again."
+          }
+        }
+      }
+    },
+    "document.choose.a.regular.tidyvnc.file.in.an.existing.folder.symbolic.links.and": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a regular .tidyvnc file in an existing folder. Symbolic links and special files cannot be replaced."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.cannot.be.written.here.check.access.or.choose.another": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file cannot be written here. Check access or choose another location."
+          }
+        }
+      }
+    },
+    "document.the.destination.changed.after.selection.choose.it.again.before.saving": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The destination changed after selection. Choose it again before saving."
+          }
+        }
+      }
+    },
+    "document.confirm.replacement.of.the.existing.connection.file.before.saving": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm replacement of the existing connection file before saving."
+          }
+        }
+      }
+    },
+    "document.another.save.is.using.this.folder.try.again.when.it.finishes": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another save is using this folder. Try again when it finishes."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.could.not.be.saved.the.destination.was.not.replaced": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file could not be saved. The destination was not replaced."
+          }
+        }
+      }
+    },
+    "document.the.file.was.replaced.but.the.final.save.check.failed.inspect.the": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The file was replaced, but the final save check failed. Inspect the destination before retrying."
+          }
+        }
+      }
+    },
+    "document.choose.a.connected.display.for.every.monitor.number.before.continuing": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a connected display for every monitor number before continuing."
+          }
+        }
+      }
+    },
+    "document.the.connection.file.s.settings.could.not.be.applied.check.the.file": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection file's settings could not be applied. Check the file and compiled capabilities, then retry."
+          }
+        }
+      }
+    },
+    "document.the.command.line.settings.could.not.be.applied.review.the.options.and": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The command-line settings could not be applied. Review the options and retry."
+          }
+        }
+      }
+    },
+    "document.command.line.display.selection.was.cancelled": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command-line display selection was cancelled."
+          }
+        }
+      }
+    },
+    "document.error.description.line": {
+      "comment": "Native connection-file presentation. Names, addresses and paths are literal arguments; translators may reorder placeholders. Protocol field names are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (Line %@)"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

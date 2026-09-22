@@ -4,6 +4,42 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Connection-file review/export localization
+
+The catalog now has **796** English source entries. Connection-file review,
+file/inherited/direct command-line display mapping, export mapping/loss review,
+save status, reader/writer/codec diagnostics and shared invocation-resolution
+errors use stable IDs. File and command-line monitor labels are separate complete
+sentences; display names, field names, addresses and filenames remain literal
+arguments. Display/line numbers use localized presentation while serialized
+monitor numbers, protocol fields and entered port/monitor syntax remain unchanged.
+
+Review and mapping views put their details in one scroller with actions outside.
+Display pickers have persistent wrapping labels and matching accessibility names.
+Listener preparation now hosts those bounded views directly, retaining 660×472
+content minimums and visible review actions. Outbound mapping/review fixtures fit
+640×420; export mapping/loss review retains the 560×600 sheet. Expanded light/dark
+captures include review scrolling, errors, sparse monitor numbers and listener
+file review. These fixtures do not implement RTL and do not prove VoiceOver or
+actual-user-app acceptance.
+
+Seven of eight initial document/listener tests passed; the new scroll assertion
+incorrectly required ordinary English content to overflow. Inspection showed all
+content visible. After making scrolling conditional on overflow, document mapping
+passes **1/1 (2.10 s)**. Invocation precedence/recovery passes **2/2 (0.46 s)**.
+All three expanded document/export/listener fixtures pass. Final capture review
+found a mapping error below the fold; errors/unavailable-display guidance now stay
+above the action buttons. Corrected expanded captures pass, including no connected
+displays, and final document/listener tests pass **2/2 (4.09 s)**. Final app build/signature,
+**796** packaged values/fallback/interpolation, **32** terminal cases, branding
+baseline **1650** and diff checks pass. No full-suite/sanitizer rerun; newer
+macOS dependency warnings remain. No CUA/user-app action was attempted.
+
+Continue defaults-import, app menus/connection/status and file panels, and other
+controlled controller/gateway error localization. All unchecked parity, actual
+window/accessibility, physical, installed-app, deployment, CI, performance and
+release requirements remain in scope. Exact evidence is in TODO.
+
 ## Latest follow-up (2026-09-22) — Listener localization and scrolling
 
 The catalog now has **683** English source entries. Listener headings, actions,

@@ -92,11 +92,12 @@ struct ExportFixtureView: View {
     let directory = URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true)
     try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
     sheet.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
-    view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(150)); view.layoutSubtreeIfNeeded()
+    view.appearance = sheet.appearance
+    view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(150)); view.layoutSubtreeIfNeeded(); sheet.displayIfNeeded()
     guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing bitmap") }
-    view.cacheDisplay(in:view.bounds,to:bitmap)
+    view.effectiveAppearance.performAsCurrentDrawingAppearance { view.cacheDisplay(in:view.bounds,to:bitmap) }
     try bitmap.representation(using:.png,properties:[:])!.write(to:directory.appendingPathComponent(name+".png"))
-    try check(view.fittingSize.height <= view.bounds.height+1,"sheet content fits height: \(view.fittingSize) in \(view.bounds.size)")
+    try check(view.fittingSize.width <= view.bounds.width+1 && view.fittingSize.height <= view.bounds.height+1,"sheet content fits height: \(view.fittingSize) in \(view.bounds.size)")
   }
   func verify() async throws {
     try projection()
@@ -108,6 +109,7 @@ struct ExportFixtureView: View {
     try check(state.mapping?.id == initial.id,"stale mapping resolve ignored")
     state.resolveMapping(initial.id,indices:[left:7,absent:7])
     try check(state.issue != nil && state.mapping != nil && state.choosing == nil,"duplicate numbers cannot advance")
+    try await render("mapping-error")
     state.resolveMapping(initial.id,indices:[left:7,absent:9])
     try await until { state.review != nil }
     try await render("review")

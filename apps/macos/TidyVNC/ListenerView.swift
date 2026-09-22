@@ -94,30 +94,29 @@ private struct ListenerPreparationView: View {
   @ObservedObject var preparation: NativeSessionDefaults
   @ObservedObject var displays: NativeDisplayService
   var body: some View {
-    ScrollView {
-      VStack(alignment:.leading,spacing:16) {
-        Text(String(localized:"listener.listen.for.connections", defaultValue:"Listen for Connections")).font(.title2.bold())
-        Text(String(localized:"listener.families", defaultValue:"IPv4: \(model.ipv4 ? String(localized:"listener.family.enabled", defaultValue:"enabled") : String(localized:"listener.family.disabled", defaultValue:"disabled")) · IPv6: \(model.ipv6 ? String(localized:"listener.family.enabled", defaultValue:"enabled") : String(localized:"listener.family.disabled", defaultValue:"disabled"))"))
-        if model.preparationCancelled {
-          Text(String(localized:"listener.listener.launch.cancelled.close.this.window.and.reopen.the.file.to.try", defaultValue:"Listener launch cancelled. Close this window and reopen the file to try again."))
-        } else if let mapping = preparation.documentMapping {
-          DocumentMonitorMappingView(mapping:mapping,displays:displays,issue:preparation.documentIssue,
-            resolve:{ preparation.resolveDocumentMapping(mapping.id,assignments:$0) },
-            cancel:{ model.cancelDocument(mapping.id,mapping:true) }).id(mapping.id)
-        } else if let review = preparation.documentReview {
-          DocumentReviewView(review:review,displays:displays,
-            editMapping:{ preparation.editDocumentMapping(review.id) },
-            accept:{ model.acceptDocument(review.id) },cancel:{ model.cancelDocument(review.id) },listening:true)
-        } else if let issue = preparation.documentIssue ?? preparation.invocationIssue {
-          Text(issue).foregroundStyle(.red).accessibilityIdentifier("listener.document.error")
-          Button(String(localized:"listener.reload.connection.file", defaultValue:"Reload Connection File")) { preparation.load() }.disabled(model.closing)
-        } else if preparation.error != nil {
-          Text(String(localized:"listener.saved.defaults.could.not.be.loaded.retry.or.review.the.file.using", defaultValue:"Saved defaults could not be loaded. Retry, or review the file using built-in defaults."))
-          Button(String(localized:"listener.retry.defaults", defaultValue:"Retry Defaults")) { preparation.load() }.disabled(model.closing)
-          Button(String(localized:"settings.inheritance.use.builtin.defaults", defaultValue:"Use Built-in Defaults")) { preparation.useBuiltInDefaults() }.disabled(model.closing)
-        } else { ProgressView(String(localized:"listener.loading.listener.settings", defaultValue:"Loading listener settings…")) }
-      }.frame(maxWidth:.infinity,alignment:.leading).padding(24)
-    }.frame(minWidth:660,minHeight:472)
+    VStack(alignment:.leading,spacing:16) {
+      Text(String(localized:"listener.listen.for.connections", defaultValue:"Listen for Connections")).font(.title2.bold())
+      Text(String(localized:"listener.families", defaultValue:"IPv4: \(model.ipv4 ? String(localized:"listener.family.enabled", defaultValue:"enabled") : String(localized:"listener.family.disabled", defaultValue:"disabled")) · IPv6: \(model.ipv6 ? String(localized:"listener.family.enabled", defaultValue:"enabled") : String(localized:"listener.family.disabled", defaultValue:"disabled"))"))
+      if model.preparationCancelled {
+        Text(String(localized:"listener.listener.launch.cancelled.close.this.window.and.reopen.the.file.to.try", defaultValue:"Listener launch cancelled. Close this window and reopen the file to try again."))
+      } else if let mapping = preparation.documentMapping {
+        DocumentMonitorMappingView(mapping:mapping,displays:displays,issue:preparation.documentIssue,
+          resolve:{ preparation.resolveDocumentMapping(mapping.id,assignments:$0) },
+          cancel:{ model.cancelDocument(mapping.id,mapping:true) }).id(mapping.id)
+      } else if let review = preparation.documentReview {
+        DocumentReviewView(review:review,displays:displays,
+          editMapping:{ preparation.editDocumentMapping(review.id) },
+          accept:{ model.acceptDocument(review.id) },cancel:{ model.cancelDocument(review.id) },listening:true)
+      } else if let issue = preparation.documentIssue ?? preparation.invocationIssue {
+        Text(issue).foregroundStyle(.red).accessibilityIdentifier("listener.document.error")
+        Button(String(localized:"listener.reload.connection.file", defaultValue:"Reload Connection File")) { preparation.load() }.disabled(model.closing)
+      } else if preparation.error != nil {
+        Text(String(localized:"listener.saved.defaults.could.not.be.loaded.retry.or.review.the.file.using", defaultValue:"Saved defaults could not be loaded. Retry, or review the file using built-in defaults."))
+        Button(String(localized:"listener.retry.defaults", defaultValue:"Retry Defaults")) { preparation.load() }.disabled(model.closing)
+        Button(String(localized:"settings.inheritance.use.builtin.defaults", defaultValue:"Use Built-in Defaults")) { preparation.useBuiltInDefaults() }.disabled(model.closing)
+      } else { ProgressView(String(localized:"listener.loading.listener.settings", defaultValue:"Loading listener settings…")) }
+    }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topLeading).padding(24)
+      .frame(minWidth:660,minHeight:472)
   }
 }
 

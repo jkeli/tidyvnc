@@ -242,7 +242,7 @@ public enum NativeSessionDefaultsPurpose: Sendable { case connection, listener }
     guard !stopped, !isLoading, !isReady, session == nil, let mapping = documentMapping, mapping.id == id else { return }
     let available = availableDocumentDisplays()
     guard Set(assignments.keys) == Set(mapping.numbers), assignments.values.allSatisfy({ available.contains($0) }) else {
-      documentIssue = "Choose a connected display for every monitor number before continuing."; return
+      documentIssue = String(localized:"document.choose.a.connected.display.for.every.monitor.number.before.continuing", defaultValue:"Choose a connected display for every monitor number before continuing."); return
     }
     do {
       let resolution = try NativeDocumentResolution(document:mapping.document,base:mapping.base,
@@ -262,10 +262,10 @@ public enum NativeSessionDefaultsPurpose: Sendable { case connection, listener }
     guard !stopped else { return }
     if let failure = failure as? NativeInvocationResolutionFailure { invocationIssue = failure.description }
     else if let failure = failure as? NativeDocumentFailure { documentIssue = failure.description }
-    else if let failure = failure as? NativeDocumentResolutionFailure { documentIssue = failure.description + (failure.line == 0 ? "" : " (Line \(failure.line))") }
+    else if let failure = failure as? NativeDocumentResolutionFailure { documentIssue = failure.line == 0 ? failure.description : String(localized:"document.error.description.line", defaultValue:"\(failure.description) (Line \(failure.line.formatted()))") }
     else if let failure = failure as? NativeDocumentOpenError { documentIssue = failure.description }
     else if failure is CancellationError { documentIssue = NativeDocumentOpenError.cancelled.description }
-    else { documentIssue = "The connection file's settings could not be applied. Check the file and compiled capabilities, then retry." }
+    else { documentIssue = String(localized:"document.the.connection.file.s.settings.could.not.be.applied.check.the.file", defaultValue:"The connection file's settings could not be applied. Check the file and compiled capabilities, then retry.") }
   }
   public func acceptDocument(_ id: UUID) {
     guard !stopped, !isLoading, !isReady, session == nil, let review = documentReview, review.id == id else { return }
@@ -303,11 +303,11 @@ public enum NativeSessionDefaultsPurpose: Sendable { case connection, listener }
       try install(inherited,profile:profile,configuration:resolution.configuration)
       invocationMapping = nil; invocationIssue = nil
     } catch let failure as NativeInvocationResolutionFailure { invocationIssue = failure.description }
-    catch { invocationIssue = "The command-line settings could not be applied. Review the options and retry." }
+    catch { invocationIssue = String(localized:"document.the.command.line.settings.could.not.be.applied.review.the.options.and", defaultValue:"The command-line settings could not be applied. Review the options and retry.") }
   }
   public func cancelInvocationMapping(_ id: UUID) {
     guard !stopped, !isLoading, !isReady, invocationMapping?.id == id else { return }
-    invocationMapping = nil; invocationIssue = "Command-line display selection was cancelled."
+    invocationMapping = nil; invocationIssue = String(localized:"document.command.line.display.selection.was.cancelled", defaultValue:"Command-line display selection was cancelled.")
   }
   private func resolveConfiguration(_ values: NativePreferences, profile: NativeConnectionProfile?) throws
     -> (configuration:NativeSessionConfiguration,compatibility:NativeCompatibilityState?,invocation:NativeInvocationPreparation?) {

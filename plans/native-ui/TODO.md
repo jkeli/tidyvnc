@@ -2,11 +2,11 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **683** entries;
-listener localization joins profile/history/import and migrated settings groups.
-Listener fixtures prove stable content minima and scrolling to remaining peer
-actions and policy notices with expanded text. Next: remaining menu/connection/
-document/defaults-import/status localization and fixed controller/gateway errors.
+implementation, validation and next steps. The catalog now has **796** entries;
+connection-file review/export, display mapping and shared file/invocation diagnostics
+join listener, profile/history/import and settings coverage. Expanded review and
+mapping layouts keep actions visible at minimum sizes. Next: defaults-import,
+app menus/connection/status, file panels and other controller/gateway errors.
 Interactive/physical/installed acceptance and release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
@@ -562,14 +562,15 @@ UI uses, with migration and credential behavior verified independently.
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
-  - Latest follow-ups bring the catalog to 645 source entries. Profile/history/import
-    presentation, endpoint diagnostics and minimum-window fixes join settings subfields,
-    fullscreen/resize defaults and session controls, fixed draft/server results and
-    profile inheritance labels are covered. Bounded scrolling and expanded/RTL
-    fixtures catch truncated controls and display rows; physical coordinate maps
-    keep their actual order under RTL. Remaining menu/connection/document/
-    listener/status strings and controller/gateway errors plus interactive acceptance
-    remain open. See LOCALIZATION.md and the latest evidence log.
+  - Latest follow-ups bring the catalog to 796 source entries. Connection-file
+    review/export, display mapping and shared file/invocation diagnostics join
+    listener, profile/history/import, endpoint, settings and structured connection
+    errors. Bounded scrolling and expanded fixtures expose controls and details at
+    minimum sizes; physical display maps keep their actual order under RTL in the
+    settings fixtures. Document/listener fixtures do not implement RTL. Remaining
+    defaults-import, app menus/connection/status, file panels and other controller/
+    gateway errors plus interactive acceptance remain open. See LOCALIZATION.md
+    and the latest evidence log.
   - Credential/password-file status, saved-trust storage notices and the trust
     library now add 60 catalog entries (228 total). Complete localized status
     sentences take literal diagnostic arguments; saved fingerprint text has
@@ -8930,3 +8931,69 @@ Images: `/tmp/tidyvnc-listener-expanded-final/` and
 `/tmp/tidyvnc-listen-ui-images/`. All process handles completed. Continue the entire
 unchecked checklist; remaining localization includes shared document/defaults-import
 flows, app menus/connection/status and controlled controller/gateway errors.
+
+
+### 2026-09-22 — Connection-file review, mapping, export and diagnostics localization
+
+Added 113 entries (**796** total) covering document review, file/inherited/direct
+CLI display choice, exported numbering, loss review, save status and fixed
+codec/reader/writer/resolution errors. Shared invocation-resolution failures and
+NativeSessionDefaults document/CLI recovery text are also localized. Whole
+sentences replace concatenated source labels and line annotations. The packaged
+regression checks sparse Int32 monitor numbers, UInt32 line numbers and literal
+percent/Unicode names, endpoints and filenames. Unknown field values remain absent
+from notices; protocol strings, file serialization and stored identities are unchanged.
+
+Review/mapping details now have a single scroller with actions outside. Display
+pickers have visible wrapping labels and matching accessibility names. Document
+review actions adapt between a row and column. Export mapping uses the same bounded
+scroll layout within its existing 560×600 sheet. Listener preparation hosts review/
+mapping directly so their confirmation actions remain visible at 660×472. Its
+minimum-size assertions and existing loopback/consent/credential tests still pass.
+
+The document mapping fixture now renders 640×420 content (matching ConnectionRoot),
+including mapping errors and file/direct-CLI review. It scrolls overflowing review
+content and captures the end. Export adds an invalid-number capture, width checking
+and explicit light/dark host appearance. The expansion runner includes `document.`
+and runs all three app fixtures via `--named-output`.
+
+Validation:
+
+- Initial document/listener selection: **7/8 (6.84 s)**. The new scroll assertion
+  failed because ordinary English review content already fit entirely; the capture
+  confirmed complete content. Changed the assertion to require a nonzero offset
+  only when content overflows. Final document mapping **1/1 (2.10 s)** passes.
+- Invocation resolution/monitor precedence **2/2 (0.46 s)** passes. The eight distinct
+  document/listener checks have passing current evidence: codec, resolution,
+  admission, live export, atomic save, display mapping, export sheet and listener.
+  Their existing identity/consent/topology/private-output checks remain intact.
+- Expanded document mapping/review, export mapping/loss review and listener file
+  review all pass. Inspected minimum review/top/end, direct-CLI picker, error,
+  export light/dark and listener file-review PNGs. English full-content fit and
+  expanded scroll reachability are both covered. Captures show only the viewport.
+- Final app build, strict deep signature, **796** bundle values/fallback/interpolation,
+  **32/32** actual executable terminal cases, branding baseline **1650** and diff
+  checks pass. Expansion emits the known temporary-app sandbox-extension diagnostic
+  but exits successfully with all fixture assertions passed.
+- No full-suite/sanitizer, RTL, actual-user-app, VoiceOver, physical, installed-app
+  or release acceptance inferred. Newer dependency deployment warnings remain.
+  No CUA action attempted. N4.16/N4.17 and the full unchecked plan remain open.
+
+Evidence: `/tmp/tidyvnc-document-localization-{build,tests,render-build,
+invocation-build,invocation-tests,final-review-tests,review-expanded,export-expanded,
+listener-expanded,app,bundle,terminal,branding}.log`.
+Images: `/tmp/tidyvnc-document-{review,export,listener}-expanded/`, plus native
+`document-mapping-ui-render` and `export-mapping-ui-render` fixture directories.
+Final screenshot review caught expanded mapping errors below the scroll boundary.
+Moved the specific error (or generic unavailable-display guidance when no specific
+error exists) above the action controls, with wrapped text. Added a no-connected-
+displays fixture. Final expanded error and unavailable-display minimum captures
+show the entire notice; final document/listener CTests pass **2/2 (4.09 s)**.
+Rebuilt app/signature, **796** bundle values and **32** terminal cases pass again.
+Final evidence: `/tmp/tidyvnc-document-localization-final-{layout-build,fixture-build,
+layout-tests,review-expanded,app,bundle,terminal}.log`; corrected document captures
+are in `/tmp/tidyvnc-document-review-expanded-final/`.
+
+All process handles completed. Next: defaults-import, app menus/connection/status,
+file panels and remaining controlled controller/gateway error localization, while
+continuing all broader acceptance and release requirements.

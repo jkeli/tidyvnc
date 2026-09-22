@@ -50,7 +50,7 @@ public struct NativeDocumentSavePresentation: Identifiable, Sendable {
     do {
       let export = try mapping.capture.makeExport(monitorIndices:indices)
       pending = export; review = export; self.mapping = nil; issue = nil
-    } catch { issue = "Assign a different positive monitor number to every saved display before continuing." }
+    } catch { issue = String(localized:"document.assign.a.different.positive.monitor.number.to.every.saved.display.before.continuing", defaultValue:"Assign a different positive monitor number to every saved display before continuing.") }
   }
   public func cancelPresentation(_ id: UUID) {
     guard presentation?.id == id else { return }

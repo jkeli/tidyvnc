@@ -5,14 +5,14 @@ public enum NativeDocumentExportLoss: String, CaseIterable, Hashable, Sendable {
   case remoteResize, networkFamilies, pointerTiming, clipboardLimit, windowPlacement, displayIdentity, ignoredInput, sshGateway
   public var description: String {
     switch self {
-    case .remoteResize: "Remote-resize settings are not supported by this connection-file format. The receiving viewer will use its own settings."
-    case .networkFamilies: "IPv4 and IPv6 settings are not supported by this connection-file format. The receiving viewer will use its own IP version settings."
-    case .pointerTiming: "Pointer-event timing is not supported by this connection-file format. The receiving viewer will use its own pointer timing."
-    case .clipboardLimit: "The incoming clipboard size limit is not supported by this connection-file format. The receiving viewer will use its own limit."
-    case .windowPlacement: "Initial window size, position and maximization are not supported by this connection-file format. The receiving viewer will use its own window settings."
-    case .displayIdentity: "Stable display identities become the monitor numbers listed in this review. The receiving viewer interprets those numbers using its own display arrangement."
-    case .sshGateway: "The SSH gateway cannot be saved in this connection-file format. Opening the exported file will connect directly unless you configure the SSH gateway separately."
-    case .ignoredInput: "Fields ignored when opening the original file will not be copied to the exported file."
+    case .remoteResize: String(localized:"document.remote.resize.settings.are.not.supported.by.this.connection.file.format.the", defaultValue:"Remote-resize settings are not supported by this connection-file format. The receiving viewer will use its own settings.")
+    case .networkFamilies: String(localized:"document.ipv4.and.ipv6.settings.are.not.supported.by.this.connection.file.format", defaultValue:"IPv4 and IPv6 settings are not supported by this connection-file format. The receiving viewer will use its own IP version settings.")
+    case .pointerTiming: String(localized:"document.pointer.event.timing.is.not.supported.by.this.connection.file.format.the", defaultValue:"Pointer-event timing is not supported by this connection-file format. The receiving viewer will use its own pointer timing.")
+    case .clipboardLimit: String(localized:"document.the.incoming.clipboard.size.limit.is.not.supported.by.this.connection.file", defaultValue:"The incoming clipboard size limit is not supported by this connection-file format. The receiving viewer will use its own limit.")
+    case .windowPlacement: String(localized:"document.initial.window.size.position.and.maximization.are.not.supported.by.this.connection", defaultValue:"Initial window size, position and maximization are not supported by this connection-file format. The receiving viewer will use its own window settings.")
+    case .displayIdentity: String(localized:"document.stable.display.identities.become.the.monitor.numbers.listed.in.this.review.the", defaultValue:"Stable display identities become the monitor numbers listed in this review. The receiving viewer interprets those numbers using its own display arrangement.")
+    case .sshGateway: String(localized:"document.the.ssh.gateway.cannot.be.saved.in.this.connection.file.format.opening", defaultValue:"The SSH gateway cannot be saved in this connection-file format. Opening the exported file will connect directly unless you configure the SSH gateway separately.")
+    case .ignoredInput: String(localized:"document.fields.ignored.when.opening.the.original.file.will.not.be.copied.to", defaultValue:"Fields ignored when opening the original file will not be copied to the exported file.")
     }
   }
 }
@@ -20,11 +20,11 @@ public enum NativeDocumentExportError: Error, Equatable, Sendable, CustomStringC
   case reviewRequired, securityPolicy, displayMapping, invalidConfiguration, unavailable
   public var description: String {
     switch self {
-    case .reviewRequired: "Review the settings that cannot be preserved before exporting."
-    case .securityPolicy: "This file format cannot preserve the custom TLS priority policy. Use a native profile to retain it."
-    case .displayMapping: "The selected displays cannot be mapped to current monitor numbers. Resolve the display selection before exporting."
-    case .invalidConfiguration: "A connection setting cannot be represented in this file. Correct it before exporting."
-    case .unavailable: "Finish the current connection operation or settings edit before exporting."
+    case .reviewRequired: String(localized:"document.review.the.settings.that.cannot.be.preserved.before.exporting", defaultValue:"Review the settings that cannot be preserved before exporting.")
+    case .securityPolicy: String(localized:"document.this.file.format.cannot.preserve.the.custom.tls.priority.policy.use.a", defaultValue:"This file format cannot preserve the custom TLS priority policy. Use a native profile to retain it.")
+    case .displayMapping: String(localized:"document.the.selected.displays.cannot.be.mapped.to.current.monitor.numbers.resolve.the", defaultValue:"The selected displays cannot be mapped to current monitor numbers. Resolve the display selection before exporting.")
+    case .invalidConfiguration: String(localized:"document.a.connection.setting.cannot.be.represented.in.this.file.correct.it.before", defaultValue:"A connection setting cannot be represented in this file. Correct it before exporting.")
+    case .unavailable: String(localized:"document.finish.the.current.connection.operation.or.settings.edit.before.exporting", defaultValue:"Finish the current connection operation or settings edit before exporting.")
     }
   }
 }

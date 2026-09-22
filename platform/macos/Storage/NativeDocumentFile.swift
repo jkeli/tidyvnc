@@ -6,12 +6,12 @@ public enum NativeDocumentOpenError: Error, Equatable, Sendable, CustomStringCon
   case unreadable, notRegular, tooLarge, changed, cancelled, topologyChanged
   public var description: String {
     switch self {
-    case .unreadable: "The connection file could not be read. Check its location and access, then retry."
-    case .notRegular: "Select a regular connection file."
-    case .tooLarge: "The connection file exceeds the 1 MiB limit."
-    case .changed: "The connection file changed while being read. Retry to review its current contents."
-    case .cancelled: "Opening the connection file was cancelled."
-    case .topologyChanged: "The display arrangement changed. Review the file's monitor selection again."
+    case .unreadable: String(localized:"document.the.connection.file.could.not.be.read.check.its.location.and.access", defaultValue:"The connection file could not be read. Check its location and access, then retry.")
+    case .notRegular: String(localized:"document.select.a.regular.connection.file", defaultValue:"Select a regular connection file.")
+    case .tooLarge: String(localized:"document.the.connection.file.exceeds.the.1.mib.limit", defaultValue:"The connection file exceeds the 1 MiB limit.")
+    case .changed: String(localized:"document.the.connection.file.changed.while.being.read.retry.to.review.its.current", defaultValue:"The connection file changed while being read. Retry to review its current contents.")
+    case .cancelled: String(localized:"document.opening.the.connection.file.was.cancelled", defaultValue:"Opening the connection file was cancelled.")
+    case .topologyChanged: String(localized:"document.the.display.arrangement.changed.review.the.file.s.monitor.selection.again", defaultValue:"The display arrangement changed. Review the file's monitor selection again.")
     }
   }
 }

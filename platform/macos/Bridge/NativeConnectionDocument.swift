@@ -17,21 +17,21 @@ public struct NativeDocumentFailure: Error, Sendable, Equatable, CustomStringCon
   public var description: String {
     let message: String
     switch problem {
-    case .empty: message = "The connection file is empty."
-    case .invalidHeader: message = "The connection file header is unsupported."
-    case .nullByte: message = "The connection file contains a null byte."
-    case .lineTooLong: message = "A connection-file line exceeds its byte limit."
-    case .invalidAssignment: message = "A connection-file assignment is malformed."
-    case .invalidEscape: message = "A connection-file value contains an invalid escape."
-    case .tooLarge: message = "The connection file exceeds its size limit."
-    case .tooManyEntries: message = "The connection file contains too many assignments."
-    case .invalidExportName: message = "A field cannot be exported to a connection file."
-    case .invalidText: message = "The connection file is not valid UTF-8."
-    case .invalidIndex: message = "The connection-file entry does not exist."
-    case .invalidValue: message = "A connection-file option has an invalid value."
-    case .unavailable: message = "A connection-file option is unavailable in this build."
+    case .empty: message = String(localized:"document.the.connection.file.is.empty", defaultValue:"The connection file is empty.")
+    case .invalidHeader: message = String(localized:"document.the.connection.file.header.is.unsupported", defaultValue:"The connection file header is unsupported.")
+    case .nullByte: message = String(localized:"document.the.connection.file.contains.a.null.byte", defaultValue:"The connection file contains a null byte.")
+    case .lineTooLong: message = String(localized:"document.a.connection.file.line.exceeds.its.byte.limit", defaultValue:"A connection-file line exceeds its byte limit.")
+    case .invalidAssignment: message = String(localized:"document.a.connection.file.assignment.is.malformed", defaultValue:"A connection-file assignment is malformed.")
+    case .invalidEscape: message = String(localized:"document.a.connection.file.value.contains.an.invalid.escape", defaultValue:"A connection-file value contains an invalid escape.")
+    case .tooLarge: message = String(localized:"document.the.connection.file.exceeds.its.size.limit", defaultValue:"The connection file exceeds its size limit.")
+    case .tooManyEntries: message = String(localized:"document.the.connection.file.contains.too.many.assignments", defaultValue:"The connection file contains too many assignments.")
+    case .invalidExportName: message = String(localized:"document.a.field.cannot.be.exported.to.a.connection.file", defaultValue:"A field cannot be exported to a connection file.")
+    case .invalidText: message = String(localized:"document.the.connection.file.is.not.valid.utf.8", defaultValue:"The connection file is not valid UTF-8.")
+    case .invalidIndex: message = String(localized:"document.the.connection.file.entry.does.not.exist", defaultValue:"The connection-file entry does not exist.")
+    case .invalidValue: message = String(localized:"document.a.connection.file.option.has.an.invalid.value", defaultValue:"A connection-file option has an invalid value.")
+    case .unavailable: message = String(localized:"document.a.connection.file.option.is.unavailable.in.this.build", defaultValue:"A connection-file option is unavailable in this build.")
     }
-    return line == 0 ? message : "Line \(line): \(message)"
+    return line == 0 ? message : String(localized:"document.error.line", defaultValue:"Line \(line.formatted()): \(message)")
   }
 }
 @discardableResult private func documentCall(allowing: Set<NativeStatus> = [.ok], _ body: (UnsafeMutablePointer<tidyvnc_error>) -> UInt32) throws -> NativeStatus {
@@ -131,7 +131,7 @@ public final class NativeConnectionDocument: Sendable {
           try documentCall { tidyvnc_document_serialize(input.baseAddress, UInt32(input.count),
             tidyvnc_mutable_bytes(data: output.bindMemory(to: UInt8.self).baseAddress, length: UInt64(output.count)), &length, $0) }
         }
-        guard length == result.count else { throw NativeError(.internalFailure, "Connection-file export size changed") }
+        guard length == result.count else { throw NativeError(.internalFailure, String(localized:"document.connection.file.export.size.changed", defaultValue:"Connection-file export size changed")) }
         return result
       }
     }

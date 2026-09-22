@@ -20,9 +20,10 @@ actor Reader: NativeDocumentReading {
   func replace(_ bytes: Data) { self.bytes = bytes }
 }
 @MainActor final class Screens: NativeDisplaySource {
-  var mirrored = true, removed = false
+  var mirrored = true, removed = false, unavailable = false
   func read() -> [NativeDisplay] {
-    (removed ? [0] : [0,1]).map { index in
+    if unavailable { return [] }
+    return (removed ? [0] : [0,1]).map { index in
       let rect = NativeDisplayRectangle(x:mirrored ? 0 : Double(index*1000),y:0,width:1000,height:800)
       return NativeDisplay(id:.init(index == 0 ? "left" : "right"),name:index == 0 ? "Fixture Left" : "Fixture Right",
         bounds:rect,workArea:rect,backingScale:1,isPrimary:index == 0)
@@ -99,17 +100,33 @@ struct MappingFixtureView: View {
     for _ in 0..<2000 { if condition() { return }; try await Task.sleep(for:.milliseconds(2)) }
     throw Failure(message:"mapping fixture timed out")
   }
-  func render(_ name: String, dark: Bool = false) async throws {
+  func render(_ name: String, dark: Bool = false, minimum: Bool = false, scrollToEnd: Bool = false) async throws {
     guard let view = window.contentView, let index = CommandLine.arguments.firstIndex(of:"--output"),
           index+1 < CommandLine.arguments.count else { throw Failure(message:"missing render path") }
     let root = URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true)
     try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
+    window.setContentSize(minimum ? NSSize(width:640,height:420) : NSSize(width:720,height:650))
     window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
+    view.appearance = window.appearance
     view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(100)); view.layoutSubtreeIfNeeded()
+    if scrollToEnd {
+      func scrollViews(_ view: NSView) -> [NSScrollView] {
+        (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews($0) }
+      }
+      guard let scroll = scrollViews(view).first, let document = scroll.documentView else {
+        throw Failure(message:"missing document details scroller")
+      }
+      document.scroll(NSPoint(x:0,y:document.bounds.maxY)); scroll.reflectScrolledClipView(scroll.contentView)
+      if document.bounds.height > scroll.contentView.bounds.height+1 {
+        try check(scroll.contentView.bounds.origin.y > 0,
+          "overflowing display assignments and review guidance reachable at minimum size")
+      }
+    }
+    window.displayIfNeeded()
     let size = hosting.sizeThatFits(in:view.bounds.size)
     try check(size.width <= view.bounds.width && size.height <= view.bounds.height,"mapping content fits window")
     guard let image = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing bitmap") }
-    view.cacheDisplay(in:view.bounds,to:image)
+    view.effectiveAppearance.performAsCurrentDrawingAppearance { view.cacheDisplay(in:view.bounds,to:image) }
     try image.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent(name+".png"))
   }
   func verify() async throws {
@@ -118,10 +135,15 @@ struct MappingFixtureView: View {
     let first = loader.documentMapping!
     try check(first.numbers == [2,2147483647] && first.suggested.isEmpty && loader.session == nil,"mirrors require explicit sparse mapping before session")
     try await render("mapping-light"); try await render("mapping-dark",dark:true)
+    try await render("mapping-minimum",minimum:true)
+    screens.unavailable = true; displays.refresh()
+    try await render("mapping-unavailable-minimum",minimum:true)
+    screens.unavailable = false; displays.refresh()
     loader.resolveDocumentMapping(UUID(),assignments:[2:.init("left"),2147483647:.init("right")])
     try check(loader.documentMapping?.id == first.id,"stale mapping callback ignored")
     loader.resolveDocumentMapping(first.id,assignments:[2:.init("left")])
     try check(loader.documentIssue != nil && loader.session == nil,"incomplete mapping rejected")
+    try await render("mapping-error-minimum-dark",dark:true,minimum:true)
     loader.resolveDocumentMapping(first.id,assignments:[2:.init("missing"),2147483647:.init("right")])
     try check(loader.documentMapping?.id == first.id && loader.documentReview == nil,"disconnected assignment rejected")
     await reader.replace(Data("invalid source changed after review".utf8))
@@ -129,6 +151,8 @@ struct MappingFixtureView: View {
     let reviewed = loader.documentReview!
     try check(loader.session == nil && reviewed.resolution.endpoint == "fixture.invalid" && reviewed.resolution.notices.count == 1,"mapping uses immutable source and requires final ignored-field review")
     try await render("review")
+    try await render("review-minimum",minimum:true)
+    try await render("review-minimum-end",minimum:true,scrollToEnd:true)
     loader.editDocumentMapping(UUID()); try check(loader.documentReview?.id == reviewed.id,"stale edit ignored")
     loader.editDocumentMapping(reviewed.id)
     let second = loader.documentMapping!
@@ -183,6 +207,7 @@ struct MappingFixtureView: View {
     let cliReview = loader.documentReview!
     try check(cliReview.resolution.monitorSource == .commandLine && cliReview.resolution.resolvedMonitorMapping == [99:.init("right")],"review retains command-line origin and actual stable assignment")
     try await render("cli-review")
+    try await render("cli-review-minimum",minimum:true)
     loader.acceptDocument(cliReview.id)
     try check(loader.session?.initialFullscreenPolicy.selectedDisplays == [.init("right")] && loader.session?.snapshot.state == .idle,"inherited CLI choice reaches only reviewed idle session")
     await loader.close()
@@ -194,6 +219,7 @@ struct MappingFixtureView: View {
     let direct = loader.invocationMapping!
     try check(direct.numbers == [99] && loader.session == nil,"direct CLI waits for display choice")
     try await render("direct-cli-mapping")
+    try await render("direct-cli-mapping-minimum",minimum:true)
     loader.resolveInvocationMapping(direct.id,assignments:[99:.init("left")])
     try check(loader.isReady && loader.invocationMapping == nil && loader.session?.initialFullscreenPolicy.selectedDisplays == [.init("left")],"direct CLI mapping installs final policy")
     print("PASS document, inherited and direct CLI monitor mapping, sparse bounds, immutable review, topology and admission")
