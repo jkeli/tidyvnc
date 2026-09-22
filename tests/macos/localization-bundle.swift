@@ -37,5 +37,13 @@ precondition(saved == "Saved SPKI SHA-256: AB:%@:CD")
 let reason = "A fixed diagnostic containing % and 开发."
 let launchFailure = String(localized:"credentials.launch.failure",defaultValue:"\(reason) Enter a password or cancel this attempt.",bundle:bundle)
 precondition(launchFailure == reason + " Enter a password or cancel this attempt.")
+let encoding = "fixture-%@-开发"
+let unavailableEncoding = String(localized:"settings.encoding.choice.unavailable",defaultValue:"\(encoding) (unavailable)",bundle:bundle)
+precondition(unavailableEncoding == encoding + " (unavailable)")
+let inheritEncoding = String(localized:"settings.encoding.inherit.option",defaultValue:"Use app default for \(encoding)",bundle:bundle)
+precondition(inheritEncoding == "Use app default for " + encoding)
+let quality = "7"
+let settingValue = String(localized:"settings.encoding.option.value",defaultValue:"\(encoding): \(quality)",bundle:bundle)
+precondition(settingValue == encoding + ": " + quality)
 print("PASS \(strings.count) packaged catalog values; untranslated-language and missing-key fallbacks; English development region")
-print("PASS destination/fingerprint interpolation preserves literal values and UInt32 key sizes")
+print("PASS destination/fingerprint/setting interpolation preserves literal values and UInt32 key sizes")

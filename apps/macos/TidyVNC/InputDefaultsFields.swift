@@ -13,10 +13,13 @@ struct InputDefaultsFields: View {
       boolean("Capture system keys in full screen", \NativeInputPreferences.fullscreenSystemKeys, inherited.fullscreenSystemKeys)
       Text("Keyboard capture requires macOS Accessibility permission and stops when the desktop loses focus.")
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-      Picker("Cursor fallback", selection: $patch.cursorFallback) {
-        Text("\(inheritance) (\(cursor(inherited.cursorFallback)))").tag(nil as NativeCursorFallback?)
-        ForEach(NativeCursorFallback.allCases, id: \.self) { value in Text(cursor(value)).tag(Optional(value)) }
-      }.accessibilityIdentifier("inputDefaults.cursorFallback")
+      VStack(alignment: .leading, spacing: 6) {
+        Text("Cursor fallback").fixedSize(horizontal: false, vertical: true)
+        Picker("Cursor fallback", selection: $patch.cursorFallback) {
+          Text("\(inheritance) (\(cursor(inherited.cursorFallback)))").tag(nil as NativeCursorFallback?)
+          ForEach(NativeCursorFallback.allCases, id: \.self) { value in Text(cursor(value)).tag(Optional(value)) }
+        }.labelsHidden().accessibilityIdentifier("inputDefaults.cursorFallback")
+      }
       Toggle("Override viewer shortcut modifiers", isOn: Binding(get: { patch.shortcutModifiers != nil }, set: {
         patch.shortcutModifiers = $0 ? inherited.shortcutModifiers.rawValue : nil
       })).accessibilityIdentifier("inputDefaults.overrideModifiers")
@@ -33,10 +36,13 @@ struct InputDefaultsFields: View {
     }
   }
   private func boolean(_ title: String, _ path: WritableKeyPath<NativeInputPreferences, Bool?>, _ fallback: Bool) -> some View {
-    Picker(title, selection: Binding(get: { patch[keyPath: path] }, set: { patch[keyPath: path] = $0 })) {
-      Text("\(inheritance) (\(fallback ? "On" : "Off"))").tag(nil as Bool?)
-      Text("On").tag(true as Bool?); Text("Off").tag(false as Bool?)
-    }.accessibilityIdentifier("inputDefaults.\(title)")
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title).fixedSize(horizontal: false, vertical: true)
+      Picker(title, selection: Binding(get: { patch[keyPath: path] }, set: { patch[keyPath: path] = $0 })) {
+        Text("\(inheritance) (\(fallback ? "On" : "Off"))").tag(nil as Bool?)
+        Text("On").tag(true as Bool?); Text("Off").tag(false as Bool?)
+      }.labelsHidden().accessibilityIdentifier("inputDefaults.\(title)")
+    }
   }
   private func modifier(_ title: String, _ bit: NativeShortcutModifiers) -> some View {
     Toggle(title, isOn: Binding(get: { (patch.shortcutModifiers ?? inherited.shortcutModifiers.rawValue) & bit.rawValue != 0 }, set: { selected in

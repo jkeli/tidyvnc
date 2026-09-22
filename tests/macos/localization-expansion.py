@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the native settings renderer with synthetic expanded authentication text.
+"""Run the native settings renderer with synthetic expanded UI text.
 
 This is a temporary test bundle, never a shipping translation. Inspect the PNGs:
 the renderer's fitting-size assertions alone cannot detect truncated controls.
@@ -16,7 +16,10 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("renderer", type=Path)
 parser.add_argument("catalog", type=Path)
 parser.add_argument("output", type=Path)
+parser.add_argument("--prefix", action="append", help="Catalog prefix to expand (repeatable). Defaults to authentication, credentials, trust, actions and settings.")
+parser.add_argument("--rtl", action="store_true", help="Mirror the fixture layout; this is not a translated-language acceptance test.")
 args = parser.parse_args()
+prefixes = tuple(args.prefix or ["authentication.", "credentials.", "trust.", "action.", "settings."])
 catalog = json.loads(args.catalog.read_text())
 assert catalog["sourceLanguage"] == "en"
 with tempfile.TemporaryDirectory(prefix="tidyvnc-localization-") as directory:
@@ -34,11 +37,14 @@ with tempfile.TemporaryDirectory(prefix="tidyvnc-localization-") as directory:
     lines = []
     for key, entry in catalog["strings"].items():
         value = entry["localizations"]["en"]["stringUnit"]["value"]
-        if key.startswith(("authentication.", "credentials.", "trust.", "action.")):
+        if key.startswith(prefixes):
             # Append padding instead of repeating a format string: each argument
             # placeholder must still occur exactly once.
             value = "[ " + value + " " + "expanded " * max(1, len(value) // 9) + "]"
         lines.append(json.dumps(key, ensure_ascii=False) + " = " +
                      json.dumps(value, ensure_ascii=False) + ";")
     (resources / "Localizable.strings").write_text("\n".join(lines) + "\n")
-    subprocess.run([str(executable), str(args.output.resolve())], check=True)
+    command = [str(executable), str(args.output.resolve())]
+    if args.rtl:
+        command.append("--rtl")
+    subprocess.run(command, check=True)

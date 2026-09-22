@@ -78,8 +78,17 @@ struct AuthenticationSheet: View {
         if trustModel.canSave(request) {
           Text(String(localized:"authentication.a.saved.identity.applies.only.to.this", defaultValue:"A saved identity applies only to this destination’s address, port and route. Verify the fingerprint before saving."))
             .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false,vertical: true)
-          Button(trustModel.replacesSavedKey ? String(localized:"authentication.replace.saved.key.and.connect", defaultValue:"Replace Saved Key and Connect…") : request.kind == .hostKey ? String(localized:"authentication.save.server.key.and.connect", defaultValue:"Save Server Key and Connect…") : String(localized:"authentication.save.exception.and.connect", defaultValue:"Save Exception and Connect…")) { confirmSave = true }
-            .accessibilityIdentifier("authentication.saveTrust")
+          let saveTitle = trustModel.replacesSavedKey ? String(localized:"authentication.replace.saved.key.and.connect", defaultValue:"Replace Saved Key and Connect…") : request.kind == .hostKey ? String(localized:"authentication.save.server.key.and.connect", defaultValue:"Save Server Key and Connect…") : String(localized:"authentication.save.exception.and.connect", defaultValue:"Save Exception and Connect…")
+          ViewThatFits(in: .horizontal) {
+            Button(saveTitle) { confirmSave = true }.fixedSize()
+              .accessibilityIdentifier("authentication.saveTrust")
+            VStack(alignment: .leading, spacing: 6) {
+              Text(saveTitle).fixedSize(horizontal: false, vertical: true)
+              Button(String(localized:"authentication.review.decision", defaultValue:"Review Decision…")) { confirmSave = true }
+                .accessibilityLabel(saveTitle)
+                .accessibilityIdentifier("authentication.saveTrust")
+            }
+          }
         }
         if trustModel.needsReload {
           Button(String(localized:"authentication.reload.saved.decisions", defaultValue:"Reload Saved Decisions")) { trustModel.reload() }.disabled(trustModel.isWorking)

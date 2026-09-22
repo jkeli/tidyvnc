@@ -11,8 +11,11 @@ struct TrustLibraryView: View {
       Text(model.kind == .certificate ? String(localized:"trust.library.ui.saved.certificate.decisions", defaultValue:"Saved Certificate Decisions") : String(localized:"trust.library.ui.saved.server.keys", defaultValue:"Saved Server Keys")).font(.title2)
       Text(model.kind == .certificate ? String(localized:"trust.library.ui.exceptions.apply.to.the.displayed.destination.s.address.port.and.route.forget", defaultValue:"Exceptions apply to the displayed destination’s address, port and route. Forget removes its saved key and prevents reuse of older host-wide exceptions there. Existing connections are unchanged.") : String(localized:"trust.library.ui.rsa.aes.server.keys.are.saved.for.the.displayed.destination.s.address", defaultValue:"RSA-AES server keys are saved for the displayed destination’s address, port and route. Forget requires verification again on the next connection. Existing connections are unchanged."))
         .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-      HStack {
-        TextField(String(localized:"trust.library.ui.destination.host.display.or.host.port", defaultValue:"Destination (host:display or host::port)"),text: $selection.destination).textFieldStyle(.roundedBorder)
+      VStack(alignment: .leading, spacing: 6) {
+        Text(String(localized:"trust.library.ui.destination.host.display.or.host.port", defaultValue:"Destination (host:display or host::port)"))
+          .fixedSize(horizontal: false, vertical: true)
+        TextField("",text: $selection.destination).textFieldStyle(.roundedBorder)
+          .accessibilityLabel(String(localized:"trust.library.ui.destination.host.display.or.host.port", defaultValue:"Destination (host:display or host::port)"))
           .accessibilityIdentifier("trustLibrary.destination")
         Button(String(localized:"trust.library.ui.ask.again", defaultValue:"Ask Again…")) { selection.pendingDestination = selection.destination }
           .disabled(model.isWorking || model.needsReload || model.snapshot == nil || NativeEndpoint.issue(for: selection.destination) != nil)

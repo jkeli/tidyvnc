@@ -19,6 +19,7 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
                                      size: NSSize = NSSize(width: 620, height: 680),
                                      ready: @MainActor () async throws -> Void) async throws {
   let view = NSHostingView(rootView: content
+    .environment(\.layoutDirection, CommandLine.arguments.contains("--rtl") ? .rightToLeft : .leftToRight)
     .environment(\.colorScheme, dark ? .dark : .light).background(Color(nsColor: .windowBackgroundColor)))
   let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: [.titled], backing: .buffered, defer: false)
   window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)

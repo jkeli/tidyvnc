@@ -2736,6 +2736,918 @@
           }
         }
       }
+    },
+    "authentication.review.decision": {
+      "comment": "Short action beneath the full wrapping save/replace-and-connect label when it cannot fit in a native button. Opens the existing confirmation; does not save or connect immediately.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Decision…"
+          }
+        }
+      }
+    },
+    "settings.encoding.choose.encoding.and.quality.automatically": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose encoding and quality automatically"
+          }
+        }
+      }
+    },
+    "settings.encoding.preferred.encoding": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preferred encoding"
+          }
+        }
+      }
+    },
+    "settings.encoding.full.color": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full color"
+          }
+        }
+      }
+    },
+    "settings.encoding.reduced.colors": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduced colors"
+          }
+        }
+      }
+    },
+    "settings.encoding.use.custom.compression": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use custom compression"
+          }
+        }
+      }
+    },
+    "settings.encoding.compression": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compression"
+          }
+        }
+      }
+    },
+    "settings.encoding.allow.jpeg": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow JPEG"
+          }
+        }
+      }
+    },
+    "settings.encoding.jpeg.quality": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPEG quality"
+          }
+        }
+      }
+    },
+    "settings.encoding.automatic.selection.can.adjust.the.encoding.color.depth.and.jpeg.quality.during": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic selection can adjust the encoding, color depth and JPEG quality during a connection."
+          }
+        }
+      }
+    },
+    "settings.encoding.use.app.default": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use app default"
+          }
+        }
+      }
+    },
+    "settings.encoding.built.in": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Built-in"
+          }
+        }
+      }
+    },
+    "settings.encoding.app.default": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App default"
+          }
+        }
+      }
+    },
+    "settings.encoding.profile": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        }
+      }
+    },
+    "settings.encoding.connection.override": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection override"
+          }
+        }
+      }
+    },
+    "settings.encoding.connection.file": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection file"
+          }
+        }
+      }
+    },
+    "settings.encoding.command.line": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command line"
+          }
+        }
+      }
+    },
+    "settings.encoding.unavailable": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        }
+      }
+    },
+    "settings.encoding.8.colors": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8 colors"
+          }
+        }
+      }
+    },
+    "settings.encoding.64.colors": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "64 colors"
+          }
+        }
+      }
+    },
+    "settings.encoding.256.colors": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "256 colors"
+          }
+        }
+      }
+    },
+    "settings.encoding.session.encoding.settings.are.available.while.this.connection.is.connected": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding settings are available while this connection is connected."
+          }
+        }
+      }
+    },
+    "settings.encoding.session.the.encoding.value.is.invalid.check.the.value.and.try.again": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The encoding value is invalid. Check the value and try again."
+          }
+        }
+      }
+    },
+    "settings.encoding.session.this.encoding.is.unavailable.in.this.build.choose.an.available.encoding": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This encoding is unavailable in this build. Choose an available encoding."
+          }
+        }
+      }
+    },
+    "settings.encoding.session.the.connection.or.its.settings.changed.reload.before.applying.your.edits": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection or its settings changed. Reload before applying your edits."
+          }
+        }
+      }
+    },
+    "settings.encoding.session.apply.was.cancelled.some.changes.may.already.have.taken.effect.reload.to": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply was cancelled. Some changes may already have taken effect. Reload to check the current settings."
+          }
+        }
+      }
+    },
+    "settings.encoding.session.the.change.could.not.be.confirmed.reload.to.check.the.current.settings": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The change could not be confirmed. Reload to check the current settings before retrying."
+          }
+        }
+      }
+    },
+    "settings.encoding.session.connection.encoding": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Encoding"
+          }
+        }
+      }
+    },
+    "settings.encoding.session.changes.apply.only.to.this.connection.and.are.kept.when.it.reconnects": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes apply only to this connection and are kept when it reconnects. App defaults and other connections are unchanged."
+          }
+        }
+      }
+    },
+    "settings.section.encoding": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding"
+          }
+        }
+      }
+    },
+    "settings.encoding.session.settings.applied.to.this.connection.image.quality.can.change.as.updates.arrive": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings applied to this connection. Image quality can change as updates arrive."
+          }
+        }
+      }
+    },
+    "settings.encoding.session.applying.encoding.settings": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applying encoding settings…"
+          }
+        }
+      }
+    },
+    "action.discard.edits.reload": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard Edits and Reload"
+          }
+        }
+      }
+    },
+    "settings.encoding.session.reload.current.settings": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload Current Settings"
+          }
+        }
+      }
+    },
+    "settings.encoding.session.cancel.apply": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel Apply"
+          }
+        }
+      }
+    },
+    "action.done": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "action.apply": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply"
+          }
+        }
+      }
+    },
+    "settings.defaults.these.saved.defaults.require.a.newer.version.of.tidyvnc.they.have.been": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These saved defaults require a newer version of TidyVNC. They have been preserved."
+          }
+        }
+      }
+    },
+    "settings.defaults.the.tls.priority.expression.is.invalid.correct.it.or.use.the.library": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The TLS priority expression is invalid. Correct it or use the library default. Saved values have been preserved."
+          }
+        }
+      }
+    },
+    "settings.defaults.a.setting.is.outside.the.supported.range.saved.values.have.been.preserved": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A setting is outside the supported range. Saved values have been preserved."
+          }
+        }
+      }
+    },
+    "settings.defaults.a.saved.setting.is.unavailable.in.this.build.saved.values.have.been": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A saved setting is unavailable in this build. Saved values have been preserved."
+          }
+        }
+      }
+    },
+    "settings.defaults.saved.defaults.could.not.be.read.they.have.been.preserved": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved defaults could not be read. They have been preserved."
+          }
+        }
+      }
+    },
+    "settings.defaults.saved.defaults.changed.while.you.were.editing.reload.them.before.applying.changes": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved defaults changed while you were editing. Reload them before applying changes."
+          }
+        }
+      }
+    },
+    "settings.defaults.access.to.saved.defaults.was.denied.check.access.and.try.again": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access to saved defaults was denied. Check access and try again."
+          }
+        }
+      }
+    },
+    "settings.defaults.the.defaults.operation.was.cancelled.reload.to.check.the.saved.values": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The defaults operation was cancelled. Reload to check the saved values."
+          }
+        }
+      }
+    },
+    "settings.defaults.the.defaults.operation.could.not.be.confirmed.reload.to.check.the.saved": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The defaults operation could not be confirmed. Reload to check the saved values before retrying."
+          }
+        }
+      }
+    },
+    "settings.defaults.saved.defaults.are.unavailable.try.again": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved defaults are unavailable. Try again."
+          }
+        }
+      }
+    },
+    "settings.defaults.encoding.settings.could.not.be.resolved.reload.the.saved.defaults": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding settings could not be resolved. Reload the saved defaults."
+          }
+        }
+      }
+    },
+    "settings.defaults.connection.defaults": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Defaults"
+          }
+        }
+      }
+    },
+    "settings.defaults.these.defaults.apply.to.new.connection.windows.existing.connections.keep.their.own": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These defaults apply to new connection windows. Existing connections keep their own settings."
+          }
+        }
+      }
+    },
+    "settings.defaults.section": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Section"
+          }
+        }
+      }
+    },
+    "settings.section.clipboard": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard"
+          }
+        }
+      }
+    },
+    "settings.section.input": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input"
+          }
+        }
+      }
+    },
+    "settings.section.scaling": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling"
+          }
+        }
+      }
+    },
+    "settings.section.security": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security"
+          }
+        }
+      }
+    },
+    "settings.section.connection": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        }
+      }
+    },
+    "settings.section.remoteResize": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote Resize"
+          }
+        }
+      }
+    },
+    "settings.section.fullscreen": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fullscreen"
+          }
+        }
+      }
+    },
+    "settings.section.certificateFiles": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate Files"
+          }
+        }
+      }
+    },
+    "settings.defaults.send.clipboard.to.server": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send clipboard to server"
+          }
+        }
+      }
+    },
+    "settings.defaults.receive.clipboard.from.server": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receive clipboard from server"
+          }
+        }
+      }
+    },
+    "settings.defaults.uses.the.built.in.default": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses the built-in default"
+          }
+        }
+      }
+    },
+    "settings.defaults.app.default.override": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App default override"
+          }
+        }
+      }
+    },
+    "settings.defaults.built.in.default": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Built-in default"
+          }
+        }
+      }
+    },
+    "settings.defaults.changes.apply.to.new.connection.windows": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes apply to new connection windows."
+          }
+        }
+      }
+    },
+    "settings.defaults.certificate.files": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate Files…"
+          }
+        }
+      }
+    },
+    "settings.defaults.use.built.in.defaults": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use built-in defaults"
+          }
+        }
+      }
+    },
+    "settings.defaults.authentication.encryption": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication & Encryption"
+          }
+        }
+      }
+    },
+    "settings.defaults.use.built.in.default": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use built-in default"
+          }
+        }
+      }
+    },
+    "settings.defaults.updating.defaults": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating defaults…"
+          }
+        }
+      }
+    },
+    "settings.defaults.restore.built.in.defaults": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Built-in Defaults"
+          }
+        }
+      }
+    },
+    "settings.defaults.cancel.edits": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel Edits"
+          }
+        }
+      }
+    },
+    "settings.defaults.reload.saved.defaults": {
+      "comment": "Native settings presentation. Keep option values and protocol names literal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload Saved Defaults"
+          }
+        }
+      }
+    },
+    "settings.encoding.choice.unavailable": {
+      "comment": "Encoding UI with literal option-name/value arguments; translators may reorder placeholders.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (unavailable)"
+          }
+        }
+      }
+    },
+    "settings.encoding.inherit.option": {
+      "comment": "Encoding UI with literal option-name/value arguments; translators may reorder placeholders.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use app default for %@"
+          }
+        }
+      }
+    },
+    "settings.encoding.option.value": {
+      "comment": "Encoding UI with literal option-name/value arguments; translators may reorder placeholders.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
