@@ -15,7 +15,7 @@ public struct NativeInvocationRequest: Sendable {
 }
 
 public struct NativeInvocationResolutionFailure: Error, Sendable, Equatable, CustomStringConvertible {
-  public enum Reason: Sendable { case notLaunch, unsupportedOption, invalidEndpoint, invalidValue, displayMappingRequired, relativePathNeedsBase, invalidListenPort, listenFileUnsupported }
+  public enum Reason: Sendable { case notLaunch, unsupportedOption, invalidEndpoint, invalidValue, displayMappingRequired, relativePathNeedsBase, invalidListenPort, listenSocketUnsupported }
   public let reason: Reason
   public let argument: UInt32
   public var description: String {
@@ -28,7 +28,7 @@ public struct NativeInvocationResolutionFailure: Error, Sendable, Equatable, Cus
     case .displayMappingRequired: message = "Resolve the command-line monitor selection before continuing."
     case .relativePathNeedsBase: message = "Resolve the command-line file path before continuing."
     case .invalidListenPort: message = "The listen port must be a decimal number from 0 to 65535."
-    case .listenFileUnsupported: message = "Listening with a connection file or socket path is not supported yet. Supply a TCP port instead."
+    case .listenSocketUnsupported: message = "Listening on a Unix socket is not supported. Supply a TCP port or connection file instead."
     }
     return argument == 0 ? message : "Argument \(argument): \(message)"
   }

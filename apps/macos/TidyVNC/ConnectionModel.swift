@@ -15,6 +15,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   let peer: NativeIncomingPeer
   var invocation: NativeInvocationRequest? = nil
   var credentials: NativeLaunchCredentialInputs? = nil
+  var prepared: NativePreparedSessionDefaults? = nil
   var endpoint: String {
     let host = peer.address.host.contains(":") ? "[\(peer.address.host)]" : peer.address.host
     return "\(host)::\(peer.address.port)"
@@ -96,7 +97,7 @@ struct ConnectionProblem: Identifiable, Equatable {
       },documentAvailableDisplays:{ [weak displays] in
         displays?.refresh()
         return displays?.snapshot.displays.map(\.id) ?? []
-      })
+      },prepared:reverse?.prepared)
     self.defaults = defaults
     documentSaveObservation = documentSave.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }
     commandsObservation = desktopCommands.objectWillChange.sink { [weak self] in

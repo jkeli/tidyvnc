@@ -6,6 +6,11 @@ import TidyVNCNative
 struct ListenerView: View {
   @ObservedObject var model: ListenerModel
   var body: some View {
+    if let preparation = model.preparation, !preparation.isReady, let displays = model.displays {
+      ListenerPreparationView(model:model,preparation:preparation,displays:displays)
+    } else { listener }
+  }
+  private var listener: some View {
     VStack(alignment:.leading,spacing:18) {
       Text("Listen for Connections").font(.title2.bold())
       Text("Start a listener, then ask the remote VNC server to connect to this Mac. Each accepted connection opens its own window.")
@@ -68,6 +73,38 @@ struct ListenerView: View {
     case .stopped: "Listener stopped"
     case .failed: "Listener could not continue"
     }
+  }
+}
+
+private struct ListenerPreparationView: View {
+  @ObservedObject var model: ListenerModel
+  @ObservedObject var preparation: NativeSessionDefaults
+  @ObservedObject var displays: NativeDisplayService
+  var body: some View {
+    ScrollView {
+      VStack(alignment:.leading,spacing:16) {
+        Text("Listen for Connections").font(.title2.bold())
+        Text("IPv4: \(model.ipv4 ? "enabled" : "disabled") · IPv6: \(model.ipv6 ? "enabled" : "disabled")")
+        if model.preparationCancelled {
+          Text("Listener launch cancelled. Close this window and reopen the file to try again.")
+        } else if let mapping = preparation.documentMapping {
+          DocumentMonitorMappingView(mapping:mapping,displays:displays,issue:preparation.documentIssue,
+            resolve:{ preparation.resolveDocumentMapping(mapping.id,assignments:$0) },
+            cancel:{ model.cancelDocument(mapping.id,mapping:true) }).id(mapping.id)
+        } else if let review = preparation.documentReview {
+          DocumentReviewView(review:review,displays:displays,
+            editMapping:{ preparation.editDocumentMapping(review.id) },
+            accept:{ model.acceptDocument(review.id) },cancel:{ model.cancelDocument(review.id) },listening:true)
+        } else if let issue = preparation.documentIssue ?? preparation.invocationIssue {
+          Text(issue).foregroundStyle(.red).accessibilityIdentifier("listener.document.error")
+          Button("Reload Connection File") { preparation.load() }.disabled(model.closing)
+        } else if preparation.error != nil {
+          Text("Saved defaults could not be loaded. Retry, or review the file using built-in defaults.")
+          Button("Retry Defaults") { preparation.load() }.disabled(model.closing)
+          Button("Use Built-in Defaults") { preparation.useBuiltInDefaults() }.disabled(model.closing)
+        } else { ProgressView("Loading listener settings…") }
+      }.frame(maxWidth:.infinity,alignment:.leading).padding(24)
+    }.frame(minWidth:640,minHeight:470)
   }
 }
 

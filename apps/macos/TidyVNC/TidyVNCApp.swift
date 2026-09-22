@@ -129,7 +129,7 @@ struct TidyVNCApp: App {
   }
   func makeStartupListener(_ launch: NativeInvocationLaunch) -> ListenerModel? {
     guard !quitting, let runtime, launch.listen != nil else { launch.credentials?.clear(); return nil }
-    let model = ListenerModel(runtime:runtime,launch:launch) { [weak self] request in self?.openIncoming(request) == true }
+    let model = ListenerModel(runtime:runtime,launch:launch,preferences:preferences,displays:displays) { [weak self] request in self?.openIncoming(request) == true }
     startupListener = model; return model
   }
   func registerListener(_ window: NSWindow, model: ListenerModel) {

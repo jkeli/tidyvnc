@@ -8,12 +8,15 @@ struct DocumentReviewView: View {
   let editMapping: () -> Void
   let accept: () -> Void
   let cancel: () -> Void
+  var listening = false
   var body: some View {
     VStack(alignment:.leading,spacing:16) {
       Text("Review Connection File").font(.title2).accessibilityIdentifier("document.review.title")
-      Text(review.resolution.endpoint.isEmpty ? "No server address is stored in this file. Enter one after opening." : "Server: \(review.resolution.endpoint)")
+      Text(listening ? "TCP listen port: \(review.resolution.endpoint.isEmpty ? "5500" : review.resolution.endpoint)" :
+        (review.resolution.endpoint.isEmpty ? "No server address is stored in this file. Enter one after opening." : "Server: \(review.resolution.endpoint)"))
         .textSelection(.enabled)
-      Text("File settings override saved defaults for this new connection. Opening does not connect or change saved preferences.")
+      Text(listening ? "File settings override saved defaults and command-line settings for every accepted incoming connection. Start Listening binds this port; port 0 chooses an available port. Saved preferences are unchanged." :
+        "File settings override saved defaults for this new connection. Opening does not connect or change saved preferences.")
       if !review.resolution.notices.isEmpty {
         Text("These fields will be ignored:").font(.headline)
         ScrollView {
@@ -42,7 +45,8 @@ struct DocumentReviewView: View {
       HStack {
         Button("Cancel",role:.cancel,action:cancel).keyboardShortcut(.cancelAction).accessibilityIdentifier("document.cancel")
         Spacer()
-        Button(review.resolution.notices.isEmpty ? "Open Connection" : "Ignore Listed Fields and Open",action:accept)
+        Button(listening ? (review.resolution.notices.isEmpty ? "Start Listening" : "Ignore Listed Fields and Listen") :
+          (review.resolution.notices.isEmpty ? "Open Connection" : "Ignore Listed Fields and Open"),action:accept)
           .keyboardShortcut(.defaultAction).accessibilityIdentifier("document.accept")
       }
     }.frame(maxWidth:620)

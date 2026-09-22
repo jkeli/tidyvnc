@@ -1,6 +1,14 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 import Foundation
 
+public enum NativeDocumentEndpointUse: Sendable { case connection, listenPort }
+public enum NativeListenPort {
+  public static func parse(_ value: String) -> UInt32? {
+    guard !value.isEmpty, value.utf8.allSatisfy({ (48...57).contains($0) }),
+          let port = UInt32(value), port <= 65535 else { return nil }
+    return port
+  }
+}
 public struct NativeDocumentNotice: Equatable, Sendable {
   public enum Kind: Sendable { case unknownField, platformOnly }
   public let kind: Kind
@@ -9,7 +17,7 @@ public struct NativeDocumentNotice: Equatable, Sendable {
   public let name: String
 }
 public struct NativeDocumentResolutionFailure: Error, Equatable, Sendable, CustomStringConvertible {
-  public enum Reason: Sendable { case reviewRequired, invalidEndpoint, displayMappingRequired, relativePathNeedsBase, unrepresentableField }
+  public enum Reason: Sendable { case reviewRequired, invalidEndpoint, displayMappingRequired, relativePathNeedsBase, unrepresentableField, invalidListenPort }
   public let reason: Reason
   public let line: UInt32
   public var description: String {
@@ -19,6 +27,7 @@ public struct NativeDocumentResolutionFailure: Error, Equatable, Sendable, Custo
     case .displayMappingRequired: "Resolve the connection file's monitor selection before continuing."
     case .relativePathNeedsBase: "Resolve the connection file's relative verification-file path before continuing."
     case .unrepresentableField: "The connection file contains a setting this native viewer cannot apply."
+    case .invalidListenPort: "The connection file's ServerName must be empty or a decimal listen port from 0 to 65535."
     }
   }
 }
@@ -30,6 +39,7 @@ public struct NativeDocumentResolution: Sendable {
   public let compatibility: NativeCompatibilityState
   public let document: NativeConnectionDocument
   public let endpoint: String
+  public let listenPort: UInt32?
   public let notices: [NativeDocumentNotice]
   public let fieldLines: [String:UInt32]
   public let monitorNumbers: [Int]
@@ -52,7 +62,7 @@ public struct NativeDocumentResolution: Sendable {
   public init(document: NativeConnectionDocument, base: NativeSessionConfiguration = .init(),
               legacyDisplays: [NativeDisplayID] = [], workingDirectory: String? = nil,
               monitorMapping: [Int:NativeDisplayID]? = nil, compatibility: NativeCompatibilityState? = nil,
-              availableDisplays: [NativeDisplayID]? = nil) throws {
+              availableDisplays: [NativeDisplayID]? = nil, endpointUse: NativeDocumentEndpointUse = .connection) throws {
     self.document = document
     var fields: [String:String] = [:], sources: [String:UInt32] = [:], ignored: [NativeDocumentNotice] = []
     let encodingSchema = try NativeEncodingOptions.schema()
@@ -77,6 +87,10 @@ public struct NativeDocumentResolution: Sendable {
       guard supported.contains(field.name) else {
         throw NativeDocumentResolutionFailure(reason:.unrepresentableField,line:entry.line)
       }
+      if endpointUse == .listenPort, field.name == "ServerName", !field.value.isEmpty,
+         NativeListenPort.parse(field.value) == nil {
+        throw NativeDocumentResolutionFailure(reason:.invalidListenPort,line:entry.line)
+      }
       fields[field.name] = field.value; sources[field.name] = entry.line
     }
     let overlay = try NativeOptionOverlay(fields:fields,positions:sources,base:base,source:.document,
@@ -85,6 +99,7 @@ public struct NativeDocumentResolution: Sendable {
     explicitMonitorMapping = overlay.explicitMonitorMapping
     self.compatibility = overlay.compatibility
     endpoint = overlay.endpoint; cursorType = overlay.cursorType; monitorNumbers = overlay.monitorNumbers
+    listenPort = endpointUse == .listenPort ? (overlay.endpoint.isEmpty ? 5500 : NativeListenPort.parse(overlay.endpoint)) : nil
     fieldLines = overlay.fieldPositions; notices = ignored; candidate = overlay.configuration
   }
 }

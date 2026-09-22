@@ -73,11 +73,14 @@ func classification() async throws {
       throw Failure(message:"invalid listen port admitted")
     } catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .invalidListenPort,"strict listen port failure") }
   }
-  for path in ["./private.tidyvnc","/private-socket"] {
+  let fileListen = try NativeInvocationBootstrap.launch(.init(arguments:["-listen","./private.tidyvnc"]),workingDirectory:"/launch",inspector:inspector)
+  try check(fileListen.listen != nil && fileListen.document?.url.path == "/launch/./private.tidyvnc" &&
+    !fileListen.connectsOnReady && fileListen.invocation.endpoint.isEmpty,"listen file classified without outbound endpoint")
+  for path in ["./private-socket","/private-socket"] {
     do {
       _ = try NativeInvocationBootstrap.launch(.init(arguments:["-listen",path]),workingDirectory:"/launch",inspector:untouched)
-      throw Failure(message:"unimplemented listen file accepted")
-    } catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .listenFileUnsupported && untouched.calls.isEmpty,"listen file fails before path inspection") }
+      throw Failure(message:"Unix listener accepted")
+    } catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .listenSocketUnsupported,"Unix listener fails explicitly") }
   }
   do {
     _ = try NativeInvocationBootstrap.launch(.init(arguments:["-listen","-UseIPv4=off","-UseIPv6=off"]),workingDirectory:"/launch")

@@ -668,6 +668,7 @@ set_tests_properties(NativeListener.CallbacksHandoffAndDrain PROPERTIES TIMEOUT 
 
 add_executable(native-listener-ui-tests MACOSX_BUNDLE NativeListenerUITests.swift
   ../../apps/macos/TidyVNC/ListenerModel.swift ../../apps/macos/TidyVNC/ListenerView.swift
+  ../../apps/macos/TidyVNC/DocumentReviewView.swift ../../apps/macos/TidyVNC/DocumentMonitorMappingView.swift
   ../../apps/macos/TidyVNC/ConnectionModel.swift)
 set_target_properties(native-listener-ui-tests PROPERTIES Swift_MODULE_NAME NativeListenerUITests
   MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/ListenerUI-Info.plist.in)

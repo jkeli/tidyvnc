@@ -84,6 +84,16 @@ import Foundation
 
 // One-time defaults loading for one newly created session. There is intentionally
 // no subscription that could mutate an existing connection after an app save.
+// Approved settings may be shared by incoming windows without rereading stores
+// or files. This value has no session, credential owner or restoration payload.
+public struct NativePreparedSessionDefaults: Sendable {
+  public let configuration: NativeSessionConfiguration
+  public let inherited: NativePreferences
+  public let document: NativeDocumentResolution?
+  public let invocation: NativeInvocationResolution?
+}
+public enum NativeSessionDefaultsPurpose: Sendable { case connection, listener }
+
 @MainActor public final class NativeSessionDefaults: ObservableObject {
   @Published public private(set) var isReady = false
   @Published public private(set) var isLoading = false
@@ -93,6 +103,7 @@ import Foundation
   @Published public private(set) var profile: NativeConnectionProfile?
   @Published public private(set) var profileError: NativeStorageError?
   @Published public private(set) var session: NativeSession?
+  @Published public private(set) var prepared: NativePreparedSessionDefaults?
   @Published public private(set) var documentReview: NativeDocumentReview?
   @Published public private(set) var documentResolution: NativeDocumentResolution?
   @Published public private(set) var documentIssue: String?
@@ -109,6 +120,8 @@ import Foundation
   private let runtime: NativeRuntime
   private let store: NativePreferencesStore
   private let base: NativeSessionConfiguration
+  private let purpose: NativeSessionDefaultsPurpose
+  private let initialPreparation: NativePreparedSessionDefaults?
   private let profileStore: NativeProfileHistoryStore?
   private let profileID: UUID?
   private var operation: Task<Void, Never>?
@@ -118,8 +131,10 @@ import Foundation
               invocation: NativeInvocationRequest? = nil,
               document: NativeDocumentOpenRequest? = nil, documentReader: any NativeDocumentReading = NativeDocumentFileReader(),
               documentDisplays: @escaping @MainActor () -> [NativeDisplayID] = { [] },
-              documentAvailableDisplays: (@MainActor () -> [NativeDisplayID])? = nil) {
+              documentAvailableDisplays: (@MainActor () -> [NativeDisplayID])? = nil,
+              purpose: NativeSessionDefaultsPurpose = .connection, prepared: NativePreparedSessionDefaults? = nil) {
     self.runtime = runtime; self.store = store; self.base = base
+    self.purpose = purpose; initialPreparation = prepared
     self.profileStore = profileStore; self.profileID = profileID
     invocationRequest = invocation
     documentRequest = document; self.documentReader = documentReader; self.documentDisplays = documentDisplays
@@ -137,6 +152,12 @@ import Foundation
     let owner = store, profileStore = profileStore, profileID = profileID
     operation = Task { @MainActor [weak self] in
       do {
+        if let self, let ready = self.initialPreparation {
+          guard !self.stopped, !Task.isCancelled else { self.finish(); return }
+          self.documentResolution = ready.document; self.invocationResolution = ready.invocation
+          try self.install(ready.inherited,profile:nil,configuration:ready.configuration)
+          self.finish(); return
+        }
         let values = useBuiltIns ? NativePreferences() : try await owner.read().values
         var profile: NativeConnectionProfile?
         if let profileID {
@@ -161,10 +182,10 @@ import Foundation
             do {
               let resolution = try NativeDocumentResolution(document:document,base:configuration,
                 legacyDisplays:displays,workingDirectory:request.workingDirectory,compatibility:prepared.compatibility,
-                availableDisplays:self.availableDocumentDisplays())
+                availableDisplays:self.availableDocumentDisplays(),endpointUse:self.documentEndpointUse)
               self.documentMappingContext = try NativeDocumentMonitorMapping(document:document,base:configuration,
                 workingDirectory:request.workingDirectory,legacyDisplays:displays,available:self.availableDocumentDisplays(),
-                compatibility:prepared.compatibility)
+                compatibility:prepared.compatibility,endpointUse:self.documentEndpointUse)
               self.documentReview = NativeDocumentReview(resolution:resolution,legacyDisplays:displays,
                 monitorMapping:resolution.explicitMonitorMapping ? resolution.resolvedMonitorMapping : nil,
                 availableDisplays:self.availableDocumentDisplays())
@@ -173,7 +194,7 @@ import Foundation
               // Preserve this exact document and base; mapping does not reread IO.
               let mapping = try NativeDocumentMonitorMapping(document:document,base:configuration,
                 workingDirectory:request.workingDirectory,legacyDisplays:displays,available:self.availableDocumentDisplays(),
-                compatibility:prepared.compatibility)
+                compatibility:prepared.compatibility,endpointUse:self.documentEndpointUse)
               guard !mapping.numbers.isEmpty else { throw failure }
               self.documentMappingContext = mapping; self.documentMapping = mapping
             }
@@ -205,13 +226,14 @@ import Foundation
   private func availableDocumentDisplays() -> [NativeDisplayID] {
     documentAvailableDisplays?() ?? documentDisplays()
   }
+  private var documentEndpointUse: NativeDocumentEndpointUse { purpose == .listener ? .listenPort : .connection }
   public func editDocumentMapping(_ id: UUID) {
     guard !stopped, !isLoading, !isReady, documentReview?.id == id,
           let context = documentMappingContext, !context.numbers.isEmpty else { return }
     do {
       documentMapping = try NativeDocumentMonitorMapping(document:context.document,base:context.base,
         workingDirectory:context.workingDirectory,legacyDisplays:documentDisplays(),available:availableDocumentDisplays(),
-        previous:documentReview?.monitorMapping,compatibility:context.compatibility)
+        previous:documentReview?.monitorMapping,compatibility:context.compatibility,endpointUse:context.endpointUse)
       documentReview = nil; documentIssue = nil
     } catch { documentFailed(error) }
   }
@@ -224,7 +246,7 @@ import Foundation
     do {
       let resolution = try NativeDocumentResolution(document:mapping.document,base:mapping.base,
         workingDirectory:mapping.workingDirectory,monitorMapping:assignments,compatibility:mapping.compatibility,
-        availableDisplays:available)
+        availableDisplays:available,endpointUse:mapping.endpointUse)
       documentReview = NativeDocumentReview(resolution:resolution,legacyDisplays:[],
         monitorMapping:assignments,availableDisplays:available)
       documentMapping = nil; documentIssue = nil
@@ -252,16 +274,17 @@ import Foundation
       if let context = documentMappingContext, !context.numbers.isEmpty {
         documentMapping = try? NativeDocumentMonitorMapping(document:context.document,base:context.base,
           workingDirectory:context.workingDirectory,legacyDisplays:documentDisplays(),available:availableDocumentDisplays(),
-          previous:review.monitorMapping,compatibility:context.compatibility)
+          previous:review.monitorMapping,compatibility:context.compatibility,endpointUse:context.endpointUse)
       }
       documentReview = nil; documentIssue = NativeDocumentOpenError.topologyChanged.description; return
     }
     do {
       let configuration = try review.resolution.configuration(acknowledging:Set(review.resolution.notices.map(\.line)))
-      let created = try runtime.makeSession(configuration:configuration)
+      let created = purpose == .connection ? try runtime.makeSession(configuration:configuration) : nil
       // Metadata precedes session publication so subscribers set the file address
       // (including an explicit empty one) before enabling connection admission.
       documentResolution = review.resolution; documentReview = nil; documentMappingContext = nil
+      prepared = .init(configuration:configuration,inherited:inherited,document:documentResolution,invocation:invocationResolution)
       session = created; isReady = true; documentIssue = nil
     } catch { documentReview = nil; documentFailed(error) }
   }
@@ -300,7 +323,9 @@ import Foundation
     // Publish profile metadata before the session so the connection controller
     // installs its address before exposing Connect. Never apply a late profile.
     self.profile = profile
-    session = try runtime.makeSession(configuration: configuration)
+    let created = purpose == .connection ? try runtime.makeSession(configuration:configuration) : nil
+    prepared = .init(configuration:configuration,inherited:values,document:documentResolution,invocation:invocationResolution)
+    session = created
     inherited = values; overrides = NativePreferences(); error = nil; isReady = true
   }
   public func useBuiltInDefaults() {

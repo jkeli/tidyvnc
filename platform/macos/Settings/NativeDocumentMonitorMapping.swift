@@ -13,10 +13,13 @@ public struct NativeDocumentMonitorMapping: Identifiable, Sendable {
   let document: NativeConnectionDocument
   let base: NativeSessionConfiguration
   let workingDirectory: String
+  let endpointUse: NativeDocumentEndpointUse
 
   init(document: NativeConnectionDocument, base: NativeSessionConfiguration,
        workingDirectory: String, legacyDisplays: [NativeDisplayID], available: [NativeDisplayID],
-       previous: [Int:NativeDisplayID]? = nil, compatibility: NativeCompatibilityState? = nil) throws {
+       previous: [Int:NativeDisplayID]? = nil, compatibility: NativeCompatibilityState? = nil,
+       endpointUse: NativeDocumentEndpointUse = .connection) throws {
+    self.endpointUse = endpointUse
     self.compatibility = compatibility
     self.document = document; self.base = base; self.workingDirectory = workingDirectory
     self.available = available

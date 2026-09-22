@@ -35,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix='tidyvnc-terminal-') as temporary:
         ([b'-listen'], 1, b'launch credential exceeds', False),
         ([b'-listen', b'65536'], 1, b'listen port must', False),
         ([b'-listen', b'5500private-value'], 1, b'listen port must', False),
-        ([b'-listen', b'./private-file'], 1, b'not supported yet', False),
+        ([b'-listen', b'./private-file'], 1, b'launch credential exceeds', False),
         ([b'-listen', b'-UseIPv4=off', b'-UseIPv6=off'], 1, b'cannot be applied', False),
         ([b'-via=private-value'], 1, b'native adapter', False),
         ([b'-Log=private-writer:private-target:2147483648', b'-Log=*::0', b'--help'], 1, b'invalid value', False),

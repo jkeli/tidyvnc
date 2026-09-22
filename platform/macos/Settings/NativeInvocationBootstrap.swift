@@ -111,7 +111,7 @@ public enum NativeInvocationBootstrap {
       text += "  \(option.name) \(value)\(alias)\(initial)\(status)\n"
     }
     text += "\nLog targets: stderr, stdout, file, or empty to disable.\nFile: /tmp/vncviewer.log, created on first output with one .bak; failures use stderr.\n"
-    text += "Listen defaults to TCP port 5500; port 0 chooses an available port. Use a decimal port from 0 to 65535.\nConnection files and socket paths are not yet supported with -listen. Accept each incoming connection in the listener window.\n"
+    text += "Listen defaults to TCP port 5500; port 0 chooses an available port. Use a decimal port from 0 to 65535.\nWith -listen ./file.tidyvnc, review file settings before binding; ServerName supplies the port. Unix socket listeners are unsupported.\nAccept each incoming connection in the listener window.\n"
     text += "Legacy password files apply only to password-only authentication. VNC_PASSWORD (with VNC_USERNAME when required) takes precedence.\nLaunch credentials belong to the first connection window (first accepted incoming window with -listen) and are never saved.\nStopping the listener clears unclaimed launch credentials.\n"
     text += "Unsupported native adapters fail explicitly; their parameters are never ignored.\n"
     return .init(text:text,exitCode:1)
@@ -129,24 +129,30 @@ public enum NativeInvocationBootstrap {
       workingDirectory:workingDirectory,monitorMapping:nil,deferDisplayMapping:true)
     if options.assignments.last(where:{ $0.name == "listen" })?.value == "on" {
       let operand = options.operand
-      if let operand, operand.contains("/") || operand.contains("\\") {
-        throw NativeInvocationResolutionFailure(reason:.listenFileUnsupported,argument:options.operandArgument)
-      }
       var listen = NativeListenOptions()
-      if let operand {
-        guard !operand.isEmpty, operand.utf8.allSatisfy({ (48...57).contains($0) }),
-              let port = UInt32(operand), port <= 65535 else {
-          throw NativeInvocationResolutionFailure(reason:.invalidListenPort,argument:options.operandArgument)
-        }
-        listen.port = port
-      }
       listen.ipv4 = options.assignments.last(where:{ $0.name == "UseIPv4" })?.value != "off"
       listen.ipv6 = options.assignments.last(where:{ $0.name == "UseIPv6" })?.value != "off"
       guard listen.ipv4 || listen.ipv6 else {
         throw NativeInvocationResolutionFailure(reason:.invalidValue,
           argument:options.assignments.last(where:{ $0.name == "UseIPv4" || $0.name == "UseIPv6" })?.argument ?? 0)
       }
-      return .init(invocation:.init(options:options,endpoint:"",workingDirectory:workingDirectory),document:nil,listen:listen)
+      var document: NativeDocumentOpenRequest?
+      if let operand, operand.contains("/") || operand.contains("\\") {
+        let path = operand.hasPrefix("/") ? operand : workingDirectory + (workingDirectory.hasSuffix("/") ? "" : "/") + operand
+        guard NativeTrustFiles.isValidPath(path) else {
+          throw NativeInvocationResolutionFailure(reason:.invalidEndpoint,argument:options.operandArgument)
+        }
+        guard inspector.kind(at:path) != .socket else {
+          throw NativeInvocationResolutionFailure(reason:.listenSocketUnsupported,argument:options.operandArgument)
+        }
+        document = .init(url:URL(fileURLWithPath:path),workingDirectory:workingDirectory)
+      } else if let operand {
+        guard let port = NativeListenPort.parse(operand) else {
+          throw NativeInvocationResolutionFailure(reason:.invalidListenPort,argument:options.operandArgument)
+        }
+        listen.port = port
+      }
+      return .init(invocation:.init(options:options,endpoint:"",workingDirectory:workingDirectory),document:document,listen:listen)
     }
     var endpoint = options.operand ?? ""
     var document: NativeDocumentOpenRequest?

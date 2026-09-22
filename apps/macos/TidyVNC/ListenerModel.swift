@@ -13,6 +13,12 @@ import TidyVNCNative
   @Published private(set) var addresses: [NativeListenerAddress] = []
   @Published private(set) var reserved: Set<UInt64> = []
   @Published private(set) var issue: String?
+  @Published private(set) var preparationCancelled = false
+  let preparation: NativeSessionDefaults?
+  let displays: NativeDisplayService?
+  private let ownsDisplays: Bool
+  private let requiresPreparation: Bool
+  private var preparationObservations: Set<AnyCancellable> = []
   private let runtime: NativeRuntime
   private let open: @MainActor (ReverseConnectionRequest) -> Bool
   private let invocation: NativeInvocationRequest?
@@ -23,25 +29,57 @@ import TidyVNCNative
   private var cleanup: Task<Void,Never>?
   private var epoch: UInt64 = 0
   private(set) var closing = false
-  init(runtime: NativeRuntime, launch: NativeInvocationLaunch? = nil, open: @escaping @MainActor (ReverseConnectionRequest) -> Bool) {
+  init(runtime: NativeRuntime, launch: NativeInvocationLaunch? = nil,
+       preferences: NativePreferencesStore? = nil, displays: NativeDisplayService? = nil,
+       documentReader: any NativeDocumentReading = NativeDocumentFileReader(),
+       open: @escaping @MainActor (ReverseConnectionRequest) -> Bool) {
     self.runtime = runtime; self.open = open
     invocation = launch?.listen == nil ? nil : launch?.invocation
     if let request = invocation { launchCredentials = launch?.credentials ?? (try? NativeLaunchCredentialInputs.fileOnly(request)) }
     else { launchCredentials = nil }
     launchPending = launch?.listen != nil
+    requiresPreparation = launch?.listen != nil && launch?.document != nil
+    ownsDisplays = requiresPreparation && displays == nil
+    let screens = requiresPreparation ? (displays ?? NativeDisplayService()) : displays
+    self.displays = screens
+    if requiresPreparation, let preferences, let launch {
+      preparation = NativeSessionDefaults(runtime:runtime,store:preferences,invocation:launch.invocation,
+        document:launch.document,documentReader:documentReader,documentDisplays:{ [weak screens] in
+          screens?.refresh(); return (try? screens?.snapshot.documentMonitorOrder()) ?? []
+        },documentAvailableDisplays:{ [weak screens] in
+          screens?.refresh(); return screens?.snapshot.displays.map(\.id) ?? []
+        },purpose:.listener)
+    } else { preparation = nil }
     if let options = launch?.listen { port = String(options.port); ipv4 = options.ipv4; ipv6 = options.ipv6 }
+    if requiresPreparation && preparation == nil { issue = "Saved defaults are unavailable. Reopen the application to review this listener file." }
+    preparation?.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in:&preparationObservations)
   }
   // Scene publication may repeat. Only the first appearance may bind on behalf
   // of the command line; Stop and window close revoke that request permanently.
   func startLaunchIfNeeded() {
-    guard launchPending else { return }; launchPending = false; start()
+    guard launchPending, !closing else { return }; launchPending = false
+    if requiresPreparation { preparation?.load() } else { start() }
   }
-  var canStart: Bool { !closing && cleanup == nil && [.idle,.stopped,.failed].contains(phase) }
+  func acceptDocument(_ id: UUID) {
+    guard !closing, !preparationCancelled, let preparation, preparation.documentReview?.id == id else { return }
+    preparation.acceptDocument(id)
+    guard preparation.isReady, let port = preparation.prepared?.document?.listenPort else { return }
+    self.port = String(port)
+    start()
+  }
+  func cancelDocument(_ id: UUID, mapping: Bool = false) {
+    guard !closing, let preparation,
+      (mapping ? preparation.documentMapping?.id : preparation.documentReview?.id) == id else { return }
+    launchCredentials?.clear(); launchCredentials = nil
+    if mapping { preparation.cancelDocumentMapping(id) } else { preparation.cancelDocument(id) }
+  }
+  var canStart: Bool { !closing && cleanup == nil && !preparationCancelled &&
+    (!requiresPreparation || preparation?.isReady == true) && [.idle,.stopped,.failed].contains(phase) }
   var canStop: Bool { !closing && [.starting,.listening].contains(phase) }
   func start() {
     guard canStart else { return }
     let input = port.trimmingCharacters(in:.whitespacesAndNewlines)
-    guard !input.isEmpty, input.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }), let selected = UInt32(input), selected <= 65535 else {
+    guard let selected = NativeListenPort.parse(input) else {
       issue = "Enter a TCP port from 0 to 65535. Port 0 chooses an available port."; return
     }
     guard ipv4 || ipv6 else { issue = "Enable IPv4 or IPv6 to listen for connections."; return }
@@ -88,8 +126,17 @@ import TidyVNCNative
   func canAccept(_ peer: NativeIncomingPeer) -> Bool { !closing && phase == .listening && incoming.contains(peer) && !reserved.contains(peer.id) }
   func accept(_ peer: NativeIncomingPeer) {
     guard canAccept(peer), let listener else { return }
+    if let configuration = preparation?.prepared?.configuration, configuration.fullscreenPolicy.mode == .selected,
+       !configuration.fullscreenPolicy.selectedDisplays.isEmpty {
+      displays?.refresh()
+      let available = Set(displays?.snapshot.displays.map(\.id) ?? [])
+      guard displays?.snapshot.error == nil, Set(configuration.fullscreenPolicy.selectedDisplays).isSubset(of:available) else {
+        issue = "A reviewed display is disconnected. Reconnect it, or close this listener and reopen the file to choose displays."; return
+      }
+    }
+    issue = nil
     reserved.insert(peer.id)
-    if open(.init(listener:listener,peer:peer,invocation:invocation,credentials:launchCredentials)) {
+    if open(.init(listener:listener,peer:peer,invocation:invocation,credentials:launchCredentials,prepared:preparation?.prepared)) {
       launchCredentials = nil
     } else {
       reserved.remove(peer.id); issue = "A connection window could not be opened. Try again or reject the incoming connection."
@@ -102,6 +149,9 @@ import TidyVNCNative
   }
   func stop() {
     launchPending = false; launchCredentials?.clear(); launchCredentials = nil
+    if requiresPreparation && preparation?.isReady != true {
+      preparationCancelled = true; preparation?.stop()
+    }
     guard canStop else { return }
     phase = .stopping; incoming = []; reserved = []
     epoch &+= 1; let ticket = epoch
@@ -119,11 +169,15 @@ import TidyVNCNative
     launchPending = false; launchCredentials?.clear(); launchCredentials = nil
     if canStop { stop() }
     closing = true; epoch &+= 1
+    preparation?.stop(); preparationObservations.removeAll()
+    if ownsDisplays { displays?.stop() }
     let prior = cleanup, owner = listener; listener = nil; observations.removeAll()
+    let preparation = preparation
     incoming = []; reserved = []
     cleanup = Task {
       await prior?.value
       try? await owner?.close()
+      await preparation?.close()
     }
   }
   func close() async { requestClose(); await cleanup?.value }
