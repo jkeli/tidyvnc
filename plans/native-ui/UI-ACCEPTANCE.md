@@ -1,5 +1,12 @@
 # Native UI acceptance observations
 
+## 2026-09-22 — fullscreen/resize follow-up access check
+
+A fresh CUA `getApp("TidyVNC")` again reports “native pipe closed before response.”
+No UI action or relaunch was sent, and no new app-crash or interactive acceptance
+conclusion follows. The new fullscreen/resize evidence is offscreen fixture
+rendering only. Resume actual-app checks through CUA when it recovers.
+
 ## 2026-09-22 — rebuilt Help/About, profile connector failure reproduced
 
 CUA native access recovered at the start of this follow-up. The older app was

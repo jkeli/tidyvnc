@@ -83,17 +83,17 @@ struct ProfileLibraryView: View {
               GroupBox("Connection") {
                 ConnectionSettingsFields(shared:Binding(get: { model.draft?.settings.shared },set: { if model.canEdit { model.draft?.settings.shared = $0 } }),
                   reconnectOnError:Binding(get: { model.draft?.settings.reconnectOnError },set: { if model.canEdit { model.draft?.settings.reconnectOnError = $0 } }),
-                  inheritedShared:model.inheritedShared,inheritedReconnectOnError:model.inheritedReconnectOnError,inheritance:"App default").padding(8)
+                  inheritedShared:model.inheritedShared,inheritedReconnectOnError:model.inheritedReconnectOnError,inheritance:String(localized:"settings.encoding.app.default", defaultValue:"App default")).padding(8)
               }
               GroupBox("Fullscreen") {
                 FullscreenDefaultsFields(patch:Binding(get:{ model.draft?.settings.fullscreen ?? .init() },set:{
                   if model.canEdit { model.draft?.settings.fullscreen = $0 == .init() ? nil : $0 }
-                }),inherited:model.inheritedFullscreenPolicy,inheritance:"App default").padding(8)
+                }),inherited:model.inheritedFullscreenPolicy,inheritance:String(localized:"settings.encoding.app.default", defaultValue:"App default")).padding(8)
               }
               GroupBox("Remote Resize") {
                 RemoteResizeSettingsFields(patch:Binding(get: { model.draft?.settings.remoteResize ?? .init() },set: {
                   if model.canEdit { model.draft?.settings.remoteResize = $0 == .init() ? nil : $0 }
-                }),inherited:model.inheritedResizePolicy,inheritance:"App default").padding(8)
+                }),inherited:model.inheritedResizePolicy,inheritance:String(localized:"settings.encoding.app.default", defaultValue:"App default")).padding(8)
               }
               GroupBox("Clipboard") {
                 VStack {
@@ -105,13 +105,13 @@ struct ProfileLibraryView: View {
                 DisclosureGroup("Security Methods") {
                   SecuritySettingsFields(patch:Binding(get: { model.draft?.settings.security ?? NativeSecurityPreferences() },set: {
                     if model.canEdit { model.draft?.settings.security = $0 == NativeSecurityPreferences() ? nil : $0 }
-                  }),inherited:inherited,choices:model.securityChoices,inheritance:"Use app defaults",inheritedPriority:model.inheritedTLSPriority).padding(8)
+                  }),inherited:inherited,choices:model.securityChoices,inheritance:String(localized:"settings.inheritance.use.app.defaults.lowercase", defaultValue:"Use app defaults"),inheritedPriority:model.inheritedTLSPriority).padding(8)
                 }
               }
               GroupBox("Certificate Files") {
                 TrustFileSettingsFields(patch: Binding(get: { model.draft?.settings.trustFiles ?? NativeTrustFiles() }, set: {
                   if model.canEdit { model.draft?.settings.trustFiles = $0 == NativeTrustFiles() ? nil : $0 }
-                }), inherited: model.inheritedTrustFiles, inheritance: "Use app default", contextID: draft.id.uuidString).padding(8)
+                }), inherited: model.inheritedTrustFiles, inheritance: String(localized:"settings.encoding.use.app.default", defaultValue:"Use app default"), contextID: draft.id.uuidString).padding(8)
               }
               GroupBox("Scaling") {
                 ScalingDefaultsFields(patch: Binding(get: { model.draft?.settings.scaling ?? NativeScalingPreferences() }, set: {

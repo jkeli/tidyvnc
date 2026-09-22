@@ -48,7 +48,9 @@ func display(_ id: String, x: Double, primary: Bool = false) -> NativeDisplay {
 }
 @MainActor final class Delegate: NSObject, NSWindowDelegate {}
 @MainActor func capture(_ draft: NativeFullscreenDraft, directory: URL, name: String, dark: Bool) async throws {
-  let view = NSHostingView(rootView:FullscreenSettingsSheet(model:draft,dismiss:{}).environment(\.colorScheme,dark ? .dark : .light).background(Color(nsColor:.windowBackgroundColor)))
+  let view = NSHostingView(rootView:FullscreenSettingsSheet(model:draft,dismiss:{})
+    .environment(\.layoutDirection,CommandLine.arguments.contains("--rtl") ? .rightToLeft : .leftToRight)
+    .environment(\.colorScheme,dark ? .dark : .light).background(Color(nsColor:.windowBackgroundColor)))
   let window = NSWindow(contentRect:.init(x:0,y:0,width:560,height:730),styleMask:[.titled],backing:.buffered,defer:false)
   window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua); window.contentView = view
   defer { window.contentView = nil; window.close() }

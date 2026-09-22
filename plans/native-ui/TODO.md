@@ -2,10 +2,10 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **460** entries;
-input/scaling/security/connection/certificate-file localization and expanded
-layouts pass focused checks. Next: fullscreen/remote-resize, then remaining UI
-localization. Interactive/physical/installed acceptance and release gates stay open.
+implementation, validation and next steps. The catalog now has **534** entries;
+fullscreen/remote-resize localization and expanded layouts now join the migrated
+settings groups. Next: remaining menu/connection/document/profile/listener/status
+localization and fixed controller errors. Interactive/physical/installed acceptance and release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
 file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
@@ -560,11 +560,12 @@ UI uses, with migration and credential behavior verified independently.
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
-  - Latest Settings/encoding follow-up brings the catalog to 304 source entries.
-    Defaults/recovery/encoding fields and interpolated labels are covered, with
-    bounded scrolling and expanded/RTL layout fixtures. The trust-library label
-    and trust save/replace action truncation are fixed. Complete settings subfield,
-    menu/document/profile/listener/status migration and interactive acceptance
+  - Latest follow-ups bring the catalog to 534 source entries. Settings subfields,
+    fullscreen/resize defaults and session controls, fixed draft/server results and
+    profile inheritance labels are covered. Bounded scrolling and expanded/RTL
+    fixtures catch truncated controls and display rows; physical coordinate maps
+    keep their actual order under RTL. Remaining menu/connection/document/profile/
+    listener/status strings and controller errors plus interactive acceptance
     remain open. See LOCALIZATION.md and the latest evidence log.
   - Credential/password-file status, saved-trust storage notices and the trust
     library now add 60 catalog entries (228 total). Complete localized status
@@ -8722,3 +8723,52 @@ final-app,final-render,final-bundle,final-terminal,final-branding,final-rtl}.log
 `/tmp/tidyvnc-fields-captions-expanded/`, `/tmp/tidyvnc-fields-final-rtl/`.
 All recorded process handles completed. Next: fullscreen/remote-resize localization
 and the remaining unchecked plan. N4.16 and all parent acceptance gates stay open.
+
+### 2026-09-22 — Fullscreen/remote-resize localization and physical RTL maps
+
+The catalog grows from 460 to **534** English source entries. Fullscreen defaults
+and connection-local display selection, resize defaults/policy/request sheets,
+display descriptions, fixed draft diagnostics and server results use stable IDs
+and English defaults. Profile inheritance labels for the migrated settings groups
+are also localized. Display names and formatted numeric results remain literal
+arguments; stored IDs, input syntax, protocol admission and persistence are unchanged.
+The requested-layout summary uses a screen-count label, avoiding “1 screens.”
+
+Inherited choices expose effective values below short picker labels. Initial-size
+blank guidance wraps visibly above the field. Sheets bound their scroll content
+and keep recovery/actions outside it. The first expanded screenshots exposed a
+truncated resize-source choice and multiline display rows clipped by estimated
+single-line heights. The source picker now occupies its own full-width row, and
+live display lists use the enclosing sheet scroller. The next mirrored screenshot
+exposed SwiftUI reversing the physical map: both diagrams now explicitly retain
+left-to-right coordinate order while surrounding controls mirror. Final light/dark
+RTL screenshots show the selected left display still on the left. The fullscreen
+presentation fixture accepts `--rtl` for repeatable coverage.
+
+Validation:
+
+- Focused native and final app builds pass. Fullscreen presentation/persistence and
+  remote-resize policy/persistence: **4/4 (9.09 s)**. After the final geometry fix,
+  ordinary settings/fullscreen presentation: **2/2 (27.25 s)**.
+- Expanded settings/fullscreen and final mirrored settings/fullscreen fixture runs
+  exit 0. Representative defaults, selected-display and policy screenshots were
+  inspected. The isolated fullscreen fixture logs an AppKit sandbox-extension
+  warning but completes its behavioral/render checks successfully.
+- **534** packaged catalog values, missing-key/untranslated-language fallback and
+  literal interpolation pass. New checks cover percent/Unicode display names,
+  locale-formatted dimensions and UInt32.max server-result text. Scoped view
+  defaults also match their catalog values. Strict deep signature, **32/32**
+  executable terminal cases, branding baseline **1650** and diff checks pass.
+- No full-suite/sanitizer rerun for this presentation-only slice. The existing
+  dependency deployment warnings remain: the current macOS/SDK build is not
+  proof of the declared macOS 14 floor. No physical/installed/release acceptance.
+- A fresh CUA getApp again reports a closed native pipe. No interactive action,
+  app crash conclusion or additional keyboard/VoiceOver acceptance follows.
+
+Evidence: `/tmp/tidyvnc-display-{localization-build,model-tests,final-build,
+final-app,final-tests,final-bundle,final-terminal,final-branding,final-expanded,
+final-rtl}.log`; `/tmp/tidyvnc-fullscreen-{expanded,final-rtl,physical-rtl}.log`.
+Images: `/tmp/tidyvnc-display-final-expanded/`, `/tmp/tidyvnc-display-final-rtl/`,
+`/tmp/tidyvnc-fullscreen-physical-rtl/`. All process handles completed. Continue
+remaining menus/connection/profile/document/history/listener/status localization,
+fixed controller errors and the entire unchecked checklist. N4.16 remains open.

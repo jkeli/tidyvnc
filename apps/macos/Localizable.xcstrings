@@ -5520,6 +5520,893 @@
           }
         }
       }
+    },
+    "settings.resize.remote.resize.settings": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote Resize Settings"
+          }
+        }
+      }
+    },
+    "settings.resize.these.settings.apply.to.this.connection.window.saved.defaults.and.profiles.stay": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These settings apply to this connection window. Saved defaults and profiles stay unchanged."
+          }
+        }
+      }
+    },
+    "settings.resize.resize.the.remote.desktop.with.this.window": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize the remote desktop with this window"
+          }
+        }
+      }
+    },
+    "settings.resize.automatic.resizing.follows.the.window.or.the.complete.fullscreen.display.arrangement.in": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic resizing follows the window or the complete fullscreen display arrangement in Unscaled mode. Device-pixel units include the display’s backing scale. View-only mode and servers without resize support prevent requests."
+          }
+        }
+      }
+    },
+    "settings.resize.initial.size.for.the.next.connection": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial size for the next connection"
+          }
+        }
+      }
+    },
+    "settings.resize.leave.blank.to.use.the.server.s.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave blank to use the server’s size"
+          }
+        }
+      }
+    },
+    "settings.resize.initial.desktop.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial desktop size"
+          }
+        }
+      }
+    },
+    "settings.resize.optional.width.height.in.remote.pixels.such.as.1920x1080.leave.blank.to": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional width × height in remote pixels, such as 1920x1080. Leave blank to use the server’s size. An initial size is requested once on the next connection when resizing is enabled, even in a scaled mode."
+          }
+        }
+      }
+    },
+    "settings.resize.a.resize.may.affect.other.viewers.windowed.and.initial.size.requests.use": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A resize may affect other viewers. Windowed and initial-size requests use one remote screen; fullscreen follows the selected displays. Turning resizing off cannot undo a request already sent."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.restore.initial.settings": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Initial Settings"
+          }
+        }
+      }
+    },
+    "settings.resize.resize.remote.desktop.with.window": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize remote desktop with window"
+          }
+        }
+      }
+    },
+    "settings.resize.follows.the.window.or.the.complete.fullscreen.display.arrangement.in.unscaled.mode": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follows the window or the complete fullscreen display arrangement in Unscaled mode. View-only mode and servers without resize support prevent requests. Device-pixel units include the display’s backing scale."
+          }
+        }
+      }
+    },
+    "settings.resize.override.initial.desktop.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override initial desktop size"
+          }
+        }
+      }
+    },
+    "settings.resize.initial.size.in.remote.pixels": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial size in remote pixels"
+          }
+        }
+      }
+    },
+    "settings.resize.inherited.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@"
+          }
+        }
+      }
+    },
+    "settings.resize.use.the.server.s.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "use the server’s size"
+          }
+        }
+      }
+    },
+    "settings.resize.an.optional.widthxheight.such.as.1920x1080.is.requested.once.on.connection.when": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An optional widthxheight, such as 1920x1080, is requested once on connection when resizing is enabled. Each dimension must be 1 to 65535. An explicit blank value uses the server’s size."
+          }
+        }
+      }
+    },
+    "settings.resize.enter.a.valid.initial.size.or.leave.the.override.blank": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid initial size or leave the override blank."
+          }
+        }
+      }
+    },
+    "settings.resize.resizing.may.affect.other.viewers.windowed.and.initial.size.requests.use.one": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resizing may affect other viewers. Windowed and initial-size requests use one remote screen; fullscreen follows the selected displays."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.start.in.full.screen": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start in full screen"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.use": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.override.selected.displays": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override selected displays"
+          }
+        }
+      }
+    },
+    "settings.display.disconnected.selection": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnected selected display %@"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.display.information.is.unavailable.saved.selections.are.kept": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display information is unavailable. Saved selections are kept."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.selected.displays.mode.requires.at.least.one.selected.display": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected displays mode requires at least one selected display."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.selections.are.kept.when.displays.disconnect.if.none.are.available.the.current": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selections are kept when displays disconnect. If none are available, the current display is used temporarily. These settings apply to new connection windows."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.fullscreen.displays": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fullscreen Displays"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.choose.where.this.connection.appears.when.you.enter.full.screen.exit.full": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose where this connection appears when you enter full screen. Exit Full Screen returns to this window."
+          }
+        }
+      }
+    },
+    "settings.display.description": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@. %@ — %@ × %@ points, %@×"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.selected.source": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected displays: %@"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.disconnected.selections.are.kept.available.selected.displays.are.used.if.none.remain": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnected selections are kept. Available selected displays are used; if none remain, the current display is used temporarily."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.display.changes.apply.the.next.time.full.screen.opens.reconnecting.restores.full": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display changes apply the next time full screen opens. Reconnecting restores full screen if it was active at disconnect. Changing the startup option overrides that behavior for the next connection."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.review.displays": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Displays"
+          }
+        }
+      }
+    },
+    "settings.resize.resize.remote.desktop": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize Remote Desktop"
+          }
+        }
+      }
+    },
+    "settings.resize.request.a.new.resolution.from.the.server.this.may.affect.other.viewers": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request a new resolution from the server. This may affect other viewers connected to the same desktop."
+          }
+        }
+      }
+    },
+    "settings.resize.resolution.from": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolution from"
+          }
+        }
+      }
+    },
+    "settings.resize.width.in.pixels": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Width in pixels"
+          }
+        }
+      }
+    },
+    "settings.resize.height.in.pixels": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Height in pixels"
+          }
+        }
+      }
+    },
+    "settings.resize.enter.whole.numbers.from.1.to.65535.the.server.and.this.connection": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter whole numbers from 1 to 65535. The server and this connection’s memory limit determine which sizes are accepted."
+          }
+        }
+      }
+    },
+    "settings.resize.replaces.layout": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request replaces the server’s current %@-screen layout with one screen."
+          }
+        }
+      }
+    },
+    "settings.resize.waiting.for.the.server": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the server…"
+          }
+        }
+      }
+    },
+    "settings.resize.resize": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize"
+          }
+        }
+      }
+    },
+    "settings.resize.closing.this.sheet.cannot.undo.a.request.already.sent.to.the.server": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closing this sheet cannot undo a request already sent to the server."
+          }
+        }
+      }
+    },
+    "settings.resize.use.device.pixels": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use device pixels"
+          }
+        }
+      }
+    },
+    "settings.resize.creates.one.remote.screen.per.selected.local.display.this.changes.the.server": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creates one remote screen per selected local display. This changes the server layout; it does not move or fullscreen this window."
+          }
+        }
+      }
+    },
+    "settings.resize.requested.layout": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requested: %@ × %@ pixels · Screens: %@"
+          }
+        }
+      }
+    },
+    "settings.resize.the.remote.arrangement.is.adjusted.to.keep.displays.with.different.pixel.densities": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote arrangement is adjusted to keep displays with different pixel densities from overlapping."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.current.display": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current display"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.all.displays": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All displays"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.selected.displays": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected displays"
+          }
+        }
+      }
+    },
+    "settings.fullscreen.the.connection.changed.close.and.reopen.this.sheet": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection changed. Close and reopen this sheet."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.displays.changed.review.the.new.arrangement.before.applying": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Displays changed. Review the new arrangement before applying."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.display.information.is.unavailable": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display information is unavailable."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.select.at.least.one.display": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select at least one display."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.select.up.to.64.displays.with.valid.saved.identities.remove.unavailable.selections": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select up to 64 displays with valid saved identities. Remove unavailable selections if necessary."
+          }
+        }
+      }
+    },
+    "settings.fullscreen.this.display.arrangement.cannot.be.mapped.overlapping.or.mirrored.displays.are.not": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This display arrangement cannot be mapped. Overlapping or mirrored displays are not supported."
+          }
+        }
+      }
+    },
+    "settings.resize.custom.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom size"
+          }
+        }
+      }
+    },
+    "settings.resize.all.local.displays": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All local displays"
+          }
+        }
+      }
+    },
+    "settings.resize.selected.local.displays": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected local displays"
+          }
+        }
+      }
+    },
+    "settings.resize.local.displays.changed.reload.to.review.the.new.arrangement.before.resizing": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local displays changed. Reload to review the new arrangement before resizing."
+          }
+        }
+      }
+    },
+    "settings.resize.local.display.information.is.unavailable": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local display information is unavailable."
+          }
+        }
+      }
+    },
+    "settings.resize.a.selected.display.is.disconnected.reconnect.it.or.remove.it.from.the": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A selected display is disconnected. Reconnect it or remove it from the selection."
+          }
+        }
+      }
+    },
+    "settings.resize.this.arrangement.cannot.be.mapped.displays.must.not.overlap.or.mirror.and": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This arrangement cannot be mapped. Displays must not overlap or mirror, and the layout must fit within 65535 × 65535 pixels."
+          }
+        }
+      }
+    },
+    "settings.resize.the.current.remote.desktop.size.is.unavailable": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current remote desktop size is unavailable."
+          }
+        }
+      }
+    },
+    "settings.resize.the.server.s.desktop.layout.changed.reload.before.resizing": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server’s desktop layout changed. Reload before resizing."
+          }
+        }
+      }
+    },
+    "settings.resize.the.requested.desktop.size.is.unavailable": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The requested desktop size is unavailable."
+          }
+        }
+      }
+    },
+    "settings.resize.server.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server’s desktop is now %@ × %@ pixels."
+          }
+        }
+      }
+    },
+    "settings.resize.server.rejection": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected the requested size (result %@)."
+          }
+        }
+      }
+    },
+    "settings.resize.the.server.has.not.replied.wait.for.its.reply.or.reconnect.before": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has not replied. Wait for its reply or reconnect before resizing again."
+          }
+        }
+      }
+    },
+    "settings.resize.this.size.exceeds.the.connection.s.framebuffer.limit.choose.a.smaller.size": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This size exceeds the connection’s framebuffer limit. Choose a smaller size."
+          }
+        }
+      }
+    },
+    "settings.resize.the.resize.did.not.complete.reload.the.current.desktop.size.before.trying": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The resize did not complete. Reload the current desktop size before trying again."
+          }
+        }
+      }
+    },
+    "settings.resize.the.connection.s.resize.settings.changed.close.and.reopen.this.sheet": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection’s resize settings changed. Close and reopen this sheet."
+          }
+        }
+      }
+    },
+    "settings.resize.use.widthxheight.with.each.dimension.from.1.to.65535.or.leave.the": {
+      "comment": "Native display/resize presentation; interpolated values are literal and may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use widthxheight with each dimension from 1 to 65535, or leave the initial size blank."
+          }
+        }
+      }
+    },
+    "settings.inheritance.use.app.defaults.lowercase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use app defaults"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -57,14 +57,15 @@ selection and saved-password buttons were truncated. The retention label now
 appears above its full-width picker, and saved-password actions are vertical.
 This targeted fixture does not establish expansion support for the remaining UI.
 
-The catalog now contains 460 English source entries. Settings section labels,
+The catalog now contains 534 English source entries. Settings section labels,
 clipboard defaults, storage recovery messages, encoding controls/source labels and
 the live encoding sheet have stable IDs. Encoding option/value and unavailable
 choice messages use literal interpolated arguments; ranges, protocol names and
 stored values still come from the shared schema. Input, scaling, connection options,
 security/TLS priority and certificate-file controls and fixed model errors are now
-also covered. Fullscreen/remote-resize settings, menus, profiles/documents/listeners
-and status strings remain to be migrated.
+also covered. Fullscreen and remote-resize defaults/session sheets, display
+descriptions and fixed draft/server-result messages are now covered too. Menus,
+profiles/documents/listeners, status and fixed controller errors remain to migrate.
 
 The trust-library destination now has a wrapping visible label and an explicit
 accessibility name. Native trust save/replace buttons still truncate long labels,
@@ -107,3 +108,13 @@ explicit accessibility labels. CA/CRL actions use complete localized sentences,
 without lowercasing or joining translated fragments. Synthetic expanded screenshots
 and the packaged interpolation check cover literal percent signs and setting
 values; no translation, physical-device or full accessibility acceptance is implied.
+
+Fullscreen/remote-resize sheets use bounded scroll content and separate recovery
+actions. Source pickers and blank-size guidance have visible wrapping labels.
+Display rows scroll with the sheet instead of using fixed single-line height
+estimates. Physical coordinate diagrams explicitly retain left-to-right order
+under a mirrored interface: translating UI direction must not reverse the actual
+monitor arrangement. The fullscreen presentation fixture now accepts `--rtl` and
+can be passed to the expansion runner in place of `native-settings-tests`.
+Packaged tests exercise literal display names containing percent/Unicode text,
+locale-formatted dimensions and the full UInt32 server-result range.

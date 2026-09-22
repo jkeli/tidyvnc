@@ -6,9 +6,9 @@ public enum NativeRemoteResizeSource: String, CaseIterable, Sendable {
   case custom, allDisplays, selectedDisplays
   public var title: String {
     switch self {
-    case .custom: return "Custom size"
-    case .allDisplays: return "All local displays"
-    case .selectedDisplays: return "Selected local displays"
+    case .custom: return String(localized:"settings.resize.custom.size", defaultValue:"Custom size")
+    case .allDisplays: return String(localized:"settings.resize.all.local.displays", defaultValue:"All local displays")
+    case .selectedDisplays: return String(localized:"settings.resize.selected.local.displays", defaultValue:"Selected local displays")
     }
   }
 }
@@ -74,11 +74,11 @@ public enum NativeRemoteResizeSource: String, CaseIterable, Sendable {
   }
   public var displayMessage: String? {
     guard source != .custom else { return nil }
-    if needsDisplayReload { return "Local displays changed. Reload to review the new arrangement before resizing." }
-    if displays == nil || displaySnapshot?.error != nil { return "Local display information is unavailable." }
-    if !missingDisplays.isEmpty { return "A selected display is disconnected. Reconnect it or remove it from the selection." }
-    if chosenDisplays.isEmpty { return "Select at least one display." }
-    if displayLayout == nil { return "This arrangement cannot be mapped. Displays must not overlap or mirror, and the layout must fit within 65535 × 65535 pixels." }
+    if needsDisplayReload { return String(localized:"settings.resize.local.displays.changed.reload.to.review.the.new.arrangement.before.resizing", defaultValue:"Local displays changed. Reload to review the new arrangement before resizing.") }
+    if displays == nil || displaySnapshot?.error != nil { return String(localized:"settings.resize.local.display.information.is.unavailable", defaultValue:"Local display information is unavailable.") }
+    if !missingDisplays.isEmpty { return String(localized:"settings.resize.a.selected.display.is.disconnected.reconnect.it.or.remove.it.from.the", defaultValue:"A selected display is disconnected. Reconnect it or remove it from the selection.") }
+    if chosenDisplays.isEmpty { return String(localized:"settings.fullscreen.select.at.least.one.display", defaultValue:"Select at least one display.") }
+    if displayLayout == nil { return String(localized:"settings.resize.this.arrangement.cannot.be.mapped.displays.must.not.overlap.or.mirror.and", defaultValue:"This arrangement cannot be mapped. Displays must not overlap or mirror, and the layout must fit within 65535 × 65535 pixels.") }
     return nil
   }
   private var proposedLayout: NativeRemoteLayout? {
@@ -103,7 +103,7 @@ public enum NativeRemoteResizeSource: String, CaseIterable, Sendable {
       let current = try session.desktopLayout(); baseline = current
       width = String(current.layout.width); height = String(current.layout.height)
       needsReload = false; didApply = false; message = nil
-    } catch { needsReload = true; message = "The current remote desktop size is unavailable." }
+    } catch { needsReload = true; message = String(localized:"settings.resize.the.current.remote.desktop.size.is.unavailable", defaultValue:"The current remote desktop size is unavailable.") }
   }
   public func apply() {
     // Re-read the OS immediately before admission; notifications can be delayed.
@@ -111,9 +111,9 @@ public enum NativeRemoteResizeSource: String, CaseIterable, Sendable {
     guard canApply, let session, let baseline, let layout = proposedLayout else { return }
     do {
       guard try session.desktopLayout().layout == baseline.layout else {
-        needsReload = true; message = "The server’s desktop layout changed. Reload before resizing."; return
+        needsReload = true; message = String(localized:"settings.resize.the.server.s.desktop.layout.changed.reload.before.resizing", defaultValue:"The server’s desktop layout changed. Reload before resizing."); return
       }
-    } catch { message = "The requested desktop size is unavailable."; return }
+    } catch { message = String(localized:"settings.resize.the.requested.desktop.size.is.unavailable", defaultValue:"The requested desktop size is unavailable."); return }
     isBusy = true; message = nil; didApply = false
     operation = Task { @MainActor [weak self] in
       do {
@@ -123,16 +123,16 @@ public enum NativeRemoteResizeSource: String, CaseIterable, Sendable {
         let current = try session.desktopLayout(); self.baseline = current
         self.width = String(current.layout.width); self.height = String(current.layout.height)
         self.didApply = true; self.needsReload = false
-        self.message = "The server’s desktop is now \(current.layout.width) × \(current.layout.height) pixels."
+        self.message = String(localized:"settings.resize.server.size", defaultValue:"The server’s desktop is now \((current.layout.width).formatted()) × \((current.layout.height).formatted()) pixels.")
       } catch {
         if let self, !self.stopped {
           if let failure = error as? NativeCommandFailure, failure.reason == .serverRejected {
-            self.message = "The server rejected the requested size (result \(failure.nativeResult))."
+            self.message = String(localized:"settings.resize.server.rejection", defaultValue:"The server rejected the requested size (result \((failure.nativeResult).formatted())).")
           } else if let failure = error as? NativeCommandFailure, failure.reason == .timedOut {
-            self.message = "The server has not replied. Wait for its reply or reconnect before resizing again."
+            self.message = String(localized:"settings.resize.the.server.has.not.replied.wait.for.its.reply.or.reconnect.before", defaultValue:"The server has not replied. Wait for its reply or reconnect before resizing again.")
           } else if let issue = error as? NativeError, issue.status == .resourceLimit {
-            self.message = "This size exceeds the connection’s framebuffer limit. Choose a smaller size."
-          } else { self.message = "The resize did not complete. Reload the current desktop size before trying again."; self.needsReload = true }
+            self.message = String(localized:"settings.resize.this.size.exceeds.the.connection.s.framebuffer.limit.choose.a.smaller.size", defaultValue:"This size exceeds the connection’s framebuffer limit. Choose a smaller size.")
+          } else { self.message = String(localized:"settings.resize.the.resize.did.not.complete.reload.the.current.desktop.size.before.trying", defaultValue:"The resize did not complete. Reload the current desktop size before trying again."); self.needsReload = true }
         }
       }
       self?.finish()

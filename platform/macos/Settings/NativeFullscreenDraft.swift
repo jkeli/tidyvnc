@@ -4,7 +4,7 @@ import Foundation
 
 public enum NativeFullscreenMode: String, CaseIterable, Sendable {
   case current, all, selected
-  public var title: String { switch self { case .current: "Current display"; case .all: "All displays"; case .selected: "Selected displays" } }
+  public var title: String { switch self { case .current: String(localized:"settings.fullscreen.current.display", defaultValue:"Current display"); case .all: String(localized:"settings.fullscreen.all.displays", defaultValue:"All displays"); case .selected: String(localized:"settings.fullscreen.selected.displays", defaultValue:"Selected displays") } }
 }
 @MainActor public final class NativeFullscreenDraft: ObservableObject, Identifiable {
   public nonisolated let id = UUID()
@@ -63,14 +63,14 @@ public enum NativeFullscreenMode: String, CaseIterable, Sendable {
   }
   public var needsReview: Bool { snapshot?.generation != reviewed }
   public var validationMessage: String? {
-    if state?.connected != true || state?.revision != revision || state?.generation != generation { return "The connection changed. Close and reopen this sheet." }
-    if needsReview { return "Displays changed. Review the new arrangement before applying." }
-    if snapshot?.error != nil || snapshot?.displays.isEmpty != false { return "Display information is unavailable." }
-    if mode == .selected && selectedDisplays.isEmpty { return "Select at least one display." }
+    if state?.connected != true || state?.revision != revision || state?.generation != generation { return String(localized:"settings.fullscreen.the.connection.changed.close.and.reopen.this.sheet", defaultValue:"The connection changed. Close and reopen this sheet.") }
+    if needsReview { return String(localized:"settings.fullscreen.displays.changed.review.the.new.arrangement.before.applying", defaultValue:"Displays changed. Review the new arrangement before applying.") }
+    if snapshot?.error != nil || snapshot?.displays.isEmpty != false { return String(localized:"settings.fullscreen.display.information.is.unavailable", defaultValue:"Display information is unavailable.") }
+    if mode == .selected && selectedDisplays.isEmpty { return String(localized:"settings.fullscreen.select.at.least.one.display", defaultValue:"Select at least one display.") }
     if (try? NativeFullscreenPolicy.validateIDs(Array(selectedDisplays))) == nil {
-      return "Select up to 64 displays with valid saved identities. Remove unavailable selections if necessary."
+      return String(localized:"settings.fullscreen.select.up.to.64.displays.with.valid.saved.identities.remove.unavailable.selections", defaultValue:"Select up to 64 displays with valid saved identities. Remove unavailable selections if necessary.")
     }
-    if (try? NativeDisplayLayout(displays:chosenDisplays,devicePixels:state?.devicePixels ?? false)) == nil { return "This display arrangement cannot be mapped. Overlapping or mirrored displays are not supported." }
+    if (try? NativeDisplayLayout(displays:chosenDisplays,devicePixels:state?.devicePixels ?? false)) == nil { return String(localized:"settings.fullscreen.this.display.arrangement.cannot.be.mapped.overlapping.or.mirrored.displays.are.not", defaultValue:"This display arrangement cannot be mapped. Overlapping or mirrored displays are not supported.") }
     return nil
   }
   public var canApply: Bool { !stopped && state?.phase == .windowed && validationMessage == nil && candidate != nil && candidate != baseline }
@@ -80,7 +80,7 @@ public enum NativeFullscreenMode: String, CaseIterable, Sendable {
     state.refreshDisplays()
     guard canApply, let generation, let candidate else { objectWillChange.send(); return false }
     do { try state.apply(candidate,expected:revision,generation:generation); cancel(); return true }
-    catch { message = "The connection changed. Close and reopen this sheet."; return false }
+    catch { message = String(localized:"settings.fullscreen.the.connection.changed.close.and.reopen.this.sheet", defaultValue:"The connection changed. Close and reopen this sheet."); return false }
   }
   public func cancel() { stopped = true; observation = nil }
 }

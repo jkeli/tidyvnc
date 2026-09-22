@@ -37,7 +37,7 @@ public struct NativeRemoteResizePolicy: Equatable, Sendable {
     enabled = baseline.enabled; initialSize = baseline.initialSize
     session.$resizePolicy.sink { [weak self, weak session] _ in
       guard let self, let session, session.resizePolicyRevision != self.revision else { return }
-      self.message = "The connection’s resize settings changed. Close and reopen this sheet."
+      self.message = String(localized:"settings.resize.the.connection.s.resize.settings.changed.close.and.reopen.this.sheet", defaultValue:"The connection’s resize settings changed. Close and reopen this sheet.")
     }.store(in:&observations)
     session.$isClosing.sink { [weak self] value in if value { self?.cancel(); self?.objectWillChange.send() } }.store(in:&observations)
   }
@@ -48,7 +48,7 @@ public struct NativeRemoteResizePolicy: Equatable, Sendable {
   }
   public var validationMessage: String? {
     (try? NativeRemoteResizePolicy(enabled:enabled,initialSize:initialSize)) == nil ?
-      "Use widthxheight with each dimension from 1 to 65535, or leave the initial size blank." : nil
+      String(localized:"settings.resize.use.widthxheight.with.each.dimension.from.1.to.65535.or.leave.the", defaultValue:"Use widthxheight with each dimension from 1 to 65535, or leave the initial size blank.") : nil
   }
   public var canApply: Bool {
     !stopped && session?.isClosing == false && session?.resizePolicyRevision == revision &&
@@ -63,7 +63,7 @@ public struct NativeRemoteResizePolicy: Equatable, Sendable {
     do {
       try session.setResizePolicy(NativeRemoteResizePolicy(enabled:enabled,initialSize:initialSize),expected:revision)
       stopped = true; return true
-    } catch { message = "The connection’s resize settings changed. Close and reopen this sheet."; return false }
+    } catch { message = String(localized:"settings.resize.the.connection.s.resize.settings.changed.close.and.reopen.this.sheet", defaultValue:"The connection’s resize settings changed. Close and reopen this sheet."); return false }
   }
   public func cancel() { stopped = true; observations.removeAll() }
 }

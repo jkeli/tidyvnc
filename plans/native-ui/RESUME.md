@@ -4,6 +4,36 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Fullscreen and remote-resize localization
+
+The catalog now has **534** English source entries. Fullscreen defaults/session
+selection, remote-resize defaults/policy/request sheets, display descriptions,
+fixed draft errors and server results use stable IDs with English defaults. Profile
+inheritance labels for the migrated settings groups are covered too. Display names,
+formatted dimensions and server result codes are literal interpolated arguments;
+stored mode IDs, numeric input syntax, request and persistence behavior are unchanged.
+
+Inherited selections use wrapping effective-value captions. Long blank-size guidance
+is visible above the field. Fullscreen/resize sheets bound their scroll content,
+keep recovery/actions visible and give the resize-source picker a full-width row.
+Display lists use their enclosing sheet scroller so multiline rows are not cut by
+single-line height estimates. Mirrored rendering exposed physical display maps
+being reversed; their coordinate diagrams now remain left-to-right while controls
+follow the interface direction. Synthetic screenshots are separate from actual
+multi-monitor, VoiceOver and interactive scrolling acceptance.
+
+The final app and focused targets build; four fullscreen/resize model tests pass
+(9.09 s). Final ordinary/expanded/mirrored rendering, compiled catalog, signatures,
+terminal and branding evidence is in the latest TODO entry. No full-suite or
+sanitizer rerun for presentation-only changes. A fresh CUA getApp still reports a
+closed native pipe; no app crash or new interactive acceptance is established.
+
+Continue remaining menu/connection/profile/document/history/listener/status
+localization and fixed controller errors, followed by the complete unchecked plan.
+All parity, accessibility, physical, installed-app, deployment, CI and release gates
+remain in scope. The prior 85-test suite remains historical evidence, not a claim
+that all remaining acceptance is complete.
+
 ## Latest follow-up (2026-09-22) — Input, scaling and security localization
 
 The catalog now has **460** English source entries. Input, scaling, connection
