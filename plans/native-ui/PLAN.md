@@ -1128,3 +1128,10 @@ display mapping for review without a session or bind. Approval freezes configura
 and metadata for incoming windows; they do not reread preferences or the source.
 Unix socket listeners remain unsupported. Full app interaction and installed reverse
 acceptance remain open; see LISTEN.md and the 2026-09-21 TODO evidence.
+
+Tunnel work now has a routed socket boundary preserving the logical target name,
+an owned SSH master/control process service with isolated real OpenSSH/RFB tests,
+and route-scoped credential retention/launch inputs. App/CLI admission, route-aware
+history/profile/export behavior, interactive SSH authentication/trust/configuration
+and deployment/installed acceptance remain open. See TUNNELS.md and RESUME.md;
+the complete plan remains active.

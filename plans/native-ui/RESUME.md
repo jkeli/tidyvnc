@@ -10,8 +10,16 @@ for the full checklist and historical evidence. The objective remains the entire
   settings, credentials/trust, documents/imports and numeric CLI listening.
 - `26fd7022`: previous planning handoff.
 - `0d80192e`: a subsequent clipboard/UI-thread fix found on resume; preserved.
+- `00f39b26`: reviewed file-listener planning checkpoint committed at user request.
 - Current uncommitted follow-up: **reviewed connection-file listening**, including
   preparation without a session, immutable configuration reuse, UI and tests.
+  A subsequent uncommitted **routed local socket boundary** now preserves a
+  tunnel target's hostname independently of its forwarding socket (TUNNELS.md).
+  The uncommitted **owned SSH process service** now validates gateway syntax,
+  establishes acknowledged private Unix forwarding, and cancels/drains its own
+  master/control child processes. It is not yet wired into app/CLI startup.
+  Credential retention and launch inputs now accept route identity; the app must
+  pass the selected tunnel route when its connection lifecycle is integrated.
   Inspect current Git state before editing; do not remove another task's changes.
 
 Native `-listen [port]` and File > Listen for Connections already worked. The new
@@ -79,6 +87,33 @@ executable terminal cases passed. Branding/attribution checks passed with 1650
 unchanged deferred occurrences. See the latest TODO evidence for visual scope.
 No C ABI or persisted schema changed; the existing 111 C exports remain.
 
+That count describes the file-listener follow-up. The subsequent tunnel transport
+boundary adds ROUTED_CONNECT and one C export (112 total), preserving existing ABI
+structs and persisted schemas. Normal/ASan/TSan each passed the 15 socket connector
+tests, pure-C ABI consumer and Swift bridge loopback test. Native/app builds,
+signature verification and 29 terminal cases passed. The full native regression
+rerun passed **77/77 (88.49 s)**, logged in
+`/tmp/tidyvnc-routed-connect-native-tests.log`. All build/test/preview processes
+from this follow-up completed; none was left running.
+
+The later SSH service adds two native tests (79 total). The full normal run had
+**78/79 pass (90.99 s)**; only the isolated SSH harness failed because CMake's
+Python lacked os.waitid. The harness was corrected without changing production
+code, and that test passed on rerun. After the final temporary-control-socket
+cleanup fix, both tunnel tests passed **2/2 normal (2.21 s), 2/2 ASan (2.21 s),
+2/2 TSan (6.41 s)**, including actual OpenSSH authentication/RFB forwarding (no
+skips). The full 79-test run was not repeated after that focused cleanup change.
+Logs: `/tmp/tidyvnc-ssh-service-*`.
+
+Route-aware credential follow-up: retention and both launch-credential tests passed
+**3/3 normal (1.37 s), 3/3 ASan (1.55 s), 3/3 TSan (7.68 s)**. The app rebuilt,
+passed strict deep signature verification and **29/29** executable terminal cases.
+No further ABI or schema change (112 C exports). All recorded builds, tests,
+private children and isolated daemon fixtures completed. Latest credential evidence:
+`/tmp/tidyvnc-tunnel-credentials-*`. The complete native suite has not been rerun
+after the credential API change; the affected tests above cover its default and
+route-specific authentication behavior.
+
 Evidence prefix: `/tmp/tidyvnc-file-listen-`. Temporary logs/images can disappear;
 rerun checks when needed. The test fixture uses memory preferences and private peers.
 Its `--file-preview` mode displays review and can transition to a live listener:
@@ -91,15 +126,30 @@ not use them. Do not confuse a fixture screenshot with full installed-app accept
 
 1. Inspect the current diff and latest evidence. Resolve any newly found file-listener
    issue before moving on; retain the complete ordinary/native regression coverage.
-   Finish the post-approval listener screenshot check: the first capture had
-   incomplete window chrome, so visual acceptance is still pending. Check whether
-   preview PID 33132 (exec session 70935) has exited before starting another fixture;
-   stop/drain it if still running and clear the two preview control files.
+   The post-approval listener screenshot check is now complete: the stable capture
+   shows the full window and both peers, with displayed/socket port 51786 matching.
+   Both recorded previews exited normally; preview control files were removed.
 2. Continue N4.11 with supported tunnel entry paths. First inspect retained `via`/
    `tunnel` parsing and execution, connection-file precedence, process ownership,
    cancellation, effective endpoint identity and credential routing. Define an
    argv-based subprocess contract; do not interpolate shell strings or place secrets
-   in relaunch arguments. Unsupported cases must fail explicitly.
+   in relaunch arguments. Unsupported cases must fail explicitly. The new routed
+   socket boundary is implemented and has focused normal/sanitizer validation; see
+   [TUNNELS.md](TUNNELS.md). CLI `via` is still unsupported until its complete path
+   is wired, including credential/trust route identity and process drain.
+   The owned service and isolated real-SSH fixture are now implemented too.
+   NativeAuthenticationCredentials now accepts routeIdentity in beginAttempt/key
+   and optional early launch binding; focused normal/ASan/TSan tests pass. Preserve target/route through file
+   review and ConnectionModel startup, cancellation, reconnect and quit. Trust
+   already accepts an explicit routeIdentity. Add attempt-scoped child-exit
+   handling, honest SSH capability presentation, and `via`/listen incompatibility
+   checks before advertising support. Interactive SSH authentication/host-key and
+   configuration support remain open; see the service's current limits.
+   Extract gateway validation into an endpoint-independent value for CLI preflight
+   before file IO; build the complete tunnel request only after final file target
+   resolution. Define route-aware history/profile persistence and explicit export
+   omission review before enabling `via`, so reopening a saved destination cannot
+   silently replace a tunneled connection with a direct one.
 3. Continue the unchecked parity inventory and option coverage, localization and
    accessibility, actual app interactions (including quit while Save is presented),
    physical keyboard/fullscreen/Spaces/multidisplay, installed Finder/LAN/privacy/

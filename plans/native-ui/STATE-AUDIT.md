@@ -2390,3 +2390,30 @@ acceptance; existing session/fullscreen topology handling applies thereafter. Ca
 review clears unclaimed launch inputs. Close stops preparation, removes observations,
 revokes queued starts and asynchronously drains the reader and listener. A listener
 owns and stops a display service only when it created that service itself.
+
+### SSH child process and forwarding ownership
+
+NativeSSHTunnelRequest owns validated target/gateway values and a deterministic
+nonsecret gateway route digest. NativeSSHTunnel owns one SSH master and at most one
+control client. A private directory fd pins the socket location; admission requires
+successful forwarding acknowledgement and the expected owned socket. Nothing is
+stored in preferences/profiles, and the service does not capture VNC credentials.
+
+NativeTunnelProcess synchronizes signals, exit state and waiters under a lock.
+posix_spawn creates a new group and closes inherited descriptors. A dispatch process
+source observes exit; waitid(WNOWAIT) pins the leader while its group is terminated,
+then waitpid reaps exactly that child. Exit cleanup survives a dropped actor owner.
+Close revokes route publication, cancels both children, awaits reap and removes only
+the known socket leaves. No MainActor wait/join or detached SSH child is used.
+The future connection owner must drain RFB before ordinary tunnel close and tag
+exit observation to its attempt so an old child cannot fail a new connection.
+TUNNELS.md records initial authentication/configuration limits and remaining wiring.
+
+NativeAuthenticationCredentials now includes the attempt's route identity in
+NativeCredentialKey. Changing endpoint or route clears retained session credentials;
+default empty route preserves existing direct-connection accounts. Launch input may
+bind a reviewed endpoint before a route is known, then binds that route once at
+attempt admission (or earlier when explicitly supplied). Changing a bound route
+destroys launch input and revokes automatic replies; returning to the old route
+cannot recapture it. Route identity is nonsecret and never becomes a password or
+profile payload. ConnectionModel integration still needs to supply tunnel routes.

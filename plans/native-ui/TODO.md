@@ -331,6 +331,15 @@ cancellation; not yet permission to replace the shipping frontend.
     hotplug, mixed-density and fullscreen/Spaces acceptance remain N5.7/N5.8.
 - [ ] N3.17 Implement window/presentation lifecycle, bell/URL/help and structured redacted diagnostics.
 - [ ] N3.18 Implement explicit file access and existing supported tunnel invocation/cancellation without shell-string interpolation; report unsupported features honestly.
+  - [x] Prepared local tunnel socket boundary preserves the logical TCP target
+    hostname for protocol/TLS, with explicit route identity and ordinary transport
+    cancellation/drain. App/CLI ownership integration remains open;
+    see [TUNNELS.md](TUNNELS.md).
+  - [x] Owned noninteractive SSH service: validated gateway identity, acknowledged
+    private Unix forwarding, bounded startup, cancellation/process-group drain,
+    private child fixture and isolated real OpenSSH authentication/RFB acceptance.
+    App/CLI wiring, interactive SSH trust/authentication, configuration support and
+    deployment/installed acceptance remain open.
 - [ ] N3.19 Implement platform capability/permission guidance and retry flow. Preserve Local Network metadata; do not require global input monitoring for ordinary view input or modify privacy settings.
 - [ ] N3.20 Run shared service contract tests against fake adapters and macOS implementations; document unsupported future-Windows semantics without implementing its backend.
 
@@ -7753,3 +7762,84 @@ Resume by completing that visual check and reviewing the implementation diff,
 then continue tunnel entry paths and the unchecked plan gates. Host scope remains
 arm64 macOS 27, provisional target 14 with newer dependencies and crypto-disabled
 sanitizer builds. Older OS, Intel, Linux and release acceptance remain open.
+
+Follow-up visual check: the stable process-scoped capture at
+`/tmp/tidyvnc-file-listen-incoming-stable.png` shows the full 700-by-588 window,
+header, port/family controls, two incoming peers, Accept/Reject and footer without
+clipping. Displayed port 51786 matched that fixture process's listening socket.
+The earlier preview and this replacement both exited normally; the two control
+files were removed. This resolves the pending post-approval fixture visual check,
+without expanding the installed/full-app acceptance claim.
+
+### 2026-09-21 — Separate tunnel target identity from the forwarding socket
+
+The new prepareRoutedSocketConnection accepts a logical TCP endpoint with a
+nonempty route identity plus an already prepared local forwarding endpoint. Only
+Unix sockets and numeric 127.0.0.1/::1 TCP endpoints without a scope/route are
+accepted locally. It dials that local address while preserving the remote hostname
+for the existing protocol/TLS path. Direct connect still rejects unhandled routes.
+Endpoint copies, setup cancellation, deadlines, single-use admission and transport
+drain retain existing connector behavior. Tunnel process lifetime belongs to the
+host; this boundary does not start SSH.
+
+The additive C export tidyvnc_session_connect_routed and ROUTED_CONNECT feature
+bring the ABI to **112 exports**, without changing existing structs or persistent
+schemas. NativeRuntime requires the new feature, and NativeSession exposes the
+routed operation. CLI `via` remains unsupported until process startup, review,
+credential/trust route scoping and cleanup are wired. See TUNNELS.md for that work.
+
+Focused normal/ASan/TSan checks each passed **15/15 SocketConnector tests**, the
+**pure-C ABI consumer**, and **NativeBridge.OwnershipAndLoopback**. They cover real
+IPv4/IPv6/Unix socket exchange, logical server-name preservation without remote DNS,
+invalid forwarding/route rejection, setup cancellation, admitted-transport ownership,
+Swift routed RFB/frame delivery and direct reconnect. These are not end-to-end SSH
+or TLS certificate acceptance tests. Native/app builds, strict deep signature,
+**29/29** isolated executable terminal cases, branding and whitespace checks passed.
+The rebuilt full native regression suite passed **77/77 (88.49 s)**. All build,
+test and preview processes completed; none was left running.
+Evidence prefix: `/tmp/tidyvnc-routed-connect-`; platform/deployment limitations above
+still apply. Implementation and these follow-up docs remain uncommitted.
+
+### 2026-09-21 — Owned SSH service and route-scoped credentials
+
+NativeSSHTunnel now validates gateway/target grammar, derives a stable route digest,
+starts an owned private SSH master, checks it, requests forwarding and awaits the
+forwarding acknowledgement before returning a private Unix socket. Its process
+owner isolates descriptors/environment, uses a fresh process group, cancels with
+TERM/KILL, pins the child identity with waitid(WNOWAIT), and reaps before completing
+cleanup. Temporary staged control sockets are included in bounded nonrecursive
+cleanup. Initial support is existing host keys and noninteractive default-key/agent
+authentication; SSH configuration commands, interactive authentication/trust and
+app/CLI wiring remain open. TUNNELS.md defines exact scope and remaining work.
+
+The private child fixture covers real RFB forwarding, failure/timeout/cancellation,
+ignored TERM, staged socket cleanup, descriptor isolation, separate process groups,
+concurrent close, dropped owners and discarded noisy stderr. A separate loopback
+sshd fixture uses disposable keys and isolated host-key/authorized-key files to
+verify actual SSH unknown-key rejection, public-key authentication, RFB negotiation
+and cleanup without changing user SSH settings or stores.
+
+The full normal native run passed **78/79 (90.99 s)**; the sole failure was Python's
+missing os.waitid in the new test harness. After a compatibility fix, isolated SSH
+passed on rerun. The final two tunnel tests passed **2/2 normal (2.21 s)**,
+**2/2 ASan (2.21 s)** and **2/2 TSan (6.41 s)**, with no skips. The full suite was
+not repeated after the focused staged-socket cleanup change. Native/app builds,
+strict deep signature, 29 executable terminal cases, branding and whitespace checks
+passed. Evidence prefix: `/tmp/tidyvnc-ssh-service-`.
+
+NativeAuthenticationCredentials now keys remembered and session credentials by
+logical endpoint plus route. Route changes clear retained session passwords.
+Launch inputs bind to the first selected route (or an explicit earlier binding);
+changing it destroys the inputs, and returning to the old route cannot replay them.
+Existing direct accounts keep their empty-route key format. The retention and two
+launch-credential tests passed **3/3 normal (1.37 s)**, **3/3 ASan (1.55 s)** and
+**3/3 TSan (7.68 s)**, including default behavior and real authenticated loopback
+attempts across two gateway identities and a direct identity. The rebuilt app
+passed signature verification and **29/29** terminal cases. No further ABI/schema
+change; 112 exports remain. Evidence prefix: `/tmp/tidyvnc-tunnel-credentials-`.
+
+All recorded build/test/child/daemon processes completed. Implementation changes
+remain uncommitted; the planning checkpoint is committed separately.
+Next: app attempt ownership and child-exit handling, route-aware persistence/export,
+CLI/file review wiring and honest SSH capability presentation. Parent N3.18/N4.11
+and the complete plan remain open; arm64/macOS 27/deployment-floor limits still apply.
