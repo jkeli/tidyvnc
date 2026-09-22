@@ -119,19 +119,28 @@ actor DelayedService: NativeHistoryImportServing {
     for _ in 0..<2000 { if await service.isWaiting() { return }; try await Task.sleep(for:.milliseconds(2)) }
     throw Failure(message:"Service gate timed out")
   }
-  func render(_ name: String, dark: Bool = false) async throws {
+  func render(_ name: String, dark: Bool = false, minimum: Bool = false) async throws {
     guard let window = controller?.window, let view = window.contentView,
           let index = CommandLine.arguments.firstIndex(of:"--output"), index+1 < CommandLine.arguments.count else { throw Failure(message:"missing render context") }
+    try check(window.contentMinSize.width >= 640 && window.contentMinSize.height >= 572,"host preserves import content minimum")
+    let originalSize = view.bounds.size
+    if minimum {
+      let content = window.contentRect(forFrameRect:NSRect(origin:.zero,size:window.minSize)).size
+      window.setContentSize(content)
+    }
+    defer { if minimum { window.setContentSize(originalSize) } }
     let directory = URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true)
     try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
     window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
     view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(100)); view.layoutSubtreeIfNeeded()
     guard let fitting = controller?.contentSizeThatFits(view.bounds.size) else { throw Failure(message:"missing content") }
-    try check(fitting.width <= view.bounds.width && fitting.height <= view.bounds.height,"history content fits window")
+    window.displayIfNeeded()
+    print("RENDER \(name): minimum \(window.minSize), fitting \(fitting), bounds \(view.bounds.size)")
     guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing bitmap") }
     view.cacheDisplay(in:view.bounds,to:bitmap)
     guard let bytes = bitmap.representation(using:.png,properties:[:]) else { throw Failure(message:"missing PNG") }
     try bytes.write(to:directory.appendingPathComponent(name+".png"))
+    try check(fitting.width <= view.bounds.width && fitting.height <= view.bounds.height,"history \(name) fits: \(fitting) within \(view.bounds.size)")
   }
   func verifyLifetimes() async throws {
     let memory = FixtureBacking(), destination = NativeProfileHistoryStore(backing:memory)
@@ -145,7 +154,7 @@ actor DelayedService: NativeHistoryImportServing {
     try check(state.review == nil && state.issue == nil && memory.read() == nil,"late read cannot revive review")
     await delayed.configure(error:.notRegular)
     state.begin(origin:.currentXDG); try await until { !state.hasPending }
-    try check(state.issue == "The history source must be a regular file.","history-specific controlled reader failure")
+    try check(state.issue == String(localized:"history.import.the.history.source.must.be.a.regular.file", defaultValue:"The history source must be a regular file."),"history-specific controlled reader failure")
     await delayed.configure(error:.cancelled)
     state.begin(origin:.currentXDG); try await until { !state.hasPending }
     try check(state.issue == nil,"reader cancellation is silent")
@@ -166,6 +175,7 @@ actor DelayedService: NativeHistoryImportServing {
     history.dismissImportOffer()
     try check(history.importOfferDismissed && history.canImportHistory,"dismissal hides offer without blocking explicit import")
     try await render("choices")
+    try await render("choices-minimum",minimum:true)
     let state = controller!.state
     state.begin(origin:.currentXDG); try await until { state.review != nil }
     let cancelled = state.review!.id; state.cancel(cancelled)
@@ -177,6 +187,7 @@ actor DelayedService: NativeHistoryImportServing {
     state.approve(first.id,acknowledgingOmissions:false)
     try check(state.review?.id == first.id && state.issue != nil && backing.read() == nil,"omission acknowledgement required")
     try await render("review-light"); try await render("review-dark",dark:true)
+    try await render("review-minimum",minimum:true)
     // A separate native history operation invalidates the captured destination.
     _ = try await store.clearHistory(expected:nil)
     state.approve(first.id,acknowledgingOmissions:true)

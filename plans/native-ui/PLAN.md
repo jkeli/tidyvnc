@@ -3,11 +3,12 @@
 For the current implementation checkpoint and restart instructions, see
 [RESUME.md](RESUME.md) (updated 2026-09-22). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
-review, native Help/About resources, and 534 English-source localization entries
+review, native Help/About resources, and 645 English-source localization entries
 are implemented. Actual Help/About interaction and expanded Settings/trust layouts
 now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
-input/display, installed-app and release gates are not yet accepted. Continue remaining menu/connection/document/profile/listener/status localization
-and interactive acceptance. Fullscreen/remote-resize fields now also have localized
+input/display, installed-app and release gates are not yet accepted. Continue remaining menu/connection/document/listener/status localization and fixed
+controller/gateway errors, plus interactive acceptance. Profile/history/import text
+and minimum-window fixes now have focused evidence. Fullscreen/remote-resize fields now also have localized
 text and expanded layouts, with physical display order preserved under RTL; see
 the latest RESUME/TODO evidence.
 

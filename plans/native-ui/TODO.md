@@ -2,10 +2,10 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **534** entries;
-fullscreen/remote-resize localization and expanded layouts now join the migrated
-settings groups. Next: remaining menu/connection/document/profile/listener/status
-localization and fixed controller errors. Interactive/physical/installed acceptance and release gates stay open.
+implementation, validation and next steps. The catalog now has **645** entries;
+profile/history/import localization and minimum-window fixes now join the migrated
+settings groups. Next: remaining menu/connection/document/listener/status
+localization and fixed controller/gateway errors. Interactive/physical/installed acceptance and release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
 file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
@@ -560,12 +560,13 @@ UI uses, with migration and credential behavior verified independently.
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
-  - Latest follow-ups bring the catalog to 534 source entries. Settings subfields,
+  - Latest follow-ups bring the catalog to 645 source entries. Profile/history/import
+    presentation, endpoint diagnostics and minimum-window fixes join settings subfields,
     fullscreen/resize defaults and session controls, fixed draft/server results and
     profile inheritance labels are covered. Bounded scrolling and expanded/RTL
     fixtures catch truncated controls and display rows; physical coordinate maps
-    keep their actual order under RTL. Remaining menu/connection/document/profile/
-    listener/status strings and controller errors plus interactive acceptance
+    keep their actual order under RTL. Remaining menu/connection/document/
+    listener/status strings and controller/gateway errors plus interactive acceptance
     remain open. See LOCALIZATION.md and the latest evidence log.
   - Credential/password-file status, saved-trust storage notices and the trust
     library now add 60 catalog entries (228 total). Complete localized status
@@ -8772,3 +8773,63 @@ Images: `/tmp/tidyvnc-display-final-expanded/`, `/tmp/tidyvnc-display-final-rtl/
 `/tmp/tidyvnc-fullscreen-physical-rtl/`. All process handles completed. Continue
 remaining menus/connection/profile/document/history/listener/status localization,
 fixed controller errors and the entire unchecked checklist. N4.16 remains open.
+
+### 2026-09-22 — Profile/history/import localization and minimum-window fixes
+
+The catalog grows from 534 to **645** English source entries. Profile/history
+labels, storage recovery, endpoint validation, history-import source/review/result
+presentation, controlled import diagnostics and relevant source-access errors use
+stable IDs. Gateway tooltips and removal labels are complete localized messages;
+addresses, gateway names and line numbers remain literal arguments. Count summaries
+read correctly for a single entry. Data formats, source precedence, omission
+acknowledgement, save/delete behavior and protocol settings are unchanged.
+
+Profile fields now have persistent visible/accessibility labels. Recovery/deletion
+and editor actions use separate rows; recent-history actions stack. Clipboard
+picker labels wrap above their controls, and encoding reset uses the short shared
+Use App Defaults label. Expanded profile/history screenshots pass at default size.
+The new minimum fixtures exposed two real constraints problems:
+
+- The profile view preferred 940×680 even when hosted at 900×640. Removing its
+  preference entirely exposed unbounded ideal text width; the final view uses its
+  900×640 minimum as its fitting preference, while the scene explicitly preserves
+  the 940×680 default window. Final expanded mirrored minimum captures pass.
+- AppKit reset the import window's manual minimum to (0, 28), allowing zero-sized
+  content. The first generic fitting failure was followed by a zero-bitmap failure;
+  exact bounds identified the cause. NSHostingController now propagates `.minSize`
+  from 640×572 content, producing the intended 640×600 window here. Source content
+  scrolls; review/omission acknowledgement/error and confirmation remain visible.
+  Tests assert the hosted minimum survives and render choices/review at that floor.
+  Resized window captures now force display before caching to avoid stale glyphs.
+
+Validation:
+
+- Focused native targets and final app build pass. Profile editor/isolation, recent
+  history routing, import projection/transaction and import presentation/first-use:
+  **4/4 (2.50 s)**. Final ordinary settings/import presentation: **2/2 (26.16 s)**.
+- Expanded settings/history/profile, final mirrored minimum-size settings/profile,
+  and final expanded import source/review/conflict/success/empty runs exit 0.
+  The import fixture uses temporary sources and an in-memory destination; original
+  fixture source preservation, stale-review rejection and cancellation/close drain
+  remain checked. Native user storage and profiles are not used.
+- The expansion runner includes profile/history/endpoint/source-error prefixes and
+  supports `--named-output` for app-style `--verify --output DIRECTORY` fixtures.
+  Import RTL, actual-user-app interaction and VoiceOver remain unaccepted.
+- **645** compiled catalog values, missing-key/untranslated-language fallback and
+  literal gateway/address/UInt32 line-number interpolation pass. The initial added
+  bundle test reused a local variable name and failed to compile; it was renamed
+  and the final check passes. Strict deep app signature, **32/32** terminal cases,
+  branding baseline **1650** and diff checks pass.
+- No full-suite/sanitizer rerun for this presentation-only work. Existing newer
+  dependency deployment warnings remain; macOS 14, installed-app, physical and
+  release acceptance are not established. No new CUA/user-app interaction claimed.
+
+Evidence: `/tmp/tidyvnc-library-{build,model-tests,expanded,final-app,final-tests,
+final-bundle,final-terminal,final-branding,final-layout-rtl}.log`,
+`/tmp/tidyvnc-history-import-{minimum-diagnostic2,minimum-fixed,final-render}.log`.
+Images: `/tmp/tidyvnc-library-expanded/`, `/tmp/tidyvnc-library-final-layout-rtl/`,
+`/tmp/tidyvnc-history-import-final-render/`. All process handles completed.
+Continue remaining menus/connection/status/listener, document/defaults-import and
+controller/gateway localization. Check other host controllers with empty sizing
+options for the same lost-minimum behavior. The entire unchecked plan remains;
+N4.16/N4.17 and broader interactive/physical/installed/release gates stay open.

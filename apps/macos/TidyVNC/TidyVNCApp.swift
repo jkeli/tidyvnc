@@ -27,7 +27,7 @@ struct TidyVNCApp: App {
     Window("Saved Profiles", id: "profiles") {
       if let library = coordinator.profileLibrary { ProfileLibraryRoot(model: library) }
       else { Text("Saved profiles are unavailable.").padding(24) }
-    }
+    }.defaultSize(width:940,height:680)
     Window("Saved Server Keys", id: "server-keys") {
       if let library = coordinator.hostKeyLibrary { TrustLibraryView(model: library) }
     }

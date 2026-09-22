@@ -174,7 +174,7 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
 }
 @MainActor func renderProfiles(directory: URL) async throws {
   for dark in [false, true] {
-    for fixture in ["empty", "saved", "editing", "scaling", "resize", "resize-invalid", "invalid-address", "conflict", "error", "pending"] {
+    for fixture in ["empty", "saved", "minimum", "editing", "scaling", "resize", "resize-invalid", "invalid-address", "conflict", "error", "pending"] {
       let backing = HistoryBacking(), store = NativeProfileHistoryStore(backing: backing)
       let preferences = NativePreferencesStore(backing: SettingsBacking())
       let model = NativeProfileLibrary(store: store, preferences: preferences)
@@ -204,7 +204,7 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
       if fixture == "error" { backing.fail(read: .denied); model.reload(); try await waitForEncoding { !model.isBusy } }
       if fixture == "pending" { backing.gate(write: gate); model.save(); try await waitForEncoding { gate.isEntered } }
       try await capture(ProfileLibraryView(model: model, open: { _ in }), name: "profiles-" + fixture + (dark ? "-dark" : ""),
-                        directory: directory, dark: dark, size: NSSize(width: 940, height: 680)) {
+                        directory: directory, dark: dark, size: fixture == "minimum" ? NSSize(width: 900, height: 640) : NSSize(width: 940, height: 680)) {
         if fixture != "pending" { try await waitForEncoding { !model.isBusy } }
         if fixture == "invalid-address" && (model.endpointIssue != .invalidPort || model.canSave) {
           throw Failure(message: "Invalid address fixture lost")

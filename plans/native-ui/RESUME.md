@@ -4,6 +4,38 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Profiles, history and import localization
+
+The catalog now has **645** English source entries. Profile/history presentation,
+storage recovery, endpoint validation, history import source/review/result text,
+fixed import diagnostics and relevant source-access errors use stable IDs. Gateway,
+address and line-number messages take literal arguments; import count wording also
+works for a single entry. Retained data and protocol values are unchanged.
+
+Profile fields have persistent labels; recovery/delete and editor actions use
+separate rows. Recent history actions stack to avoid crowding. Minimum-size tests
+exposed a profile view preferring 940×680 even in a 900×640 host, and an import
+window whose manually assigned minimum was reset by AppKit to zero content size.
+Profile content now fits 900×640 while the scene retains a 940×680 default. Import
+uses hosted min-size propagation from a 640×572 content floor; source explanation
+scrolls and review/confirmation remains visible. Expanded and ordinary minimum-size
+checks now pass. Screenshots show visible viewport content only.
+
+Four focused profile/history/import tests pass (2.50 s). Final ordinary settings
+and import presentation pass (26.16 s); expanded settings, mirrored minimum-size
+profiles/history, and expanded import source/review/conflict/result fixtures pass.
+The final app build/signature, **645** catalog values/fallback/interpolation,
+**32** terminal cases and branding baseline **1650** pass. Exact logs are in TODO.
+No full-suite/sanitizer, actual-user-profile, VoiceOver, installed-app or release
+acceptance is inferred. No new CUA action was attempted; its last pipe failure
+remains documented in UI-ACCEPTANCE.md.
+
+Next: remaining app menus/connection/status/listener UI, document/defaults-import
+flows and fixed controller/gateway errors. Other hosting controllers using empty
+sizing options need their explicit minimums checked too; do not assume they retain
+them. Continue the entire unchecked plan, including parity, physical displays/input,
+deployment, installed-app, CI, performance and release gates.
+
 ## Latest follow-up (2026-09-22) — Fullscreen and remote-resize localization
 
 The catalog now has **534** English source entries. Fullscreen defaults/session

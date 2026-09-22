@@ -45,7 +45,7 @@ import Foundation
     guard !stopped, operation == nil, let review, review.id == id, let request = requestID else { return }
     // Incomplete acknowledgement leaves the review available for correction.
     do { _ = try review.proposal.reviewedEndpoints(acknowledgingOmissions:acknowledgingOmissions) }
-    catch { issue = "Review the duplicate and older entries omitted from history before importing."; return }
+    catch { issue = String(localized:"history.import.review.the.duplicate.and.older.entries.omitted.from.history.before.importing", defaultValue:"Review the duplicate and older entries omitted from history before importing."); return }
     let service = self.service
     isWriting = true; issue = nil; self.review = nil
     operation = Task { [weak self] in
@@ -74,24 +74,24 @@ import Foundation
     if let source = error as? NativeImportSourceError {
       switch source {
       case .invalidPath, .inaccessible: return source.description
-      default: return "The history source could not be reviewed. Check its location and retry."
+      default: return String(localized:"history.import.the.history.source.could.not.be.reviewed.check.its.location.and.retry", defaultValue:"The history source could not be reviewed. Check its location and retry.")
       }
     }
     if let file = error as? NativeDocumentOpenError {
       switch file {
-      case .unreadable: return "The history file could not be read. Check its location and access, then retry."
-      case .notRegular: return "The history source must be a regular file."
-      case .tooLarge: return "The history file exceeds the 1 MiB limit."
-      case .changed: return "The history file changed while being read. Retry to review its current contents."
-      default: return "The history file could not be reviewed. Retry before importing."
+      case .unreadable: return String(localized:"history.import.the.history.file.could.not.be.read.check.its.location.and.access", defaultValue:"The history file could not be read. Check its location and access, then retry.")
+      case .notRegular: return String(localized:"history.import.the.history.source.must.be.a.regular.file", defaultValue:"The history source must be a regular file.")
+      case .tooLarge: return String(localized:"history.import.the.history.file.exceeds.the.1.mib.limit", defaultValue:"The history file exceeds the 1 MiB limit.")
+      case .changed: return String(localized:"history.import.the.history.file.changed.while.being.read.retry.to.review.its.current", defaultValue:"The history file changed while being read. Retry to review its current contents.")
+      default: return String(localized:"history.import.the.history.file.could.not.be.reviewed.retry.before.importing", defaultValue:"The history file could not be reviewed. Retry before importing.")
       }
     }
     switch error as? NativeStorageError {
-    case .conflict: return "Native profiles or history changed. Review the source again before importing."
+    case .conflict: return String(localized:"history.import.native.profiles.or.history.changed.review.the.source.again.before.importing", defaultValue:"Native profiles or history changed. Review the source again before importing.")
     case .corrupt, .futureSchema, .unsupportedFields, .unsupportedValue, .tooLarge:
-      return "Native profiles and history could not be loaded. Resolve the stored data problem before importing."
-    case .denied, .unavailable: return "Native profiles and history could not be accessed. Check access before retrying."
-    default: return "History import could not be confirmed. Reload recent connections before reviewing another import."
+      return String(localized:"history.import.native.profiles.and.history.could.not.be.loaded.resolve.the.stored.data", defaultValue:"Native profiles and history could not be loaded. Resolve the stored data problem before importing.")
+    case .denied, .unavailable: return String(localized:"history.import.native.profiles.and.history.could.not.be.accessed.check.access.before.retrying", defaultValue:"Native profiles and history could not be accessed. Check access before retrying.")
+    default: return String(localized:"history.import.history.import.could.not.be.confirmed.reload.recent.connections.before.reviewing.another", defaultValue:"History import could not be confirmed. Reload recent connections before reviewing another import.")
     }
   }
   public func dismissResult() { issue = nil; foundNoSource = false; imported = nil }

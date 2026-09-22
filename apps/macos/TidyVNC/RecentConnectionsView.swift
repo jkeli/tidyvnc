@@ -4,14 +4,14 @@ import TidyVNCNative
 
 func historyMessage(_ error: NativeStorageError) -> String {
   switch error {
-  case .futureSchema, .unsupportedFields: return "Recent connections require a newer version of TidyVNC. Saved data has been preserved."
-  case .corrupt, .invalid, .invalidTLSPriority, .unsupportedValue, .tooLarge, .resourceLimit: return "Recent connections could not be read or saved. Existing data has been preserved."
-  case .denied: return "Access to recent connections was denied. Check the native storage folder’s access and try again."
-  case .conflict: return "Saved connections changed elsewhere. Reload before making changes."
-  case .busy: return "Another operation is updating saved connections. Try again."
-  case .notFound: return "The saved connection or its storage folder is no longer available. Try reloading."
-  case .cancelled, .ioFailure: return "The history update could not be confirmed. Reload to check the saved connections."
-  case .unavailable, .closed: return "Recent connections are unavailable. Try again."
+  case .futureSchema, .unsupportedFields: return String(localized:"history.recent.connections.require.a.newer.version.of.tidyvnc.saved.data.has.been", defaultValue:"Recent connections require a newer version of TidyVNC. Saved data has been preserved.")
+  case .corrupt, .invalid, .invalidTLSPriority, .unsupportedValue, .tooLarge, .resourceLimit: return String(localized:"history.recent.connections.could.not.be.read.or.saved.existing.data.has.been", defaultValue:"Recent connections could not be read or saved. Existing data has been preserved.")
+  case .denied: return String(localized:"history.access.to.recent.connections.was.denied.check.the.native.storage.folder.s", defaultValue:"Access to recent connections was denied. Check the native storage folder’s access and try again.")
+  case .conflict: return String(localized:"history.saved.connections.changed.elsewhere.reload.before.making.changes", defaultValue:"Saved connections changed elsewhere. Reload before making changes.")
+  case .busy: return String(localized:"history.another.operation.is.updating.saved.connections.try.again", defaultValue:"Another operation is updating saved connections. Try again.")
+  case .notFound: return String(localized:"history.the.saved.connection.or.its.storage.folder.is.no.longer.available.try", defaultValue:"The saved connection or its storage folder is no longer available. Try reloading.")
+  case .cancelled, .ioFailure: return String(localized:"history.the.history.update.could.not.be.confirmed.reload.to.check.the.saved", defaultValue:"The history update could not be confirmed. Reload to check the saved connections.")
+  case .unavailable, .closed: return String(localized:"history.recent.connections.are.unavailable.try.again", defaultValue:"Recent connections are unavailable. Try again.")
   }
 }
 
@@ -22,7 +22,7 @@ struct RecentHistoryStatus: View {
       HStack(alignment: .top) {
         Text(historyMessage(error)).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
         Spacer()
-        Button("Reload History") { model.reload() }.disabled(model.isBusy)
+        Button(String(localized:"history.reload.history", defaultValue:"Reload History")) { model.reload() }.disabled(model.isBusy)
       }.font(.caption).padding(.bottom, 8).accessibilityIdentifier("history.status")
     }
   }
@@ -35,7 +35,7 @@ struct RecentConnectionsButton: View {
   @StateObject private var presentation = Presentation()
   var body: some View {
     Button { presentation.shown.toggle() } label: { Image(systemName: "clock.arrow.circlepath") }
-      .help("Recent connections").accessibilityLabel("Recent connections").accessibilityIdentifier("connection.recent")
+      .help(String(localized:"history.recent.connections", defaultValue:"Recent connections")).accessibilityLabel(String(localized:"history.recent.connections", defaultValue:"Recent connections")).accessibilityIdentifier("connection.recent")
       .popover(isPresented: $presentation.shown) {
         RecentConnectionsPanel(model: model, canSelect: canSelect) { endpoint in
           select(endpoint); presentation.shown = false
@@ -49,10 +49,10 @@ struct RecentConnectionsPanel: View {
   let select: (NativeConnectionDestination) -> Void
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Recent Connections").font(.headline)
-      Text("Choose an address, then select Connect.").foregroundStyle(.secondary).font(.caption)
+      Text(String(localized:"history.recent.connections.title", defaultValue:"Recent Connections")).font(.headline)
+      Text(String(localized:"history.choose.an.address.then.select.connect", defaultValue:"Choose an address, then select Connect.")).foregroundStyle(.secondary).font(.caption)
       if model.connections.isEmpty {
-        Text(model.hasLoaded ? "No recent connections." : "Recent connections have not loaded.")
+        Text(model.hasLoaded ? String(localized:"history.no.recent.connections", defaultValue:"No recent connections.") : String(localized:"history.recent.connections.have.not.loaded", defaultValue:"Recent connections have not loaded."))
           .foregroundStyle(.secondary).padding(.vertical, 12)
       } else {
         ScrollView {
@@ -62,12 +62,12 @@ struct RecentConnectionsPanel: View {
                 Button { select(destination) } label: {
                   VStack(alignment:.leading,spacing:2) {
                     Text(verbatim:destination.endpoint).lineLimit(1).truncationMode(.middle)
-                    if let gateway = destination.sshGateway { Text("Via \(gateway.canonicalURI)").font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle) }
+                    if let gateway = destination.sshGateway { Text(String(localized:"history.gateway", defaultValue:"Via \(gateway.canonicalURI)")).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle) }
                   }.frame(maxWidth:.infinity,alignment:.leading)
-                }.buttonStyle(.plain).disabled(!canSelect).help(destination.endpoint + (destination.sshGateway.map { " via " + $0.canonicalURI } ?? ""))
-                  .accessibilityHint("Places this address and its gateway in the connection fields")
+                }.buttonStyle(.plain).disabled(!canSelect).help(destination.sshGateway.map { String(localized:"history.destination.gateway", defaultValue:"\(destination.endpoint) via \($0.canonicalURI)") } ?? destination.endpoint)
+                  .accessibilityHint(String(localized:"history.places.this.address.and.its.gateway.in.the.connection.fields", defaultValue:"Places this address and its gateway in the connection fields"))
                 Button { model.remove(destination) } label: { Image(systemName: "xmark.circle") }
-                  .buttonStyle(.borderless).disabled(!model.canEdit).help("Remove from recent connections").accessibilityLabel("Remove \(destination.endpoint) from recent connections")
+                  .buttonStyle(.borderless).disabled(!model.canEdit).help(String(localized:"history.remove.from.recent.connections", defaultValue:"Remove from recent connections")).accessibilityLabel(String(localized:"history.remove.destination", defaultValue:"Remove \(destination.endpoint) from recent connections"))
               }.padding(.vertical, 4)
             }
           }
@@ -76,11 +76,10 @@ struct RecentConnectionsPanel: View {
       if let error = model.error {
         Text(historyMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
       }
-      if model.isBusy { ProgressView("Updating recent connections…").controlSize(.small) }
-      HStack {
-        Button("Reload") { model.reload() }.disabled(model.isBusy)
-        Spacer()
-        Button("Clear Recent Connections") { model.clear() }.disabled(!model.canEdit || model.connections.isEmpty)
+      if model.isBusy { ProgressView(String(localized:"history.updating.recent.connections", defaultValue:"Updating recent connections…")).controlSize(.small) }
+      VStack(alignment: .leading, spacing: 8) {
+        Button(String(localized:"trust.library.ui.reload", defaultValue:"Reload")) { model.reload() }.disabled(model.isBusy)
+        Button(String(localized:"history.clear.recent.connections", defaultValue:"Clear Recent Connections")) { model.clear() }.disabled(!model.canEdit || model.connections.isEmpty)
           .accessibilityIdentifier("history.clear")
       }
     }.padding(18).frame(width: 440)

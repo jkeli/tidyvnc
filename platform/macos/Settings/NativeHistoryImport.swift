@@ -6,12 +6,12 @@ public enum NativeHistoryImportError: Error, Equatable, Sendable, CustomStringCo
   case nativeHistoryExists, currentHistoryExists
   public var description: String {
     switch self {
-    case .tooLarge: "The history file exceeds the 1 MiB import limit."
-    case .invalidText(let line): "The history file contains invalid text on line \(line)."
-    case .lineTooLong(let line): "The history entry on line \(line) exceeds the 254-byte source limit."
-    case .reviewRequired: "Review the duplicate and older entries omitted from history before importing."
-    case .nativeHistoryExists: "Native history has already been used or cleared and cannot be replaced by an import."
-    case .currentHistoryExists: "Current TidyVNC history exists. Review that source instead of importing legacy history."
+    case .tooLarge: String(localized:"history.import.the.history.file.exceeds.the.1.mib.import.limit", defaultValue:"The history file exceeds the 1 MiB import limit.")
+    case .invalidText(let line): String(localized:"history.import.invalid.text.line", defaultValue:"The history file contains invalid text on line \((line).formatted()).")
+    case .lineTooLong(let line): String(localized:"history.import.long.entry.line", defaultValue:"The history entry on line \((line).formatted()) exceeds the 254-byte source limit.")
+    case .reviewRequired: String(localized:"history.import.review.the.duplicate.and.older.entries.omitted.from.history.before.importing", defaultValue:"Review the duplicate and older entries omitted from history before importing.")
+    case .nativeHistoryExists: String(localized:"history.import.native.history.has.already.been.used.or.cleared.and.cannot.be.replaced", defaultValue:"Native history has already been used or cleared and cannot be replaced by an import.")
+    case .currentHistoryExists: String(localized:"history.import.current.tidyvnc.history.exists.review.that.source.instead.of.importing.legacy.history", defaultValue:"Current TidyVNC history exists. Review that source instead of importing legacy history.")
     }
   }
 }

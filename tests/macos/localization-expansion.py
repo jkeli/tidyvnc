@@ -16,10 +16,11 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("renderer", type=Path)
 parser.add_argument("catalog", type=Path)
 parser.add_argument("output", type=Path)
-parser.add_argument("--prefix", action="append", help="Catalog prefix to expand (repeatable). Defaults to authentication, credentials, trust, actions and settings.")
+parser.add_argument("--prefix", action="append", help="Catalog prefix to expand (repeatable). Defaults to authentication, credentials, trust, actions, settings, profiles, history and endpoint errors.")
 parser.add_argument("--rtl", action="store_true", help="Mirror the fixture layout; this is not a translated-language acceptance test.")
+parser.add_argument("--named-output", action="store_true", help="Run app-style fixture arguments: --verify --output DIRECTORY.")
 args = parser.parse_args()
-prefixes = tuple(args.prefix or ["authentication.", "credentials.", "trust.", "action.", "settings."])
+prefixes = tuple(args.prefix or ["authentication.", "credentials.", "trust.", "action.", "settings.", "profiles.", "history.", "endpoint.issue.", "import.source."])
 catalog = json.loads(args.catalog.read_text())
 assert catalog["sourceLanguage"] == "en"
 with tempfile.TemporaryDirectory(prefix="tidyvnc-localization-") as directory:
@@ -44,7 +45,7 @@ with tempfile.TemporaryDirectory(prefix="tidyvnc-localization-") as directory:
         lines.append(json.dumps(key, ensure_ascii=False) + " = " +
                      json.dumps(value, ensure_ascii=False) + ";")
     (resources / "Localizable.strings").write_text("\n".join(lines) + "\n")
-    command = [str(executable), str(args.output.resolve())]
+    command = [str(executable)] + (["--verify", "--output"] if args.named_output else []) + [str(args.output.resolve())]
     if args.rtl:
         command.append("--rtl")
     subprocess.run(command, check=True)

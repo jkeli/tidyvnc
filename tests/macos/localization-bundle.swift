@@ -64,5 +64,13 @@ precondition(desktopSize == "The server’s desktop is now " + displayWidth + " 
 let resizeResult = UInt32.max.formatted()
 let rejection = String(localized:"settings.resize.server.rejection",defaultValue:"The server rejected the requested size (result \(resizeResult)).",bundle:bundle)
 precondition(rejection == "The server rejected the requested size (result " + resizeResult + ").")
+let historyEndpoint = "[fe80::1%en0]::5901", historyGateway = "ssh://开发-%@.invalid:22"
+let historyDestination = String(localized:"history.destination.gateway",defaultValue:"\(historyEndpoint) via \(historyGateway)",bundle:bundle)
+precondition(historyDestination == historyEndpoint + " via " + historyGateway)
+let removal = String(localized:"history.remove.destination",defaultValue:"Remove \(historyEndpoint) from recent connections",bundle:bundle)
+precondition(removal == "Remove " + historyEndpoint + " from recent connections")
+let historyLine = UInt32.max.formatted()
+let lineIssue = String(localized:"history.import.invalid.text.line",defaultValue:"The history file contains invalid text on line \(historyLine).",bundle:bundle)
+precondition(lineIssue == "The history file contains invalid text on line " + historyLine + ".")
 print("PASS \(strings.count) packaged catalog values; untranslated-language and missing-key fallbacks; English development region")
 print("PASS destination/fingerprint/setting interpolation preserves literal values and UInt32 key sizes")

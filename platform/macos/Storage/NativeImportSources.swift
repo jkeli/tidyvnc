@@ -22,8 +22,8 @@ public enum NativeImportSourceError: Error, Equatable, Sendable, CustomStringCon
   case invalidPath, inaccessible, currentSourceExists, nativeStateExists, invalidDisplayMapping, topologyChanged
   public var description: String {
     switch self {
-    case .invalidPath: "The import location is invalid. Check the home and XDG paths."
-    case .inaccessible: "The import source could not be inspected. Check its location and access."
+    case .invalidPath: String(localized:"import.source.the.import.location.is.invalid.check.the.home.and.xdg.paths", defaultValue:"The import location is invalid. Check the home and XDG paths.")
+    case .inaccessible: String(localized:"import.source.the.import.source.could.not.be.inspected.check.its.location.and.access", defaultValue:"The import source could not be inspected. Check its location and access.")
     case .currentSourceExists: "TidyVNC settings already exist. Review those settings instead of importing legacy settings."
     case .nativeStateExists: "Native settings already exist and cannot be replaced by an import."
     case .invalidDisplayMapping: "The monitor selection cannot be mapped. Refresh displays and review the import again."

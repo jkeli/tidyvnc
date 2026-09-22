@@ -6407,6 +6407,1338 @@
           }
         }
       }
+    },
+    "profiles.saved.profiles.require.a.newer.version.of.tidyvnc.existing.data.has.been": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved profiles require a newer version of TidyVNC. Existing data has been preserved."
+          }
+        }
+      }
+    },
+    "profiles.access.to.saved.profiles.was.denied.check.the.native.storage.folder.s": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access to saved profiles was denied. Check the native storage folder’s access and reload."
+          }
+        }
+      }
+    },
+    "profiles.saved.profiles.or.recent.connections.changed.elsewhere.reload.before.saving.or.deleting": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved profiles or recent connections changed elsewhere. Reload before saving or deleting."
+          }
+        }
+      }
+    },
+    "profiles.this.saved.profile.is.no.longer.available.choose.another.profile.or.create": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved profile is no longer available. Choose another profile or create a new connection."
+          }
+        }
+      }
+    },
+    "profiles.another.operation.is.updating.saved.connections.reload.and.try.again": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another operation is updating saved connections. Reload and try again."
+          }
+        }
+      }
+    },
+    "profiles.the.tls.priority.expression.is.invalid.correct.it.or.use.the.library": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The TLS priority expression is invalid. Correct it or use the library default. The profile has not been changed."
+          }
+        }
+      }
+    },
+    "profiles.the.profile.could.not.be.saved.check.the.name.address.and.settings": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The profile could not be saved. Check the name, address and settings, then reload."
+          }
+        }
+      }
+    },
+    "profiles.saved.profiles.could.not.be.read.existing.data.has.been.preserved": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved profiles could not be read. Existing data has been preserved."
+          }
+        }
+      }
+    },
+    "profiles.the.profile.operation.could.not.be.confirmed.reload.to.check.the.saved": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The profile operation could not be confirmed. Reload to check the saved profiles."
+          }
+        }
+      }
+    },
+    "profiles.saved.profiles.are.unavailable.try.reloading": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved profiles are unavailable. Try reloading."
+          }
+        }
+      }
+    },
+    "profiles.saved.profiles": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Profiles"
+          }
+        }
+      }
+    },
+    "profiles.save.an.address.and.its.connection.settings.open.creates.a.new.connection": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save an address and its connection settings. Open creates a new connection window; select Connect when ready."
+          }
+        }
+      }
+    },
+    "profiles.no.saved.profiles": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved profiles."
+          }
+        }
+      }
+    },
+    "profiles.profiles.have.not.loaded": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiles have not loaded."
+          }
+        }
+      }
+    },
+    "profiles.new.profile": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Profile"
+          }
+        }
+      }
+    },
+    "profiles.profile.name": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile name"
+          }
+        }
+      }
+    },
+    "profiles.server.address": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server address"
+          }
+        }
+      }
+    },
+    "profiles.enter.host.display.host.port.ipv6.display.or.a.unix.socket.path": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter host:display, host::port, [IPv6]:display, or a Unix socket path."
+          }
+        }
+      }
+    },
+    "profiles.ssh.gateway.optional": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH gateway (optional)"
+          }
+        }
+      }
+    },
+    "profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter user@host or ssh://user@host:port. Leave empty for a direct connection."
+          }
+        }
+      }
+    },
+    "profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected."
+          }
+        }
+      }
+    },
+    "profiles.settings.without.a.profile.override.use.app.defaults.for.each.new.connection": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings without a profile override use app defaults for each new connection."
+          }
+        }
+      }
+    },
+    "profiles.security.methods": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security Methods"
+          }
+        }
+      }
+    },
+    "profiles.this.profile.s.saved.credential.reference.is.preserved.credential.management.is.not": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This profile’s saved credential reference is preserved. Credential management is not yet available here."
+          }
+        }
+      }
+    },
+    "profiles.choose.a.profile.or.create.a.new.one": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a profile or create a new one."
+          }
+        }
+      }
+    },
+    "profiles.app.defaults.could.not.be.loaded.resolve.the.defaults.error.and.reload": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App defaults could not be loaded. Resolve the defaults error and reload profiles."
+          }
+        }
+      }
+    },
+    "profiles.updating.profiles": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating profiles…"
+          }
+        }
+      }
+    },
+    "profiles.delete": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete…"
+          }
+        }
+      }
+    },
+    "profiles.delete.this.saved.profile": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this saved profile?"
+          }
+        }
+      }
+    },
+    "profiles.delete.profile": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Profile"
+          }
+        }
+      }
+    },
+    "profiles.existing.connections.recent.history.and.stored.credentials.are.kept": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing connections, recent history and stored credentials are kept."
+          }
+        }
+      }
+    },
+    "profiles.save": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "profiles.open.connection": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Connection"
+          }
+        }
+      }
+    },
+    "history.gateway": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Via %@"
+          }
+        }
+      }
+    },
+    "history.recent.connections.require.a.newer.version.of.tidyvnc.saved.data.has.been": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent connections require a newer version of TidyVNC. Saved data has been preserved."
+          }
+        }
+      }
+    },
+    "history.recent.connections.could.not.be.read.or.saved.existing.data.has.been": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent connections could not be read or saved. Existing data has been preserved."
+          }
+        }
+      }
+    },
+    "history.access.to.recent.connections.was.denied.check.the.native.storage.folder.s": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access to recent connections was denied. Check the native storage folder’s access and try again."
+          }
+        }
+      }
+    },
+    "history.saved.connections.changed.elsewhere.reload.before.making.changes": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved connections changed elsewhere. Reload before making changes."
+          }
+        }
+      }
+    },
+    "history.another.operation.is.updating.saved.connections.try.again": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another operation is updating saved connections. Try again."
+          }
+        }
+      }
+    },
+    "history.the.saved.connection.or.its.storage.folder.is.no.longer.available.try": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved connection or its storage folder is no longer available. Try reloading."
+          }
+        }
+      }
+    },
+    "history.the.history.update.could.not.be.confirmed.reload.to.check.the.saved": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history update could not be confirmed. Reload to check the saved connections."
+          }
+        }
+      }
+    },
+    "history.recent.connections.are.unavailable.try.again": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent connections are unavailable. Try again."
+          }
+        }
+      }
+    },
+    "history.reload.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload History"
+          }
+        }
+      }
+    },
+    "history.recent.connections": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent connections"
+          }
+        }
+      }
+    },
+    "history.recent.connections.title": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent Connections"
+          }
+        }
+      }
+    },
+    "history.choose.an.address.then.select.connect": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an address, then select Connect."
+          }
+        }
+      }
+    },
+    "history.no.recent.connections": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recent connections."
+          }
+        }
+      }
+    },
+    "history.recent.connections.have.not.loaded": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent connections have not loaded."
+          }
+        }
+      }
+    },
+    "history.places.this.address.and.its.gateway.in.the.connection.fields": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Places this address and its gateway in the connection fields"
+          }
+        }
+      }
+    },
+    "history.remove.from.recent.connections": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from recent connections"
+          }
+        }
+      }
+    },
+    "history.updating.recent.connections": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating recent connections…"
+          }
+        }
+      }
+    },
+    "history.clear.recent.connections": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Recent Connections"
+          }
+        }
+      }
+    },
+    "history.destination.gateway": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ via %@"
+          }
+        }
+      }
+    },
+    "history.remove.destination": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@ from recent connections"
+          }
+        }
+      }
+    },
+    "history.import.have.a.recent.server.list.review.a.separate.history.import": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Have a recent-server list? Review a separate history import."
+          }
+        }
+      }
+    },
+    "history.import.review.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review History…"
+          }
+        }
+      }
+    },
+    "history.import.not.now": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Now"
+          }
+        }
+      }
+    },
+    "history.import.import.recent.connections": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Recent Connections"
+          }
+        }
+      }
+    },
+    "history.import.review.history.import": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review History Import"
+          }
+        }
+      }
+    },
+    "history.import.saving.imported.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving imported history…"
+          }
+        }
+      }
+    },
+    "history.import.reading.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading history…"
+          }
+        }
+      }
+    },
+    "history.import.history.imported": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History imported"
+          }
+        }
+      }
+    },
+    "history.import.your.saved.profiles.and.the.original.history.file.were.left.unchanged": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your saved profiles and the original history file were left unchanged."
+          }
+        }
+      }
+    },
+    "history.import.copy.recent.server.addresses.into.this.app.this.is.separate.from.importing": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy recent server addresses into this app. This is separate from importing connection defaults and does not start a connection."
+          }
+        }
+      }
+    },
+    "history.import.native.history.takes.precedence.including.history.you.previously.cleared.existing.saved.profiles": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native history takes precedence, including history you previously cleared. Existing saved profiles are preserved."
+          }
+        }
+      }
+    },
+    "history.import.choose.a.source.to.review": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a source to review:"
+          }
+        }
+      }
+    },
+    "history.import.review.current.tidyvnc.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Current TidyVNC History"
+          }
+        }
+      }
+    },
+    "history.import.reads.the.existing.tidyvnc.history.location.including.an.absolute.xdg.state.override": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads the existing TidyVNC history location, including an absolute XDG state override."
+          }
+        }
+      }
+    },
+    "history.import.review.legacy.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Legacy History"
+          }
+        }
+      }
+    },
+    "history.import.an.explicit.separate.choice.existing.tidyvnc.history.takes.precedence.over.legacy.files": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An explicit, separate choice. Existing TidyVNC history takes precedence over legacy files."
+          }
+        }
+      }
+    },
+    "history.import.no.history.file.was.found.for.that.source.choose.another.source.or": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No history file was found for that source. Choose another source or close this window."
+          }
+        }
+      }
+    },
+    "history.import.import.is.a.one.time.copy.changes.are.not.synchronized.with.the": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import is a one-time copy. Changes are not synchronized with the original file."
+          }
+        }
+      }
+    },
+    "history.import.close": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "history.import.source.current.tidyvnc.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: current TidyVNC history"
+          }
+        }
+      }
+    },
+    "history.import.source.legacy.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: legacy history"
+          }
+        }
+      }
+    },
+    "history.import.this.file.contains.no.server.addresses.to.import": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file contains no server addresses to import."
+          }
+        }
+      }
+    },
+    "history.import.i.reviewed.the.omitted.entries": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I reviewed the omitted entries."
+          }
+        }
+      }
+    },
+    "history.import.import.preserves.the.listed.order.and.address.spelling.no.connection.will.be": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import preserves the listed order and address spelling. No connection will be started."
+          }
+        }
+      }
+    },
+    "history.import.import.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import History"
+          }
+        }
+      }
+    },
+    "history.import.success.count": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server addresses available in Recent Connections: %@. Select an address when you want to connect."
+          }
+        }
+      }
+    },
+    "history.import.address.count": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server addresses to import (%@)"
+          }
+        }
+      }
+    },
+    "history.import.address.row": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@. %@"
+          }
+        }
+      }
+    },
+    "history.import.omitted.counts": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omitted entries — duplicates: %@; older entries beyond the 20-address limit: %@."
+          }
+        }
+      }
+    },
+    "endpoint.issue.enter.a.server.address": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a server address."
+          }
+        }
+      }
+    },
+    "endpoint.issue.the.server.address.is.too.long.maximum.4096.utf.8.bytes": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server address is too long (maximum 4096 UTF-8 bytes)."
+          }
+        }
+      }
+    },
+    "endpoint.issue.check.the.host.name.or.ip.address.put.ipv6.addresses.in.brackets": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the host name or IP address. Put IPv6 addresses in brackets when adding a display number or port."
+          }
+        }
+      }
+    },
+    "endpoint.issue.add.the.closing.bracket.after.the.ipv6.address.or.host.name": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add the closing bracket after the IPv6 address or host name."
+          }
+        }
+      }
+    },
+    "endpoint.issue.use.host.display.or.host.port.the.port.must.be.between.1": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use host:display or host::port. The port must be between 1 and 65535."
+          }
+        }
+      }
+    },
+    "endpoint.issue.the.unix.socket.path.contains.invalid.text": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Unix socket path contains invalid text."
+          }
+        }
+      }
+    },
+    "endpoint.issue.the.connection.route.is.invalid": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection route is invalid."
+          }
+        }
+      }
+    },
+    "endpoint.issue.unix.socket.connections.are.unavailable.for.this.connection": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unix socket connections are unavailable for this connection."
+          }
+        }
+      }
+    },
+    "endpoint.issue.the.server.address.contains.invalid.text.check.the.address.and.try.again": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server address contains invalid text. Check the address and try again."
+          }
+        }
+      }
+    },
+    "endpoint.issue.the.server.address.could.not.be.checked.try.again": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server address could not be checked. Try again."
+          }
+        }
+      }
+    },
+    "history.import.review.the.duplicate.and.older.entries.omitted.from.history.before.importing": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the duplicate and older entries omitted from history before importing."
+          }
+        }
+      }
+    },
+    "history.import.the.history.source.could.not.be.reviewed.check.its.location.and.retry": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history source could not be reviewed. Check its location and retry."
+          }
+        }
+      }
+    },
+    "history.import.the.history.file.could.not.be.read.check.its.location.and.access": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history file could not be read. Check its location and access, then retry."
+          }
+        }
+      }
+    },
+    "history.import.the.history.source.must.be.a.regular.file": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history source must be a regular file."
+          }
+        }
+      }
+    },
+    "history.import.the.history.file.exceeds.the.1.mib.limit": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history file exceeds the 1 MiB limit."
+          }
+        }
+      }
+    },
+    "history.import.the.history.file.changed.while.being.read.retry.to.review.its.current": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history file changed while being read. Retry to review its current contents."
+          }
+        }
+      }
+    },
+    "history.import.the.history.file.could.not.be.reviewed.retry.before.importing": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history file could not be reviewed. Retry before importing."
+          }
+        }
+      }
+    },
+    "history.import.native.profiles.or.history.changed.review.the.source.again.before.importing": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native profiles or history changed. Review the source again before importing."
+          }
+        }
+      }
+    },
+    "history.import.native.profiles.and.history.could.not.be.loaded.resolve.the.stored.data": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native profiles and history could not be loaded. Resolve the stored data problem before importing."
+          }
+        }
+      }
+    },
+    "history.import.native.profiles.and.history.could.not.be.accessed.check.access.before.retrying": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native profiles and history could not be accessed. Check access before retrying."
+          }
+        }
+      }
+    },
+    "history.import.history.import.could.not.be.confirmed.reload.recent.connections.before.reviewing.another": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History import could not be confirmed. Reload recent connections before reviewing another import."
+          }
+        }
+      }
+    },
+    "history.import.the.history.file.exceeds.the.1.mib.import.limit": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history file exceeds the 1 MiB import limit."
+          }
+        }
+      }
+    },
+    "history.import.native.history.has.already.been.used.or.cleared.and.cannot.be.replaced": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native history has already been used or cleared and cannot be replaced by an import."
+          }
+        }
+      }
+    },
+    "history.import.current.tidyvnc.history.exists.review.that.source.instead.of.importing.legacy.history": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current TidyVNC history exists. Review that source instead of importing legacy history."
+          }
+        }
+      }
+    },
+    "history.import.invalid.text.line": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history file contains invalid text on line %@."
+          }
+        }
+      }
+    },
+    "history.import.long.entry.line": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The history entry on line %@ exceeds the 254-byte source limit."
+          }
+        }
+      }
+    },
+    "import.source.the.import.location.is.invalid.check.the.home.and.xdg.paths": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The import location is invalid. Check the home and XDG paths."
+          }
+        }
+      }
+    },
+    "import.source.the.import.source.could.not.be.inspected.check.its.location.and.access": {
+      "comment": "Native profile/history presentation. Interpolated addresses and names are literal; arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The import source could not be inspected. Check its location and access."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

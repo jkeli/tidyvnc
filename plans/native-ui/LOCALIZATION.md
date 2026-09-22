@@ -57,15 +57,16 @@ selection and saved-password buttons were truncated. The retention label now
 appears above its full-width picker, and saved-password actions are vertical.
 This targeted fixture does not establish expansion support for the remaining UI.
 
-The catalog now contains 534 English source entries. Settings section labels,
+The catalog now contains 645 English source entries. Settings section labels,
 clipboard defaults, storage recovery messages, encoding controls/source labels and
 the live encoding sheet have stable IDs. Encoding option/value and unavailable
 choice messages use literal interpolated arguments; ranges, protocol names and
 stored values still come from the shared schema. Input, scaling, connection options,
 security/TLS priority and certificate-file controls and fixed model errors are now
 also covered. Fullscreen and remote-resize defaults/session sheets, display
-descriptions and fixed draft/server-result messages are now covered too. Menus,
-profiles/documents/listeners, status and fixed controller errors remain to migrate.
+descriptions and fixed draft/server-result messages are now covered too. Profile/history views, endpoint validation and history-import presentation and
+fixed errors are now covered. Menus, connection/status/listener UI, document/defaults
+import flows and fixed controller/gateway errors remain to migrate.
 
 The trust-library destination now has a wrapping visible label and an explicit
 accessibility name. Native trust save/replace buttons still truncate long labels,
@@ -118,3 +119,20 @@ monitor arrangement. The fullscreen presentation fixture now accepts `--rtl` and
 can be passed to the expansion runner in place of `native-settings-tests`.
 Packaged tests exercise literal display names containing percent/Unicode text,
 locale-formatted dimensions and the full UInt32 server-result range.
+
+Profile/history catalog coverage includes complete gateway tooltips and removal
+accessibility labels; addresses with percent escapes and Unicode stay literal.
+History import has source choice, omission review, success and fixed reader/storage
+diagnostics. Count summaries use labels that also read correctly for one entry.
+Profile fields have persistent visible/accessibility labels, and action rows remain
+separate at the 900×640 minimum. The app scene retains its 940×680 default. History
+import uses NSHostingController min-size propagation from 640×572 content, avoiding
+AppKit resetting a manually assigned window minimum. Expanded source/review layouts
+were checked at that content floor and the default size.
+
+The expansion runner now includes profile/history/endpoint/source-error prefixes.
+For `native-history-import-ui-tests.app/Contents/MacOS/native-history-import-ui-tests`,
+add `--named-output` to select its `--verify --output DIRECTORY` interface. That
+fixture checks real AppKit window bounds, omission acknowledgement, stale reviews,
+source consent and IO drain with temporary source files and an in-memory store.
+It does not establish user-app interaction, VoiceOver, or import RTL acceptance.
