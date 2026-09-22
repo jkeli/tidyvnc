@@ -45,7 +45,7 @@ func stores() async throws {
         try check(memory.writes == 1,"invalid defaults save leaves stored bytes untouched")
         await store.close()
       }
-      try check((try JSONSerialization.jsonObject(with:memory.read()!) as! [String:Any])["schema"] as? Int == (profile ? 10 : 11),"current schema writer")
+      try check((try JSONSerialization.jsonObject(with:memory.read()!) as! [String:Any])["schema"] as? Int == 11,"current schema writer")
     }
     let invalid = ["null","{\"enabled\":1}","{\"enabled\":\"true\"}","{\"initialSize\":null}","{\"initialSize\":false}","{\"initialSize\":\"0x2\"}","{\"unknown\":true}"]
     for value in invalid {

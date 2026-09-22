@@ -72,7 +72,7 @@ func schemaAndPrecedence() async throws {
     await store.close()
   }
   let malformed: [(Data,NativeStorageError)] = [
-    (try envelope(schema:11),.futureSchema), (try envelope(schema:9),.unsupportedFields),
+    (try envelope(schema:12),.futureSchema), (try envelope(schema:9),.unsupportedFields),
     (try envelope(state:nil),.corrupt), (try envelope(state:NSNull()),.corrupt),
     (try envelope(state:true),.corrupt), (try envelope(state:"future"),.unsupportedValue),
     (try envelope(endpoints:["host"]),.corrupt), (Data("malformed-native".utf8),.corrupt)]
@@ -91,7 +91,7 @@ func schemaAndPrecedence() async throws {
   let accepted = try await store.importHistory(imported,expected:profileOnly.revision,acknowledgingOmissions:true)
   try check(accepted.profiles == [profile] && accepted.recentEndpoints == imported.endpoints && accepted.historyImportOrigin == .currentXDG,"history import preserves native profiles and opaque references")
   let object = try JSONSerialization.jsonObject(with:memory.read()!) as! [String:Any]
-  try check(object["schema"] as? Int == 10 && object["historyState"] as? String == "currentXDG","schema 10 marker in the history transaction")
+  try check(object["schema"] as? Int == 11 && object["historyState"] as? String == "currentXDG","schema 11 marker in the history transaction")
   let recorded = try await store.recordRecent("native-new",expected:accepted.revision)
   let cleared = try await store.clearHistory(expected:recorded.revision)
   try check(cleared.historyImportOrigin == .currentXDG && !cleared.canImportHistory && cleared.recentEndpoints.isEmpty,"record/clear retain import marker")

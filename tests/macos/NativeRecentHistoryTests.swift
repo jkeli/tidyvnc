@@ -84,6 +84,28 @@ final class WeakReference<T: AnyObject> { weak var value: T?; init(_ value: T?) 
   disposalGate.release(); await secondStore.close()
   print("PASS latest-only pending bound, coalesced refresh, MainActor progress, late-read suppression and weak disposal")
 }
+@MainActor func routeQueue() async throws {
+  let backing = HistoryBacking(), store = NativeProfileHistoryStore(backing:backing), gate = HistoryGate()
+  let model = NativeRecentHistory(store:store)
+  let a = NativeConnectionDestination(endpoint:"remote.invalid",sshGateway:try NativeSSHGateway("alice@gateway"))
+  let b = NativeConnectionDestination(endpoint:a.endpoint,sshGateway:try NativeSSHGateway("bob@gateway"))
+  backing.gate(write:gate); model.recordSuccessful(a)
+  try await until("held route write") { gate.isEntered }
+  model.recordSuccessful(b); model.recordSuccessful(a.endpoint); model.recordSuccessful(a)
+  gate.release(); try await until("route queue drained") { !model.isBusy }
+  try check(model.connections == [a,.init(endpoint:a.endpoint),b] && model.endpoints == [a.endpoint],
+            "queued writes and direct compatibility view preserve route identity")
+  model.remove(a); try await until("route removed") { !model.isBusy }
+  try check(model.connections == [.init(endpoint:a.endpoint),b],"model removal selects one complete destination")
+  model.remove(a.endpoint); try await until("direct removed") { !model.isBusy }
+  try check(model.connections == [b] && model.endpoints.isEmpty && !model.canImportHistory,"remaining tunnel never becomes a direct recent")
+  model.reload(); try await until("routes reloaded") { !model.isBusy }
+  try check(model.connections == [b],"model reload retains gateway")
+  model.clear(); try await until("all routes cleared") { !model.isBusy }
+  try check(model.connections.isEmpty,"clear operates on routes even with no direct entries")
+  await model.close(); await store.close()
+  print("PASS complete destination queue, reload, scoped removal and route-only clear")
+}
 final class Preferences: NativePreferencesBacking, Sendable {
   func read() throws -> Data? { nil }
   func write(_ data: Data) throws { throw Failure(message: "Unexpected preferences write") }
@@ -123,7 +145,7 @@ final class Peer {
 }
 @main struct NativeRecentHistoryTests {
   @MainActor static func main() async {
-    do { try await editAndRecovery(); try await queueAndLifetime(); try await connectionRouting() }
+    do { try await editAndRecovery(); try await queueAndLifetime(); try await connectionRouting(); try await routeQueue() }
     catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }
 }

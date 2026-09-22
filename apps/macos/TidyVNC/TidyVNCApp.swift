@@ -472,10 +472,10 @@ private struct ConnectionContent: View {
         Image(systemName: "display").foregroundStyle(.secondary).accessibilityHidden(true)
         TextField("Server address", text: $model.endpoint).textFieldStyle(.roundedBorder)
           .help(model.isReverse ? "Source address of this incoming connection; it is not an outbound destination." : "Enter host:display, host::port, [IPv6]:display, or a Unix socket path.")
-          .accessibilityIdentifier("connection.endpoint").disabled(model.isReverse || model.busy || session.snapshot.state == .connected)
+          .accessibilityIdentifier("connection.endpoint").disabled(!model.canEditDestination)
           .onSubmit { model.connect() }
         if let history = model.history {
-          RecentConnectionsButton(model: history, canSelect: !model.busy && session.snapshot.state != .connected) { model.endpoint = $0 }
+          RecentConnectionsButton(model: history, canSelect:model.canEditDestination) { model.selectDestination($0) }
         }
         if !model.isReverse { Button { openWindow(id: "profiles") } label: { Image(systemName: "folder") }
           .help("Saved profiles").accessibilityLabel("Saved profiles").accessibilityIdentifier("connection.profiles")
@@ -517,6 +517,18 @@ private struct ConnectionContent: View {
         }
       }.padding(14)
       EndpointIssueView(issue: model.endpointIssue).padding(.horizontal, 14)
+      if !model.isReverse {
+        VStack(alignment:.leading,spacing:4) {
+          TextField("SSH gateway (optional)",text:$model.sshGatewayText).textFieldStyle(.roundedBorder)
+            .disabled(!model.canEditDestination).accessibilityIdentifier("connection.sshGateway")
+            .help("Enter user@host or ssh://user@host:port. Leave empty for a direct connection.")
+          if let issue = model.gatewayIssue { Text(issue).foregroundStyle(.red).font(.caption) }
+          if !model.sshGatewayText.isEmpty {
+            Text("SSH currently requires an existing host key and key or agent authentication. Password prompts, new host-key approval, and SSH configuration files are not supported yet.")
+              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+          }
+        }.padding(.horizontal,14).padding(.bottom,8)
+      }
       if model.isReverse {
         Text("Incoming connection. To reconnect, ask the server to connect to the listener again. Passwords, trust decisions and this temporary address are not saved.")
           .font(.caption).foregroundStyle(.secondary).padding(.horizontal,14).padding(.bottom,8)

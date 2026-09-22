@@ -51,7 +51,7 @@ func persistence() async throws {
   let reopened = NativeProfileHistoryStore(backing: backing), result = try await reopened.read()
   try check(result == saved && result.profiles[0].settings.input == patch && result.recentEndpoints == ["recent"], "profile patch and history survive reopen")
   let envelope = try JSONSerialization.jsonObject(with: backing.read()!) as! [String: Any]
-  try check(envelope["schema"] as? Int == 10, "explicit profile commit upgrades schema")
+  try check(envelope["schema"] as? Int == 11, "explicit profile commit upgrades schema")
   var invalid = patch; invalid.shortcutModifiers = 16; profile.settings.input = invalid
   let writes = backing.writes
   do { _ = try await store.upsert(profile, expected: saved.revision); throw Failure(message: "invalid mask saved") }

@@ -90,6 +90,32 @@ final class Preferences: NativePreferencesBacking, @unchecked Sendable {
   await model.close(); await missing.close(); await fallback.close(); await preferences.close(); await store.close(); try await runtime.shutdown()
   print("PASS actual controller fresh profile launch, app/profile precedence, deletion isolation and explicit defaults failure recovery")
 }
+@MainActor func routedProfileAdmission() async throws {
+  let runtime = try NativeRuntime(), backing = HistoryBacking(), store = NativeProfileHistoryStore(backing:backing)
+  let preferences = NativePreferencesStore(backing:Preferences())
+  let gateway = try NativeSSHGateway("alice@gateway.invalid")
+  let profile = NativeConnectionProfile(name:"Tunnel",endpoint:"remote.invalid",sshGateway:gateway)
+  _ = try await store.upsert(profile,expected:nil)
+  let library = NativeProfileLibrary(store:store,preferences:preferences)
+  library.reload(); try await until("route profile read") { !library.isBusy }
+  library.select(profile.id); library.draft?.name = "Renamed tunnel"; library.save()
+  try await until("route profile saved") { !library.isBusy }
+  try check(library.profiles.first?.sshGateway == gateway,"ordinary profile edits retain gateway")
+  let model = ConnectionModel(runtime:runtime,preferences:preferences,profileStore:store,profileID:profile.id) { _,_ in }
+  try await until("route admission") { model.defaults?.isLoading == false }
+  try check(model.defaults?.isReady == true && model.canConnect && model.destination == profile.destination,
+            "profile publishes complete route before Connect")
+  let export = try model.documentExport(legacyDisplays:[])
+  try check(export.losses.contains(.sshGateway),"live routed profile export requires gateway omission review")
+  library.gatewayText = "ssh://bad:0"
+  try check(library.hasChanges && !library.canSave && !library.canUse,"invalid gateway draft cannot save or open")
+  library.cancelEdits(); library.gatewayText = ""
+  try check(library.canSave,"explicit direct route edit can save")
+  library.save(); try await until("direct profile saved") { !library.isBusy }
+  try check(library.profiles.first?.sshGateway == nil && model.destination == profile.destination,
+            "removing saved gateway preserves already-open window route")
+  await model.close(); await library.close(); await store.close(); await preferences.close(); try await runtime.shutdown()
+}
 @MainActor func lifetime() async throws {
   let backing = HistoryBacking(), store = NativeProfileHistoryStore(backing: backing)
   let preferences = NativePreferencesStore(backing: Preferences()), runtime = try NativeRuntime()
@@ -124,7 +150,7 @@ final class Preferences: NativePreferencesBacking, @unchecked Sendable {
 }
 @main struct NativeProfileLibraryTests {
   @MainActor static func main() async {
-    do { try await editing(); try await launch(); try await lifetime() }
+    do { try await editing(); try await launch(); try await routedProfileAdmission(); try await lifetime() }
     catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }
 }

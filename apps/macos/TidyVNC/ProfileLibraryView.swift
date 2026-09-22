@@ -50,6 +50,7 @@ struct ProfileLibraryView: View {
                   VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: profile.name).lineLimit(2)
                     Text(verbatim: profile.endpoint).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    if let gateway = profile.sshGateway { Text("Via \(gateway.canonicalURI)").font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle) }
                   }.frame(maxWidth: .infinity, alignment: .leading).padding(6)
                     .background(model.draft?.id == profile.id ? Color.accentColor.opacity(0.15) : Color.clear)
                 }.buttonStyle(.plain).disabled(!model.canEdit || model.hasChanges)
@@ -69,6 +70,14 @@ struct ProfileLibraryView: View {
               TextField("Server address", text: text(\.endpoint)).textFieldStyle(.roundedBorder).accessibilityIdentifier("profiles.endpoint")
                 .help("Enter host:display, host::port, [IPv6]:display, or a Unix socket path.")
               EndpointIssueView(issue: model.endpointIssue)
+              TextField("SSH gateway (optional)",text:$model.gatewayText).textFieldStyle(.roundedBorder)
+                .accessibilityIdentifier("profiles.sshGateway")
+                .help("Enter user@host or ssh://user@host:port. Leave empty for a direct connection.")
+              if let issue = model.gatewayIssue { Text(issue).font(.caption).foregroundStyle(.red) }
+              if !model.gatewayText.isEmpty {
+                Text("SSH currently requires an existing host key and key or agent authentication. Password prompts, new host-key approval, and SSH configuration files are not supported yet.")
+                  .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+              }
               Text("Settings without a profile override use app defaults for each new connection.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
               GroupBox("Connection") {

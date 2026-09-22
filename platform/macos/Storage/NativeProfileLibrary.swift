@@ -7,6 +7,7 @@ import Foundation
 @MainActor public final class NativeProfileLibrary: ObservableObject {
   @Published public private(set) var profiles: [NativeConnectionProfile] = []
   @Published public var draft: NativeConnectionProfile?
+  @Published public var gatewayText = ""
   @Published public private(set) var isBusy = false
   @Published public private(set) var hasLoaded = false
   @Published public private(set) var needsReload = false
@@ -27,11 +28,19 @@ import Foundation
     self.store = store; self.preferences = preferences
   }
   deinit { operation?.cancel() }
-  public var hasChanges: Bool { draft != baseline }
+  public var hasChanges: Bool { draft != baseline || gatewayText != (baseline?.sshGateway?.canonicalURI ?? "") }
   public var canEdit: Bool { !stopped && !isBusy && hasLoaded && !needsReload }
   public var endpointIssue: NativeEndpointIssue? { NativeEndpoint.issue(for: draft?.endpoint ?? "") }
+  public var gatewayIssue: String? {
+    guard !gatewayText.isEmpty else { return nil }
+    do {
+      let gateway = try NativeSSHGateway(gatewayText)
+      if endpointIssue == nil { _ = try NativeSSHTunnelRequest(endpoint:draft?.endpoint ?? "",gateway:gateway) }
+      return nil
+    } catch { return (error as? NativeTunnelError)?.description ?? NativeTunnelError.invalidRequest.description }
+  }
   public var canSave: Bool {
-    guard canEdit, hasChanges, let draft else { return false }
+    guard canEdit, hasChanges, gatewayIssue == nil, let draft else { return false }
     return !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
       !draft.name.utf8.contains(0) && draft.name.utf8.prefix(257).count <= 256 &&
       endpointIssue == nil && (draft.settings.fullscreen == nil || (try? draft.settings.fullscreen?.resolved(base:inheritedFullscreenPolicy)) != nil) && draft.settings.remoteResize?.isValid != false && draft.settings.scaling?.isValid != false && draft.settings.trustFiles?.isValid != false && draft.settings.security?.isValid != false
@@ -69,7 +78,7 @@ import Foundation
           self.securityChoices = securityChoices; self.securityDefaults = securityDefaults
           self.defaults = defaults.values; self.schema = schema; self.choices = choices
           self.baseline = snapshot.profiles.first { $0.id == selection }
-          self.draft = self.baseline; self.hasLoaded = true; self.needsReload = false
+          self.draft = self.baseline; self.gatewayText = self.baseline?.sshGateway?.canonicalURI ?? ""; self.hasLoaded = true; self.needsReload = false
         }
       } catch {
         if let self, !self.stopped {
@@ -81,15 +90,15 @@ import Foundation
   }
   public func select(_ id: UUID) {
     guard canEdit, !hasChanges, let value = profiles.first(where: { $0.id == id }) else { return }
-    baseline = value; draft = value; error = nil
+    baseline = value; draft = value; gatewayText = value.sshGateway?.canonicalURI ?? ""; error = nil
   }
   public func newProfile() {
     guard canEdit, !hasChanges, profiles.count < NativeProfileHistoryStore.profileCapacity else { return }
-    baseline = nil; draft = .init(name: "", endpoint: ""); error = nil
+    baseline = nil; draft = .init(name: "", endpoint: ""); gatewayText = ""; error = nil
   }
   public func cancelEdits() {
     guard !isBusy, !stopped else { return }
-    draft = baseline
+    draft = baseline; gatewayText = baseline?.sshGateway?.canonicalURI ?? ""
     if !needsReload { error = nil }
   }
   public func setEncoding(_ option: NativeEncodingOption, value: String?) {
@@ -106,8 +115,9 @@ import Foundation
     draft?.settings.encoding = nil; error = nil
   }
   public func save() {
-    guard canSave, let submitted = draft else { return }
-    mutate { store, revision in try await store.upsert(submitted, expected: revision) }
+    guard canSave, var submitted = draft else { return }
+    submitted.sshGateway = try? NativeSSHGateway(gatewayText)
+    mutate { [submitted] store, revision in try await store.upsert(submitted, expected: revision) }
   }
   public func deleteSelected() {
     guard canUse, let id = baseline?.id else { return }
@@ -121,7 +131,7 @@ import Foundation
         let result = try await action(owner, revision)
         if let self, !self.stopped {
           self.profiles = result.profiles; self.revision = result.revision
-          self.baseline = result.profiles.first { $0.id == selection }; self.draft = self.baseline
+          self.baseline = result.profiles.first { $0.id == selection }; self.draft = self.baseline; self.gatewayText = self.baseline?.sshGateway?.canonicalURI ?? ""
         }
       } catch { if let self, !self.stopped { self.failed(error) } }
       self?.isBusy = false; self?.operation = nil

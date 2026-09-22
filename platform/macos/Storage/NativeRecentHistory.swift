@@ -3,9 +3,10 @@ import Combine
 import Foundation
 
 // One app-wide presentation/operation owner. Connection success enqueues a
-// bounded address only; no disk IO or await extends the connection operation.
+// bounded destination only; no disk IO or await extends the connection operation.
 @MainActor public final class NativeRecentHistory: ObservableObject {
-  @Published public private(set) var endpoints: [String] = []
+  @Published public private(set) var connections: [NativeConnectionDestination] = []
+  public var endpoints: [String] { connections.filter { $0.sshGateway == nil }.map(\.endpoint) }
   @Published public private(set) var isBusy = false
   @Published public private(set) var error: NativeStorageError?
   @Published public private(set) var hasLoaded = false
@@ -15,9 +16,9 @@ import Foundation
   public func dismissImportOffer() { importOfferDismissed = true }
   private let store: NativeProfileHistoryStore
   private var revision: UUID?
-  private enum Request: Sendable { case read, record(String), remove(String, UUID?), clear(UUID?) }
+  private enum Request: Sendable { case read, record(NativeConnectionDestination), remove(NativeConnectionDestination, UUID?), clear(UUID?) }
   private var operation: Task<Void, Never>?
-  private var pending: [String] = [] // Oldest first, coalesced to latest 20.
+  private var pending: [NativeConnectionDestination] = [] // Oldest first, coalesced to latest 20.
   private var refreshPending = false
   private var stopped = false
   public init(store: NativeProfileHistoryStore) { self.store = store }
@@ -28,19 +29,22 @@ import Foundation
     guard operation == nil else { refreshPending = true; return }
     begin(.read)
   }
-  public func recordSuccessful(_ endpoint: String) {
+  public func recordSuccessful(_ endpoint: String) { recordSuccessful(.init(endpoint:endpoint)) }
+  public func recordSuccessful(_ value: NativeConnectionDestination) {
+    let endpoint = value.endpoint
     guard !stopped else { return }
     guard !endpoint.isEmpty, endpoint.utf8.prefix(4097).count <= 4096, !endpoint.utf8.contains(0) else { error = .invalid; return }
-    pending.removeAll(where: { $0 == endpoint }); pending.append(endpoint)
+    pending.removeAll(where: { $0 == value }); pending.append(value)
     pending = Array(pending.suffix(NativeProfileHistoryStore.historyCapacity))
     advance()
   }
-  public func remove(_ endpoint: String) {
-    guard canEdit, endpoints.contains(endpoint) else { return }
-    begin(.remove(endpoint, revision))
+  public func remove(_ endpoint: String) { remove(.init(endpoint:endpoint)) }
+  public func remove(_ value: NativeConnectionDestination) {
+    guard canEdit, connections.contains(value) else { return }
+    begin(.remove(value, revision))
   }
   public func clear() {
-    guard canEdit, !endpoints.isEmpty else { return }
+    guard canEdit, !connections.isEmpty else { return }
     begin(.clear(revision))
   }
   private func advance() {
@@ -63,7 +67,7 @@ import Foundation
         case .clear(let revision): snapshot = try await owner.clearHistory(expected: revision)
         }
         if let self, !self.stopped {
-          self.revision = snapshot.revision; self.endpoints = snapshot.recentEndpoints; self.hasLoaded = true
+          self.revision = snapshot.revision; self.connections = snapshot.recentConnections; self.hasLoaded = true
           self.importEligible = snapshot.canImportHistory
         }
       } catch {
@@ -75,7 +79,7 @@ import Foundation
             self.pending.insert(endpoint, at: 0)
             self.pending = Array(self.pending.suffix(NativeProfileHistoryStore.historyCapacity))
           }
-          if case .read = request { self.hasLoaded = false; self.endpoints = []; self.revision = nil }
+          if case .read = request { self.hasLoaded = false; self.connections = []; self.revision = nil }
         }
       }
       self?.operation = nil; self?.isBusy = false; self?.advance()

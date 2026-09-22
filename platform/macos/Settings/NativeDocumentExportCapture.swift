@@ -11,9 +11,11 @@ public struct NativeDocumentExportCapture: Sendable {
   private let inactiveCursor: NativeCursorFallback
   private let legacyDisplays: [NativeDisplayID]
   private let ignoredInput: Bool
+  private let sshGateway: NativeSSHGateway?
   public init(endpoint: String, configuration: NativeSessionConfiguration,
               inactiveCursor: NativeCursorFallback = .dot, legacyDisplays: [NativeDisplayID] = [],
-              displayNames: [NativeDisplayID:String] = [:], ignoredInput: Bool = false) throws {
+              displayNames: [NativeDisplayID:String] = [:], ignoredInput: Bool = false, sshGateway: NativeSSHGateway? = nil) throws {
+    self.sshGateway = sshGateway
     selectedDisplays = configuration.fullscreenPolicy.selectedDisplays
     self.endpoint = endpoint; self.configuration = configuration; self.inactiveCursor = inactiveCursor
     self.legacyDisplays = legacyDisplays; self.displayNames = displayNames; self.ignoredInput = ignoredInput
@@ -24,11 +26,11 @@ public struct NativeDocumentExportCapture: Sendable {
   }
   public func automaticExport() throws -> NativeDocumentExport {
     try NativeDocumentExport(endpoint:endpoint,configuration:configuration,inactiveCursor:inactiveCursor,
-      legacyDisplays:legacyDisplays,ignoredInput:ignoredInput)
+      legacyDisplays:legacyDisplays,ignoredInput:ignoredInput,sshGateway:sshGateway)
   }
   public func makeExport(monitorIndices: [NativeDisplayID:Int]) throws -> NativeDocumentExport {
     try NativeDocumentExport(endpoint:endpoint,configuration:configuration,inactiveCursor:inactiveCursor,
-      ignoredInput:ignoredInput,monitorIndices:monitorIndices)
+      ignoredInput:ignoredInput,monitorIndices:monitorIndices,sshGateway:sshGateway)
   }
   var suggestedIndices: [NativeDisplayID:Int] {
     guard legacyDisplays.count <= 64, Set(legacyDisplays).count == legacyDisplays.count else { return [:] }

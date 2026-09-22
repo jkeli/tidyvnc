@@ -83,7 +83,7 @@ func validationAndPreservation() async throws {
   let profile = "{\"id\":\"00000000-0000-0000-0000-000000000002\",\"name\":\"Lab\",\"endpoint\":\"host\",\"settings\":{}}"
   func withSettings(_ value: String) -> Data { envelope("[" + profile.replacingOccurrences(of: "\"settings\":{}", with: "\"settings\":\(value)") + "]") }
   let cases: [(Data, NativeStorageError)] = [
-    (Data("partial".utf8), .corrupt), (envelope(schema: "11"), .futureSchema), (envelope(schema: "true"), .corrupt),
+    (Data("partial".utf8), .corrupt), (envelope(schema: "12"), .futureSchema), (envelope(schema: "true"), .corrupt),
     (withSettings("{\"password\":\"rejected\"}"), .unsupportedFields), (withSettings("{\"clipboardSend\":1}"), .corrupt),
     (withSettings("{\"encoding\":{\"qualityLevel\":100}}"), .invalid), (withSettings("{\"encoding\":{\"qualityLevel\":null}}"), .corrupt),
     (envelope("[\(profile),\(profile)]"), .corrupt), (envelope(history: "[\"host\",\"host\"]"), .corrupt),
@@ -104,6 +104,88 @@ func validationAndPreservation() async throws {
   try await expect(.invalid) { _ = try await store.recordRecent(String(repeating: "x", count: 4097), expected: current.revision) }
   await store.close()
   print("PASS closed schema, unknown/secret fields, strict types, future/corrupt preservation and bounds")
+}
+func routedPersistence() async throws {
+  let a = try NativeSSHGateway("alice@GATEWAY.invalid"), b = try NativeSSHGateway("bob@gateway.invalid")
+  let direct = NativeConnectionDestination(endpoint:"remote.invalid")
+  let first = NativeConnectionDestination(endpoint:direct.endpoint,sshGateway:a)
+  let second = NativeConnectionDestination(endpoint:direct.endpoint,sshGateway:b)
+  let fixture = try Fixture(), backend = try NativePrivateFile(directory:fixture.directory)
+  let store = NativeProfileHistoryStore(backing:backend)
+  let profile = NativeConnectionProfile(name:"Tunnel",endpoint:first.endpoint,credentialReference:UUID(),sshGateway:a)
+  var value = try await store.upsert(profile,expected:nil)
+  for destination in [direct,first,second] { value = try await store.recordRecent(destination,expected:value.revision) }
+  try check(value.recentConnections == [second,first,direct] && value.recentEndpoints == [direct.endpoint],
+            "same target retains distinct direct and SSH routes without endpoint-only downgrade")
+  let reopened = NativeProfileHistoryStore(backing:try NativePrivateFile(directory:fixture.directory))
+  let loaded = try await reopened.read()
+  try check(loaded == value && loaded.profiles[0].destination == first && !loaded.canImportHistory,
+            "fresh store preserves route, opaque credential reference and history state")
+  let bytes = try backend.read()!, object = try JSONSerialization.jsonObject(with:bytes) as! [String:Any]
+  try check(object["schema"] as? Int == 11 && object["recentEndpoints"] == nil &&
+            (object["profiles"] as? [[String:Any]])?.first?["sshGateway"] as? String == a.canonicalURI &&
+            !String(decoding:bytes,as:UTF8.self).contains(a.routeIdentity),"schema persists gateway, never forwarding socket or derived digest")
+  value = try await store.recordRecent(.init(endpoint:first.endpoint,sshGateway:NativeSSHGateway("ssh://alice@gateway.invalid:22")),expected:value.revision)
+  try check(value.recentConnections == [first,second,direct],"equivalent gateway spelling coalesces only the same route")
+  try await expect(.conflict) { _ = try await reopened.removeRecent(first,expected:loaded.revision) }
+  value = try await store.removeRecent(direct.endpoint,expected:value.revision)
+  try check(value.recentConnections == [first,second],"endpoint-only remove cannot delete a tunnel")
+  value = try await store.removeRecent(first,expected:value.revision)
+  try check(value.recentConnections == [second] && value.recentEndpoints.isEmpty && !value.canImportHistory,
+            "route-only history is initialized and cannot be overwritten by import")
+  try await expect(.invalid) { _ = try await store.recordRecent(.init(endpoint:"/tmp/socket",sshGateway:a),expected:value.revision) }
+  try await expect(.invalid) { _ = try await store.upsert(.init(name:"Invalid",endpoint:"/tmp/socket",sshGateway:a),expected:value.revision) }
+  let unchanged = try await store.read(); try check(unchanged == value,"invalid target preserves persisted routes")
+  await store.close(); await reopened.close()
+
+  let unicodeBacking = Memory(), unicodeStore = NativeProfileHistoryStore(backing:unicodeBacking)
+  let composed = "/tmp/\u{e9}", decomposed = "/tmp/e\u{301}"
+  let initialUnicode = try await unicodeStore.recordRecent(composed,expected:nil)
+  let savedUnicode = try await unicodeStore.recordRecent(decomposed,expected:initialUnicode.revision)
+  let unicodeReload = try await unicodeStore.read()
+  try check(unicodeReload.recentConnections.count == 2 &&
+            unicodeReload.recentConnections[0].endpoint.utf8.elementsEqual(decomposed.utf8) &&
+            unicodeReload.recentConnections[1].endpoint.utf8.elementsEqual(composed.utf8),
+            "history retains distinct original UTF-8 endpoint spellings across persistence")
+  let removedUnicode = try await unicodeStore.removeRecent(composed,expected:savedUnicode.revision)
+  try check(removedUnicode.recentConnections.count == 1 &&
+            removedUnicode.recentConnections[0].endpoint.utf8.elementsEqual(decomposed.utf8),
+            "removal does not fold Unicode endpoint spellings")
+  await unicodeStore.close()
+
+  for version in 1...10 {
+    var old = try JSONSerialization.jsonObject(with:envelope(history:"[\"HOST:2\",\"/tmp/socket\"]",schema:String(version))) as! [String:Any]
+    if version == 10 { old["historyState"] = "legacy" }
+    let bytes = try JSONSerialization.data(withJSONObject:old), memory = Memory(bytes)
+    let owner = NativeProfileHistoryStore(backing:memory), before = try await owner.read()
+    try check(before.recentConnections == [.init(endpoint:"HOST:2"),.init(endpoint:"/tmp/socket")] && memory.writes == 0,
+              "legacy schemas read as direct routes without writes")
+    let migrated = try await owner.recordRecent(first,expected:before.revision)
+    try check(migrated.recentConnections == [first] + before.recentConnections && migrated.historyState == before.historyState,
+              "explicit mutation upgrades without dropping original addresses or import marker")
+    let fresh = NativeProfileHistoryStore(backing:memory), reloaded = try await fresh.read()
+    try check(reloaded == migrated,"schema 11 upgrade reopens exactly")
+    await owner.close(); await fresh.close()
+  }
+  func document(_ history: [[String:Any]]) throws -> Data {
+    try JSONSerialization.data(withJSONObject:["schema":11,"revision":UUID().uuidString,"profiles":[],
+                                             "historyState":"native","recentConnections":history])
+  }
+  let malformed: [(Data,NativeStorageError)] = [
+    (try document([["endpoint":"host","sshGateway":"ssh://u:secret@gateway"]]),.corrupt),
+    (try document([["endpoint":"host","sshGateway":NSNull()]]),.corrupt),
+    (try document([["endpoint":"host","sshGateway":["host":"gateway"]]]),.corrupt),
+    (try document([["endpoint":"host","password":"never"]]),.unsupportedFields),
+    (try document([["endpoint":"host","sshGateway":"gateway"],["endpoint":"host","sshGateway":"ssh://gateway:22"]]),.corrupt),
+    (try document([["endpoint":"/tmp/socket","sshGateway":"gateway"]]),.invalid)]
+  for (bytes,error) in malformed {
+    let memory = Memory(bytes), owner = NativeProfileHistoryStore(backing:memory)
+    try await expect(error) { _ = try await owner.read() }
+    try await expect(error) { _ = try await owner.clearHistory(expected:nil) }
+    try check(try memory.read() == bytes && memory.writes == 0,"invalid route storage is preserved without fallback")
+    await owner.close()
+  }
+  print("PASS route identity persistence, canonical deduplication, scoped deletion, schemas 1–10 migration and invalid-route preservation")
 }
 func interruptions() async throws {
   for point in [NativePrivateFile.Checkpoint.written, .willReplace, .didReplace] {
@@ -229,7 +311,7 @@ func filesystemRefusals() async throws {
       catch { exit(3) }
     }
     do {
-      try await deferredParentSetup(); try await persistenceAndHistory(); try await validationAndPreservation(); try await interruptions()
+      try await deferredParentSetup(); try await persistenceAndHistory(); try await routedPersistence(); try await validationAndPreservation(); try await interruptions()
       try await concurrentWriters(); try await filesystemRefusals()
     } catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }

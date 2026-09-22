@@ -52,7 +52,7 @@ func selectionAndStores() async throws {
     let saved = try await store.upsert(draft,expected:snapshot.revision)
     let reopened = NativeProfileHistoryStore(backing:backing), current = try await reopened.read()
     try check(current == saved && current.profiles[0].settings.security?.types == "" && current.recentEndpoints == ["recent"],"explicit deny-all and history preserved")
-    try check((try JSONSerialization.jsonObject(with:backing.read()!) as! [String:Any])["schema"] as? Int == 10,"profile schema upgrade")
+    try check((try JSONSerialization.jsonObject(with:backing.read()!) as! [String:Any])["schema"] as? Int == 11,"profile schema upgrade")
     await store.close(); await reopened.close()
   }
   var base = NativeSessionConfiguration(); base.securityTypes = [2]; base.securitySource = .session

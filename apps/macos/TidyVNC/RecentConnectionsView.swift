@@ -30,7 +30,7 @@ struct RecentHistoryStatus: View {
 struct RecentConnectionsButton: View {
   @ObservedObject var model: NativeRecentHistory
   let canSelect: Bool
-  let select: (String) -> Void
+  let select: (NativeConnectionDestination) -> Void
   @MainActor private final class Presentation: ObservableObject { @Published var shown = false }
   @StateObject private var presentation = Presentation()
   var body: some View {
@@ -46,29 +46,32 @@ struct RecentConnectionsButton: View {
 struct RecentConnectionsPanel: View {
   @ObservedObject var model: NativeRecentHistory
   let canSelect: Bool
-  let select: (String) -> Void
+  let select: (NativeConnectionDestination) -> Void
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Recent Connections").font(.headline)
       Text("Choose an address, then select Connect.").foregroundStyle(.secondary).font(.caption)
-      if model.endpoints.isEmpty {
+      if model.connections.isEmpty {
         Text(model.hasLoaded ? "No recent connections." : "Recent connections have not loaded.")
           .foregroundStyle(.secondary).padding(.vertical, 12)
       } else {
         ScrollView {
           VStack(spacing: 6) {
-            ForEach(model.endpoints, id: \.self) { endpoint in
+            ForEach(model.connections, id: \.self) { destination in
               HStack {
-                Button { select(endpoint) } label: {
-                  Text(verbatim: endpoint).lineLimit(1).truncationMode(.middle).frame(maxWidth: .infinity, alignment: .leading)
-                }.buttonStyle(.plain).disabled(!canSelect).help(endpoint)
-                  .accessibilityHint("Places this address in the connection field")
-                Button { model.remove(endpoint) } label: { Image(systemName: "xmark.circle") }
-                  .buttonStyle(.borderless).disabled(!model.canEdit).help("Remove from recent connections").accessibilityLabel("Remove \(endpoint) from recent connections")
+                Button { select(destination) } label: {
+                  VStack(alignment:.leading,spacing:2) {
+                    Text(verbatim:destination.endpoint).lineLimit(1).truncationMode(.middle)
+                    if let gateway = destination.sshGateway { Text("Via \(gateway.canonicalURI)").font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle) }
+                  }.frame(maxWidth:.infinity,alignment:.leading)
+                }.buttonStyle(.plain).disabled(!canSelect).help(destination.endpoint + (destination.sshGateway.map { " via " + $0.canonicalURI } ?? ""))
+                  .accessibilityHint("Places this address and its gateway in the connection fields")
+                Button { model.remove(destination) } label: { Image(systemName: "xmark.circle") }
+                  .buttonStyle(.borderless).disabled(!model.canEdit).help("Remove from recent connections").accessibilityLabel("Remove \(destination.endpoint) from recent connections")
               }.padding(.vertical, 4)
             }
           }
-        }.frame(height: min(CGFloat(model.endpoints.count) * 34, 260))
+        }.frame(height: min(CGFloat(model.connections.count) * 52, 260))
       }
       if let error = model.error {
         Text(historyMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
@@ -77,7 +80,7 @@ struct RecentConnectionsPanel: View {
       HStack {
         Button("Reload") { model.reload() }.disabled(model.isBusy)
         Spacer()
-        Button("Clear Recent Connections") { model.clear() }.disabled(!model.canEdit || model.endpoints.isEmpty)
+        Button("Clear Recent Connections") { model.clear() }.disabled(!model.canEdit || model.connections.isEmpty)
           .accessibilityIdentifier("history.clear")
       }
     }.padding(18).frame(width: 440)

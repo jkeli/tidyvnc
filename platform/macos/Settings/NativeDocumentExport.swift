@@ -2,7 +2,7 @@
 import Foundation
 
 public enum NativeDocumentExportLoss: String, CaseIterable, Hashable, Sendable {
-  case remoteResize, networkFamilies, pointerTiming, clipboardLimit, windowPlacement, displayIdentity, ignoredInput
+  case remoteResize, networkFamilies, pointerTiming, clipboardLimit, windowPlacement, displayIdentity, ignoredInput, sshGateway
   public var description: String {
     switch self {
     case .remoteResize: "Remote-resize settings are not supported by this connection-file format. The receiving viewer will use its own settings."
@@ -11,6 +11,7 @@ public enum NativeDocumentExportLoss: String, CaseIterable, Hashable, Sendable {
     case .clipboardLimit: "The incoming clipboard size limit is not supported by this connection-file format. The receiving viewer will use its own limit."
     case .windowPlacement: "Initial window size, position and maximization are not supported by this connection-file format. The receiving viewer will use its own window settings."
     case .displayIdentity: "Stable display identities become the monitor numbers listed in this review. The receiving viewer interprets those numbers using its own display arrangement."
+    case .sshGateway: "The SSH gateway cannot be saved in this connection-file format. Opening the exported file will connect directly unless you configure the SSH gateway separately."
     case .ignoredInput: "Fields ignored when opening the original file will not be copied to the exported file."
     }
   }
@@ -44,7 +45,7 @@ public struct NativeDocumentExport: Sendable, Identifiable {
   public init(endpoint: String, configuration: NativeSessionConfiguration,
               inactiveCursor: NativeCursorFallback = .dot,
               legacyDisplays: [NativeDisplayID] = [], ignoredInput: Bool = false,
-              monitorIndices: [NativeDisplayID:Int]? = nil) throws {
+              monitorIndices: [NativeDisplayID:Int]? = nil, sshGateway: NativeSSHGateway? = nil) throws {
     guard configuration.tlsPriority.isEmpty else { throw NativeDocumentExportError.securityPolicy }
     guard inactiveCursor == .dot || inactiveCursor == .system,
           configuration.input.shortcutModifiers.rawValue & ~15 == 0 else { throw NativeDocumentExportError.invalidConfiguration }
@@ -112,6 +113,7 @@ public struct NativeDocumentExport: Sendable, Identifiable {
     }
     add("FullScreenSelectedMonitors",indices.sorted().map(String.init).joined(separator:","))
     if ignoredInput { losses.insert(.ignoredInput) }
+    if sshGateway != nil { losses.insert(.sshGateway) }
     let bytes = try NativeConnectionDocument.serialize(assignments)
     // Verify every emitted field through the shared file-semantic boundary, not
     // just syntax. A future schema field absent from the file catalog fails.

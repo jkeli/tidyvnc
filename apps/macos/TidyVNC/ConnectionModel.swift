@@ -22,6 +22,69 @@ struct ConnectionProblem: Identifiable, Equatable {
   }
 }
 
+// A tunnel belongs to exactly one connection attempt. Cleanup runs in its own
+// uncancelled task and is shared by failure, disconnect, close and deallocation.
+@MainActor private final class ConnectionTunnelAttempt {
+  let owner: any NativeTunnelOwning
+  let session: NativeSession
+  let initialGeneration: UInt64
+  private(set) var admitted = false
+  private(set) var stopping = false
+  private var observation: Task<Void,Never>?
+  private var cleanup: Task<Void,Never>?
+  init(owner: any NativeTunnelOwning, session: NativeSession) {
+    self.owner = owner; self.session = session; initialGeneration = session.generation
+  }
+  func connect(destination: NativeConnectionDestination, onExit: @escaping @MainActor () -> Void) async throws -> NativeCompletion {
+    let route = try await owner.start()
+    try Task.checkCancellation()
+    guard !stopping, route.endpoint.utf8.elementsEqual(destination.endpoint.utf8),
+          route.routeIdentity == destination.sshGateway?.routeIdentity else { throw NativeTunnelError.invalidRequest }
+    let owner = owner
+    observation = Task { [weak self] in
+      let exit = await owner.waitForExit()
+      guard exit != nil, let self, !self.stopping, !Task.isCancelled else { return }
+      onExit()
+    }
+    admitted = true
+    return try await session.connect(endpoint:destination.endpoint,through:route.localEndpoint,routeIdentity:route.routeIdentity)
+  }
+  func drain() -> Task<Void,Never> {
+    if let cleanup { return cleanup }
+    stopping = true; observation?.cancel()
+    let owner = owner, session = session, observation = observation
+    let task = Task {
+      await Self.drain(session)
+      await owner.close()
+      await observation?.value
+    }
+    cleanup = task; return task
+  }
+  private static func drain(_ session: NativeSession) async {
+    if session.isClosing { try? await session.close(); return }
+    do { _ = try await session.disconnect() }
+    catch let error as NativeError where error.status == .closing || error.status == .notConnected {
+      // The native worker may already be finishing. Its terminal snapshot is
+      // published only after transport/decoder/observer drain; preserve reuse.
+      while !session.isClosing && ![.idle,.closed,.failed].contains(session.snapshot.state) {
+        try? await Task.sleep(for:.milliseconds(10))
+      }
+      if session.isClosing { try? await session.close() }
+    } catch {
+      if session.isClosing || ![.idle,.closed,.failed].contains(session.snapshot.state) { try? await session.close() }
+    }
+  }
+  deinit {
+    observation?.cancel()
+    if cleanup == nil {
+      let owner = owner, session = session, observation = observation
+      Task { @MainActor in
+        await Self.drain(session); await owner.close(); await observation?.value
+      }
+    }
+  }
+}
+
 @MainActor final class ConnectionModel: ObservableObject {
   private let reverse: ReverseConnectionRequest?
   private var reverseAttempted = false
@@ -58,6 +121,35 @@ struct ConnectionProblem: Identifiable, Equatable {
   @Published var message: String? { didSet { if message != nil { prepareErrorPresentation() } } }
   @Published private(set) var connectionProblem: ConnectionProblem?
   private var retryProblem: ConnectionProblem?
+  @Published var sshGatewayText = "" {
+    didSet {
+      if destinationPublished {
+        credentials.bindLaunchEndpoint(endpoint,routeIdentity:sshGatewayText.isEmpty ? "" : sshGateway?.routeIdentity ?? "invalid-ssh-gateway")
+      }
+    }
+  }
+  private var destinationPublished = false
+  var sshGateway: NativeSSHGateway? { try? NativeSSHGateway(sshGatewayText) }
+  var gatewayIssue: String? {
+    guard !sshGatewayText.isEmpty else { return nil }
+    do {
+      let gateway = try NativeSSHGateway(sshGatewayText)
+      if endpointIssue == nil { _ = try NativeSSHTunnelRequest(endpoint:endpoint,gateway:gateway) }
+      return nil
+    } catch { return (error as? NativeTunnelError)?.description ?? NativeTunnelError.invalidRequest.description }
+  }
+  var destination: NativeConnectionDestination { .init(endpoint:endpoint,sshGateway:sshGateway) }
+  var canEditDestination: Bool {
+    !isReverse && !busy && !closing && session?.isClosing == false &&
+      [.idle,.closed,.failed].contains(session?.snapshot.state ?? .idle)
+  }
+  func selectDestination(_ value: NativeConnectionDestination) {
+    guard canEditDestination else { return }
+    endpoint = value.endpoint; sshGatewayText = value.sshGateway?.canonicalURI ?? ""
+  }
+  private var tunnelFactory: @MainActor (NativeSSHTunnelRequest) -> any NativeTunnelOwning = { NativeSSHTunnel(request:$0) }
+  private var tunnelAttempt: ConnectionTunnelAttempt?
+  private var attemptDestination: NativeConnectionDestination?
   private var attemptEndpoint: String?
   var authenticationEndpoint: String { attemptEndpoint ?? endpoint }
   private var suppressConnectionProblem = false
@@ -79,7 +171,9 @@ struct ConnectionProblem: Identifiable, Equatable {
        invocation: NativeInvocationRequest? = nil, connectOnReady: Bool = false, reverse: ReverseConnectionRequest? = nil,
        launchCredentials: NativeLaunchCredentialInputs? = nil, passwordFileReader: any NativePasswordFileReading = NativePasswordFileReader(),
        credentialStore: NativeCredentialStore? = nil, trustStore: NativeLegacyTrustStore? = nil, savedTrustStore: NativeTrustStore? = nil, hostKeyStore: NativeTrustStore? = nil,
+       tunnelFactory: @escaping @MainActor (NativeSSHTunnelRequest) -> any NativeTunnelOwning = { NativeSSHTunnel(request:$0) },
        onSession: @escaping @MainActor (NativeSession, ConnectionModel) -> Void) {
+    self.tunnelFactory = tunnelFactory
     self.fullscreen = fullscreen
     self.reverse = reverse
     self.history = reverse == nil ? history : nil; self.displays = displays
@@ -127,7 +221,9 @@ struct ConnectionProblem: Identifiable, Equatable {
         else if let document = self.defaults?.documentResolution { self.endpoint = document.endpoint }
         else if let invocation = self.defaults?.invocationResolution { self.endpoint = invocation.endpoint }
         else if let profile = self.defaults?.profile { self.endpoint = profile.endpoint }
-        self.credentials.bindLaunchEndpoint(self.endpoint)
+        self.sshGatewayText = reverse == nil ? self.defaults?.profile?.sshGateway?.canonicalURI ?? "" : ""
+        self.destinationPublished = true
+        self.credentials.bindLaunchEndpoint(self.endpoint,routeIdentity:self.sshGateway?.routeIdentity ?? "")
         self.stateObservation = session.$snapshot.sink { [weak self] snapshot in
           MainActor.assumeIsolated {
             if snapshot.state != .connected { self?.closeFullscreen(); self?.closeRemoteResize(); self?.closeEncoding(); self?.closeScaling(); self?.closeInput(); self?.closeInformation(); self?.showsStatistics = false }
@@ -178,7 +274,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   var canExportDocument: Bool {
     guard !isReverse else { return false }
     guard let session else { return false }
-    return defaults?.isReady == true && (endpoint.isEmpty || endpointIssue == nil) && !closing && !busy && !session.isClosing && session.prompt == nil &&
+    return defaults?.isReady == true && gatewayIssue == nil && (endpoint.isEmpty || endpointIssue == nil) && !closing && !busy && !session.isClosing && session.prompt == nil &&
       !credentials.isWorking && !trust.isWorking && fullscreen.canPresentSettings && !documentSave.hasPending &&
       fullscreenDraft == nil && resizePolicyDraft == nil && remoteResizeDraft == nil && remoteResizeCleanup == nil &&
       connectionOptionsDraft == nil && securityDraft == nil && securityCleanup == nil && informationID == nil &&
@@ -211,38 +307,76 @@ struct ConnectionProblem: Identifiable, Equatable {
     configuration.fullscreenPolicy = displays == nil ? session.initialFullscreenPolicy : fullscreen.policy
     configuration.resizePolicy = session.resizePolicy
     return try NativeDocumentExportCapture(endpoint:endpoint,configuration:configuration,inactiveCursor:input.inactiveCursor,
-      legacyDisplays:legacyDisplays,displayNames:displayNames,ignoredInput:defaults?.documentResolution?.notices.isEmpty == false)
+      legacyDisplays:legacyDisplays,displayNames:displayNames,ignoredInput:defaults?.documentResolution?.notices.isEmpty == false,sshGateway:sshGateway)
   }
   var canConnect: Bool {
     guard !isReverse || !reverseAttempted else { return false }
     guard let session else { return false }
-    return defaults?.isReady == true && !documentSave.hasPending && fullscreenDraft == nil && resizePolicyDraft == nil && remoteResizeDraft == nil && remoteResizeCleanup == nil && connectionOptionsDraft == nil && securityDraft == nil && securityCleanup == nil && !busy && !closing && !credentials.isWorking && !trust.isWorking && endpointIssue == nil && [.idle, .closed, .failed].contains(session.snapshot.state)
+    return defaults?.isReady == true && gatewayIssue == nil && tunnelAttempt == nil && !documentSave.hasPending && fullscreenDraft == nil && resizePolicyDraft == nil && remoteResizeDraft == nil && remoteResizeCleanup == nil && connectionOptionsDraft == nil && securityDraft == nil && securityCleanup == nil && !busy && !closing && !credentials.isWorking && !trust.isWorking && endpointIssue == nil && [.idle, .closed, .failed].contains(session.snapshot.state)
   }
   func connect() {
     guard canConnect, let session else { return }
-    let address = endpoint; busy = true; message = nil; connectionProblem = nil; retryProblem = nil
-    let reverse = reverse
+    let destination = destination, address = endpoint, reverse = reverse
+    let attempt: ConnectionTunnelAttempt?
+    do {
+      if reverse == nil, let gateway = destination.sshGateway {
+        let request = try NativeSSHTunnelRequest(endpoint:address,gateway:gateway,network:session.networkPolicy)
+        attempt = ConnectionTunnelAttempt(owner:tunnelFactory(request),session:session)
+      } else { attempt = nil }
+    } catch { message = (error as? NativeTunnelError)?.description; return }
+    tunnelAttempt = attempt
+    busy = true; message = nil; connectionProblem = nil; retryProblem = nil
     if reverse != nil { reverseAttempted = true }
-    trust.beginAttempt(endpoint: reverse == nil ? address : nil)
-    credentials.beginAttempt(endpoint: address)
-    attemptEndpoint = address; suppressConnectionProblem = false; reportedGeneration = nil
+    trust.beginAttempt(endpoint:reverse == nil ? address : nil,routeIdentity:destination.sshGateway?.routeIdentity ?? "")
+    credentials.beginAttempt(endpoint:address,routeIdentity:destination.sshGateway?.routeIdentity ?? "")
+    attemptDestination = destination; attemptEndpoint = address; suppressConnectionProblem = false; reportedGeneration = nil
     operation = Task { [weak self] in
+      var connected = false
       do {
         let completion: NativeCompletion
         if let reverse { completion = try await reverse.listener.accept(reverse.peer,into:session) }
-        else { completion = try await session.connect(endpoint: address) }
-        if self?.closing == false, completion.operation.generation == session.generation, completion.snapshot.state == .connected {
-          self?.history?.recordSuccessful(address)
+        else if let attempt {
+          completion = try await attempt.connect(destination:destination) { [weak self, weak attempt] in
+            guard let self, let attempt else { return }; self.tunnelExited(attempt)
+          }
+        } else { completion = try await session.connect(endpoint:address) }
+        try Task.checkCancellation()
+        connected = self?.closing == false && session.snapshot.state == .connected
+        if connected, completion.operation.generation == session.generation, completion.snapshot.state == .connected {
+          self?.history?.recordSuccessful(destination)
         }
       }
       catch is CancellationError {}
       catch {
-        if reverse != nil, !(error is NativeCommandFailure) {
+        if let failure = error as? NativeTunnelError {
+          if self?.closing == false, self?.suppressConnectionProblem == false { self?.message = failure.description }
+        } else if reverse != nil, !(error is NativeCommandFailure) {
           if self?.closing == false { self?.message = "This incoming connection is no longer available. Ask the server to make a new connection to the listener." }
-        } else if let issue = NativeConnectionIssue(error: error) {
-          self?.reportConnection(issue, generation: (error as? NativeCommandFailure)?.operation.generation ?? session.generation)
+        } else if let issue = NativeConnectionIssue(error:error) {
+          self?.reportConnection(issue,generation:(error as? NativeCommandFailure)?.operation.generation ?? session.generation)
         }
       }
+      if let attempt, !connected {
+        await attempt.drain().value
+        if self?.tunnelAttempt === attempt { self?.tunnelAttempt = nil }
+      }
+      self?.busy = false; self?.operation = nil
+    }
+  }
+  private func tunnelExited(_ attempt: ConnectionTunnelAttempt) {
+    guard !closing, tunnelAttempt === attempt, !attempt.stopping else { return }
+    suppressConnectionProblem = true; connectionProblem = nil; retryProblem = nil
+    message = "The SSH tunnel closed. Check the gateway and connect again."
+    trust.cancel(); credentials.clear()
+    if let operation { operation.cancel() }
+    else { finishTunnel(attempt) }
+  }
+  private func finishTunnel(_ attempt: ConnectionTunnelAttempt) {
+    guard !closing, tunnelAttempt === attempt, operation == nil else { return }
+    busy = true
+    operation = Task { [weak self] in
+      await attempt.drain().value
+      if self?.tunnelAttempt === attempt { self?.tunnelAttempt = nil }
       self?.busy = false; self?.operation = nil
     }
   }
@@ -257,9 +391,14 @@ struct ConnectionProblem: Identifiable, Equatable {
     trust.cancel(); credentials.clear()
     suppressConnectionProblem = true; connectionProblem = nil; retryProblem = nil
     busy = true; message = nil
+    let attempt = tunnelAttempt
     operation = Task { [weak self] in
       do { _ = try await session.disconnect() }
       catch { if self?.closing == false { self?.message = NativeConnectionIssue(error: error)?.message } }
+      if let attempt {
+        await attempt.drain().value
+        if self?.tunnelAttempt === attempt { self?.tunnelAttempt = nil }
+      }
       self?.busy = false; self?.operation = nil
     }
   }
@@ -276,6 +415,8 @@ struct ConnectionProblem: Identifiable, Equatable {
     }
   }
   private func observeConnection(_ snapshot: NativeSnapshot) {
+    if let attempt = tunnelAttempt, attempt.admitted, snapshot.generation != attempt.initialGeneration,
+       [.closed,.failed].contains(snapshot.state) { finishTunnel(attempt) }
     guard let issue = NativeConnectionIssue(snapshot: snapshot) else { return }
     reportConnection(issue, generation: snapshot.generation)
   }
@@ -301,7 +442,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   }
   func canRetryConnection(_ problem: ConnectionProblem) -> Bool {
     retryProblem?.id == problem.id && offersRetryConnection(problem) && canConnect &&
-      session?.generation == problem.generation && attemptEndpoint == endpoint
+      session?.generation == problem.generation && attemptDestination == destination
   }
   func retryConnection(_ problem: ConnectionProblem) {
     guard canRetryConnection(problem) else { return }
@@ -425,16 +566,19 @@ struct ConnectionProblem: Identifiable, Equatable {
     documentSave.stop(); trust.stop(); credentials.stop()
     closing = true; connectionProblem = nil; retryProblem = nil; attemptEndpoint = nil; showsStatistics = false; operation?.cancel(); closeFullscreen(); fullscreen.stop(); closeResizePolicy(); closeRemoteResize(); closeConnectionOptions(); closeSecurity(); closeEncoding(); closeScaling(); closeInput(); closeInformation(); desktopCommands.stop(); scaling.stop(); input.stop()
     defaults?.stop()
-    let owner = session
+    let owner = session, attempt = tunnelAttempt, operationJoin = operation
     let defaultsOwner = defaults
     let encodingJoin = encodingCleanup, securityJoin = securityCleanup, resizeJoin = remoteResizeCleanup
     let saveOwner = documentSave
     let credentialOwner = credentials, trustOwner = trust
     cleanup = Task {
       if let owner { try? await owner.close() }
+      await operationJoin?.value
+      if let attempt { await attempt.drain().value }
       await saveOwner.close(); await trustOwner.close(); await credentialOwner.close()
       await resizeJoin?.value; await securityJoin?.value; await encodingJoin?.value; await defaultsOwner?.close()
     }
   }
   func close() async { requestClose(); await cleanup?.value }
+  deinit { operation?.cancel() }
 }

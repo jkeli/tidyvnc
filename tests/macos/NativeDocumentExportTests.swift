@@ -66,6 +66,24 @@ func roundTrip() throws {
     }
   }
 }
+func tunnelExportReview() throws {
+  let gateway = try NativeSSHGateway("alice@gateway.invalid")
+  var configuration = NativeSessionConfiguration()
+  configuration.fullscreenPolicy = try .init(mode:.selected,selectedDisplays:[.init("display")])
+  let capture = try NativeDocumentExportCapture(endpoint:"remote.invalid",configuration:configuration,
+    legacyDisplays:[.init("display")],sshGateway:gateway)
+  for export in [try capture.automaticExport(),try capture.makeExport(monitorIndices:[.init("display"):2])] {
+    try check(export.losses.contains(.sshGateway),"automatic and remapped exports preserve tunnel loss review")
+    try rejects(.reviewRequired) { _ = try export.serializedData(acknowledging:export.losses.subtracting([.sshGateway])) }
+    let bytes = try export.serializedData(acknowledging:export.losses)
+    let document = try NativeConnectionDocument(data:bytes)
+    let text = String(decoding:bytes,as:UTF8.self)
+    try check(!text.contains(gateway.host) && !text.contains(gateway.routeIdentity) && !text.contains("alice"),
+              "reviewed compatibility export omits gateway and derived route metadata")
+    let endpoint = document.entries.first { $0.name == "ServerName" }
+    try check(endpoint != nil && export.endpoint == "remote.invalid","export keeps logical remote destination")
+  }
+}
 func tryData(_ export: NativeDocumentExport) -> Data? { try? export.serializedData(acknowledging:export.losses) }
 func failures() throws {
   var config = NativeSessionConfiguration(); config.tlsPriority = "private-fixture-policy"
@@ -179,7 +197,7 @@ final class Preferences: NativePreferencesBacking, Sendable {
 }
 @main struct NativeDocumentExportTests {
   static func main() async throws {
-    try roundTrip(); try failures(); try await liveCapture(); try await openedFileCapture()
+    try roundTrip(); try tunnelExportReview(); try failures(); try await liveCapture(); try await openedFileCapture()
     print("PASS loss-aware export, semantic round trips, immutable live capture, fail-closed security and bounds")
   }
 }

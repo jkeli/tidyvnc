@@ -41,7 +41,7 @@ func stores() async throws {
         try check(reopened.values.shared == true && reopened.values.reconnectOnError == false,"default booleans survive explicit upgrade")
         await store.close()
       }
-      try check((try JSONSerialization.jsonObject(with:memory.read()!) as! [String:Any])["schema"] as? Int == (profile ? 10 : 11),"current schema writer")
+      try check((try JSONSerialization.jsonObject(with:memory.read()!) as! [String:Any])["schema"] as? Int == 11,"current schema writer")
     }
     for value in ["\"shared\":null","\"shared\":1","\"reconnectOnError\":\"false\""] {
       let bytes = record(value,profile:profile), memory = Memory(bytes)
