@@ -83,7 +83,8 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
         self.notice = nil
       } catch {
         guard let self, self.epoch == ticket, self.isCurrent(request), !Task.isCancelled else { return }
-        self.notice = ((error as? NativePasswordFileIssue)?.description ?? "The launch credentials could not be used.") + " Enter a password or cancel this attempt."
+        let reason = (error as? NativePasswordFileIssue)?.description ?? String(localized:"credentials.launch.unavailable", defaultValue:"The launch credentials could not be used.")
+        self.notice = String(localized:"credentials.launch.failure", defaultValue:"\(reason) Enter a password or cancel this attempt.")
       }
     }
   }
@@ -180,7 +181,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     guard !isWorking, let store else { return }
     let key: NativeCredentialKey
     do { key = try self.key(request, username: username) }
-    catch { notice = "This authentication request is no longer available."; return }
+    catch { notice = String(localized:"credentials.this.authentication.request.is.no.longer.available", defaultValue:"This authentication request is no longer available."); return }
     let ticket = epoch; isWorking = true; notice = nil
     work = Task { [weak self] in
       defer { self?.finishWork() }
@@ -206,14 +207,14 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     guard !isWorking, let store else { return }
     let key: NativeCredentialKey
     do { key = try self.key(request, username: username) }
-    catch { notice = "This authentication request is no longer available."; return }
+    catch { notice = String(localized:"credentials.this.authentication.request.is.no.longer.available", defaultValue:"This authentication request is no longer available."); return }
     forgetSession()
     let ticket = epoch; isWorking = true; notice = nil
     work = Task { [weak self] in
       defer { self?.finishWork() }
       do {
         try await store.delete(key, interaction: .allow)
-        if let self, self.epoch == ticket, !self.stopped { self.notice = "The saved password was removed from this Mac." }
+        if let self, self.epoch == ticket, !self.stopped { self.notice = String(localized:"credentials.the.saved.password.was.removed.from.this.mac", defaultValue:"The saved password was removed from this Mac.") }
       } catch {
         if let self, self.epoch == ticket, !self.stopped { self.notice = Self.storeMessage(error) }
       }
@@ -231,10 +232,10 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
           do {
             try await store.save(candidate.key, secret: candidate.secret,
               mode: candidate.retention == .replaceRemembered ? .replace : .create, interaction: .forbid)
-            if let self, self.epoch == ticket, !self.stopped { self.notice = "Password saved on this Mac." }
+            if let self, self.epoch == ticket, !self.stopped { self.notice = String(localized:"credentials.password.saved.on.this.mac", defaultValue:"Password saved on this Mac.") }
           } catch {
             if let self, self.epoch == ticket, !self.stopped {
-              self.notice = "The connection succeeded, but saving the password could not be confirmed. " + Self.storeMessage(error)
+              self.notice = String(localized:"credentials.save.unconfirmed", defaultValue:"The connection succeeded, but saving the password could not be confirmed. \(Self.storeMessage(error))")
             }
           }
         }
@@ -246,7 +247,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
       if snapshot.endReason == .authenticationRejected {
         forgetSession()
         if savedSubmission == snapshot.generation {
-          notice = "The server rejected the saved password. Retry to enter a replacement or explicitly forget it; the saved entry has not been deleted."
+          notice = String(localized:"credentials.the.server.rejected.the.saved.password.retry.to.enter.a.replacement.or", defaultValue:"The server rejected the saved password. Retry to enter a replacement or explicitly forget it; the saved entry has not been deleted.")
         }
       }
     }
@@ -261,15 +262,15 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   public func dismissNotice() { notice = nil }
   private static func storeMessage(_ error: Error) -> String {
     switch error as? NativeCredentialStoreIssue {
-    case .notFound: return "No saved password matches this server, authentication method and username."
-    case .unavailable: return "The Keychain is unavailable. Enter a password to continue."
-    case .denied: return "Keychain access was denied."
-    case .interactionRequired: return "Keychain access requires interaction. Use the saved-password control to try again."
-    case .cancelled: return "Keychain access was cancelled."
-    case .missingEntitlement: return "This app build lacks the signing identity required for Keychain access."
-    case .duplicate: return "A saved password already exists. Choose explicit replacement on a subsequent authentication."
-    case .corrupt: return "The saved credential could not be read. It has not been changed."
-    default: return "The Keychain operation failed. No plaintext copy was saved."
+    case .notFound: return String(localized:"credentials.no.saved.password.matches.this.server.authentication.method.and.username", defaultValue:"No saved password matches this server, authentication method and username.")
+    case .unavailable: return String(localized:"credentials.the.keychain.is.unavailable.enter.a.password.to.continue", defaultValue:"The Keychain is unavailable. Enter a password to continue.")
+    case .denied: return String(localized:"credentials.keychain.access.was.denied", defaultValue:"Keychain access was denied.")
+    case .interactionRequired: return String(localized:"credentials.keychain.access.requires.interaction.use.the.saved.password.control.to.try.again", defaultValue:"Keychain access requires interaction. Use the saved-password control to try again.")
+    case .cancelled: return String(localized:"credentials.keychain.access.was.cancelled", defaultValue:"Keychain access was cancelled.")
+    case .missingEntitlement: return String(localized:"credentials.this.app.build.lacks.the.signing.identity.required.for.keychain.access", defaultValue:"This app build lacks the signing identity required for Keychain access.")
+    case .duplicate: return String(localized:"credentials.a.saved.password.already.exists.choose.explicit.replacement.on.a.subsequent.authentication", defaultValue:"A saved password already exists. Choose explicit replacement on a subsequent authentication.")
+    case .corrupt: return String(localized:"credentials.the.saved.credential.could.not.be.read.it.has.not.been.changed", defaultValue:"The saved credential could not be read. It has not been changed.")
+    default: return String(localized:"credentials.the.keychain.operation.failed.no.plaintext.copy.was.saved", defaultValue:"The Keychain operation failed. No plaintext copy was saved.")
     }
   }
 }

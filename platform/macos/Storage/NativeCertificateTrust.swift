@@ -116,9 +116,9 @@ extension NativeSession: NativeTrustTarget {}
           expectedFingerprint: forget ? nil : saved.receivedFingerprint,receivedFingerprint: saved.receivedFingerprint)
         if result.durabilityUncertain {
           self.needsReload = true
-          self.notice = "The decision was written, but its durability could not be confirmed. Reload to check the saved decision."
+          self.notice = String(localized:"trust.inspection.the.decision.was.written.but.its.durability.could.not.be.confirmed.reload", defaultValue:"The decision was written, but its durability could not be confirmed. Reload to check the saved decision.")
         } else if forget {
-          self.notice = request.kind == .hostKey ? "Forgot the saved server key for this destination. Compare the key again before continuing." : "Forgot the saved key for this destination. Older host-wide exceptions will not be reused here."
+          self.notice = request.kind == .hostKey ? String(localized:"trust.inspection.forgot.the.saved.server.key.for.this.destination.compare.the.key.again", defaultValue:"Forgot the saved server key for this destination. Compare the key again before continuing.") : String(localized:"trust.inspection.forgot.the.saved.key.for.this.destination.older.host.wide.exceptions.will", defaultValue:"Forgot the saved key for this destination. Older host-wide exceptions will not be reused here.")
         } else { try self.target?.replyTrust(to: request,allowed: true) }
       } catch {
         guard let self, self.current(request,ticket: ticket) else { return }
@@ -133,14 +133,14 @@ extension NativeSession: NativeTrustTarget {}
     if let savedIssue { return nativeTrustStorageMessage(savedIssue) }
     guard let issue else { return nil }
     switch issue {
-    case .denied: return "Saved certificate exceptions could not be read because access was denied."
-    case .unsafeFile: return "The saved certificate exception file has unsafe ownership, permissions or file type."
-    case .corrupt: return "The saved certificate exception file is malformed. It has not been changed."
-    case .unsupportedFormat, .unsupportedDigest: return "The saved certificate exceptions use an unsupported format or digest."
-    case .tooLarge: return "The saved certificate exception file exceeds the supported size."
-    case .changed: return "The saved certificate exceptions changed while being read. Connect again to check them."
-    case .cancelled, .closed: return "The certificate exception check was cancelled."
-    case .unavailable: return "Saved certificate exceptions could not be checked."
+    case .denied: return String(localized:"trust.inspection.saved.certificate.exceptions.could.not.be.read.because.access.was.denied", defaultValue:"Saved certificate exceptions could not be read because access was denied.")
+    case .unsafeFile: return String(localized:"trust.inspection.the.saved.certificate.exception.file.has.unsafe.ownership.permissions.or.file.type", defaultValue:"The saved certificate exception file has unsafe ownership, permissions or file type.")
+    case .corrupt: return String(localized:"trust.inspection.the.saved.certificate.exception.file.is.malformed.it.has.not.been.changed", defaultValue:"The saved certificate exception file is malformed. It has not been changed.")
+    case .unsupportedFormat, .unsupportedDigest: return String(localized:"trust.inspection.the.saved.certificate.exceptions.use.an.unsupported.format.or.digest", defaultValue:"The saved certificate exceptions use an unsupported format or digest.")
+    case .tooLarge: return String(localized:"trust.inspection.the.saved.certificate.exception.file.exceeds.the.supported.size", defaultValue:"The saved certificate exception file exceeds the supported size.")
+    case .changed: return String(localized:"trust.inspection.the.saved.certificate.exceptions.changed.while.being.read.connect.again.to.check", defaultValue:"The saved certificate exceptions changed while being read. Connect again to check them.")
+    case .cancelled, .closed: return String(localized:"trust.inspection.the.certificate.exception.check.was.cancelled", defaultValue:"The certificate exception check was cancelled.")
+    case .unavailable: return String(localized:"trust.inspection.saved.certificate.exceptions.could.not.be.checked", defaultValue:"Saved certificate exceptions could not be checked.")
     }
   }
 }

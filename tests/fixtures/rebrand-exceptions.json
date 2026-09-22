@@ -3,6 +3,13 @@
   "policy": "Exact occurrence ledger; replace/migrate entries are deferred debt, never completion exceptions. Changes require review; audit rejects unexplained additions and stale entries.",
   "entries": [
     {
+      "path": "apps/macos/Credits.rtf",
+      "text": "Based on TigerVNC, with retained contributions from RealVNC, TightVNC, AT&T Laboratories Cambridge and many others.\\par",
+      "action": "preserve-attribution",
+      "reason": "Native About credits explicitly acknowledge upstream ancestry; active product identity remains TidyVNC",
+      "count": 1
+    },
+    {
       "path": ".github/ISSUE_TEMPLATE/bug_report.md",
       "text": " - VNC server: [e.g. TigerVNC, or UltraVNC]",
       "action": "replace",

@@ -1,0 +1,2742 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "connection.issue.resolution.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server Address Not Resolved"
+          }
+        }
+      }
+    },
+    "connection.issue.refused.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Refused"
+          }
+        }
+      }
+    },
+    "connection.issue.routing.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network Route Unavailable"
+          }
+        }
+      }
+    },
+    "connection.issue.networkPolicy.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Restricted"
+          }
+        }
+      }
+    },
+    "connection.issue.connectionTimeout.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Timed Out"
+          }
+        }
+      }
+    },
+    "connection.issue.connection.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to Connect"
+          }
+        }
+      }
+    },
+    "connection.issue.transport.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Interrupted"
+          }
+        }
+      }
+    },
+    "connection.issue.peerClosed.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server Closed the Connection"
+          }
+        }
+      }
+    },
+    "connection.issue.authenticationRejected.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication Rejected"
+          }
+        }
+      }
+    },
+    "connection.issue.promptTimeout.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication Timed Out"
+          }
+        }
+      }
+    },
+    "connection.issue.protocolFailure.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Protocol Error"
+          }
+        }
+      }
+    },
+    "connection.issue.resource.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Resource Limit"
+          }
+        }
+      }
+    },
+    "connection.issue.internalFailure.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Unavailable"
+          }
+        }
+      }
+    },
+    "connection.issue.unsupportedEndpoint.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported Connection Feature"
+          }
+        }
+      }
+    },
+    "connection.issue.invalidEndpoint.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Server Address"
+          }
+        }
+      }
+    },
+    "connection.issue.invalidRequest.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Request"
+          }
+        }
+      }
+    },
+    "connection.issue.busy.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Busy"
+          }
+        }
+      }
+    },
+    "connection.issue.notConnected.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop Not Connected"
+          }
+        }
+      }
+    },
+    "connection.issue.inputUnavailable.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop Input Unavailable"
+          }
+        }
+      }
+    },
+    "connection.issue.operationTimeout.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Timed Out"
+          }
+        }
+      }
+    },
+    "connection.issue.serverRejected.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Rejected"
+          }
+        }
+      }
+    },
+    "connection.issue.operationFailed.title": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Failed"
+          }
+        }
+      }
+    },
+    "connection.issue.resolution.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the server name and your network or VPN connection, then try again."
+          }
+        }
+      }
+    },
+    "connection.issue.resolutionTimeout.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looking up the server address took too long. Check your network or VPN connection, then try again."
+          }
+        }
+      }
+    },
+    "connection.issue.refused.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the port and that the server's VNC service is running and accepting connections."
+          }
+        }
+      }
+    },
+    "connection.issue.routing.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your network, VPN and the route to the server."
+          }
+        }
+      }
+    },
+    "connection.issue.networkPolicy.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network or system policy may be preventing this connection. Check firewall and VPN settings. For a local server, also check TidyVNC under System Settings > Privacy & Security > Local Network. This error does not identify which policy blocked access."
+          }
+        }
+      }
+    },
+    "connection.issue.connectionTimeout.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not respond in time. Check its address, network connection and VNC service, then try again."
+          }
+        }
+      }
+    },
+    "connection.issue.connection.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the server address, network connection and VNC service, then try again."
+          }
+        }
+      }
+    },
+    "connection.issue.transport.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection to the server was interrupted. Check your network or VPN connection before reconnecting."
+          }
+        }
+      }
+    },
+    "connection.issue.peerClosed.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server ended this connection. Reconnect when the server is available."
+          }
+        }
+      }
+    },
+    "connection.issue.authenticationRejected.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected authentication. Retry to enter your credentials again, and check that the server permits your authentication method."
+          }
+        }
+      }
+    },
+    "connection.issue.promptTimeout.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The authentication request expired. Retry to start a new authentication request."
+          }
+        }
+      }
+    },
+    "connection.issue.protocolFailure.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server and viewer could not complete the VNC protocol exchange. Check server compatibility and security settings before retrying."
+          }
+        }
+      }
+    },
+    "connection.issue.resource.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection exceeded an available resource limit. Close unused connections or reduce the remote desktop size before connecting again."
+          }
+        }
+      }
+    },
+    "connection.issue.internalFailure.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The viewer could not complete this operation. Close this connection window and create a new connection."
+          }
+        }
+      }
+    },
+    "connection.issue.unsupportedEndpoint.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This server address uses a transport unavailable in this build. Choose a supported server address."
+          }
+        }
+      }
+    },
+    "connection.issue.invalidEndpoint.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the server address and port before connecting."
+          }
+        }
+      }
+    },
+    "connection.issue.unsupported.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This operation is not available in this build or connection."
+          }
+        }
+      }
+    },
+    "connection.issue.invalidRequest.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the requested settings before trying this command again."
+          }
+        }
+      }
+    },
+    "connection.issue.busy.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for the current operation to finish, then try again."
+          }
+        }
+      }
+    },
+    "connection.issue.notConnected.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to the desktop before using this command."
+          }
+        }
+      }
+    },
+    "connection.issue.inputUnavailable.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus the connected desktop and check its view-only and input settings before trying again."
+          }
+        }
+      }
+    },
+    "connection.issue.operationTimeout.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not complete this request in time. Check the connection before trying the command again."
+          }
+        }
+      }
+    },
+    "connection.issue.serverRejected.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected this request. Check the requested settings and server capabilities."
+          }
+        }
+      }
+    },
+    "connection.issue.operationFailed.message": {
+      "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request could not be completed. Check the connection before trying the command again."
+          }
+        }
+      }
+    },
+    "help.topic.guide": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting Started"
+          }
+        }
+      }
+    },
+    "help.topic.acknowledgements": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acknowledgements"
+          }
+        }
+      }
+    },
+    "help.topic.licence": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licence"
+          }
+        }
+      }
+    },
+    "help.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC Help"
+          }
+        }
+      }
+    },
+    "help.topic.label": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help topic"
+          }
+        }
+      }
+    },
+    "help.loading": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading bundled document…"
+          }
+        }
+      }
+    },
+    "help.acknowledgements.note": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project README preserves upstream copyrights and acknowledgements and also describes the retained frontends."
+          }
+        }
+      }
+    },
+    "help.project": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project and Source Code"
+          }
+        }
+      }
+    },
+    "help.issue": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report an Issue"
+          }
+        }
+      }
+    },
+    "help.privacy": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before posting an issue, remove server addresses, usernames, credentials and other private information from screenshots or diagnostics."
+          }
+        }
+      }
+    },
+    "help.guide.connect.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect to a desktop"
+          }
+        }
+      }
+    },
+    "help.guide.connect.body": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a server address, then select Connect. Use host:display (for example, localhost:1), host::port (localhost::5901), or [IPv6]:display. A Unix socket path is also accepted. Obtain the address and credentials from the server administrator."
+          }
+        }
+      }
+    },
+    "help.guide.ssh.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH gateways"
+          }
+        }
+      }
+    },
+    "help.guide.ssh.body": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave SSH gateway empty for a direct connection. For a tunnel, enter user@host or ssh://user@host:port. An omitted user or port may come from supported ~/.ssh/config settings. Commands and proxy hops are unavailable. SSH forwarding requires a TCP server address and cannot be combined with listening for incoming connections."
+          }
+        }
+      }
+    },
+    "help.guide.identity.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify server identity"
+          }
+        }
+      }
+    },
+    "help.guide.identity.body": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare a new server or gateway fingerprint with the administrator before approving it. SSH gateway verification and the VNC server’s identity are separate decisions. Changed SSH gateway keys are rejected. SSH passwords and passphrases are used once; a failed gateway-key save prevents the VNC connection from starting."
+          }
+        }
+      }
+    },
+    "help.guide.profiles.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiles, files and defaults"
+          }
+        }
+      }
+    },
+    "help.guide.profiles.body": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Profiles stores named addresses and connection settings. Open Connection creates a window; select Connect when ready. Settings supplies defaults for new windows, while connection settings apply to that window. Connection files are reviewed before use. Passwords are not exported with profiles or files."
+          }
+        }
+      }
+    },
+    "help.guide.input.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control and clipboard"
+          }
+        }
+      }
+    },
+    "help.guide.input.body": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click the remote desktop to direct keyboard and pointer input to it. View-only mode blocks remote input. The clipboard menu has independent Send and Receive controls. Input, Scaling and Encoding controls are available for a connected desktop; the Connection menu provides additional settings and desktop commands."
+          }
+        }
+      }
+    },
+    "help.guide.listen.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incoming connections"
+          }
+        }
+      }
+    },
+    "help.guide.listen.body": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File → Listen for Connections opens a listener. Give the server this Mac’s network address and the displayed listening port, then accept or reject the incoming request. Closing the listener stops waiting for new connections."
+          }
+        }
+      }
+    },
+    "help.guide.failure.title": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When a connection fails"
+          }
+        }
+      }
+    },
+    "help.guide.failure.body": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the address, gateway, server availability and authentication details. A connection error does not prove that macOS denied Local Network access. Retry is explicit. Use Disconnect or Cancel to stop the current attempt; quitting the app closes its connections."
+          }
+        }
+      }
+    },
+    "help.document.unavailable": {
+      "comment": "Native Help interface. Preserve literal endpoint syntax, paths and product names in guidance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The bundled document could not be read. See Project and Source Code for the original licence and acknowledgements."
+          }
+        }
+      }
+    },
+    "about.action": {
+      "comment": "Opens the standard macOS About panel. Preserve the TidyVNC product name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About TidyVNC…"
+          }
+        }
+      }
+    },
+    "authentication.confirm.key.scope": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This decision applies to %@. It can be forgotten in Saved Server Keys. Verify the fingerprint independently before saving."
+          }
+        }
+      }
+    },
+    "authentication.confirm.certificate.scope": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This decision applies to %@. It can be forgotten in Saved Certificate Decisions. The displayed certificate problems are still present."
+          }
+        }
+      }
+    },
+    "trust.expected.serverKey": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expected Server-key SHA-256: %@"
+          }
+        }
+      }
+    },
+    "trust.expected.spki": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expected SPKI SHA-256: %@"
+          }
+        }
+      }
+    },
+    "trust.received.serverKey": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received Server-key SHA-256: %@"
+          }
+        }
+      }
+    },
+    "trust.received.spki": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received SPKI SHA-256: %@"
+          }
+        }
+      }
+    },
+    "trust.expected.identity": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expected %@"
+          }
+        }
+      }
+    },
+    "trust.rsa.bits": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RSA server key: %u bits"
+          }
+        }
+      }
+    },
+    "trust.destination": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destination"
+          }
+        }
+      }
+    },
+    "trust.checking.saved.certificate.exceptions": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking saved certificate exceptions…"
+          }
+        }
+      }
+    },
+    "trust.the.server.public.key.differs.from.the.key.saved.for.this.destination": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server public key differs from the key saved for this destination."
+          }
+        }
+      }
+    },
+    "trust.the.server.key.was.forgotten.for.this.destination.compare.its.fingerprint.again": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server key was forgotten for this destination. Compare its fingerprint again before continuing."
+          }
+        }
+      }
+    },
+    "trust.the.saved.key.was.forgotten.for.this.destination.older.host.wide.exceptions": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved key was forgotten for this destination. Older host-wide exceptions will not be reused here."
+          }
+        }
+      }
+    },
+    "trust.this.decision.is.scoped.to.the.destination.s.address.port.and.route": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This decision is scoped to the destination’s address, port and route."
+          }
+        }
+      }
+    },
+    "trust.the.server.public.key.differs.from.the.saved.certificate.exception": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server public key differs from the saved certificate exception."
+          }
+        }
+      }
+    },
+    "trust.additional.saved.identities.are.not.shown": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Additional saved identities are not shown."
+          }
+        }
+      }
+    },
+    "trust.no.active.saved.certificate.exception.matches.this.server": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active saved certificate exception matches this server."
+          }
+        }
+      }
+    },
+    "trust.the.existing.exception.file.includes.a.wildcard.host.rule": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The existing exception file includes a wildcard host rule."
+          }
+        }
+      }
+    },
+    "trust.existing.certificate.exceptions.are.scoped.to.the.server.name.across.ports.and": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing certificate exceptions are scoped to the server name across ports and routes."
+          }
+        }
+      }
+    },
+    "trust.certificate.subject": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate subject"
+          }
+        }
+      }
+    },
+    "trust.certificate.sha.256.fingerprint": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate SHA-256 fingerprint"
+          }
+        }
+      }
+    },
+    "trust.server.key.sha.256.fingerprint": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server-key SHA-256 fingerprint"
+          }
+        }
+      }
+    },
+    "trust.server.compatibility.fingerprint.truncated.sha.1": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server compatibility fingerprint (truncated SHA-1)"
+          }
+        }
+      }
+    },
+    "trust.verify.this.fingerprint.with.the.server.administrator.before.continuing": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify this fingerprint with the server administrator before continuing."
+          }
+        }
+      }
+    },
+    "trust.connect.once.applies.only.to.this.connection.attempt.it.does.not.save": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Once applies only to this connection attempt. It does not save a trust exception."
+          }
+        }
+      }
+    },
+    "trust.this.identity.cannot.be.accepted.cancel.and.contact.the.server.administrator": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This identity cannot be accepted. Cancel and contact the server administrator."
+          }
+        }
+      }
+    },
+    "authentication.protection.protected": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The negotiated authentication method protects your credentials."
+          }
+        }
+      }
+    },
+    "authentication.protection.unassured": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The negotiated authentication method may not adequately protect your credentials."
+          }
+        }
+      }
+    },
+    "authentication.authentication.required": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication required"
+          }
+        }
+      }
+    },
+    "authentication.verify.server.identity": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify server identity"
+          }
+        }
+      }
+    },
+    "authentication.this.assessment.describes.credential.protection.not.encryption": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This assessment describes credential protection, not encryption of all desktop traffic."
+          }
+        }
+      }
+    },
+    "authentication.username": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Username"
+          }
+        }
+      }
+    },
+    "authentication.password": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        }
+      }
+    },
+    "authentication.password.lifetime": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password lifetime"
+          }
+        }
+      }
+    },
+    "authentication.use.once": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use once"
+          }
+        }
+      }
+    },
+    "authentication.retain.for.this.session.s.reconnect": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retain for this session’s reconnect"
+          }
+        }
+      }
+    },
+    "authentication.remember.on.this.mac": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remember on this Mac"
+          }
+        }
+      }
+    },
+    "authentication.this.incoming.connection.uses.the.password.once": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This incoming connection uses the password once. Its temporary source port is not a saved server identity."
+          }
+        }
+      }
+    },
+    "authentication.replace.an.existing.saved.password": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace an existing saved password"
+          }
+        }
+      }
+    },
+    "authentication.save.only.after.successful.authentication.replacement.must": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save only after successful authentication. Replacement must be explicitly selected."
+          }
+        }
+      }
+    },
+    "authentication.use.session.password": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Session Password"
+          }
+        }
+      }
+    },
+    "authentication.use.saved.password": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Saved Password"
+          }
+        }
+      }
+    },
+    "authentication.forget.saved.password": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget Saved Password"
+          }
+        }
+      }
+    },
+    "authentication.preparing.credentials": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing credentials…"
+          }
+        }
+      }
+    },
+    "authentication.a.saved.identity.applies.only.to.this": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A saved identity applies only to this destination’s address, port and route. Verify the fingerprint before saving."
+          }
+        }
+      }
+    },
+    "authentication.replace.saved.key.and.connect": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace Saved Key and Connect…"
+          }
+        }
+      }
+    },
+    "authentication.save.server.key.and.connect": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Server Key and Connect…"
+          }
+        }
+      }
+    },
+    "authentication.save.exception.and.connect": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Exception and Connect…"
+          }
+        }
+      }
+    },
+    "authentication.reload.saved.decisions": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload Saved Decisions"
+          }
+        }
+      }
+    },
+    "action.cancel": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "authentication.authenticate": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authenticate"
+          }
+        }
+      }
+    },
+    "authentication.connect.once": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Once"
+          }
+        }
+      }
+    },
+    "authentication.replace.the.saved.key": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace the saved key?"
+          }
+        }
+      }
+    },
+    "authentication.save.this.server.key": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this server key?"
+          }
+        }
+      }
+    },
+    "authentication.save.this.certificate.exception": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this certificate exception?"
+          }
+        }
+      }
+    },
+    "authentication.replace.and.connect": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace and Connect"
+          }
+        }
+      }
+    },
+    "authentication.save.and.connect": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and Connect"
+          }
+        }
+      }
+    },
+    "authentication.this.authentication.request.is.no.longer.active": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This authentication request is no longer active. Cancel and connect again."
+          }
+        }
+      }
+    },
+    "authentication.the.session.password.is.no.longer.available": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The session password is no longer available. Enter a password to continue."
+          }
+        }
+      }
+    },
+    "ssh.verify.ssh.gateway.identity": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify SSH gateway identity"
+          }
+        }
+      }
+    },
+    "ssh.ssh.gateway.authentication": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH gateway authentication"
+          }
+        }
+      }
+    },
+    "ssh.gateway": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gateway"
+          }
+        }
+      }
+    },
+    "ssh.remote.desktop": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote desktop"
+          }
+        }
+      }
+    },
+    "ssh.key.type": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key type"
+          }
+        }
+      }
+    },
+    "ssh.verify.this.fingerprint.with.the.gateway.administrator": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify this fingerprint with the gateway administrator. Trust and Save lets SSH add this key to your known-hosts file before authentication. A changed saved key is rejected."
+          }
+        }
+      }
+    },
+    "ssh.request.from.ssh": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request from SSH"
+          }
+        }
+      }
+    },
+    "ssh.response": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Response"
+          }
+        }
+      }
+    },
+    "ssh.used.once.for.this.ssh.request.it": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used once for this SSH request. It is not saved as a desktop password."
+          }
+        }
+      }
+    },
+    "ssh.continue": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        }
+      }
+    },
+    "ssh.trust.and.save": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trust and Save"
+          }
+        }
+      }
+    },
+    "ssh.allow.once": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Once"
+          }
+        }
+      }
+    },
+    "ssh.the.response.could.not.be.submitted.use": {
+      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The response could not be submitted. Use at most 1023 UTF-8 bytes without line breaks, or cancel and connect again."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.invalid": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate verification failed."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.revoked": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate has been revoked."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.unknownIssuer": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate issuer is not trusted."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.signerNotCA": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The signer is not a certificate authority."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.weakAlgorithm": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate uses an insecure algorithm."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.notYetValid": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate is not yet valid."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.expired": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate has expired."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.badSignature": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate signature is invalid."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.oldRevocationData": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The revocation information is out of date."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.wrongOwner": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate does not match the requested server name."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.futureRevocationData": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The revocation information has a future issue date."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.signerConstraints": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The signer violates certificate constraints."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.mismatch": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate does not match the required identity."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.wrongPurpose": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate is not valid for this purpose."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.missingOCSP": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required certificate status information is missing."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.invalidOCSP": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate status response is invalid."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.criticalExtension": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A required certificate extension is unsupported."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.unknownProblem": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate has an unrecognized verification problem."
+          }
+        }
+      }
+    },
+    "trust.certificate.reason.missingProblem": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No certificate verification reason was supplied."
+          }
+        }
+      }
+    },
+    "trust.presentation.policyUnavailable": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate verification policy is unavailable."
+          }
+        }
+      }
+    },
+    "trust.presentation.certificateDecode": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server certificate could not be decoded."
+          }
+        }
+      }
+    },
+    "trust.presentation.keyUnverified": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This server key has not been verified. Compare its fingerprint with the server administrator before continuing."
+          }
+        }
+      }
+    },
+    "trust.presentation.keyUnavailable": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not provide a usable key identity."
+          }
+        }
+      }
+    },
+    "trust.presentation.invalidRequest": {
+      "comment": "Fixed native certificate/key verification message. Preserve the security meaning; never insert server diagnostic text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request is not a server identity decision."
+          }
+        }
+      }
+    },
+    "credentials.launch.unavailable": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The launch credentials could not be used."
+          }
+        }
+      }
+    },
+    "credentials.launch.failure": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Enter a password or cancel this attempt."
+          }
+        }
+      }
+    },
+    "credentials.save.unconfirmed": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection succeeded, but saving the password could not be confirmed. %@"
+          }
+        }
+      }
+    },
+    "credentials.this.authentication.request.is.no.longer.available": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This authentication request is no longer available."
+          }
+        }
+      }
+    },
+    "credentials.the.saved.password.was.removed.from.this.mac": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved password was removed from this Mac."
+          }
+        }
+      }
+    },
+    "credentials.password.saved.on.this.mac": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password saved on this Mac."
+          }
+        }
+      }
+    },
+    "credentials.the.server.rejected.the.saved.password.retry.to.enter.a.replacement.or": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected the saved password. Retry to enter a replacement or explicitly forget it; the saved entry has not been deleted."
+          }
+        }
+      }
+    },
+    "credentials.no.saved.password.matches.this.server.authentication.method.and.username": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved password matches this server, authentication method and username."
+          }
+        }
+      }
+    },
+    "credentials.the.keychain.is.unavailable.enter.a.password.to.continue": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Keychain is unavailable. Enter a password to continue."
+          }
+        }
+      }
+    },
+    "credentials.keychain.access.was.denied": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keychain access was denied."
+          }
+        }
+      }
+    },
+    "credentials.keychain.access.requires.interaction.use.the.saved.password.control.to.try.again": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keychain access requires interaction. Use the saved-password control to try again."
+          }
+        }
+      }
+    },
+    "credentials.keychain.access.was.cancelled": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keychain access was cancelled."
+          }
+        }
+      }
+    },
+    "credentials.this.app.build.lacks.the.signing.identity.required.for.keychain.access": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app build lacks the signing identity required for Keychain access."
+          }
+        }
+      }
+    },
+    "credentials.a.saved.password.already.exists.choose.explicit.replacement.on.a.subsequent.authentication": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A saved password already exists. Choose explicit replacement on a subsequent authentication."
+          }
+        }
+      }
+    },
+    "credentials.the.saved.credential.could.not.be.read.it.has.not.been.changed": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved credential could not be read. It has not been changed."
+          }
+        }
+      }
+    },
+    "credentials.the.keychain.operation.failed.no.plaintext.copy.was.saved": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Keychain operation failed. No plaintext copy was saved."
+          }
+        }
+      }
+    },
+    "trust.inspection.the.decision.was.written.but.its.durability.could.not.be.confirmed.reload": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The decision was written, but its durability could not be confirmed. Reload to check the saved decision."
+          }
+        }
+      }
+    },
+    "trust.inspection.forgot.the.saved.server.key.for.this.destination.compare.the.key.again": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot the saved server key for this destination. Compare the key again before continuing."
+          }
+        }
+      }
+    },
+    "trust.inspection.forgot.the.saved.key.for.this.destination.older.host.wide.exceptions.will": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot the saved key for this destination. Older host-wide exceptions will not be reused here."
+          }
+        }
+      }
+    },
+    "trust.inspection.saved.certificate.exceptions.could.not.be.read.because.access.was.denied": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved certificate exceptions could not be read because access was denied."
+          }
+        }
+      }
+    },
+    "trust.inspection.the.saved.certificate.exception.file.has.unsafe.ownership.permissions.or.file.type": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved certificate exception file has unsafe ownership, permissions or file type."
+          }
+        }
+      }
+    },
+    "trust.inspection.the.saved.certificate.exception.file.is.malformed.it.has.not.been.changed": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved certificate exception file is malformed. It has not been changed."
+          }
+        }
+      }
+    },
+    "trust.inspection.the.saved.certificate.exceptions.use.an.unsupported.format.or.digest": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved certificate exceptions use an unsupported format or digest."
+          }
+        }
+      }
+    },
+    "trust.inspection.the.saved.certificate.exception.file.exceeds.the.supported.size": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved certificate exception file exceeds the supported size."
+          }
+        }
+      }
+    },
+    "trust.inspection.the.saved.certificate.exceptions.changed.while.being.read.connect.again.to.check": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved certificate exceptions changed while being read. Connect again to check them."
+          }
+        }
+      }
+    },
+    "trust.inspection.the.certificate.exception.check.was.cancelled": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The certificate exception check was cancelled."
+          }
+        }
+      }
+    },
+    "trust.inspection.saved.certificate.exceptions.could.not.be.checked": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved certificate exceptions could not be checked."
+          }
+        }
+      }
+    },
+    "trust.library.saved.trust.decisions.changed.elsewhere.reload.before.making.another.change": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved trust decisions changed elsewhere. Reload before making another change."
+          }
+        }
+      }
+    },
+    "trust.library.another.window.or.process.is.updating.trust.decisions.reload.and.try.again": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another window or process is updating trust decisions. Reload and try again."
+          }
+        }
+      }
+    },
+    "trust.library.access.to.saved.trust.decisions.was.denied.check.access.and.reload": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access to saved trust decisions was denied. Check access and reload."
+          }
+        }
+      }
+    },
+    "trust.library.saved.trust.decisions.require.an.unsupported.format.existing.data.has.been.preserved": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved trust decisions require an unsupported format. Existing data has been preserved."
+          }
+        }
+      }
+    },
+    "trust.library.saved.trust.decisions.could.not.be.read.or.validated.existing.data.has": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved trust decisions could not be read or validated. Existing data has been preserved."
+          }
+        }
+      }
+    },
+    "trust.library.the.saved.trust.decisions.exceed.the.supported.size.or.count": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved trust decisions exceed the supported size or count."
+          }
+        }
+      }
+    },
+    "trust.library.the.trust.decision.could.not.be.confirmed.reload.to.check.its.saved": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The trust decision could not be confirmed. Reload to check its saved state before trying again."
+          }
+        }
+      }
+    },
+    "trust.library.saved.trust.decisions.are.unavailable.reload.to.try.again": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved trust decisions are unavailable. Reload to try again."
+          }
+        }
+      }
+    },
+    "trust.library.the.decision.was.written.but.its.durability.could.not.be.confirmed.reload": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The decision was written, but its durability could not be confirmed. Reload to check it."
+          }
+        }
+      }
+    },
+    "trust.library.forgot.the.saved.key.this.destination.will.ask.again.when.identity.verification": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot the saved key. This destination will ask again when identity verification is needed. Existing connections are unchanged."
+          }
+        }
+      }
+    },
+    "credentials.file.the.password.file.could.not.be.read.check.its.location.and.access": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password file could not be read. Check its location and access, then retry."
+          }
+        }
+      }
+    },
+    "credentials.file.the.password.file.must.be.a.regular.file": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password file must be a regular file."
+          }
+        }
+      }
+    },
+    "credentials.file.the.password.file.does.not.contain.a.complete.legacy.password.block": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password file does not contain a complete legacy password block."
+          }
+        }
+      }
+    },
+    "credentials.file.the.password.file.changed.while.being.read.retry.with.its.current.contents": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The password file changed while being read. Retry with its current contents."
+          }
+        }
+      }
+    },
+    "credentials.file.reading.the.password.file.was.cancelled": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading the password file was cancelled."
+          }
+        }
+      }
+    },
+    "trust.library.route": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route: %@"
+          }
+        }
+      }
+    },
+    "trust.library.fingerprint": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved %@: %@"
+          }
+        }
+      }
+    },
+    "trust.library.ui.saved.certificate.decisions": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Certificate Decisions"
+          }
+        }
+      }
+    },
+    "trust.library.ui.saved.server.keys": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Server Keys"
+          }
+        }
+      }
+    },
+    "trust.library.ui.exceptions.apply.to.the.displayed.destination.s.address.port.and.route.forget": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exceptions apply to the displayed destination’s address, port and route. Forget removes its saved key and prevents reuse of older host-wide exceptions there. Existing connections are unchanged."
+          }
+        }
+      }
+    },
+    "trust.library.ui.rsa.aes.server.keys.are.saved.for.the.displayed.destination.s.address": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RSA-AES server keys are saved for the displayed destination’s address, port and route. Forget requires verification again on the next connection. Existing connections are unchanged."
+          }
+        }
+      }
+    },
+    "trust.library.ui.destination.host.display.or.host.port": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destination (host:display or host::port)"
+          }
+        }
+      }
+    },
+    "trust.library.ui.ask.again": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask Again…"
+          }
+        }
+      }
+    },
+    "trust.library.ui.ask.again.also.suppresses.an.older.host.wide.exception.for.the.entered": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask Again also suppresses an older host-wide exception for the entered destination."
+          }
+        }
+      }
+    },
+    "trust.library.ui.ask.again.removes.any.saved.server.key.for.the.entered.destination": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask Again removes any saved server key for the entered destination."
+          }
+        }
+      }
+    },
+    "trust.library.ui.decisions.have.not.loaded": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decisions have not loaded."
+          }
+        }
+      }
+    },
+    "trust.library.ui.no.saved.destination.decisions": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No saved destination decisions."
+          }
+        }
+      }
+    },
+    "trust.library.ui.forget.for.this.destination": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget for This Destination"
+          }
+        }
+      }
+    },
+    "trust.library.ui.ask.again.when.a.certificate.exception.is.needed.legacy.host.exceptions.are": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask again when a certificate exception is needed. Legacy host exceptions are ignored here."
+          }
+        }
+      }
+    },
+    "trust.library.ui.ask.again.before.trusting.the.server.key": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask again before trusting the server key."
+          }
+        }
+      }
+    },
+    "trust.library.ui.reload": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        }
+      }
+    },
+    "trust.library.ui.forget.the.saved.key.for.this.destination": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget the saved key for this destination?"
+          }
+        }
+      }
+    },
+    "trust.library.ui.forget.saved.key": {
+      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget Saved Key"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

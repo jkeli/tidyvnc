@@ -44,7 +44,7 @@ struct DesktopActions: View {
     Toggle("Show Connection Statistics", isOn: Binding(get: { model.showsStatistics }, set: { _ in model.toggleStatistics() }))
       .disabled(!model.canToggleStatistics).accessibilityIdentifier("desktop.statistics")
     Divider()
-    Button("About TidyVNC…") { NSApp.orderFrontStandardAboutPanel(nil) }
+    Button(String(localized:"about.action", defaultValue:"About TidyVNC…")) { NSApp.orderFrontStandardAboutPanel(nil) }
   }
   private func can(_ command: NativeDesktopCommand) -> Bool { !model.closing && !model.busy && model.desktopCommands.canPerform(command) }
   private func action(_ title: String, _ command: NativeDesktopCommand, _ identifier: String) -> some View {
@@ -98,7 +98,7 @@ struct DesktopActions: View {
     item("Connection Information…", enabled: model.canOpenInformation) { [weak model] in model?.openInformation() }
     item("Show Connection Statistics", enabled: model.canToggleStatistics, selected: model.showsStatistics) { [weak model] in model?.toggleStatistics() }
     menu.addItem(.separator())
-    item("About TidyVNC…") { NSApp.orderFrontStandardAboutPanel(nil) }
+    item(String(localized:"about.action", defaultValue:"About TidyVNC…")) { NSApp.orderFrontStandardAboutPanel(nil) }
     return menu
   }
   @objc private func invoke(_ item: NSMenuItem) {

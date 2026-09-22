@@ -257,8 +257,8 @@ public struct NativePrompt: Sendable, Equatable, Identifiable {
   // The core's isSecure policy assesses credential protection. It is not a
   // transport-encryption flag (anonymous TLS is false; security modes differ).
   public var credentialProtectionMessage: String {
-    secure ? "The negotiated authentication method protects your credentials." :
-      "The negotiated authentication method may not adequately protect your credentials."
+    secure ? String(localized:"authentication.protection.protected", defaultValue:"The negotiated authentication method protects your credentials.") :
+      String(localized:"authentication.protection.unassured", defaultValue:"The negotiated authentication method may not adequately protect your credentials.")
   }
   public let securityType: UInt32
   public let certificateStatus: UInt32

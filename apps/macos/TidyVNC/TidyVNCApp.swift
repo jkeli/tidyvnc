@@ -38,6 +38,9 @@ struct TidyVNCApp: App {
       if let settings = coordinator.settings { PreferencesSettingsView(model: settings) }
       else { Text("Saved defaults are unavailable.").padding(24) }
     }
+    Window(String(localized:"help.title", defaultValue:"TidyVNC Help"),id:"help") {
+      ApplicationHelpView()
+    }.defaultSize(width:720,height:640)
   }
 }
 
@@ -353,6 +356,10 @@ private struct ConnectionCommands: Commands {
   @ObservedObject var coordinator: AppCoordinator
   @Environment(\.openWindow) private var openWindow
   var body: some Commands {
+    CommandGroup(replacing:.help) {
+      Button(String(localized:"help.title", defaultValue:"TidyVNC Help")) { openWindow(id:"help") }
+        .keyboardShortcut("?",modifiers:.command)
+    }
     // A SwiftUI authentication sheet can defer the standard termination action.
     // Cancel and dismiss our requests before asking AppKit to terminate.
     CommandGroup(replacing: .appTermination) {

@@ -6,11 +6,11 @@ public enum NativePasswordFileIssue: Error, Sendable, Equatable, CustomStringCon
   case unreadable, notRegular, truncated, changed, cancelled
   public var description: String {
     switch self {
-    case .unreadable: "The password file could not be read. Check its location and access, then retry."
-    case .notRegular: "The password file must be a regular file."
-    case .truncated: "The password file does not contain a complete legacy password block."
-    case .changed: "The password file changed while being read. Retry with its current contents."
-    case .cancelled: "Reading the password file was cancelled."
+    case .unreadable: String(localized:"credentials.file.the.password.file.could.not.be.read.check.its.location.and.access", defaultValue:"The password file could not be read. Check its location and access, then retry.")
+    case .notRegular: String(localized:"credentials.file.the.password.file.must.be.a.regular.file", defaultValue:"The password file must be a regular file.")
+    case .truncated: String(localized:"credentials.file.the.password.file.does.not.contain.a.complete.legacy.password.block", defaultValue:"The password file does not contain a complete legacy password block.")
+    case .changed: String(localized:"credentials.file.the.password.file.changed.while.being.read.retry.with.its.current.contents", defaultValue:"The password file changed while being read. Retry with its current contents.")
+    case .cancelled: String(localized:"credentials.file.reading.the.password.file.was.cancelled", defaultValue:"Reading the password file was cancelled.")
     }
   }
 }

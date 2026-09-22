@@ -68,56 +68,56 @@ public enum NativeConnectionIssue: Sendable, Equatable, CaseIterable {
   }
   public var title: String {
     switch self {
-    case .resolution, .resolutionTimeout: return "Server Address Not Resolved"
-    case .refused: return "Connection Refused"
-    case .routing: return "Network Route Unavailable"
-    case .networkPolicy: return "Connection Restricted"
-    case .connectionTimeout: return "Connection Timed Out"
-    case .connection: return "Unable to Connect"
-    case .transport: return "Connection Interrupted"
-    case .peerClosed: return "Server Closed the Connection"
-    case .authenticationRejected: return "Authentication Rejected"
-    case .promptTimeout: return "Authentication Timed Out"
-    case .protocolFailure: return "Connection Protocol Error"
-    case .resource: return "Connection Resource Limit"
-    case .internalFailure: return "Connection Unavailable"
-    case .unsupportedEndpoint, .unsupported: return "Unsupported Connection Feature"
-    case .invalidEndpoint: return "Invalid Server Address"
-    case .invalidRequest: return "Invalid Request"
-    case .busy: return "Connection Busy"
-    case .notConnected: return "Desktop Not Connected"
-    case .inputUnavailable: return "Desktop Input Unavailable"
-    case .operationTimeout: return "Request Timed Out"
-    case .serverRejected: return "Request Rejected"
-    case .operationFailed: return "Request Failed"
+    case .resolution, .resolutionTimeout: return String(localized: "connection.issue.resolution.title", defaultValue: "Server Address Not Resolved")
+    case .refused: return String(localized: "connection.issue.refused.title", defaultValue: "Connection Refused")
+    case .routing: return String(localized: "connection.issue.routing.title", defaultValue: "Network Route Unavailable")
+    case .networkPolicy: return String(localized: "connection.issue.networkPolicy.title", defaultValue: "Connection Restricted")
+    case .connectionTimeout: return String(localized: "connection.issue.connectionTimeout.title", defaultValue: "Connection Timed Out")
+    case .connection: return String(localized: "connection.issue.connection.title", defaultValue: "Unable to Connect")
+    case .transport: return String(localized: "connection.issue.transport.title", defaultValue: "Connection Interrupted")
+    case .peerClosed: return String(localized: "connection.issue.peerClosed.title", defaultValue: "Server Closed the Connection")
+    case .authenticationRejected: return String(localized: "connection.issue.authenticationRejected.title", defaultValue: "Authentication Rejected")
+    case .promptTimeout: return String(localized: "connection.issue.promptTimeout.title", defaultValue: "Authentication Timed Out")
+    case .protocolFailure: return String(localized: "connection.issue.protocolFailure.title", defaultValue: "Connection Protocol Error")
+    case .resource: return String(localized: "connection.issue.resource.title", defaultValue: "Connection Resource Limit")
+    case .internalFailure: return String(localized: "connection.issue.internalFailure.title", defaultValue: "Connection Unavailable")
+    case .unsupportedEndpoint, .unsupported: return String(localized: "connection.issue.unsupportedEndpoint.title", defaultValue: "Unsupported Connection Feature")
+    case .invalidEndpoint: return String(localized: "connection.issue.invalidEndpoint.title", defaultValue: "Invalid Server Address")
+    case .invalidRequest: return String(localized: "connection.issue.invalidRequest.title", defaultValue: "Invalid Request")
+    case .busy: return String(localized: "connection.issue.busy.title", defaultValue: "Connection Busy")
+    case .notConnected: return String(localized: "connection.issue.notConnected.title", defaultValue: "Desktop Not Connected")
+    case .inputUnavailable: return String(localized: "connection.issue.inputUnavailable.title", defaultValue: "Desktop Input Unavailable")
+    case .operationTimeout: return String(localized: "connection.issue.operationTimeout.title", defaultValue: "Request Timed Out")
+    case .serverRejected: return String(localized: "connection.issue.serverRejected.title", defaultValue: "Request Rejected")
+    case .operationFailed: return String(localized: "connection.issue.operationFailed.title", defaultValue: "Request Failed")
     }
   }
   public var message: String {
     switch self {
-    case .resolution: return "Check the server name and your network or VPN connection, then try again."
-    case .resolutionTimeout: return "Looking up the server address took too long. Check your network or VPN connection, then try again."
-    case .refused: return "Check the port and that the server's VNC service is running and accepting connections."
-    case .routing: return "Check your network, VPN and the route to the server."
-    case .networkPolicy: return "Network or system policy may be preventing this connection. Check firewall and VPN settings. For a local server, also check TidyVNC under System Settings > Privacy & Security > Local Network. This error does not identify which policy blocked access."
-    case .connectionTimeout: return "The server did not respond in time. Check its address, network connection and VNC service, then try again."
-    case .connection: return "Check the server address, network connection and VNC service, then try again."
-    case .transport: return "The connection to the server was interrupted. Check your network or VPN connection before reconnecting."
-    case .peerClosed: return "The server ended this connection. Reconnect when the server is available."
-    case .authenticationRejected: return "The server rejected authentication. Retry to enter your credentials again, and check that the server permits your authentication method."
-    case .promptTimeout: return "The authentication request expired. Retry to start a new authentication request."
-    case .protocolFailure: return "The server and viewer could not complete the VNC protocol exchange. Check server compatibility and security settings before retrying."
-    case .resource: return "The connection exceeded an available resource limit. Close unused connections or reduce the remote desktop size before connecting again."
-    case .internalFailure: return "The viewer could not complete this operation. Close this connection window and create a new connection."
-    case .unsupportedEndpoint: return "This server address uses a transport unavailable in this build. Choose a supported server address."
-    case .invalidEndpoint: return "Check the server address and port before connecting."
-    case .unsupported: return "This operation is not available in this build or connection."
-    case .invalidRequest: return "Check the requested settings before trying this command again."
-    case .busy: return "Wait for the current operation to finish, then try again."
-    case .notConnected: return "Connect to the desktop before using this command."
-    case .inputUnavailable: return "Focus the connected desktop and check its view-only and input settings before trying again."
-    case .operationTimeout: return "The server did not complete this request in time. Check the connection before trying the command again."
-    case .serverRejected: return "The server rejected this request. Check the requested settings and server capabilities."
-    case .operationFailed: return "The request could not be completed. Check the connection before trying the command again."
+    case .resolution: return String(localized: "connection.issue.resolution.message", defaultValue: "Check the server name and your network or VPN connection, then try again.")
+    case .resolutionTimeout: return String(localized: "connection.issue.resolutionTimeout.message", defaultValue: "Looking up the server address took too long. Check your network or VPN connection, then try again.")
+    case .refused: return String(localized: "connection.issue.refused.message", defaultValue: "Check the port and that the server's VNC service is running and accepting connections.")
+    case .routing: return String(localized: "connection.issue.routing.message", defaultValue: "Check your network, VPN and the route to the server.")
+    case .networkPolicy: return String(localized: "connection.issue.networkPolicy.message", defaultValue: "Network or system policy may be preventing this connection. Check firewall and VPN settings. For a local server, also check TidyVNC under System Settings > Privacy & Security > Local Network. This error does not identify which policy blocked access.")
+    case .connectionTimeout: return String(localized: "connection.issue.connectionTimeout.message", defaultValue: "The server did not respond in time. Check its address, network connection and VNC service, then try again.")
+    case .connection: return String(localized: "connection.issue.connection.message", defaultValue: "Check the server address, network connection and VNC service, then try again.")
+    case .transport: return String(localized: "connection.issue.transport.message", defaultValue: "The connection to the server was interrupted. Check your network or VPN connection before reconnecting.")
+    case .peerClosed: return String(localized: "connection.issue.peerClosed.message", defaultValue: "The server ended this connection. Reconnect when the server is available.")
+    case .authenticationRejected: return String(localized: "connection.issue.authenticationRejected.message", defaultValue: "The server rejected authentication. Retry to enter your credentials again, and check that the server permits your authentication method.")
+    case .promptTimeout: return String(localized: "connection.issue.promptTimeout.message", defaultValue: "The authentication request expired. Retry to start a new authentication request.")
+    case .protocolFailure: return String(localized: "connection.issue.protocolFailure.message", defaultValue: "The server and viewer could not complete the VNC protocol exchange. Check server compatibility and security settings before retrying.")
+    case .resource: return String(localized: "connection.issue.resource.message", defaultValue: "The connection exceeded an available resource limit. Close unused connections or reduce the remote desktop size before connecting again.")
+    case .internalFailure: return String(localized: "connection.issue.internalFailure.message", defaultValue: "The viewer could not complete this operation. Close this connection window and create a new connection.")
+    case .unsupportedEndpoint: return String(localized: "connection.issue.unsupportedEndpoint.message", defaultValue: "This server address uses a transport unavailable in this build. Choose a supported server address.")
+    case .invalidEndpoint: return String(localized: "connection.issue.invalidEndpoint.message", defaultValue: "Check the server address and port before connecting.")
+    case .unsupported: return String(localized: "connection.issue.unsupported.message", defaultValue: "This operation is not available in this build or connection.")
+    case .invalidRequest: return String(localized: "connection.issue.invalidRequest.message", defaultValue: "Check the requested settings before trying this command again.")
+    case .busy: return String(localized: "connection.issue.busy.message", defaultValue: "Wait for the current operation to finish, then try again.")
+    case .notConnected: return String(localized: "connection.issue.notConnected.message", defaultValue: "Connect to the desktop before using this command.")
+    case .inputUnavailable: return String(localized: "connection.issue.inputUnavailable.message", defaultValue: "Focus the connected desktop and check its view-only and input settings before trying again.")
+    case .operationTimeout: return String(localized: "connection.issue.operationTimeout.message", defaultValue: "The server did not complete this request in time. Check the connection before trying the command again.")
+    case .serverRejected: return String(localized: "connection.issue.serverRejected.message", defaultValue: "The server rejected this request. Check the requested settings and server capabilities.")
+    case .operationFailed: return String(localized: "connection.issue.operationFailed.message", defaultValue: "The request could not be completed. Check the connection before trying the command again.")
     }
   }
 }

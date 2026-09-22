@@ -25,46 +25,50 @@ struct AuthenticationSheet: View {
   @FocusState private var passwordFocused: Bool
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text(request.kind == .credentials ? "Authentication required" : "Verify server identity").font(.title2.bold())
+      Text(request.kind == .credentials ? String(localized:"authentication.authentication.required", defaultValue:"Authentication required") : String(localized:"authentication.verify.server.identity", defaultValue:"Verify server identity")).font(.title2.bold())
       Text(request.serverName).font(.headline).textSelection(.enabled).lineLimit(3).help(request.serverName)
       if request.kind == .credentials {
         Text(request.credentialProtectionMessage)
           .foregroundStyle(request.secure ? Color.secondary : Color.orange)
           .accessibilityIdentifier("authentication.credentialProtection")
-        Text("This assessment describes credential protection, not encryption of all desktop traffic.")
+        Text(String(localized:"authentication.this.assessment.describes.credential.protection.not.encryption", defaultValue:"This assessment describes credential protection, not encryption of all desktop traffic."))
           .font(.caption).foregroundStyle(.secondary)
-        if request.usernameRequired { TextField("Username", text: $username).textFieldStyle(.roundedBorder) }
-        SecureField("Password", text: $password).textFieldStyle(.roundedBorder)
+        if request.usernameRequired { TextField(String(localized:"authentication.username", defaultValue:"Username"), text: $username).textFieldStyle(.roundedBorder) }
+        SecureField(String(localized:"authentication.password", defaultValue:"Password"), text: $password).textFieldStyle(.roundedBorder)
           .focused($passwordFocused).accessibilityIdentifier("authentication.password").onSubmit { submit() }
-        if !model.isReverse { Picker("Password lifetime", selection: $retention) {
-          Text("Use once").tag(NativeCredentialRetention.useOnce)
-          Text("Retain for this session’s reconnect").tag(NativeCredentialRetention.session)
-          if credentials.supportsRemembering { Text("Remember on this Mac").tag(NativeCredentialRetention.remember) }
-        }.accessibilityIdentifier("authentication.retention").disabled(credentials.isWorking) }
+        if !model.isReverse { VStack(alignment:.leading,spacing:6) {
+          Text(String(localized:"authentication.password.lifetime", defaultValue:"Password lifetime"))
+          Picker(String(localized:"authentication.password.lifetime", defaultValue:"Password lifetime"), selection: $retention) {
+          Text(String(localized:"authentication.use.once", defaultValue:"Use once")).tag(NativeCredentialRetention.useOnce)
+          Text(String(localized:"authentication.retain.for.this.session.s.reconnect", defaultValue:"Retain for this session’s reconnect")).tag(NativeCredentialRetention.session)
+          if credentials.supportsRemembering { Text(String(localized:"authentication.remember.on.this.mac", defaultValue:"Remember on this Mac")).tag(NativeCredentialRetention.remember) }
+          }.labelsHidden().frame(maxWidth:.infinity)
+            .accessibilityIdentifier("authentication.retention").disabled(credentials.isWorking)
+        } }
         if model.isReverse {
-          Text("This incoming connection uses the password once. Its temporary source port is not a saved server identity.")
+          Text(String(localized:"authentication.this.incoming.connection.uses.the.password.once", defaultValue:"This incoming connection uses the password once. Its temporary source port is not a saved server identity."))
             .font(.caption).foregroundStyle(.secondary)
         }
         if retention == .remember {
-          Toggle("Replace an existing saved password", isOn: $replaceRemembered)
-          Text("Save only after successful authentication. Replacement must be explicitly selected.").font(.caption).foregroundStyle(.secondary)
+          Toggle(String(localized:"authentication.replace.an.existing.saved.password", defaultValue:"Replace an existing saved password"), isOn: $replaceRemembered)
+          Text(String(localized:"authentication.save.only.after.successful.authentication.replacement.must", defaultValue:"Save only after successful authentication. Replacement must be explicitly selected.")).font(.caption).foregroundStyle(.secondary)
         }
         VStack(alignment: .leading, spacing: 8) {
           if credentials.hasSessionCredential {
-            Button("Use Session Password") { useSession() }
+            Button(String(localized:"authentication.use.session.password", defaultValue:"Use Session Password")) { useSession() }
               .disabled(!credentials.canUseSession(request, username: username))
               .accessibilityIdentifier("authentication.useSession")
           }
           if credentials.supportsRemembering {
-            HStack {
-              Button("Use Saved Password") { password = ""; credentials.useSaved(request, username: username, retention: retention) }
+            VStack(alignment:.leading,spacing:8) {
+              Button(String(localized:"authentication.use.saved.password", defaultValue:"Use Saved Password")) { password = ""; credentials.useSaved(request, username: username, retention: retention) }
                 .accessibilityIdentifier("authentication.useSaved")
-              Button("Forget Saved Password", role: .destructive) { credentials.forgetSaved(request, username: username) }
+              Button(String(localized:"authentication.forget.saved.password", defaultValue:"Forget Saved Password"), role: .destructive) { credentials.forgetSaved(request, username: username) }
                 .accessibilityIdentifier("authentication.forgetSaved")
             }
           }
         }.disabled(credentials.isWorking)
-        if credentials.isWorking { ProgressView("Preparing credentials…").controlSize(.small) }
+        if credentials.isWorking { ProgressView(String(localized:"authentication.preparing.credentials", defaultValue:"Preparing credentials…")).controlSize(.small) }
         if let notice = credentials.notice { Text(notice).font(.caption).foregroundStyle(.secondary) }
       } else {
         ScrollView {
@@ -72,46 +76,46 @@ struct AuthenticationSheet: View {
         }.frame(maxHeight: 390)
         if let notice = trustModel.notice { Text(notice).font(.caption).fixedSize(horizontal: false,vertical: true) }
         if trustModel.canSave(request) {
-          Text("A saved identity applies only to this destination’s address, port and route. Verify the fingerprint before saving.")
+          Text(String(localized:"authentication.a.saved.identity.applies.only.to.this", defaultValue:"A saved identity applies only to this destination’s address, port and route. Verify the fingerprint before saving."))
             .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false,vertical: true)
-          Button(trustModel.replacesSavedKey ? "Replace Saved Key and Connect…" : request.kind == .hostKey ? "Save Server Key and Connect…" : "Save Exception and Connect…") { confirmSave = true }
+          Button(trustModel.replacesSavedKey ? String(localized:"authentication.replace.saved.key.and.connect", defaultValue:"Replace Saved Key and Connect…") : request.kind == .hostKey ? String(localized:"authentication.save.server.key.and.connect", defaultValue:"Save Server Key and Connect…") : String(localized:"authentication.save.exception.and.connect", defaultValue:"Save Exception and Connect…")) { confirmSave = true }
             .accessibilityIdentifier("authentication.saveTrust")
         }
         if trustModel.needsReload {
-          Button("Reload Saved Decisions") { trustModel.reload() }.disabled(trustModel.isWorking)
+          Button(String(localized:"authentication.reload.saved.decisions", defaultValue:"Reload Saved Decisions")) { trustModel.reload() }.disabled(trustModel.isWorking)
         }
       }
       if let problem { Text(problem).foregroundStyle(.red).accessibilityIdentifier("authentication.error") }
       HStack {
         Spacer()
-        Button("Cancel", role: .cancel) { password = ""; model.cancel() }.keyboardShortcut(request.kind == .credentials ? .cancelAction : .defaultAction)
+        Button(String(localized:"action.cancel", defaultValue:"Cancel"), role: .cancel) { password = ""; model.cancel() }.keyboardShortcut(request.kind == .credentials ? .cancelAction : .defaultAction)
           .accessibilityIdentifier("authentication.cancel")
         if request.kind == .credentials {
-          Button("Authenticate") { submit() }.disabled(credentials.isWorking).keyboardShortcut(.defaultAction).accessibilityIdentifier("authentication.submit")
+          Button(String(localized:"authentication.authenticate", defaultValue:"Authenticate")) { submit() }.disabled(credentials.isWorking).keyboardShortcut(.defaultAction).accessibilityIdentifier("authentication.submit")
         } else {
-          Button("Connect Once") { trust() }.disabled(trustModel.isWorking || !NativeTrustPresentation(request).mayConnectOnce).accessibilityIdentifier("authentication.trust")
+          Button(String(localized:"authentication.connect.once", defaultValue:"Connect Once")) { trust() }.disabled(trustModel.isWorking || !NativeTrustPresentation(request).mayConnectOnce).accessibilityIdentifier("authentication.trust")
         }
       }
     }.padding(24).frame(width: 440).onAppear { passwordFocused = request.kind == .credentials }
       .onDisappear { password = ""; username = "" }
       .onExitCommand { password = ""; model.cancel() }
-      .confirmationDialog(trustModel.replacesSavedKey ? "Replace the saved key?" : request.kind == .hostKey ? "Save this server key?" : "Save this certificate exception?",isPresented: $confirmSave) {
-        Button(trustModel.replacesSavedKey ? "Replace and Connect" : "Save and Connect") { trustModel.saveAndConnect(request) }
-        Button("Cancel",role: .cancel) {}.keyboardShortcut(.defaultAction)
+      .confirmationDialog(trustModel.replacesSavedKey ? String(localized:"authentication.replace.the.saved.key", defaultValue:"Replace the saved key?") : request.kind == .hostKey ? String(localized:"authentication.save.this.server.key", defaultValue:"Save this server key?") : String(localized:"authentication.save.this.certificate.exception", defaultValue:"Save this certificate exception?"),isPresented: $confirmSave) {
+        Button(trustModel.replacesSavedKey ? String(localized:"authentication.replace.and.connect", defaultValue:"Replace and Connect") : String(localized:"authentication.save.and.connect", defaultValue:"Save and Connect")) { trustModel.saveAndConnect(request) }
+        Button(String(localized:"action.cancel", defaultValue:"Cancel"),role: .cancel) {}.keyboardShortcut(.defaultAction)
       } message: {
-        Text("This decision applies to " + model.authenticationEndpoint + (request.kind == .hostKey ? ". It can be forgotten in Saved Server Keys. Verify the fingerprint independently before saving." : ". It can be forgotten in Saved Certificate Decisions. The displayed certificate problems are still present."))
+        Text(request.kind == .hostKey ? String(localized:"authentication.confirm.key.scope", defaultValue:"This decision applies to \(model.authenticationEndpoint). It can be forgotten in Saved Server Keys. Verify the fingerprint independently before saving.") : String(localized:"authentication.confirm.certificate.scope", defaultValue:"This decision applies to \(model.authenticationEndpoint). It can be forgotten in Saved Certificate Decisions. The displayed certificate problems are still present."))
       }
   }
   private func submit() {
     var user = Array(username.utf8), secret = Array(password.utf8); password = ""
     do { try credentials.submit(request, username: &user, password: &secret,
       retention: model.isReverse ? .useOnce : retention == .remember && replaceRemembered ? .replaceRemembered : retention) }
-    catch { problem = NativeConnectionIssue(error: error)?.message ?? "This authentication request is no longer active. Cancel and connect again." }
+    catch { problem = NativeConnectionIssue(error: error)?.message ?? String(localized:"authentication.this.authentication.request.is.no.longer.active", defaultValue:"This authentication request is no longer active. Cancel and connect again.") }
   }
   private func useSession() {
     password = ""
     do { try credentials.useSession(request, username: username) }
-    catch { problem = "The session password is no longer available. Enter a password to continue." }
+    catch { problem = String(localized:"authentication.the.session.password.is.no.longer.available", defaultValue:"The session password is no longer available. Enter a password to continue.") }
   }
-  private func trust() { do { try trustModel.connectOnce(request) } catch { problem = NativeConnectionIssue(error: error)?.message ?? "This authentication request is no longer active. Cancel and connect again." } }
+  private func trust() { do { try trustModel.connectOnce(request) } catch { problem = NativeConnectionIssue(error: error)?.message ?? String(localized:"authentication.this.authentication.request.is.no.longer.active", defaultValue:"This authentication request is no longer active. Cancel and connect again.") } }
 }

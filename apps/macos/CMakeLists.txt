@@ -19,13 +19,16 @@ execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/native
   OUTPUT_VARIABLE native_bundle_identifier OUTPUT_STRIP_TRAILING_WHITESPACE
   COMMAND_ERROR_IS_FATAL ANY)
 set(resources ${TIDYVNC_SOURCE_DIR}/media/icons/tidyvnc.icns
-  ${TIDYVNC_SOURCE_DIR}/README.rst ${TIDYVNC_SOURCE_DIR}/LICENCE.TXT)
+  ${TIDYVNC_SOURCE_DIR}/README.rst ${TIDYVNC_SOURCE_DIR}/LICENCE.TXT
+  ${CMAKE_CURRENT_SOURCE_DIR}/Credits.rtf
+  ${CMAKE_CURRENT_SOURCE_DIR}/Localizable.xcstrings)
 set_source_files_properties(${resources} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 set(askpass_helper ${NATIVE_CORE_BUILD}/platform/macos/tidyvnc-ssh-askpass)
 set_source_files_properties(${askpass_helper} PROPERTIES MACOSX_PACKAGE_LOCATION MacOS)
 add_executable(TidyVNC MACOSX_BUNDLE TidyVNC/TidyVNCMain.swift TidyVNC/TidyVNCApp.swift TidyVNC/ConnectionModel.swift TidyVNC/AuthenticationSheet.swift TidyVNC/TrustDetailsView.swift
   TidyVNC/SecuritySettingsFields.swift TidyVNC/TrustFileSettingsFields.swift TidyVNC/TrustLibraryView.swift TidyVNC/PreferencesSettingsView.swift TidyVNC/EncodingSettingsFields.swift TidyVNC/ConnectionSettingsFields.swift
   TidyVNC/FullscreenDefaultsFields.swift
+  TidyVNC/ApplicationHelpView.swift
   TidyVNC/SSHAuthenticationSheet.swift
   ${askpass_helper}
   TidyVNC/DocumentExportView.swift

@@ -13,25 +13,25 @@ public enum NativeCertificateReason: UInt32, CaseIterable, Sendable {
   case unknownProblem = 131072, missingProblem = 262144
   public var message: String {
     switch self {
-    case .invalid: return "Certificate verification failed."
-    case .revoked: return "The certificate has been revoked."
-    case .unknownIssuer: return "The certificate issuer is not trusted."
-    case .signerNotCA: return "The signer is not a certificate authority."
-    case .weakAlgorithm: return "The certificate uses an insecure algorithm."
-    case .notYetValid: return "The certificate is not yet valid."
-    case .expired: return "The certificate has expired."
-    case .badSignature: return "The certificate signature is invalid."
-    case .oldRevocationData: return "The revocation information is out of date."
-    case .wrongOwner: return "The certificate does not match the requested server name."
-    case .futureRevocationData: return "The revocation information has a future issue date."
-    case .signerConstraints: return "The signer violates certificate constraints."
-    case .mismatch: return "The certificate does not match the required identity."
-    case .wrongPurpose: return "The certificate is not valid for this purpose."
-    case .missingOCSP: return "Required certificate status information is missing."
-    case .invalidOCSP: return "The certificate status response is invalid."
-    case .criticalExtension: return "A required certificate extension is unsupported."
-    case .unknownProblem: return "The certificate has an unrecognized verification problem."
-    case .missingProblem: return "No certificate verification reason was supplied."
+    case .invalid: return String(localized:"trust.certificate.reason.invalid", defaultValue:"Certificate verification failed.")
+    case .revoked: return String(localized:"trust.certificate.reason.revoked", defaultValue:"The certificate has been revoked.")
+    case .unknownIssuer: return String(localized:"trust.certificate.reason.unknownIssuer", defaultValue:"The certificate issuer is not trusted.")
+    case .signerNotCA: return String(localized:"trust.certificate.reason.signerNotCA", defaultValue:"The signer is not a certificate authority.")
+    case .weakAlgorithm: return String(localized:"trust.certificate.reason.weakAlgorithm", defaultValue:"The certificate uses an insecure algorithm.")
+    case .notYetValid: return String(localized:"trust.certificate.reason.notYetValid", defaultValue:"The certificate is not yet valid.")
+    case .expired: return String(localized:"trust.certificate.reason.expired", defaultValue:"The certificate has expired.")
+    case .badSignature: return String(localized:"trust.certificate.reason.badSignature", defaultValue:"The certificate signature is invalid.")
+    case .oldRevocationData: return String(localized:"trust.certificate.reason.oldRevocationData", defaultValue:"The revocation information is out of date.")
+    case .wrongOwner: return String(localized:"trust.certificate.reason.wrongOwner", defaultValue:"The certificate does not match the requested server name.")
+    case .futureRevocationData: return String(localized:"trust.certificate.reason.futureRevocationData", defaultValue:"The revocation information has a future issue date.")
+    case .signerConstraints: return String(localized:"trust.certificate.reason.signerConstraints", defaultValue:"The signer violates certificate constraints.")
+    case .mismatch: return String(localized:"trust.certificate.reason.mismatch", defaultValue:"The certificate does not match the required identity.")
+    case .wrongPurpose: return String(localized:"trust.certificate.reason.wrongPurpose", defaultValue:"The certificate is not valid for this purpose.")
+    case .missingOCSP: return String(localized:"trust.certificate.reason.missingOCSP", defaultValue:"Required certificate status information is missing.")
+    case .invalidOCSP: return String(localized:"trust.certificate.reason.invalidOCSP", defaultValue:"The certificate status response is invalid.")
+    case .criticalExtension: return String(localized:"trust.certificate.reason.criticalExtension", defaultValue:"A required certificate extension is unsupported.")
+    case .unknownProblem: return String(localized:"trust.certificate.reason.unknownProblem", defaultValue:"The certificate has an unrecognized verification problem.")
+    case .missingProblem: return String(localized:"trust.certificate.reason.missingProblem", defaultValue:"No certificate verification reason was supplied.")
     }
   }
 }
@@ -78,24 +78,24 @@ public struct NativeTrustPresentation: Sendable, CustomStringConvertible, Custom
     if request.kind == .certificate {
       compatibilityFingerprint = nil
       let policy = try? NativeCertificatePolicy(status: request.certificateStatus)
-      var problems = policy?.reasons.map(\.message) ?? ["Certificate verification policy is unavailable."]
+      var problems = policy?.reasons.map(\.message) ?? [String(localized:"trust.presentation.policyUnavailable", defaultValue:"Certificate verification policy is unavailable.")]
       if let certificate = validIdentity ? SecCertificateCreateWithData(nil, request.identity as CFData) : nil {
         subject = SecCertificateCopySubjectSummary(certificate) as String?
         mayConnectOnce = policy?.mayOverride == true
       } else {
         subject = nil; mayConnectOnce = false
-        problems.append("The server certificate could not be decoded.")
+        problems.append(String(localized:"trust.presentation.certificateDecode", defaultValue:"The server certificate could not be decoded."))
       }
       self.problems = problems
     } else if request.kind == .hostKey {
       subject = nil; mayConnectOnce = (try? NativeHostKey(request.identity)) != nil
-      problems = mayConnectOnce ? ["This server key has not been verified. Compare its fingerprint with the server administrator before continuing."] : ["The server did not provide a usable key identity."]
+      problems = mayConnectOnce ? [String(localized:"trust.presentation.keyUnverified", defaultValue:"This server key has not been verified. Compare its fingerprint with the server administrator before continuing.")] : [String(localized:"trust.presentation.keyUnavailable", defaultValue:"The server did not provide a usable key identity.")]
       // RSA-AES supplies RealVNC's truncated SHA-1 display format. Never label it
       // SHA-256; the SHA-256 above is independently calculated over the raw key.
       compatibilityFingerprint = mayConnectOnce ? Insecure.SHA1.hash(data: request.identity).prefix(8).map { String(format: "%02x", $0) }.joined(separator: "-") : nil
     } else {
       subject = nil; mayConnectOnce = false; compatibilityFingerprint = nil
-      problems = ["This request is not a server identity decision."]
+      problems = [String(localized:"trust.presentation.invalidRequest", defaultValue:"This request is not a server identity decision.")]
     }
   }
 }

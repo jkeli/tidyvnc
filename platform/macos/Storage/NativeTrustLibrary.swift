@@ -4,14 +4,14 @@ import Foundation
 
 public func nativeTrustStorageMessage(_ error: NativeStorageError) -> String {
   switch error {
-  case .conflict: return "Saved trust decisions changed elsewhere. Reload before making another change."
-  case .busy: return "Another window or process is updating trust decisions. Reload and try again."
-  case .denied: return "Access to saved trust decisions was denied. Check access and reload."
-  case .futureSchema, .unsupportedFields, .unsupportedValue: return "Saved trust decisions require an unsupported format. Existing data has been preserved."
-  case .corrupt, .invalid: return "Saved trust decisions could not be read or validated. Existing data has been preserved."
-  case .tooLarge, .resourceLimit: return "The saved trust decisions exceed the supported size or count."
-  case .cancelled, .ioFailure: return "The trust decision could not be confirmed. Reload to check its saved state before trying again."
-  default: return "Saved trust decisions are unavailable. Reload to try again."
+  case .conflict: return String(localized:"trust.library.saved.trust.decisions.changed.elsewhere.reload.before.making.another.change", defaultValue:"Saved trust decisions changed elsewhere. Reload before making another change.")
+  case .busy: return String(localized:"trust.library.another.window.or.process.is.updating.trust.decisions.reload.and.try.again", defaultValue:"Another window or process is updating trust decisions. Reload and try again.")
+  case .denied: return String(localized:"trust.library.access.to.saved.trust.decisions.was.denied.check.access.and.reload", defaultValue:"Access to saved trust decisions was denied. Check access and reload.")
+  case .futureSchema, .unsupportedFields, .unsupportedValue: return String(localized:"trust.library.saved.trust.decisions.require.an.unsupported.format.existing.data.has.been.preserved", defaultValue:"Saved trust decisions require an unsupported format. Existing data has been preserved.")
+  case .corrupt, .invalid: return String(localized:"trust.library.saved.trust.decisions.could.not.be.read.or.validated.existing.data.has", defaultValue:"Saved trust decisions could not be read or validated. Existing data has been preserved.")
+  case .tooLarge, .resourceLimit: return String(localized:"trust.library.the.saved.trust.decisions.exceed.the.supported.size.or.count", defaultValue:"The saved trust decisions exceed the supported size or count.")
+  case .cancelled, .ioFailure: return String(localized:"trust.library.the.trust.decision.could.not.be.confirmed.reload.to.check.its.saved", defaultValue:"The trust decision could not be confirmed. Reload to check its saved state before trying again.")
+  default: return String(localized:"trust.library.saved.trust.decisions.are.unavailable.reload.to.try.again", defaultValue:"Saved trust decisions are unavailable. Reload to try again.")
   }
 }
 @MainActor public final class NativeTrustLibrary: ObservableObject {
@@ -55,7 +55,7 @@ public func nativeTrustStorageMessage(_ error: NativeStorageError) -> String {
         let result = try await store.forget(scope: scope,expected: revision)
         guard let self, !self.stopped, !Task.isCancelled else { return }
         self.snapshot = result.snapshot; self.needsReload = result.durabilityUncertain
-        self.message = result.durabilityUncertain ? "The decision was written, but its durability could not be confirmed. Reload to check it." : "Forgot the saved key. This destination will ask again when identity verification is needed. Existing connections are unchanged."
+        self.message = result.durabilityUncertain ? String(localized:"trust.library.the.decision.was.written.but.its.durability.could.not.be.confirmed.reload", defaultValue:"The decision was written, but its durability could not be confirmed. Reload to check it.") : String(localized:"trust.library.forgot.the.saved.key.this.destination.will.ask.again.when.identity.verification", defaultValue:"Forgot the saved key. This destination will ask again when identity verification is needed. Existing connections are unchanged.")
       } catch { self?.failed(error) }
     }
   }
