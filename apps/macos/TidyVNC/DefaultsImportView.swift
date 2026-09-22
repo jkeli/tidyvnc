@@ -44,12 +44,13 @@ struct FirstUseDefaultsImportOffer: View {
   let open: () -> Void
   var body: some View {
     if availability.canOffer && !availability.dismissed {
-      HStack(spacing:12) {
-        Text("Have existing TidyVNC defaults? Review an import before opening your next connection window.")
+      VStack(alignment:.leading,spacing:12) {
+        Text(String(localized:"import.defaults.have.existing.tidyvnc.defaults.review.an.import.before.opening.your.next.connection", defaultValue:"Have existing TidyVNC defaults? Review an import before opening your next connection window."))
           .font(.callout).fixedSize(horizontal:false,vertical:true)
-        Spacer()
-        Button("Review Import…",action:open).accessibilityIdentifier("import.firstUse")
-        Button("Not Now") { availability.dismiss() }.accessibilityIdentifier("import.notNow")
+        HStack {
+          Button(String(localized:"import.defaults.review.import", defaultValue:"Review Import…"),action:open).accessibilityIdentifier("import.firstUse")
+          Button(String(localized:"history.import.not.now", defaultValue:"Not Now")) { availability.dismiss() }.accessibilityIdentifier("import.notNow")
+        }
       }.padding(14).background(.quaternary)
     }
   }
@@ -75,26 +76,26 @@ struct DefaultsImportView: View {
   }
   private func category(_ value: NativeDefaultsImportCategory) -> String {
     switch value {
-    case .connection: "Connection behavior"
-    case .clipboard: "Clipboard sharing"
-    case .encoding: "Encoding and image quality"
-    case .input: "Keyboard, pointer and cursor"
-    case .scaling: "Desktop scaling"
-    case .fullscreen: "Fullscreen displays"
+    case .connection: String(localized:"import.defaults.connection.behavior", defaultValue:"Connection behavior")
+    case .clipboard: String(localized:"import.defaults.clipboard.sharing", defaultValue:"Clipboard sharing")
+    case .encoding: String(localized:"import.defaults.encoding.and.image.quality", defaultValue:"Encoding and image quality")
+    case .input: String(localized:"import.defaults.keyboard.pointer.and.cursor", defaultValue:"Keyboard, pointer and cursor")
+    case .scaling: String(localized:"import.defaults.desktop.scaling", defaultValue:"Desktop scaling")
+    case .fullscreen: String(localized:"import.defaults.fullscreen.displays", defaultValue:"Fullscreen displays")
     }
   }
   private func notice(_ value: NativeDefaultsImportNotice) -> String {
     switch value.kind {
-    case .excluded: "Not imported"
-    case .unknown: "Unknown setting; not imported"
-    case .platformOnly: "Unavailable on macOS; not imported"
-    case .displayMapping: "Monitor numbers converted to the displays listed below"
-    case .inactiveCursor: "Hidden cursor preserved; inactive System cursor shape omitted"
+    case .excluded: String(localized:"import.defaults.not.imported", defaultValue:"Not imported")
+    case .unknown: String(localized:"import.defaults.unknown.setting.not.imported", defaultValue:"Unknown setting; not imported")
+    case .platformOnly: String(localized:"import.defaults.unavailable.on.macos.not.imported", defaultValue:"Unavailable on macOS; not imported")
+    case .displayMapping: String(localized:"import.defaults.monitor.numbers.converted.to.the.displays.listed.below", defaultValue:"Monitor numbers converted to the displays listed below")
+    case .inactiveCursor: String(localized:"import.defaults.hidden.cursor.preserved.inactive.system.cursor.shape.omitted", defaultValue:"Hidden cursor preserved; inactive System cursor shape omitted")
     }
   }
   var body: some View {
     VStack(alignment:.leading,spacing:16) {
-      Text(state.mapping != nil ? "Choose Displays for Imported Defaults" : state.review == nil ? "Import Connection Defaults" : "Review Defaults Import")
+      Text(state.mapping != nil ? String(localized:"import.defaults.choose.displays.for.imported.defaults", defaultValue:"Choose Displays for Imported Defaults") : state.review == nil ? String(localized:"import.defaults.import.connection.defaults", defaultValue:"Import Connection Defaults") : String(localized:"import.defaults.review.defaults.import", defaultValue:"Review Defaults Import"))
         .font(.title2).accessibilityIdentifier("import.title")
       if let mapping = state.mapping {
         DefaultsImportMappingView(mapping:mapping,displays:displays,issue:state.issue,
@@ -107,46 +108,49 @@ struct DefaultsImportView: View {
       } else if let review = state.review {
         reviewContent(review)
       } else if state.isLoading || state.isWriting || state.hasPending {
-        ProgressView(state.isWriting ? "Saving imported defaults…" : "Reading defaults…")
+        ProgressView(state.isWriting ? String(localized:"import.defaults.saving.imported.defaults", defaultValue:"Saving imported defaults…") : String(localized:"import.defaults.reading.defaults", defaultValue:"Reading defaults…"))
           .accessibilityIdentifier("import.progress")
         Spacer()
         if !state.isWriting, let id = state.requestID {
-          Button("Cancel") { state.cancel(id) }.keyboardShortcut(.cancelAction).accessibilityIdentifier("import.cancel")
+          Button(String(localized:"action.cancel", defaultValue:"Cancel")) { state.cancel(id) }.keyboardShortcut(.cancelAction).accessibilityIdentifier("import.cancel")
         }
       } else if state.imported != nil {
-        Label("Defaults imported",systemImage:"checkmark.circle").font(.headline).accessibilityIdentifier("import.success")
-        Text("Open a new connection window to use these defaults. Existing windows keep their own settings.")
-        Text("The original settings file was left unchanged.").foregroundStyle(.secondary)
+        Label(String(localized:"import.defaults.defaults.imported", defaultValue:"Defaults imported"),systemImage:"checkmark.circle").font(.headline).accessibilityIdentifier("import.success")
+        Text(String(localized:"import.defaults.open.a.new.connection.window.to.use.these.defaults.existing.windows.keep", defaultValue:"Open a new connection window to use these defaults. Existing windows keep their own settings."))
+        Text(String(localized:"import.defaults.the.original.settings.file.was.left.unchanged", defaultValue:"The original settings file was left unchanged.")).foregroundStyle(.secondary)
         Spacer()
         HStack {
-          Button("Done",action:close).keyboardShortcut(.cancelAction)
+          Button(String(localized:"action.done", defaultValue:"Done"),action:close).keyboardShortcut(.cancelAction)
           Spacer()
-          Button("New Connection") { openConnection(); close() }.keyboardShortcut(.defaultAction)
+          Button(String(localized:"import.defaults.new.connection", defaultValue:"New Connection")) { openConnection(); close() }.keyboardShortcut(.defaultAction)
             .accessibilityIdentifier("import.newConnection")
         }
       } else {
-        Text("Bring ordinary connection settings into this native app. Saved native defaults take precedence and cannot be replaced by import.")
-        Text("Passwords, server addresses, security settings, certificate files, trust decisions and tunnel commands are excluded. Recent server addresses are not included.")
-          .foregroundStyle(.secondary)
-        Text("Choose a source to review:").font(.headline)
-        Button("Review Current TidyVNC Defaults") { begin(.currentXDG) }
-          .keyboardShortcut(.defaultAction).accessibilityIdentifier("import.current")
-        Text("Reads the existing TidyVNC configuration location, including an absolute XDG override.")
-          .font(.caption).foregroundStyle(.secondary)
-        Button("Review Legacy Defaults") { begin(.legacy) }.accessibilityIdentifier("import.legacy")
-        Text("An explicit, separate choice. Existing TidyVNC defaults take precedence over legacy files.")
-          .font(.caption).foregroundStyle(.secondary)
+        ScrollView {
+          VStack(alignment:.leading,spacing:16) {
+            Text(String(localized:"import.defaults.bring.ordinary.connection.settings.into.this.native.app.saved.native.defaults.take", defaultValue:"Bring ordinary connection settings into this native app. Saved native defaults take precedence and cannot be replaced by import."))
+            Text(String(localized:"import.defaults.passwords.server.addresses.security.settings.certificate.files.trust.decisions.and.tunnel.commands", defaultValue:"Passwords, server addresses, security settings, certificate files, trust decisions and tunnel commands are excluded. Recent server addresses are not included."))
+              .foregroundStyle(.secondary)
+            Text(String(localized:"history.import.choose.a.source.to.review", defaultValue:"Choose a source to review:")).font(.headline)
+            Button(String(localized:"import.defaults.review.current.tidyvnc.defaults", defaultValue:"Review Current TidyVNC Defaults")) { begin(.currentXDG) }
+              .keyboardShortcut(.defaultAction).accessibilityIdentifier("import.current")
+            Text(String(localized:"import.defaults.reads.the.existing.tidyvnc.configuration.location.including.an.absolute.xdg.override", defaultValue:"Reads the existing TidyVNC configuration location, including an absolute XDG override."))
+              .font(.caption).foregroundStyle(.secondary)
+            Button(String(localized:"import.defaults.review.legacy.defaults", defaultValue:"Review Legacy Defaults")) { begin(.legacy) }.accessibilityIdentifier("import.legacy")
+            Text(String(localized:"import.defaults.an.explicit.separate.choice.existing.tidyvnc.defaults.take.precedence.over.legacy.files", defaultValue:"An explicit, separate choice. Existing TidyVNC defaults take precedence over legacy files."))
+              .font(.caption).foregroundStyle(.secondary)
+          }.frame(maxWidth:.infinity,alignment:.leading)
+        }
         if state.foundNoSource {
-          Text("No defaults file was found for that source. Choose another source or close this window.")
+          Text(String(localized:"import.defaults.no.defaults.file.was.found.for.that.source.choose.another.source.or", defaultValue:"No defaults file was found for that source. Choose another source or close this window."))
             .accessibilityIdentifier("import.absent")
         }
         if let issue = state.issue {
           Text(issue).foregroundStyle(.red).accessibilityIdentifier("import.error")
         }
-        Spacer()
-        Text("Imports are a one-time copy. Native defaults are saved by this app; changes are not synchronized with the original files.")
+        Text(String(localized:"import.defaults.imports.are.a.one.time.copy.native.defaults.are.saved.by.this", defaultValue:"Imports are a one-time copy. Native defaults are saved by this app; changes are not synchronized with the original files."))
           .font(.caption).foregroundStyle(.secondary)
-        Button("Close",action:close).keyboardShortcut(.cancelAction).accessibilityIdentifier("import.close")
+        Button(String(localized:"history.import.close", defaultValue:"Close"),action:close).keyboardShortcut(.cancelAction).accessibilityIdentifier("import.close")
       }
     }
     .fixedSize(horizontal:false,vertical:false)
@@ -156,14 +160,14 @@ struct DefaultsImportView: View {
   private func reviewContent(_ review: NativeDefaultsImportReview) -> some View {
     let proposal = review.proposal
     return Group {
-      Text(proposal.origin == .currentXDG ? "Source: current TidyVNC defaults" : "Source: legacy defaults").font(.headline)
+      Text(proposal.origin == .currentXDG ? String(localized:"import.defaults.source.current.tidyvnc.defaults", defaultValue:"Source: current TidyVNC defaults") : String(localized:"import.defaults.source.legacy.defaults", defaultValue:"Source: legacy defaults")).font(.headline)
       Text(review.source.path).font(.caption).textSelection(.enabled).lineLimit(3)
         .accessibilityIdentifier("import.source")
       ScrollView {
         VStack(alignment:.leading,spacing:12) {
-          Text("Settings to import").font(.headline)
+          Text(String(localized:"import.defaults.settings.to.import", defaultValue:"Settings to import")).font(.headline)
           if proposal.categories.isEmpty {
-            Text("This file contains no supported ordinary settings to import.")
+            Text(String(localized:"import.defaults.this.file.contains.no.supported.ordinary.settings.to.import", defaultValue:"This file contains no supported ordinary settings to import."))
           } else {
             ForEach(NativeDefaultsImportCategory.allCases.filter { proposal.categories.contains($0) },id:\.self) {
               Text(category($0))
@@ -171,22 +175,23 @@ struct DefaultsImportView: View {
           }
           if !proposal.notices.isEmpty {
             Divider()
-            Text("Omissions and conversions").font(.headline)
+            Text(String(localized:"import.defaults.omissions.and.conversions", defaultValue:"Omissions and conversions")).font(.headline)
             ForEach(Array(proposal.notices.enumerated()),id:\.offset) { _,value in
-              Text("Line \(value.line), \(value.name): \(notice(value))").font(.callout)
+              Text(String(localized:"import.defaults.notice", defaultValue:"Line \(value.line.formatted()), \(value.name): \(notice(value))")).font(.callout)
                 .fixedSize(horizontal:false,vertical:true)
             }
           }
           if proposal.notices.contains(where:{ $0.kind == .displayMapping }) {
-            Text("Displays for imported defaults").font(.headline)
+            Text(String(localized:"import.defaults.displays.for.imported.defaults", defaultValue:"Displays for imported defaults")).font(.headline)
             ForEach(review.monitorNumbers,id:\.self) { number in
               let id = review.monitorMapping?[number] ?? (number <= review.legacyDisplays.count ? review.legacyDisplays[number-1] : nil)
-              Text("File monitor \(number): \(id.map { choices.displayNames[$0] ?? $0.rawValue } ?? "Unavailable display")")
+              let name = id.map { choices.displayNames[$0] ?? $0.rawValue } ?? String(localized:"document.unavailable.display", defaultValue:"Unavailable display")
+              Text(String(localized:"document.monitor.file.assignment", defaultValue:"File monitor \(number.formatted()): \(name)"))
             }
-            Text(review.monitorMapping == nil ? "Numbering follows the current arrangement, left to right and then top to bottom. Change assignments if this file came from another arrangement." : "These are the display assignments you chose for imported defaults.")
+            Text(review.monitorMapping == nil ? String(localized:"import.defaults.numbering.follows.the.current.arrangement.left.to.right.and.then.top.to", defaultValue:"Numbering follows the current arrangement, left to right and then top to bottom. Change assignments if this file came from another arrangement.") : String(localized:"import.defaults.these.are.the.display.assignments.you.chose.for.imported.defaults", defaultValue:"These are the display assignments you chose for imported defaults."))
               .font(.caption).foregroundStyle(.secondary)
             if state.canEditMapping {
-              Button("Change Display Assignments…") {
+              Button(String(localized:"document.change.display.assignments", defaultValue:"Change Display Assignments…")) {
                 let snapshot = displays()
                 choices.acknowledged = false
                 state.editMapping(review.id,legacyDisplays:(try? snapshot.documentMonitorOrder()) ?? [],
@@ -197,16 +202,16 @@ struct DefaultsImportView: View {
         }.frame(maxWidth:.infinity,alignment:.leading)
       }.accessibilityIdentifier("import.details")
       if !proposal.notices.isEmpty {
-        Toggle("I reviewed the omissions and conversions.",isOn:$choices.acknowledged)
+        Toggle(String(localized:"import.defaults.i.reviewed.the.omissions.and.conversions", defaultValue:"I reviewed the omissions and conversions."),isOn:$choices.acknowledged)
           .accessibilityIdentifier("import.acknowledge")
       }
-      Text("Import saves this reviewed copy for new connection windows and leaves the source file unchanged.")
+      Text(String(localized:"import.defaults.import.saves.this.reviewed.copy.for.new.connection.windows.and.leaves.the", defaultValue:"Import saves this reviewed copy for new connection windows and leaves the source file unchanged."))
         .font(.caption).foregroundStyle(.secondary)
       if let issue = state.issue { Text(issue).foregroundStyle(.red).accessibilityIdentifier("import.error") }
       HStack {
-        Button("Cancel") { state.cancel(review.id) }.keyboardShortcut(.cancelAction).accessibilityIdentifier("import.cancel")
+        Button(String(localized:"action.cancel", defaultValue:"Cancel")) { state.cancel(review.id) }.keyboardShortcut(.cancelAction).accessibilityIdentifier("import.cancel")
         Spacer()
-        Button("Import Defaults") {
+        Button(String(localized:"import.defaults.import.defaults", defaultValue:"Import Defaults")) {
           let snapshot = displays()
           let current = review.monitorMapping == nil ? (try? snapshot.documentMonitorOrder()) ?? [] :
             snapshot.error == nil ? snapshot.displays.map(\.id) : []
@@ -238,35 +243,39 @@ private struct DefaultsImportMappingView: View {
     }
   }
   var body: some View {
-    Text("Choose a connected display for each monitor number in these defaults. You will review the settings before importing.")
-    Text(mapping.source.path).font(.caption).textSelection(.enabled).lineLimit(3)
     ScrollView {
-      VStack(alignment:.leading,spacing:12) {
-        ForEach(mapping.numbers,id:\.self) { number in
-          Picker("File monitor \(number)",selection:Binding(get:{ choices.assignments[number]?.rawValue },
-            set:{ choices.assignments[number] = $0.map(NativeDisplayID.init) })) {
-            Text("Choose a display").tag(nil as String?)
-            ForEach(choices.snapshot?.displays ?? [],id:\.id) { display in
-              Text(display.name).tag(display.id.rawValue as String?)
-            }
-            if let id = choices.assignments[number], choices.snapshot?.display(id) == nil {
-              Text("Disconnected display").tag(id.rawValue as String?)
-            }
-          }.accessibilityIdentifier("import.mapping.monitor.\(number)")
-        }
+      VStack(alignment:.leading,spacing:16) {
+        Text(String(localized:"import.defaults.choose.a.connected.display.for.each.monitor.number.in.these.defaults.you", defaultValue:"Choose a connected display for each monitor number in these defaults. You will review the settings before importing."))
+        Text(mapping.source.path).font(.caption).textSelection(.enabled).lineLimit(3)
+        VStack(alignment:.leading,spacing:12) {
+          ForEach(mapping.numbers,id:\.self) { number in
+            let label = String(localized:"document.monitor.file.label", defaultValue:"File monitor \(number.formatted())")
+            Text(label).fixedSize(horizontal:false,vertical:true)
+            Picker(label,selection:Binding(get:{ choices.assignments[number]?.rawValue },
+              set:{ choices.assignments[number] = $0.map(NativeDisplayID.init) })) {
+              Text(String(localized:"document.choose.a.display", defaultValue:"Choose a display")).tag(nil as String?)
+              ForEach(choices.snapshot?.displays ?? [],id:\.id) { display in
+                Text(display.name).tag(display.id.rawValue as String?)
+              }
+              if let id = choices.assignments[number], choices.snapshot?.display(id) == nil {
+                Text(String(localized:"document.disconnected.display", defaultValue:"Disconnected display")).tag(id.rawValue as String?)
+              }
+            }.labelsHidden().accessibilityLabel(label).accessibilityIdentifier("import.mapping.monitor.\(number)")
+          }
+        }.frame(maxWidth:.infinity,alignment:.leading)
+        Text(String(localized:"import.defaults.several.monitor.numbers.may.use.the.same.display.that.display.will.be", defaultValue:"Several monitor numbers may use the same display; that display will be selected once. Review the settings and omissions before importing. The source file stays unchanged."))
+          .font(.caption).foregroundStyle(.secondary)
       }.frame(maxWidth:.infinity,alignment:.leading)
     }
-    Text("Several monitor numbers may use the same display; that display will be selected once. Review the settings and omissions before importing. The source file stays unchanged.")
-      .font(.caption).foregroundStyle(.secondary)
-    if choices.snapshot?.error != nil || choices.snapshot?.displays.isEmpty != false {
-      Text("Display information is unavailable. Connect a display and refresh before continuing.").foregroundStyle(.orange)
+    if let issue { Text(issue).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
+    else if choices.snapshot?.error != nil || choices.snapshot?.displays.isEmpty != false {
+      Text(String(localized:"document.display.information.is.unavailable.connect.a.display.and.refresh.before.continuing", defaultValue:"Display information is unavailable. Connect a display and refresh before continuing.")).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true)
     }
-    if let issue { Text(issue).foregroundStyle(.red) }
+    Button(String(localized:"document.refresh.displays", defaultValue:"Refresh Displays")) { choices.snapshot = displays() }
     HStack {
-      Button("Cancel",action:cancel).keyboardShortcut(.cancelAction)
-      Button("Refresh Displays") { choices.snapshot = displays() }
+      Button(String(localized:"action.cancel", defaultValue:"Cancel"),action:cancel).keyboardShortcut(.cancelAction)
       Spacer()
-      Button("Review Defaults") { resolve(choices.assignments) }.disabled(!complete)
+      Button(String(localized:"import.defaults.review.defaults", defaultValue:"Review Defaults")) { resolve(choices.assignments) }.disabled(!complete)
         .keyboardShortcut(.defaultAction).accessibilityIdentifier("import.mapping.review")
     }.onAppear { choices.snapshot = displays(); choices.assignments = mapping.suggested }
   }
@@ -286,7 +295,7 @@ private struct DefaultsImportMappingView: View {
     state = NativeDefaultsImportState(service:service); self.onClosed = onClosed
     let window = NSWindow(contentRect:NSRect(x:0,y:0,width:660,height:640),
       styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
-    window.title = "Import Connection Defaults"; window.isReleasedWhenClosed = false
+    window.title = String(localized:"import.defaults.import.connection.defaults", defaultValue:"Import Connection Defaults"); window.isReleasedWhenClosed = false
     super.init(window:window)
     window.delegate = self
     let content = NSHostingController(rootView:DefaultsImportView(state:state,displays:displays,

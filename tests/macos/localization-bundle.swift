@@ -97,5 +97,8 @@ let documentServer = String(localized:"document.server",defaultValue:"Server: \(
 precondition(documentServer == "Server: " + historyEndpoint)
 let savedFile = String(localized:"document.save.success",defaultValue:"Saved \(documentName)",bundle:bundle)
 precondition(savedFile == "Saved " + documentName)
+let importOmission = String(localized:"import.defaults.not.imported",defaultValue:"Not imported",bundle:bundle)
+let importNotice = String(localized:"import.defaults.notice",defaultValue:"Line \(documentLine), \(documentName): \(importOmission)",bundle:bundle)
+precondition(importNotice == "Line " + documentLine + ", " + documentName + ": " + importOmission)
 print("PASS \(strings.count) packaged catalog values; untranslated-language and missing-key fallbacks; English development region")
 print("PASS destination/fingerprint/setting interpolation preserves literal values and UInt32 key sizes")

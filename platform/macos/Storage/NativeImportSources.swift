@@ -24,10 +24,10 @@ public enum NativeImportSourceError: Error, Equatable, Sendable, CustomStringCon
     switch self {
     case .invalidPath: String(localized:"import.source.the.import.location.is.invalid.check.the.home.and.xdg.paths", defaultValue:"The import location is invalid. Check the home and XDG paths.")
     case .inaccessible: String(localized:"import.source.the.import.source.could.not.be.inspected.check.its.location.and.access", defaultValue:"The import source could not be inspected. Check its location and access.")
-    case .currentSourceExists: "TidyVNC settings already exist. Review those settings instead of importing legacy settings."
-    case .nativeStateExists: "Native settings already exist and cannot be replaced by an import."
-    case .invalidDisplayMapping: "The monitor selection cannot be mapped. Refresh displays and review the import again."
-    case .topologyChanged: "The display arrangement changed. Reload the import and review its monitor selection."
+    case .currentSourceExists: String(localized:"import.defaults.tidyvnc.settings.already.exist.review.those.settings.instead.of.importing.legacy.settings", defaultValue:"TidyVNC settings already exist. Review those settings instead of importing legacy settings.")
+    case .nativeStateExists: String(localized:"import.defaults.native.settings.already.exist.and.cannot.be.replaced.by.an.import", defaultValue:"Native settings already exist and cannot be replaced by an import.")
+    case .invalidDisplayMapping: String(localized:"import.defaults.the.monitor.selection.cannot.be.mapped.refresh.displays.and.review.the.import", defaultValue:"The monitor selection cannot be mapped. Refresh displays and review the import again.")
+    case .topologyChanged: String(localized:"import.defaults.the.display.arrangement.changed.reload.the.import.and.review.its.monitor.selection", defaultValue:"The display arrangement changed. Reload the import and review its monitor selection.")
     }
   }
 }

@@ -78,7 +78,7 @@ actor ReaderGate: NativeDocumentReading {
     for _ in 0..<2000 { if condition() { return }; try await Task.sleep(for:.milliseconds(2)) }
     throw Failure(message:"Defaults mapping fixture timed out")
   }
-  func render(_ name: String, dark: Bool = false, minimum: Bool = false) async throws {
+  func render(_ name: String, dark: Bool = false, minimum: Bool = false, scrollToEnd: Bool = false) async throws {
     guard let window = controller?.window, let view = window.contentView,
           let index = CommandLine.arguments.firstIndex(of:"--output"), index+1 < CommandLine.arguments.count else { throw Failure(message:"missing render context") }
     try check(abs(window.contentMinSize.width-640) < 1 && abs(window.contentMinSize.height-572) < 1,
@@ -89,12 +89,26 @@ actor ReaderGate: NativeDocumentReading {
     let directory = URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true)
     try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
     window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
-    view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(100)); view.layoutSubtreeIfNeeded()
+    view.appearance = window.appearance
+    // Let native controls finish their appearance/size transition before capture.
+    view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(250)); view.layoutSubtreeIfNeeded()
     guard let fitting = controller?.contentSizeThatFits(view.bounds.size) else { throw Failure(message:"missing content") }
     try check(fitting.width <= view.bounds.width && fitting.height <= view.bounds.height,"defaults mapping fits window")
+    if scrollToEnd {
+      func scrollViews(_ view: NSView) -> [NSScrollView] {
+        (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews($0) }
+      }
+      guard let scroll = scrollViews(view).first, let document = scroll.documentView else {
+        throw Failure(message:"missing defaults details scroller")
+      }
+      document.scroll(NSPoint(x:0,y:document.bounds.maxY)); scroll.reflectScrolledClipView(scroll.contentView)
+      if document.bounds.height > scroll.contentView.bounds.height+1 {
+        try check(scroll.contentView.bounds.origin.y > 0,"remaining defaults details reachable by scrolling")
+      }
+    }
     window.displayIfNeeded()
     guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing bitmap") }
-    view.cacheDisplay(in:view.bounds,to:bitmap)
+    view.effectiveAppearance.performAsCurrentDrawingAppearance { view.cacheDisplay(in:view.bounds,to:bitmap) }
     try bitmap.representation(using:.png,properties:[:])!.write(to:directory.appendingPathComponent(name+".png"))
   }
   func verify() async throws {
@@ -112,10 +126,12 @@ actor ReaderGate: NativeDocumentReading {
     try check(!retained.contains { $0.encodedValue.contains("private-") },"excluded and unknown values are absent from retained recovery")
     try await render("mapping-light"); try await render("mapping-dark",dark:true)
     try await render("mapping-minimum",minimum:true)
+    try await render("mapping-minimum-end-dark",dark:true,minimum:true,scrollToEnd:true)
     state.resolveMapping(UUID(),assignments:[2:.init("left"),2147483647:.init("right")],availableDisplays:snapshot.displays.map(\.id))
     try check(state.mapping?.id == first.id,"stale mapping ignored")
     state.resolveMapping(first.id,assignments:[2:.init("left")],availableDisplays:snapshot.displays.map(\.id))
     try check(state.issue != nil && state.mapping != nil && memory.read() == nil,"incomplete mapping cannot write")
+    try await render("mapping-error-minimum",minimum:true)
     state.resolveMapping(first.id,assignments:[2:.init("missing"),2147483647:.init("right")],availableDisplays:snapshot.displays.map(\.id))
     try check(state.mapping != nil,"disconnected assignments rejected")
     let changed = source("Shared=off\nPassword=other-private-password")
@@ -129,6 +145,7 @@ actor ReaderGate: NativeDocumentReading {
     try check(state.review != nil && memory.read() == nil,"mapping does not grant omission consent")
     try await render("review")
     try await render("review-minimum",minimum:true)
+    try await render("review-minimum-end",minimum:true,scrollToEnd:true)
     state.editMapping(reviewed.id,legacyDisplays:[],availableDisplays:snapshot.displays.map(\.id))
     let second = state.mapping!
     try check(second.id != first.id && second.suggested == reviewed.monitorMapping,"re-edit preserves explicit choices with fresh identity")
@@ -153,6 +170,7 @@ actor ReaderGate: NativeDocumentReading {
     try check(!String(decoding:memory.read()!,as:UTF8.self).contains("private-"),"native record excludes source private values")
     try check(try Data(contentsOf:paths.currentDefaults) == bytes,"original source remains unchanged")
     try await render("success")
+    try await render("success-minimum",minimum:true)
     await controller?.shutdown(); memory.reset(); showImport()
     let replacement = controller!.state
     replacement.begin(origin:.currentXDG,legacyDisplays:[],availableDisplays:snapshot.displays.map(\.id))

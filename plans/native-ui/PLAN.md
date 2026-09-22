@@ -3,10 +3,10 @@
 For the current implementation checkpoint and restart instructions, see
 [RESUME.md](RESUME.md) (updated 2026-09-22). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
-review, native Help/About resources, and 796 English-source localization entries
+review, native Help/About resources, and 851 English-source localization entries
 are implemented. Actual Help/About interaction and expanded Settings/trust layouts
 now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
-input/display, installed-app and release gates are not yet accepted. Continue remaining menu/connection/defaults-import/status and file-panel localization and fixed
+input/display, installed-app and release gates are not yet accepted. Continue remaining menu/connection/status and file-panel localization and fixed
 controller/gateway errors, plus interactive acceptance. Profile/history/import text
 and minimum-window fixes now have focused evidence. Defaults-import and listener
 hosts now also preserve their content minimums after AppKit layout; reverse hosts
@@ -16,6 +16,8 @@ the latest RESUME/TODO evidence. Listener text and model recovery errors now hav
 catalog coverage, expanded minimum-size renders and scroll reachability evidence.
 Connection-file review/export, monitor mapping and file/invocation diagnostics now
 also have catalog coverage and focused admission/layout/packaging evidence.
+Defaults-import and first-use/source/recovery text now have expanded minimum-size
+fixtures; combined connection-window and interactive acceptance remain open.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,

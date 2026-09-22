@@ -162,7 +162,7 @@ fixture rendering nor synthetic English expansion establishes VoiceOver, install
 app, physical-network or translated-language acceptance.
 
 
-The source catalog now has **796** entries. Document review, mapping and export
+The document checkpoint brought the source catalog to **796** entries. Document review, mapping and export
 flows include reader/writer/codec/resolution diagnostics and shared invocation
 resolution failures. File and command-line monitor labels use separate complete
 sentences so translations need not splice a source prefix into English grammar.
@@ -185,5 +185,27 @@ Use the expansion command above with either
 `native-document-mapping-ui-tests.app/Contents/MacOS/native-document-mapping-ui-tests`
 or `native-export-mapping-ui-tests.app/Contents/MacOS/native-export-mapping-ui-tests`
 and `--named-output`. `document.` is included by default. These fixtures do not
-implement `--rtl`. Remaining app menus/connection/status, defaults-import, file
-panels and other controlled errors still require localization; N4.16 stays open.
+implement `--rtl`. Remaining app menus/connection/status, file panels and other controlled errors
+still require localization; N4.16 stays open. Defaults import is covered below.
+
+
+The source catalog now has **851** entries. Defaults-import source/review/mapping,
+category/omission explanations, consent, results, first-use offer and fixed state/
+source recovery messages are localized. Omission rows have separate literal name,
+localized line-number and notice arguments; shared file-monitor templates keep
+full source-specific sentences. Source paths, stored IDs and protocol field names
+are never translated, and source filtering/precedence/consent behavior is unchanged.
+
+Source explanations and mapping details scroll. Error messages, omission consent
+and import/review actions stay visible; picker labels have their own wrapping line
+and accessibility name. The first-use offer has a separate action row. Expanded
+fixtures check the 640×572 content minimum and a 592-point-wide offer, with end
+captures for overflowing review details. They do not establish the integrated
+connection-window layout, RTL, keyboard/VoiceOver or actual-user-app acceptance.
+
+The expansion runner includes `import.defaults.` by default. Use it with
+`native-import-ui-tests.app/Contents/MacOS/native-import-ui-tests` or
+`native-defaults-mapping-ui-tests.app/Contents/MacOS/native-defaults-mapping-ui-tests`
+and `--named-output`. The fixtures use private temporary sources and in-memory
+native stores. Inspect their PNGs in addition to fitting assertions; allow native
+control appearance/size transitions to settle before judging captures.

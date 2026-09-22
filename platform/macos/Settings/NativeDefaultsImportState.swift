@@ -56,7 +56,7 @@ import Foundation
     do {
       review = try mapping.resolve(assignments,availableDisplays:availableDisplays)
       self.mapping = nil; issue = nil
-    } catch { issue = "Choose a connected display for every imported monitor before continuing." }
+    } catch { issue = String(localized:"import.defaults.choose.a.connected.display.for.every.imported.monitor.before.continuing", defaultValue:"Choose a connected display for every imported monitor before continuing.") }
   }
   // The request identity cancels loading; the distinct preview identity approves
   // exactly the rendered proposal. Late UI callbacks cannot approve a new review.
@@ -68,7 +68,7 @@ import Foundation
     guard !stopped, operation == nil, let review, review.id == id, let request = requestID else { return }
     // Incomplete acknowledgement leaves the review available for correction.
     do { _ = try review.proposal.preferences(acknowledging:lines) }
-    catch { issue = "Review all omitted or converted settings before importing."; return }
+    catch { issue = String(localized:"import.defaults.review.all.omitted.or.converted.settings.before.importing", defaultValue:"Review all omitted or converted settings before importing."); return }
     let service = self.service
     isWriting = true; issue = nil; self.review = nil
     operation = Task { [weak self] in
@@ -96,11 +96,11 @@ import Foundation
   }
   private static func storageMessage(_ error: Error) -> String {
     switch error as? NativePreferencesError {
-    case .conflict: "Native settings changed. Existing settings cannot be replaced by an import."
+    case .conflict: String(localized:"import.defaults.native.settings.changed.existing.settings.cannot.be.replaced.by.an.import", defaultValue:"Native settings changed. Existing settings cannot be replaced by an import.")
     case .corrupt, .futureSchema, .unsupportedFields, .unsupportedValue, .tooLarge:
-      "Native settings could not be loaded. Resolve the stored settings problem before importing."
-    case .denied, .unavailable: "Native settings could not be accessed. Check access before retrying."
-    default: "Settings could not be imported. Reload native settings and review the source before retrying."
+      String(localized:"import.defaults.native.settings.could.not.be.loaded.resolve.the.stored.settings.problem.before", defaultValue:"Native settings could not be loaded. Resolve the stored settings problem before importing.")
+    case .denied, .unavailable: String(localized:"import.defaults.native.settings.could.not.be.accessed.check.access.before.retrying", defaultValue:"Native settings could not be accessed. Check access before retrying.")
+    default: String(localized:"import.defaults.settings.could.not.be.imported.reload.native.settings.and.review.the.source", defaultValue:"Settings could not be imported. Reload native settings and review the source before retrying.")
     }
   }
   public func dismissResult() { issue = nil; foundNoSource = false; imported = nil }

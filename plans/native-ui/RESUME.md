@@ -4,6 +4,36 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Defaults-import localization
+
+The catalog now has **851** English source entries. Defaults-import source choice,
+category/omission review, mapping, consent, progress, results, first-use offer and
+fixed storage/source recovery messages use stable IDs. Omission rows take literal
+field names and localized line/notice arguments; display rows reuse the shared
+complete file-monitor sentence. Import filtering, precedence, source bytes, stored
+identities and consent policies are unchanged.
+
+Source explanations and mapping details scroll while recovery/actions remain
+visible. Pickers have separate wrapping labels and explicit accessibility names;
+Refresh Displays has its own row. The first-use offer puts actions below its text.
+Fixtures retain the 640×572 content minimum and add success, missing-source,
+existing-state, mapping-error and end-of-review captures, plus light/dark first-use
+renders at 592 points wide. These do not prove combined connection-window layout,
+RTL, VoiceOver or actual-user-app interaction.
+
+Five focused import/projection/history/source/consent tests pass **5/5 (5.41 s)**.
+Expanded import and mapping fixtures pass. A mapping control capture showed a
+transition artifact; increasing fixture settling to 250 ms yielded a clear final
+capture, with no production change for that artifact. Final app build/signature,
+**851** packaged values/fallback/interpolation, **32** terminal cases, branding
+baseline **1650** and diff checks pass. Full-suite/sanitizers were not rerun;
+newer dependency deployment warnings remain. No CUA/user-app action was attempted.
+
+Continue app menus/connection/status, file panels and remaining controlled
+controller/gateway diagnostic localization and integrated window acceptance.
+The full unchecked parity, accessibility, physical, installed-app, deployment,
+CI, performance and release requirements remain in scope. Evidence is in TODO.
+
 ## Latest follow-up (2026-09-22) — Connection-file review/export localization
 
 The catalog now has **796** English source entries. Connection-file review,

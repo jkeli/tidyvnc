@@ -9551,6 +9551,666 @@
           }
         }
       }
+    },
+    "import.defaults.have.existing.tidyvnc.defaults.review.an.import.before.opening.your.next.connection": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Have existing TidyVNC defaults? Review an import before opening your next connection window."
+          }
+        }
+      }
+    },
+    "import.defaults.review.import": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Import…"
+          }
+        }
+      }
+    },
+    "import.defaults.connection.behavior": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection behavior"
+          }
+        }
+      }
+    },
+    "import.defaults.clipboard.sharing": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard sharing"
+          }
+        }
+      }
+    },
+    "import.defaults.encoding.and.image.quality": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding and image quality"
+          }
+        }
+      }
+    },
+    "import.defaults.keyboard.pointer.and.cursor": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard, pointer and cursor"
+          }
+        }
+      }
+    },
+    "import.defaults.desktop.scaling": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop scaling"
+          }
+        }
+      }
+    },
+    "import.defaults.fullscreen.displays": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fullscreen displays"
+          }
+        }
+      }
+    },
+    "import.defaults.not.imported": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not imported"
+          }
+        }
+      }
+    },
+    "import.defaults.unknown.setting.not.imported": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown setting; not imported"
+          }
+        }
+      }
+    },
+    "import.defaults.unavailable.on.macos.not.imported": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable on macOS; not imported"
+          }
+        }
+      }
+    },
+    "import.defaults.monitor.numbers.converted.to.the.displays.listed.below": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor numbers converted to the displays listed below"
+          }
+        }
+      }
+    },
+    "import.defaults.hidden.cursor.preserved.inactive.system.cursor.shape.omitted": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden cursor preserved; inactive System cursor shape omitted"
+          }
+        }
+      }
+    },
+    "import.defaults.choose.displays.for.imported.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Displays for Imported Defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.import.connection.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Connection Defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.review.defaults.import": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Defaults Import"
+          }
+        }
+      }
+    },
+    "import.defaults.saving.imported.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving imported defaults…"
+          }
+        }
+      }
+    },
+    "import.defaults.reading.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading defaults…"
+          }
+        }
+      }
+    },
+    "import.defaults.defaults.imported": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Defaults imported"
+          }
+        }
+      }
+    },
+    "import.defaults.open.a.new.connection.window.to.use.these.defaults.existing.windows.keep": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open a new connection window to use these defaults. Existing windows keep their own settings."
+          }
+        }
+      }
+    },
+    "import.defaults.the.original.settings.file.was.left.unchanged": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original settings file was left unchanged."
+          }
+        }
+      }
+    },
+    "import.defaults.new.connection": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Connection"
+          }
+        }
+      }
+    },
+    "import.defaults.bring.ordinary.connection.settings.into.this.native.app.saved.native.defaults.take": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring ordinary connection settings into this native app. Saved native defaults take precedence and cannot be replaced by import."
+          }
+        }
+      }
+    },
+    "import.defaults.passwords.server.addresses.security.settings.certificate.files.trust.decisions.and.tunnel.commands": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwords, server addresses, security settings, certificate files, trust decisions and tunnel commands are excluded. Recent server addresses are not included."
+          }
+        }
+      }
+    },
+    "import.defaults.review.current.tidyvnc.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Current TidyVNC Defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.reads.the.existing.tidyvnc.configuration.location.including.an.absolute.xdg.override": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reads the existing TidyVNC configuration location, including an absolute XDG override."
+          }
+        }
+      }
+    },
+    "import.defaults.review.legacy.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Legacy Defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.an.explicit.separate.choice.existing.tidyvnc.defaults.take.precedence.over.legacy.files": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An explicit, separate choice. Existing TidyVNC defaults take precedence over legacy files."
+          }
+        }
+      }
+    },
+    "import.defaults.no.defaults.file.was.found.for.that.source.choose.another.source.or": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No defaults file was found for that source. Choose another source or close this window."
+          }
+        }
+      }
+    },
+    "import.defaults.imports.are.a.one.time.copy.native.defaults.are.saved.by.this": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imports are a one-time copy. Native defaults are saved by this app; changes are not synchronized with the original files."
+          }
+        }
+      }
+    },
+    "import.defaults.source.current.tidyvnc.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: current TidyVNC defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.source.legacy.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: legacy defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.settings.to.import": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings to import"
+          }
+        }
+      }
+    },
+    "import.defaults.this.file.contains.no.supported.ordinary.settings.to.import": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file contains no supported ordinary settings to import."
+          }
+        }
+      }
+    },
+    "import.defaults.omissions.and.conversions": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omissions and conversions"
+          }
+        }
+      }
+    },
+    "import.defaults.displays.for.imported.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Displays for imported defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.numbering.follows.the.current.arrangement.left.to.right.and.then.top.to": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Numbering follows the current arrangement, left to right and then top to bottom. Change assignments if this file came from another arrangement."
+          }
+        }
+      }
+    },
+    "import.defaults.these.are.the.display.assignments.you.chose.for.imported.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are the display assignments you chose for imported defaults."
+          }
+        }
+      }
+    },
+    "import.defaults.i.reviewed.the.omissions.and.conversions": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I reviewed the omissions and conversions."
+          }
+        }
+      }
+    },
+    "import.defaults.import.saves.this.reviewed.copy.for.new.connection.windows.and.leaves.the": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import saves this reviewed copy for new connection windows and leaves the source file unchanged."
+          }
+        }
+      }
+    },
+    "import.defaults.import.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.choose.a.connected.display.for.each.monitor.number.in.these.defaults.you": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a connected display for each monitor number in these defaults. You will review the settings before importing."
+          }
+        }
+      }
+    },
+    "import.defaults.several.monitor.numbers.may.use.the.same.display.that.display.will.be": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Several monitor numbers may use the same display; that display will be selected once. Review the settings and omissions before importing. The source file stays unchanged."
+          }
+        }
+      }
+    },
+    "import.defaults.review.defaults": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Defaults"
+          }
+        }
+      }
+    },
+    "import.defaults.notice": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line %@, %@: %@"
+          }
+        }
+      }
+    },
+    "import.defaults.choose.a.connected.display.for.every.imported.monitor.before.continuing": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a connected display for every imported monitor before continuing."
+          }
+        }
+      }
+    },
+    "import.defaults.review.all.omitted.or.converted.settings.before.importing": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review all omitted or converted settings before importing."
+          }
+        }
+      }
+    },
+    "import.defaults.native.settings.changed.existing.settings.cannot.be.replaced.by.an.import": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native settings changed. Existing settings cannot be replaced by an import."
+          }
+        }
+      }
+    },
+    "import.defaults.native.settings.could.not.be.loaded.resolve.the.stored.settings.problem.before": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native settings could not be loaded. Resolve the stored settings problem before importing."
+          }
+        }
+      }
+    },
+    "import.defaults.native.settings.could.not.be.accessed.check.access.before.retrying": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native settings could not be accessed. Check access before retrying."
+          }
+        }
+      }
+    },
+    "import.defaults.settings.could.not.be.imported.reload.native.settings.and.review.the.source": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings could not be imported. Reload native settings and review the source before retrying."
+          }
+        }
+      }
+    },
+    "import.defaults.tidyvnc.settings.already.exist.review.those.settings.instead.of.importing.legacy.settings": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC settings already exist. Review those settings instead of importing legacy settings."
+          }
+        }
+      }
+    },
+    "import.defaults.native.settings.already.exist.and.cannot.be.replaced.by.an.import": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native settings already exist and cannot be replaced by an import."
+          }
+        }
+      }
+    },
+    "import.defaults.the.monitor.selection.cannot.be.mapped.refresh.displays.and.review.the.import": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The monitor selection cannot be mapped. Refresh displays and review the import again."
+          }
+        }
+      }
+    },
+    "import.defaults.the.display.arrangement.changed.reload.the.import.and.review.its.monitor.selection": {
+      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The display arrangement changed. Reload the import and review its monitor selection."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

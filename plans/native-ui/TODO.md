@@ -2,12 +2,12 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **796** entries;
-connection-file review/export, display mapping and shared file/invocation diagnostics
-join listener, profile/history/import and settings coverage. Expanded review and
-mapping layouts keep actions visible at minimum sizes. Next: defaults-import,
-app menus/connection/status, file panels and other controller/gateway errors.
-Interactive/physical/installed acceptance and release gates stay open.
+implementation, validation and next steps. The catalog now has **851** entries;
+defaults-import source/review/mapping/recovery and first-use text join the migrated
+document, listener, profile/history and settings groups. Expanded minimum-size
+fixtures keep consent/recovery/actions visible. Next: app menus/connection/status,
+file panels and remaining controlled controller/gateway errors, plus integrated
+window acceptance. Interactive/physical/installed and release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
 file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
@@ -562,13 +562,14 @@ UI uses, with migration and credential behavior verified independently.
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
-  - Latest follow-ups bring the catalog to 796 source entries. Connection-file
+  - Latest follow-ups bring the catalog to 851 source entries. Defaults-import and
+    first-use/source/recovery presentation, connection-file
     review/export, display mapping and shared file/invocation diagnostics join
     listener, profile/history/import, endpoint, settings and structured connection
     errors. Bounded scrolling and expanded fixtures expose controls and details at
     minimum sizes; physical display maps keep their actual order under RTL in the
     settings fixtures. Document/listener fixtures do not implement RTL. Remaining
-    defaults-import, app menus/connection/status, file panels and other controller/
+    app menus/connection/status, file panels and other controller/
     gateway errors plus interactive acceptance remain open. See LOCALIZATION.md
     and the latest evidence log.
   - Credential/password-file status, saved-trust storage notices and the trust
@@ -8997,3 +8998,50 @@ are in `/tmp/tidyvnc-document-review-expanded-final/`.
 All process handles completed. Next: defaults-import, app menus/connection/status,
 file panels and remaining controlled controller/gateway error localization, while
 continuing all broader acceptance and release requirements.
+
+
+### 2026-09-22 — Defaults-import localization and expanded presentation
+
+Added 55 entries (**851** total) for defaults-import categories, omission meanings,
+source review, consent, progress/result, first-use offer and fixed state/source
+recovery messages. Whole omission rows interpolate literal field names and
+localized line/notice arguments. Monitor rows reuse complete document catalog
+sentences. No parser, filtering, format, source-precedence or import-policy changes.
+
+Source selection explanations and mapping details scroll; recovery, acknowledgement
+and actions stay outside. Mapping labels wrap above their pickers and have matching
+accessibility names. Refresh has its own row. First-use actions sit below the offer
+text. The 640×572 content minimum still propagates through the host.
+
+Fixtures add minimum-size success, missing-source, native-state error and mapping
+error renders; overflow checks/end captures cover long review details. First-use
+light/dark renders use 592×160 fixture content. Appearance is applied to the hosting
+view as well as the window. Initial mapping capture had a native-control transition
+artifact; a 250 ms settling interval produced a clear final control label.
+
+Validation:
+
+- Defaults projection/commit, source discovery/review lifetime, native presentation/
+  first use, history projection/transaction and defaults mapping: **5/5 (5.41 s)**.
+  Source immutability, private-value exclusion, current/native precedence, stale
+  identities, omission consent, topology checks and close/drain assertions remain.
+- Expanded defaults import and mapping pass. Inspected source/review/end, first-use
+  dark, success, existing-state recovery, mapping dark/end and final mapping-error
+  minimum captures. Final mapping expansion uses the longer settling interval.
+- App build and strict deep signature pass. **851** packaged values/fallback and
+  interpolation checks pass, including UInt32 line limits and literal percent/
+  Unicode field names in omission rows. **32/32** actual executable terminal cases,
+  branding baseline **1650** and diff checks pass.
+- The known temporary-app sandbox-extension diagnostic appears during expansion,
+  followed by successful assertions and exit. No full-suite/sanitizer rerun.
+  Newer dependency deployment warnings remain; no macOS 14, RTL, VoiceOver,
+  combined connection-window, physical, installed-app or release acceptance follows.
+  No CUA/user-app action was attempted. N4.16/N4.17 remain open.
+
+Evidence: `/tmp/tidyvnc-defaults-localization-{build,tests,import-expanded,
+mapping-expanded,final-fixture-build,final-mapping-expanded,app,bundle,terminal,
+branding}.log`. Images: `/tmp/tidyvnc-defaults-import-expanded/`,
+`/tmp/tidyvnc-defaults-mapping-expanded-final/`; ordinary images remain in native
+`import-ui-render` / `defaults-mapping-ui-render` fixture directories.
+All process handles completed. Continue app menus/connection/status, file panels,
+remaining controlled controller/gateway errors and the full unchecked plan.
