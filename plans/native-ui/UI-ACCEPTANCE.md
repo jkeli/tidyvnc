@@ -1,5 +1,30 @@
 # Native UI acceptance observations
 
+## 2026-09-22 — rebuilt Help/About, profile connector failure reproduced
+
+CUA native access recovered at the start of this follow-up. The older app was
+quit through Command-Q and the rebuilt app was launched by its full repository
+bundle path. Actual Help menu activation opens the native Help window. Getting
+Started, Acknowledgements and Licence all load; accessibility exposes the bundled
+README and GPL text. The 720×640 guide screenshot shows wrapping text, scrollable
+topics and visible project/support links. Tab reaches the topic control and Right
+moves focus to Acknowledgements; this alone does not establish keyboard activation.
+Command-W closes Help. About displays TidyVNC 1.16.80, the app icon, upstream
+copyright and contributor credits; its screenshot was inspected. Escape closes it.
+These are actual app observations, separate from offscreen fixture evidence.
+
+Command-Shift-P opens the empty Saved Profiles window. Clicking New Profile again
+caused the CUA native pipe to close before returning state. A subsequent read also
+failed. The app remained alive (PID 53970 at this observation, sleeping at 0% CPU);
+no app crash was established. No Save or credential/trust action was invoked.
+The resulting unsaved draft is unverified and the running process predates the
+final localization/layout rebuild. Relaunch through CUA before further acceptance
+when access recovers. Do not substitute other UI-automation technologies.
+
+VoiceOver, complete keyboard activation, minimum-size interactive Help,
+profile editing, trust/authentication interactions and installed-app acceptance
+remain open. Screenshots were inspected inline; archival deliverables remain open.
+
 ## 2026-09-22 — built connection window
 
 The native app was selected through cua_repl using

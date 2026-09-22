@@ -3,10 +3,11 @@
 For the current implementation checkpoint and restart instructions, see
 [RESUME.md](RESUME.md) (2026-09-22, implementation checkpoint `0507ab9b`). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
-review, native Help/About resources, and 228 English-source localization entries
-are implemented. Remaining localization, interactive accessibility, physical
-input/display, installed-app and release gates are not yet accepted. The next
-concrete UI fix is the trust-library destination label under text expansion.
+review, native Help/About resources, and 304 English-source localization entries
+are implemented. Actual Help/About interaction and expanded Settings/trust layouts
+now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
+input/display, installed-app and release gates are not yet accepted. Continue the remaining settings/menu/document localization and interactive
+acceptance; the trust-library destination label and expanded trust actions are fixed.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,

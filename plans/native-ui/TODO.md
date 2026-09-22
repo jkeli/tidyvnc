@@ -558,8 +558,15 @@ UI uses, with migration and credential behavior verified independently.
     exact bundled document bytes, RTF parsing and 32 terminal cases pass. Offscreen
     guide layouts inspected at minimum/default sizes in light/dark. Actual Help
     topic switching, About presentation, keyboard and VoiceOver acceptance remain
-    open because CUA's native pipe still fails. Evidence: 2026-09-22 RESUME checkpoint.
+    open. A later CUA session verified topic loading, About identity/credits and
+    dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
+  - Latest Settings/encoding follow-up brings the catalog to 304 source entries.
+    Defaults/recovery/encoding fields and interpolated labels are covered, with
+    bounded scrolling and expanded/RTL layout fixtures. The trust-library label
+    and trust save/replace action truncation are fixed. Complete settings subfield,
+    menu/document/profile/listener/status migration and interactive acceptance
+    remain open. See LOCALIZATION.md and the latest evidence log.
   - Credential/password-file status, saved-trust storage notices and the trust
     library now add 60 catalog entries (228 total). Complete localized status
     sentences take literal diagnostic arguments; saved fingerprint text has
@@ -570,8 +577,8 @@ UI uses, with migration and credential behavior verified independently.
     A reusable isolated-bundle expansion runner now exposes truncation beyond the
     existing geometry assertions. Password lifetime and saved-password controls
     were corrected and inspected in light/dark; ordinary/final expanded rendering
-    passes. The trust-library destination placeholder still needs a wrapping
-    visible label; see RESUME for the next concrete action.
+    passes. The subsequent follow-up fixes the trust-library destination label
+    and expanded save/replace trust actions; see the latest evidence below.
   - Authentication/SSH sheets, trust details, credential-protection guidance and
     certificate/key presentation add 96 entries (168 total). Dynamic trust text
     uses whole sentences with literal arguments. Packaged lookup/fallback and
@@ -8613,3 +8620,58 @@ configuration remains unsupported by the app and no main plan gate is closed.
   after New Profile. App remains alive; no crash established and no Save invoked.
   Reset/rebind did not recover access. Draft-screen and installed/save-error UI
   acceptance remain unverified; UI-ACCEPTANCE.md records the exact observations.
+
+### 2026-09-22 — Settings/encoding localization, expanded controls and Help acceptance
+
+The catalog grows from 228 to **304** English source entries: 75 Settings/encoding
+entries plus the adaptive trust-review action. Settings sections/clipboard,
+defaults diagnostics, encoding controls/source labels and live encoding recovery
+use stable IDs and English defaults. Dynamic encoding names/values remain literal
+arguments; wire values, schema ranges and behavior are unchanged. Retained gettext
+catalogs and attribution are untouched. No C ABI or storage schema changes.
+
+Expanded rendering caught defects beyond fitting-size checks: the destination
+placeholder and trust-save button labels truncated; Settings compressed encoding
+rows and clipped Restore; live encoding clipped reload; inherited input choices
+truncated. The destination now has a wrapping visible/accessibility label. Trust
+save/replace actions adapt to full wrapping text plus Review Decision, opening the
+existing confirmation with the same safe default. Settings content now scrolls in
+a bounded window with visible errors/recovery and action controls. Restore adapts
+to a second row, live encoding reload has its own row, and input labels appear
+above full-width pickers. Representative ordinary, expanded light/dark and mirrored
+RTL screenshots were inspected. Scroller images show their visible content only;
+interactive scroll/keyboard/VoiceOver and translated-language acceptance stay open.
+
+Help explicitly selects SwiftUI's macOS 14 State property wrapper rather than the
+new SDK macro. The initial sandboxed Xcode build could not start the macro plugin;
+the final authorized app build passes. The initial sandboxed renderer could not
+create its loopback peer; the authorized isolated-fixture runs below pass. Neither
+failure was an automatic approval rejection. New CUA Help/About evidence and the
+reproduced New Profile connector failure are in UI-ACCEPTANCE.md; no app crash was
+established and no durable profile or trust/credential action was taken.
+
+Validation:
+
+- Focused native targets built. Preferences revision/persistence, encoding draft/
+  session isolation and ordinary rendering: **3/3 (26.75 s)**. After the last
+  picker/action-row layout changes, final ordinary rendering: **1/1 (27.01 s)**.
+- Final expanded and mirrored expanded renderers both exit 0. Prefix selection and
+  `--rtl` are now supported by the isolated-bundle runner. PNG review includes
+  Settings input-conflict/encoding, live encoding conflict, certificate/server-key
+  libraries and save/replace actions. Synthetic padding is never shipped.
+- Final app build passes, strict deep signature passes, all **304** packaged values
+  and missing-key/untranslated-language/interpolation checks pass; **32/32** actual
+  executable terminal cases pass with isolated HOME/XDG unchanged. Branding remains
+  **1650** deferred occurrences. Whitespace checks pass.
+- Full 85-test suite and sanitizers were not repeated for presentation-only work;
+  their prior results remain historical. No minimum-OS, installed-app, physical
+  display/input, full accessibility or release acceptance is inferred.
+
+Evidence: `/tmp/tidyvnc-settings-localization-{build,tests,branding}.log`,
+`/tmp/tidyvnc-settings-final-{app,render,bundle,terminal,expanded,rtl}.log`,
+`/tmp/tidyvnc-settings-final-expanded/`, `/tmp/tidyvnc-settings-final-rtl/`.
+All recorded build/test handles completed. The app process retained after the CUA
+failure predates the final rebuild; relaunch through CUA when access recovers.
+Continue the complete unchecked checklist; next localization includes remaining
+settings subfields and must remove English inheritance-label comparisons before
+translating their profile reset behavior. N4.15/N4.16/N4.17 remain open.

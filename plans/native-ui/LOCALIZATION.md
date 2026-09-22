@@ -48,13 +48,39 @@ python3 tests/macos/localization-expansion.py \
   apps/macos/Localizable.xcstrings /tmp/tidyvnc-settings-expanded-renders
 ```
 
-The runner creates and removes an isolated test bundle, expanding only the
-authentication, credential, trust and shared-action catalog entries. It appends
+The runner creates and removes an isolated test bundle. It originally expanded
+authentication, credential, trust and shared-action entries; settings coverage is
+now included as described below. It appends
 padding instead of duplicating format placeholders. Inspect the resulting PNGs:
 the initial run passed fitting-size assertions while the password-retention
 selection and saved-password buttons were truncated. The retention label now
 appears above its full-width picker, and saved-password actions are vertical.
 This targeted fixture does not establish expansion support for the remaining UI.
+
+The catalog now contains 304 English source entries. Settings section labels,
+clipboard defaults, storage recovery messages, encoding controls/source labels and
+the live encoding sheet have stable IDs. Encoding option/value and unavailable
+choice messages use literal interpolated arguments; ranges, protocol names and
+stored values still come from the shared schema. Other settings fields, menus,
+profiles/documents/listeners and status strings remain to be migrated.
+
+The trust-library destination now has a wrapping visible label and an explicit
+accessibility name. Native trust save/replace buttons still truncate long labels,
+even with a multiline Text label, so an adaptive fallback displays the complete
+action above a short Review Decision button. It opens the same confirmation and
+retains the complete action as its accessibility name. Cancel remains the default.
+
+Settings now gives field content a bounded scroll area, preserving space for
+errors/recovery and Apply/Cancel controls. Restore actions adapt to a separate row
+when necessary; live encoding recovery has its own row. Input defaults place
+labels above their inherited-value pickers. These changes address truncation
+found in expanded screenshots, beyond fitting-size assertions.
+
+The expansion runner now includes `settings.` by default. Use repeated `--prefix`
+arguments to narrow the expanded entries, and `--rtl` to mirror the fixture's
+SwiftUI layout. Mirrored English is a layout stress check, not translated-language
+or VoiceOver acceptance. Inspect the images and keep remaining subfield coverage
+open; a scroller screenshot shows only its currently visible content.
 
 After building the app, run the packaging regression check:
 

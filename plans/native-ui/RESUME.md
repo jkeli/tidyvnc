@@ -4,6 +4,41 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Settings localization and visible UI checks
+
+Implementation commits: `86d36a54` (compatible Help state wrappers) and
+`a72fd6ee` (Settings localization and expanded control layouts).
+
+The catalog has **304** English source entries. Settings headings, clipboard
+controls, defaults diagnostics, encoding controls/source labels and live encoding
+recovery are localized. Literal option/value interpolation is checked in the
+packaged bundle. Trust-library destination guidance now wraps above its field
+with an explicit accessibility name. Expanded trust save/replace actions use a
+complete wrapping label plus Review Decision when a native button would truncate;
+the existing confirmation and safe default remain intact.
+
+Settings field content scrolls within a bounded window; expanded recovery messages
+and Apply/Cancel remain visible. Restore actions can move to a separate row, live
+encoding reload has its own row, and input-default labels sit above full-width
+pickers. The expansion runner supports prefix selection and mirrored `--rtl`
+fixtures. Representative expanded light/dark and mirrored trust/library/encoding/
+Settings conflict PNGs were inspected. This is synthetic layout evidence, not a
+shipping translation or full VoiceOver/interactive Settings acceptance.
+
+The app's Help state explicitly uses the macOS 14 property wrapper, matching
+AuthenticationSheet, rather than resolving the newer SDK State macro. CUA access
+recovered long enough to quit/relaunch the app, open Help and switch all three
+topics, inspect About identity/credits, and dismiss with Command-W/Escape. The
+profile shortcut opens its empty library; New Profile again closed the connector's
+native pipe. The app remained alive (PID 53970 at that observation, 0% CPU).
+No Save or credential/trust action was invoked. The running process predates the
+final layout rebuild and may contain an unsaved draft. See UI-ACCEPTANCE.md.
+
+Validation and exact logs are in the latest TODO evidence. The prior full 85-test
+suite and sanitizers were not rerun for these presentation changes. No ABI,
+storage schema, protocol, credential or trust-policy change. All remaining plan
+items stay in scope, including physical/installed/deployment/CI/release gates.
+
 ## Committed checkpoint (2026-09-22)
 
 The accumulated implementation is committed by purpose at the user's request:
@@ -527,25 +562,25 @@ not use them. Do not confuse a fixture screenshot with full installed-app accept
 
 ## Next steps
 
-1. Fix the expanded trust-library destination placeholder by adding a visible
-   wrapping label and preserving its accessibility name. Rerun the ordinary and
-   synthetic expansion renderer, then inspect the actual PNGs. Review the other
-   expanded trust screens; geometry assertions alone missed earlier truncation.
-2. Continue stable-ID catalog migration for remaining settings, connection/menu,
-   document/profile/history, listener and status UI. Preserve gettext attribution
-   and source-language defaults. Extend long-string and RTL checks without
-   presenting synthetic padding as a shipping translation. See LOCALIZATION.md.
-3. When CUA native access recovers, relaunch the rebuilt app and resume actual
-   Help/About, profile, SSH authentication/save-failure and trust interactions,
-   keyboard/VoiceOver and close/quit checks. The last getApp still failed with its
-   native pipe closed; no crash or lock was established. Do not bypass CUA using
-   other UI automation. See UI-ACCEPTANCE.md and SSH-CONFIGURATION.md.
+1. Continue stable-ID localization for remaining settings fields (input, scaling,
+   security, fullscreen and resize), then connection/menu, document/profile/history,
+   listener and status UI. Remove presentation-string comparisons in
+   InputDefaultsFields/ScalingDefaultsFields before localizing the app-default
+   inheritance labels; use typed intent for reset actions. Preserve shared option
+   values, gettext attribution and English defaults. See LOCALIZATION.md.
+2. Inspect expanded/RTL layouts for each newly migrated surface. The runner accepts
+   `--prefix` and `--rtl`; geometry assertions miss native-control truncation.
+   Synthetic mirrored English does not establish translated-language acceptance.
+3. When CUA native access recovers, relaunch the final built app and resume
+   profiles, interactive Settings/scrolling, SSH authentication/save-failure/trust,
+   keyboard/VoiceOver and close/quit checks. Help topic loads/About presentation now
+   have actual app evidence. New Profile reproduced the native pipe closure; no
+   app crash or lock was established. Do not bypass CUA with other UI automation.
 4. Continue the entire unchecked parity inventory and option coverage, physical
    keyboard/fullscreen/Spaces/multidisplay, installed Finder/LAN/privacy/Keychain,
    performance, minimum-OS/architecture, CI, signing and release gates. The current
    dependencies are newer than the declared deployment floor. These priorities
-   do not replace or narrow the numbered checklist; N4.15/N4.16 and release remain
-   open despite the implementation commits.
+   do not narrow the numbered checklist; N4.15/N4.16 and release remain open.
 
 ## Commands and environment
 
