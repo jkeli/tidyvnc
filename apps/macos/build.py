@@ -33,7 +33,7 @@ def main():
         "-DENABLE_NLS=OFF", "-DENABLE_AUDIO=OFF", "-DENABLE_H264=OFF",
         "-DENABLE_GNUTLS=ON", "-DENABLE_NETTLE=ON", "-DCMAKE_DISABLE_FIND_PACKAGE_FLTK=TRUE",
         "-DCMAKE_DISABLE_FIND_PACKAGE_X11=TRUE")
-    run("cmake", "--build", core, "--target", "tidyvnc_macos_bridge", "--parallel", "4")
+    run("cmake", "--build", core, "--target", "tidyvnc_macos_bridge", "tidyvnc-ssh-askpass", "--parallel", "4")
     run("cmake", "-S", source / "apps/macos", "-B", app, "-G", "Xcode", *common,
         f"-DNATIVE_CORE_BUILD={core}")
     run("xcodebuild", "-project", app / "TidyVNCNativeApp.xcodeproj", "-scheme", "TidyVNC",

@@ -22,7 +22,11 @@ final class NativeTunnelProcess: @unchecked Sendable {
   private init(onExit: @escaping @Sendable () -> Void) { self.onExit = onExit }
 
   static func launch(executable: String, arguments: [String], environment: [String:String],
+                     output: NativeTunnelOutput? = nil, standardError: Bool = false,
                      onExit: @escaping @Sendable () -> Void) throws -> NativeTunnelProcess {
+    let writer = try output?.claimWriter()
+    var spawned = false
+    defer { if !spawned { output?.launchFailed() } }
     guard executable.hasPrefix("/"), !executable.utf8.contains(0), arguments.count <= 128,
           arguments.allSatisfy({ $0.utf8.count <= 8192 && !$0.utf8.contains(0) }),
           environment.count <= 16, environment.allSatisfy({ $0.key.utf8.count <= 4096 && !$0.key.contains("=") &&
@@ -36,6 +40,11 @@ final class NativeTunnelProcess: @unchecked Sendable {
     guard posix_spawnattr_init(&attributes) == 0 else { throw NativeTunnelError.launchFailed }
     defer { posix_spawnattr_destroy(&attributes) }
     for fd in [STDIN_FILENO,STDOUT_FILENO,STDERR_FILENO] {
+      if fd == (standardError ? STDERR_FILENO : STDOUT_FILENO), let writer {
+        guard posix_spawn_file_actions_adddup2(&actions,writer,fd) == 0,
+              posix_spawn_file_actions_addclose(&actions,writer) == 0 else { throw NativeTunnelError.launchFailed }
+        continue
+      }
       guard posix_spawn_file_actions_addopen(&actions,fd,"/dev/null",fd == STDIN_FILENO ? O_RDONLY : O_WRONLY,0) == 0 else {
         throw NativeTunnelError.launchFailed
       }
@@ -60,11 +69,13 @@ final class NativeTunnelProcess: @unchecked Sendable {
       }
     }
     guard status == 0 else { throw NativeTunnelError.launchFailed }
-    owner.pid = child
+    owner.pid = child; spawned = true
     let source = DispatchSource.makeProcessSource(identifier:child,eventMask:.exit,queue:.global(qos:.utility))
     // Retain the owner until exit, even if a cancelled caller drops its handle.
     source.setEventHandler { owner.reap() }
-    owner.source = source; source.activate(); owner.reap()
+    owner.source = source; source.activate()
+    output?.didSpawn { [weak owner] in owner?.cancel() }
+    owner.reap()
     return owner
   }
 

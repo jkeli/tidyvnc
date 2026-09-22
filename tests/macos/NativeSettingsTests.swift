@@ -28,7 +28,7 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
   try await Task.sleep(for: .milliseconds(50)); try await ready()
   view.layoutSubtreeIfNeeded()
   let fitting = view.fittingSize
-  guard fitting.width <= size.width, fitting.height <= size.height else { throw Failure(message: "Settings exceeds test window: \(fitting)") }
+  guard fitting.width <= size.width, fitting.height <= size.height else { throw Failure(message: "Settings \(name) exceeds test window: \(fitting)") }
   guard let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { throw Failure(message: "No settings bitmap") }
   view.cacheDisplay(in: view.bounds, to: bitmap)
   guard let data = bitmap.representation(using: .png, properties: [:]) else { throw Failure(message: "No settings PNG") }

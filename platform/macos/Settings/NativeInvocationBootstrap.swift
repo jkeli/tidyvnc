@@ -114,12 +114,14 @@ public enum NativeInvocationBootstrap {
     text += "Listen defaults to TCP port 5500; port 0 chooses an available port. Use a decimal port from 0 to 65535.\nWith -listen ./file.tidyvnc, review file settings before binding; ServerName supplies the port. Unix socket listeners are unsupported.\nAccept each incoming connection in the listener window.\n"
     text += "Legacy password files apply only to password-only authentication. VNC_PASSWORD (with VNC_USERNAME when required) takes precedence.\nLaunch credentials belong to the first connection window (first accepted incoming window with -listen) and are never saved.\nStopping the listener clears unclaimed launch credentials.\n"
     text += "Unsupported native adapters fail explicitly; their parameters are never ignored.\n"
+    text += "SSH via accepts [user@]host or ssh://[user@]host[:port]. It uses SSH host-key verification, default-key/agent authentication and native password/passphrase prompts.\nNew Ed25519/RSA/ECDSA gateway keys require explicit Trust and Save; changed keys are rejected.\nSupported ~/.ssh/config settings are captured before connecting; commands, proxy hops and VNC_VIA_CMD are unsupported.\nSSH forwarding cannot be used with -listen or Unix socket targets. An empty via value selects a direct connection.\n"
     return .init(text:text,exitCode:1)
   }
   // Startup-only metadata inspection, before AppKit/store initialization. No file
   // contents, environment credentials, sockets or settings stores are opened.
   public static func launch(_ options: NativeInvocationOptions, workingDirectory: String,
-                            inspector: any NativeInvocationPathInspecting = NativeInvocationPathInspector()) throws -> NativeInvocationLaunch {
+                            inspector: any NativeInvocationPathInspecting = NativeInvocationPathInspector(),
+                            customTunnelCommandPresent: Bool = false) throws -> NativeInvocationLaunch {
     guard workingDirectory.hasPrefix("/"), NativeTrustFiles.isValidPath(workingDirectory) else {
       throw NativeInvocationResolutionFailure(reason:.relativePathNeedsBase,argument:0)
     }
@@ -127,6 +129,9 @@ public enum NativeInvocationBootstrap {
     // waits for current displays and optional explicit-file precedence in the UI.
     _ = try NativeInvocationPreparation(options:options,endpoint:"",base:.init(),legacyDisplays:[],
       workingDirectory:workingDirectory,monitorMapping:nil,deferDisplayMapping:true)
+    if customTunnelCommandPresent, try NativeInvocationRouting.gateway(options) != nil {
+      throw NativeInvocationResolutionFailure(reason:.customTunnelCommandUnsupported,argument:0)
+    }
     if options.assignments.last(where:{ $0.name == "listen" })?.value == "on" {
       let operand = options.operand
       var listen = NativeListenOptions()
@@ -168,7 +173,9 @@ public enum NativeInvocationBootstrap {
       do { try NativeEndpoint.validate(endpoint) }
       catch { throw NativeInvocationResolutionFailure(reason:.invalidEndpoint,argument:options.operandArgument) }
     }
-    return .init(invocation:.init(options:options,endpoint:endpoint,workingDirectory:workingDirectory),document:document)
+    let request = NativeInvocationRequest(options:options,endpoint:endpoint,workingDirectory:workingDirectory)
+    _ = try request.gateway(endpoint:endpoint)
+    return .init(invocation:request,document:document)
   }
 }
 

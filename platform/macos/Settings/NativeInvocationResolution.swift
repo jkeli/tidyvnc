@@ -12,10 +12,34 @@ public struct NativeInvocationRequest: Sendable {
     self.options = options; self.endpoint = endpoint; self.workingDirectory = workingDirectory
     self.monitorMapping = monitorMapping
   }
+  // Routing is launch metadata, not an ordinary setting or compatibility file
+  // field. Resolve it against the final reviewed target before session creation.
+  public func gateway(inheriting inherited: NativeSSHGateway? = nil, endpoint: String = "") throws -> NativeSSHGateway? {
+    let gateway = try NativeInvocationRouting.gateway(options, inheriting:inherited)
+    if let gateway, !endpoint.isEmpty {
+      do { _ = try NativeSSHTunnelRequest(endpoint:endpoint,gateway:gateway) }
+      catch { throw NativeInvocationResolutionFailure(reason:.invalidTunnelTarget,argument:options.operandArgument) }
+    }
+    return gateway
+  }
+}
+
+enum NativeInvocationRouting {
+  static func gateway(_ options: NativeInvocationOptions, inheriting inherited: NativeSSHGateway? = nil) throws -> NativeSSHGateway? {
+    var gateway = inherited
+    for field in options.assignments where field.name == "via" {
+      do { gateway = field.value.isEmpty ? nil : try NativeSSHGateway(field.value) }
+      catch { throw NativeInvocationResolutionFailure(reason:.invalidValue,argument:field.argument) }
+    }
+    if gateway != nil, options.assignments.last(where:{ $0.name == "listen" })?.value == "on" {
+      throw NativeInvocationResolutionFailure(reason:.tunnelListenUnsupported,argument:options.assignments.last(where:{ $0.name == "via" })?.argument ?? 0)
+    }
+    return gateway
+  }
 }
 
 public struct NativeInvocationResolutionFailure: Error, Sendable, Equatable, CustomStringConvertible {
-  public enum Reason: Sendable { case notLaunch, unsupportedOption, invalidEndpoint, invalidValue, displayMappingRequired, relativePathNeedsBase, invalidListenPort, listenSocketUnsupported }
+  public enum Reason: Sendable { case notLaunch, unsupportedOption, invalidEndpoint, invalidValue, displayMappingRequired, relativePathNeedsBase, invalidListenPort, listenSocketUnsupported, invalidTunnelTarget, tunnelListenUnsupported, customTunnelCommandUnsupported }
   public let reason: Reason
   public let argument: UInt32
   public var description: String {
@@ -29,6 +53,9 @@ public struct NativeInvocationResolutionFailure: Error, Sendable, Equatable, Cus
     case .relativePathNeedsBase: message = "Resolve the command-line file path before continuing."
     case .invalidListenPort: message = "The listen port must be a decimal number from 0 to 65535."
     case .listenSocketUnsupported: message = "Listening on a Unix socket is not supported. Supply a TCP port or connection file instead."
+    case .invalidTunnelTarget: message = "SSH forwarding requires a supported TCP server address. Unix socket targets are not supported."
+    case .tunnelListenUnsupported: message = "SSH forwarding cannot be combined with listening for connections."
+    case .customTunnelCommandUnsupported: message = "VNC_VIA_CMD shell customizations are not supported. Unset VNC_VIA_CMD to use native SSH forwarding."
     }
     return argument == 0 ? message : "Argument \(argument): \(message)"
   }
@@ -45,7 +72,7 @@ public struct NativeInvocationResolution: Sendable {
       "ViewOnly","EmulateMiddleButton","FullscreenSystemKeys","ShortcutModifiers","AlwaysCursor","CursorType",
       "DotWhenNoCursor","ScalingFactor","ScalingQuality","DesktopPixelUnits","SecurityTypes","X509CA","X509CRL",
       "FullScreen","FullScreenMode","FullScreenSelectedMonitors","FullScreenAllMonitors"])
-    let additional: Set<String> = ["DesktopSize","RemoteResize","GnuTLSPriority","UseIPv4","UseIPv6","PointerEventInterval","MaxCutText","geometry","Maximize","Log","PasswordFile","listen"]
+    let additional: Set<String> = ["DesktopSize","RemoteResize","GnuTLSPriority","UseIPv4","UseIPv6","PointerEventInterval","MaxCutText","geometry","Maximize","Log","PasswordFile","listen","via"]
     return common.union(additional)
   }
   init(prepared: NativeInvocationPreparation, endpoint: String, legacyDisplays: [NativeDisplayID],
@@ -89,6 +116,7 @@ struct NativeInvocationPreparation: Sendable {
        monitorMapping: [Int:NativeDisplayID]?, deferDisplayMapping: Bool) throws {
     guard options.action == .launch else { throw NativeInvocationResolutionFailure(reason:.notLaunch,argument:0) }
     _ = try NativeLaunchCredentialInputs.passwordFile(options,workingDirectory:workingDirectory)
+    _ = try NativeInvocationRouting.gateway(options)
     let supported = try NativeInvocationResolution.supportedOptions()
     var fields: [String:String] = [:], positions: [String:UInt32] = [:]
     var geometry: NativeWindowGeometry?

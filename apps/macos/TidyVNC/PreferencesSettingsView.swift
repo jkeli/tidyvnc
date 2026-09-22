@@ -108,8 +108,11 @@ struct PreferencesSettingsView: View {
         } else { GroupBox("Encoding") { encodingFields.padding(8) } }
       }.frame(height: selection.section == .input || selection.section == .scaling || selection.section == .trust || selection.section == .security ? 380 : 330, alignment: .top).disabled(model.isBusy || model.snapshot == nil || model.needsReload)
       if let error = model.error {
-        Text(preferencesMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
-          .accessibilityIdentifier("preferences.error")
+        VStack(alignment: .leading, spacing: 8) {
+          Text(preferencesMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("preferences.error")
+          if model.needsReload || model.snapshot == nil { reloadButton }
+        }
       }
       if model.isBusy { ProgressView("Updating defaults…").controlSize(.small) }
       HStack {
@@ -120,14 +123,15 @@ struct PreferencesSettingsView: View {
         Button("Apply") { model.apply() }.disabled(!model.canApply).keyboardShortcut(.defaultAction)
           .accessibilityIdentifier("preferences.apply")
       }
-      if model.needsReload || model.snapshot == nil {
-        Button(model.hasChanges ? "Discard Edits and Reload" : "Reload Saved Defaults") { model.reload() }.disabled(model.isBusy)
-      }
+      if model.error == nil && (model.needsReload || model.snapshot == nil) { reloadButton }
     }.padding(24).frame(width: 560)
       .onAppear { if !model.isBusy && !model.hasChanges { model.reload() } }
       .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
         if !model.isBusy && !model.hasChanges { model.reload() }
       }
       .onDisappear { model.cancel() }
+  }
+  private var reloadButton: some View {
+    Button(model.hasChanges ? "Discard Edits and Reload" : "Reload Saved Defaults") { model.reload() }.disabled(model.isBusy)
   }
 }

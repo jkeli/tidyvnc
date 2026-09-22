@@ -18,7 +18,8 @@ with tempfile.TemporaryDirectory(prefix='tidyvnc-terminal-') as temporary:
     root = Path(temporary)
     env = dict(os.environ, HOME=str(root), XDG_CONFIG_HOME=str(root / 'config'),
                XDG_DATA_HOME=str(root / 'data'), XDG_STATE_HOME=str(root / 'state'),
-               VNC_USERNAME='private-fixture', VNC_PASSWORD='private-env-' * 500)
+               VNC_USERNAME='private-fixture', VNC_PASSWORD='private-env-' * 500,
+               VNC_VIA_CMD='private-shell-$(touch should-not-exist)')
     sentinel = root / 'untouched'
     sentinel.write_bytes(b'fixture input remains unchanged')
     cases = [
@@ -37,7 +38,10 @@ with tempfile.TemporaryDirectory(prefix='tidyvnc-terminal-') as temporary:
         ([b'-listen', b'5500private-value'], 1, b'listen port must', False),
         ([b'-listen', b'./private-file'], 1, b'launch credential exceeds', False),
         ([b'-listen', b'-UseIPv4=off', b'-UseIPv6=off'], 1, b'cannot be applied', False),
-        ([b'-via=private-value'], 1, b'native adapter', False),
+        ([b'-via=private invalid'], 1, b'cannot be applied', False),
+        ([b'-via=private-gateway'], 1, b'VNC_VIA_CMD shell customizations are not supported', False),
+        ([b'-via=private-gateway', b'-listen', b'./private-file'], 1, b'cannot be combined with listening', False),
+        ([b'-via=private-gateway', b'-via='], 1, b'launch credential exceeds', False),
         ([b'-Log=private-writer:private-target:2147483648', b'-Log=*::0', b'--help'], 1, b'invalid value', False),
         ([b'-Log=private-writer:private-target:-2147483649', b'--version'], 1, b'invalid value', False),
         ([b'-Log=*:stderr:+30tail', b'--version'], 0, b'TidyVNC v' + version, False),
@@ -64,6 +68,8 @@ with tempfile.TemporaryDirectory(prefix='tidyvnc-terminal-') as temporary:
             assert b'PointerEventInterval <value> [default: 17]\n' in result.stderr, 'wrong native pointer timing default'
             assert b'  geometry <value>\n' in result.stderr, 'missing native geometry adapter'
             assert b'  Log <value> [default: *:stderr:30]\n' in result.stderr, 'missing process logging adapter'
+            assert b'  via <value>\n' in result.stderr, 'missing native SSH adapter'
+            assert b'Supported ~/.ssh/config settings are captured before connecting; commands, proxy hops and VNC_VIA_CMD are unsupported.' in result.stderr
             assert b'File: /tmp/vncviewer.log, created on first output with one .bak; failures use stderr.' in result.stderr
             for name in (b'UseIPv4', b'UseIPv6', b'Maximize', b'listen'):
                 assert b'  ' + name + b' [on|off]\n' in result.stderr, 'missing native network adapter'

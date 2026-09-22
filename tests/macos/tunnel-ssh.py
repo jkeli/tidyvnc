@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Exercise the native tunnel against an isolated loopback OpenSSH daemon."""
 import os
+import base64
+import hashlib
 from pathlib import Path
 import pwd
 import signal
@@ -12,16 +14,18 @@ import time
 
 
 def main():
-    if len(sys.argv) != 2:
-        raise SystemExit("Usage: tunnel-ssh.py native-tunnel-tests")
+    if len(sys.argv) not in (2, 3, 4):
+        raise SystemExit("Usage: tunnel-ssh.py native-tunnel-tests [askpass-helper [host-key-type]]")
     sshd = Path("/usr/sbin/sshd")
     if not sshd.is_file():
         print("SKIP: system sshd is unavailable; real SSH acceptance remains open")
         return 77
     with tempfile.TemporaryDirectory(prefix="tidyvnc-ssh-acceptance-") as temporary:
         root = Path(temporary)
-        for name in ("host", "client"):
-            subprocess.run(["/usr/bin/ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", str(root / name)], check=True)
+        for name in ("host", "client", "other_host"):
+            passphrase = "fixture-key-passphrase" if name == "client" and len(sys.argv) >= 3 else ""
+            algorithm = sys.argv[3] if name != "client" and len(sys.argv) == 4 else "ed25519"
+            subprocess.run(["/usr/bin/ssh-keygen", "-q", "-t", algorithm, "-N", passphrase, "-f", str(root / name)], check=True)
         authorized = root / "authorized"
         authorized.write_bytes((root / "client.pub").read_bytes())
         authorized.chmod(0o600)
@@ -31,6 +35,11 @@ def main():
         known = root / "known_hosts"
         kind, key, *_ = (root / "host.pub").read_text().split()
         known.write_text(f"[127.0.0.1]:{port} {kind} {key}\n")
+        (root / "known_hosts.revoked").write_text("@revoked " + known.read_text())
+        fingerprint = base64.b64encode(hashlib.sha256(base64.b64decode(key)).digest()).decode().rstrip("=")
+        (root / "known_hosts.fingerprint").write_text("SHA256:" + fingerprint)
+        other_kind, other_key, *_ = (root / "other_host.pub").read_text().split()
+        (root / "known_hosts.changed").write_text(f"[127.0.0.1]:{port} {other_kind} {other_key}\n")
         user = pwd.getpwuid(os.getuid()).pw_name
         config = root / "sshd_config"
         config.write_text(f"""Port {port}
@@ -51,6 +60,15 @@ X11Forwarding no
 PrintMotd no
 LogLevel ERROR
 """)
+        # These tests deliberately reject keys and cancel authentication from
+        # one loopback source. Newer sshd versions otherwise accumulate penalties
+        # and refuse later, unrelated cases before they can present a prompt.
+        # Probe -T to preserve compatibility with older deployment-floor sshd.
+        effective = subprocess.run([str(sshd), "-T", "-f", str(config)],
+                                   capture_output=True, check=True)
+        if any(line.startswith(b"persourcepenalties ") for line in effective.stdout.splitlines()):
+            with config.open("a") as stream:
+                stream.write("PerSourcePenalties no\n")
         with (root / "server.log").open("wb") as log:
             server = subprocess.Popen([str(sshd), "-D", "-e", "-f", str(config)],
                                       stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
@@ -69,8 +87,10 @@ LogLevel ERROR
                             print("SKIP: isolated SSH listener did not start; real SSH acceptance remains open")
                             return 77
                         time.sleep(0.02)
-                result = subprocess.run([sys.argv[1], "--ssh", f"ssh://{user}@127.0.0.1:{port}",
-                                         str(root / "client"), str(known)], timeout=35, check=False)
+                command = [sys.argv[1], "--ssh", f"ssh://{user}@127.0.0.1:{port}", str(root / "client"), str(known)]
+                if len(sys.argv) >= 3:
+                    command.append(sys.argv[2])
+                result = subprocess.run(command, timeout=35, check=False)
                 return result.returncode
             finally:
                 # The leader remains unreaped, pinning this exact fixture group

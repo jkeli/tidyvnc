@@ -34,7 +34,7 @@ func persistence() async throws {
         let saved = try await store.upsert(draft,expected: snapshot.revision)
         let reopened = NativeProfileHistoryStore(backing: backing), current = try await reopened.read()
         try check(current == saved && current.profiles[0].settings.trustFiles == files && current.recentEndpoints == ["recent"],"profile exact paths, explicit empty and history preserved")
-        try check((try JSONSerialization.jsonObject(with: backing.read()!) as! [String:Any])["schema"] as? Int == 11,"profile upgrade on save")
+        try check((try JSONSerialization.jsonObject(with: backing.read()!) as! [String:Any])["schema"] as? Int == 12,"profile upgrade on save")
         await reopened.close(); await store.close()
       } else {
         let store = NativePreferencesStore(backing: backing), snapshot = try await store.read()

@@ -83,7 +83,7 @@ func validationAndPreservation() async throws {
   let profile = "{\"id\":\"00000000-0000-0000-0000-000000000002\",\"name\":\"Lab\",\"endpoint\":\"host\",\"settings\":{}}"
   func withSettings(_ value: String) -> Data { envelope("[" + profile.replacingOccurrences(of: "\"settings\":{}", with: "\"settings\":\(value)") + "]") }
   let cases: [(Data, NativeStorageError)] = [
-    (Data("partial".utf8), .corrupt), (envelope(schema: "12"), .futureSchema), (envelope(schema: "true"), .corrupt),
+    (Data("partial".utf8), .corrupt), (envelope(schema: "13"), .futureSchema), (envelope(schema: "true"), .corrupt),
     (withSettings("{\"password\":\"rejected\"}"), .unsupportedFields), (withSettings("{\"clipboardSend\":1}"), .corrupt),
     (withSettings("{\"encoding\":{\"qualityLevel\":100}}"), .invalid), (withSettings("{\"encoding\":{\"qualityLevel\":null}}"), .corrupt),
     (envelope("[\(profile),\(profile)]"), .corrupt), (envelope(history: "[\"host\",\"host\"]"), .corrupt),
@@ -122,10 +122,10 @@ func routedPersistence() async throws {
   try check(loaded == value && loaded.profiles[0].destination == first && !loaded.canImportHistory,
             "fresh store preserves route, opaque credential reference and history state")
   let bytes = try backend.read()!, object = try JSONSerialization.jsonObject(with:bytes) as! [String:Any]
-  try check(object["schema"] as? Int == 11 && object["recentEndpoints"] == nil &&
-            (object["profiles"] as? [[String:Any]])?.first?["sshGateway"] as? String == a.canonicalURI &&
+  try check(object["schema"] as? Int == 12 && object["recentEndpoints"] == nil &&
+            ((object["profiles"] as? [[String:Any]])?.first?["sshGateway"] as? [String:Any])?["uri"] as? String == a.canonicalURI &&
             !String(decoding:bytes,as:UTF8.self).contains(a.routeIdentity),"schema persists gateway, never forwarding socket or derived digest")
-  value = try await store.recordRecent(.init(endpoint:first.endpoint,sshGateway:NativeSSHGateway("ssh://alice@gateway.invalid:22")),expected:value.revision)
+  value = try await store.recordRecent(.init(endpoint:first.endpoint,sshGateway:NativeSSHGateway("ssh://alice@gateway.invalid")),expected:value.revision)
   try check(value.recentConnections == [first,second,direct],"equivalent gateway spelling coalesces only the same route")
   try await expect(.conflict) { _ = try await reopened.removeRecent(first,expected:loaded.revision) }
   value = try await store.removeRecent(direct.endpoint,expected:value.revision)
@@ -164,14 +164,32 @@ func routedPersistence() async throws {
     try check(migrated.recentConnections == [first] + before.recentConnections && migrated.historyState == before.historyState,
               "explicit mutation upgrades without dropping original addresses or import marker")
     let fresh = NativeProfileHistoryStore(backing:memory), reloaded = try await fresh.read()
-    try check(reloaded == migrated,"schema 11 upgrade reopens exactly")
+    try check(reloaded == migrated,"schema 12 upgrade reopens exactly")
     await owner.close(); await fresh.close()
   }
-  func document(_ history: [[String:Any]]) throws -> Data {
-    try JSONSerialization.data(withJSONObject:["schema":11,"revision":UUID().uuidString,"profiles":[],
+  func document(_ history: [[String:Any]], schema: Int = 11) throws -> Data {
+    try JSONSerialization.data(withJSONObject:["schema":schema,"revision":UUID().uuidString,"profiles":[],
                                              "historyState":"native","recentConnections":history])
   }
+  var legacyObject = try JSONSerialization.jsonObject(with:document([["endpoint":"remote.invalid","sshGateway":"alice@gateway.invalid"]])) as! [String:Any]
+  legacyObject["profiles"] = [["id":UUID().uuidString,"name":"Old profile","endpoint":"remote.invalid","settings":[:],"sshGateway":"alice@gateway.invalid"]] as [[String:Any]]
+  let legacyBytes = try JSONSerialization.data(withJSONObject:legacyObject)
+  let legacyMemory = Memory(legacyBytes), legacyStore = NativeProfileHistoryStore(backing:legacyMemory)
+  let legacyValue = try await legacyStore.read()
+  let legacyGateway = try NativeSSHGateway("ssh://alice@gateway.invalid:22")
+  try check(legacyValue.recentConnections.first?.sshGateway == legacyGateway && legacyValue.profiles.first?.sshGateway == legacyGateway && legacyMemory.writes == 0,
+            "schema 11 read preserves concrete port without eager rewriting")
+  let upgraded = try await legacyStore.recordRecent(first,expected:legacyValue.revision)
+  try check(upgraded.recentConnections == [first,.init(endpoint:first.endpoint,sshGateway:legacyGateway)],
+            "inherited and explicit ports remain distinct saved destinations")
+  let upgradedReload = try await legacyStore.read()
+  try check(upgradedReload == upgraded,"port intent and old concrete port survive migration")
+  await legacyStore.close()
   let malformed: [(Data,NativeStorageError)] = [
+    (try document([["endpoint":"host","sshGateway":"gateway"]],schema:12),.corrupt),
+    (try document([["endpoint":"host","sshGateway":["version":true,"uri":"gateway"]]],schema:12),.corrupt),
+    (try document([["endpoint":"host","sshGateway":["version":3,"uri":"gateway"]]],schema:12),.corrupt),
+    (try document([["endpoint":"host","sshGateway":["version":2,"uri":"gateway","secret":"never"]]],schema:12),.unsupportedFields),
     (try document([["endpoint":"host","sshGateway":"ssh://u:secret@gateway"]]),.corrupt),
     (try document([["endpoint":"host","sshGateway":NSNull()]]),.corrupt),
     (try document([["endpoint":"host","sshGateway":["host":"gateway"]]]),.corrupt),

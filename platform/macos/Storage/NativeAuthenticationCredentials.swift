@@ -31,6 +31,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   private var launch: NativeLaunchCredentialPayload?
   private var launchEndpoint: String?
   private var launchRouteIdentity: String?
+  private var launchEffectiveRouteIdentity: String?
   private let passwordFileReader: any NativePasswordFileReading
   private var automaticPrompt: NativePrompt?
   public init(store: NativeCredentialStore? = nil, launchInputs: NativeLaunchCredentialInputs? = nil,
@@ -56,7 +57,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
       if automaticPrompt != nil { work?.cancel(); automaticPrompt = nil }
     }
   }
-  private func discardLaunch() { launch?.clear(); launch = nil; launchEndpoint = nil; launchRouteIdentity = nil }
+  private func discardLaunch() { launch?.clear(); launch = nil; launchEndpoint = nil; launchRouteIdentity = nil; launchEffectiveRouteIdentity = nil }
   // Combine publishes before NativeSession.prompt changes. Schedule admission
   // on the main actor, then recheck the published prompt before accessing input.
   public func inspect(_ request: NativePrompt?) {
@@ -111,9 +112,13 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     return false
   }
   public func bind(_ session: NativeSession) { self.session = session }
-  public func beginAttempt(endpoint: String, routeIdentity: String = "") {
+  public func beginAttempt(endpoint: String, routeIdentity: String = "", requestedRouteIdentity: String? = nil) {
     guard !stopped, !isWorking else { return }
-    bindLaunchEndpoint(endpoint,routeIdentity:routeIdentity)
+    bindLaunchEndpoint(endpoint,routeIdentity:requestedRouteIdentity ?? routeIdentity)
+    if launch != nil {
+      if let expected = launchEffectiveRouteIdentity, !expected.utf8.elementsEqual(routeIdentity.utf8) { discardLaunch() }
+      else { launchEffectiveRouteIdentity = routeIdentity }
+    }
     if (self.endpoint.map({ !$0.utf8.elementsEqual(endpoint.utf8) }) ?? false) ||
        !self.routeIdentity.utf8.elementsEqual(routeIdentity.utf8) { forgetSession() }
     pending?.secret.clear(); pending = nil; savedSubmission = nil

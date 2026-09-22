@@ -21,9 +21,9 @@ func values() throws {
     do { _ = try resolve(args); throw Failure(message:"invalid host value accepted") }
     catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .invalidValue && failure.argument == 1,"every host value checked") }
   }
-  for option in ["-via=private"] {
+  for option in ["-via=private invalid"] {
     do { _ = try resolve([option]); throw Failure(message:"missing native adapter silently accepted") }
-    catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .unsupportedOption && failure.argument == 1,"unsupported adapter explicit") }
+    catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .invalidValue && failure.argument == 1,"invalid gateway explicit") }
   }
   _ = try resolve(["-Log=*:stderr:30"])
   _ = try resolve(["-Log=*:file:30"])
@@ -131,12 +131,12 @@ actor Reader: NativeDocumentReading {
   reviewed.acceptDocument(reviewed.documentReview!.id)
   try check(reviewed.documentResolution?.cursorType == .system && reviewed.session?.initialShared == false,"file wins after mapping re-edit")
   await reviewed.close()
-  let unsupported = NativeInvocationRequest(options:try .init(arguments:["-via=private"]),endpoint:"",workingDirectory:"/launch")
+  let unsupported = NativeInvocationRequest(options:try .init(arguments:["-via=private invalid"]),endpoint:"",workingDirectory:"/launch")
   let bad = NativeSessionDefaults(runtime:runtime,store:store,invocation:unsupported,document:file,documentReader:reader)
   let count = await reader.calls
   bad.load(); try await until { !bad.isLoading }
   let finalCount = await reader.calls
-  try check(bad.invocationIssue != nil && bad.session == nil && count == finalCount,"unsupported CLI fails before file IO")
+  try check(bad.invocationIssue != nil && bad.session == nil && count == finalCount,"invalid gateway fails before file IO")
   await bad.close()
   await reader.pause()
   let stopped = NativeSessionDefaults(runtime:runtime,store:store,invocation:request,document:file,documentReader:reader)

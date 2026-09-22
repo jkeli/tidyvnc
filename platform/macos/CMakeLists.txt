@@ -5,6 +5,11 @@ add_library(tidyvnc_macos_keymap STATIC KeyMap/NativeKeyMap.c KeyMap/NativeKeybo
   ../../vncviewer/keysym2ucs.c ../../vncviewer/osx_to_qnum.c)
 target_link_libraries(tidyvnc_macos_keymap PUBLIC "-framework Carbon" "-framework ApplicationServices")
 target_include_directories(tidyvnc_macos_keymap PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/KeyMap PRIVATE ${CMAKE_SOURCE_DIR}/common)
+add_library(tidyvnc_macos_askpass STATIC Tunnel/Askpass/NativeAskpass.c)
+target_include_directories(tidyvnc_macos_askpass PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tunnel/Askpass)
+target_link_libraries(tidyvnc_macos_askpass PUBLIC Threads::Threads)
+add_executable(tidyvnc-ssh-askpass Tunnel/Askpass/main.c)
+target_link_libraries(tidyvnc-ssh-askpass PRIVATE tidyvnc_macos_askpass)
 configure_file(Bridge/NativeBuildInfo.swift.in ${CMAKE_CURRENT_BINARY_DIR}/NativeBuildInfo.swift @ONLY)
 add_library(tidyvnc_macos_bridge STATIC
   ${CMAKE_CURRENT_BINARY_DIR}/NativeBuildInfo.swift
@@ -36,7 +41,13 @@ add_library(tidyvnc_macos_bridge STATIC
   Bridge/NativeDelivery.swift
   Bridge/NativeRuntime.swift
   Tunnel/NativeTunnelProcess.swift
+  Tunnel/NativeTunnelOutput.swift
+  Tunnel/NativeSSHConfiguration.swift
+  Tunnel/NativeSSHConfigurationSnapshot.swift
   Tunnel/NativeSSHTunnel.swift
+  Tunnel/NativeSSHAskpass.swift
+  Tunnel/NativeSSHInteraction.swift
+  Tunnel/NativeSSHHostKey.swift
   Bridge/NativeListener.swift
   Bridge/NativeSession.swift
   Bridge/NativePointerTiming.swift
@@ -108,7 +119,7 @@ target_compile_options(tidyvnc_macos_bridge PRIVATE
   -swift-version 6 -strict-concurrency=complete -warnings-as-errors -enable-testing
   -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
 target_include_directories(tidyvnc_macos_bridge INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/modules)
-target_link_libraries(tidyvnc_macos_bridge PUBLIC tidyvnc_viewer_c tidyvnc_macos_keymap "-lc++")
+target_link_libraries(tidyvnc_macos_bridge PUBLIC tidyvnc_viewer_c tidyvnc_macos_keymap tidyvnc_macos_askpass "-lc++")
 
 # CMake's unscanned Swift builds do not reliably rebuild downstream modules when
 # an imported C struct changes but the Swift module interface stays identical.
@@ -119,7 +130,9 @@ foreach(header IN ITEMS
     "${CMAKE_SOURCE_DIR}/viewer/bridge/tidyvnc.h"
     "${CMAKE_SOURCE_DIR}/viewer/bridge/module.modulemap"
     "${CMAKE_CURRENT_SOURCE_DIR}/KeyMap/NativeKeyMap.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/KeyMap/module.modulemap")
+    "${CMAKE_CURRENT_SOURCE_DIR}/KeyMap/module.modulemap"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Tunnel/Askpass/NativeAskpass.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Tunnel/Askpass/module.modulemap")
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${header}")
   file(SHA256 "${header}" native_import_hash)
   string(APPEND native_import_fingerprint "${native_import_hash}")
@@ -137,7 +150,7 @@ endif()
 
 # Build-tree export consumed by the separate Xcode application project. CMake
 # owns the native core dependency list, including enabled crypto libraries.
-export(TARGETS tidyvnc_macos_bridge tidyvnc_macos_keymap tidyvnc_viewer_c
+export(TARGETS tidyvnc_macos_bridge tidyvnc_macos_keymap tidyvnc_macos_askpass tidyvnc_viewer_c
   tidyvnc_viewer_core tidyvnc_viewer_platform rfbclient rfb network rdr core
   NAMESPACE TidyVNC:: FILE ${CMAKE_BINARY_DIR}/NativeTargets.cmake)
 file(WRITE ${CMAKE_BINARY_DIR}/NativeBuild.cmake

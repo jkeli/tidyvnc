@@ -5,14 +5,17 @@ import Foundation
 import TidyVNC
 
 public enum NativeTunnelError: Error, Sendable, Equatable, CustomStringConvertible {
-  case invalidRequest, unsupportedTarget, privateSocketUnavailable, launchFailed, startupFailed, timedOut, closed, busy
+  case invalidRequest, unsupportedTarget, privateSocketUnavailable, launchFailed, startupFailed, timedOut, closed, busy, configurationUnavailable, unsupportedConfiguration, hostKeySaveFailed
   public var description: String {
     switch self {
+    case .hostKeySaveFailed: "SSH could not save the gateway key. Check known-hosts file access and try again. The VNC connection was not started."
+    case .configurationUnavailable: "SSH configuration could not be prepared. Check file access and Host/Match settings."
+    case .unsupportedConfiguration: "SSH configuration contains unsupported settings. Command execution, proxy hops and network-dependent Match rules are not supported."
     case .invalidRequest: "The SSH gateway or forwarding request is invalid."
     case .unsupportedTarget: "SSH forwarding requires a TCP server address."
     case .privateSocketUnavailable: "A private tunnel socket could not be prepared."
     case .launchFailed: "The SSH process could not be started."
-    case .startupFailed: "SSH did not establish the tunnel. Check the gateway, existing host key and key or agent authentication."
+    case .startupFailed: "SSH did not establish the tunnel. Check the gateway, host-key verification and SSH authentication."
     case .timedOut: "SSH tunnel startup timed out."
     case .closed: "The SSH tunnel is closed."
     case .busy: "SSH tunnel startup is already in progress."
@@ -50,9 +53,13 @@ enum NativeSSHCommand: String, Sendable { case master, check, forward }
 // Validated independently of the remote target so invocation preflight can run
 // before reading a connection file. Persistence encodes a canonical SSH URI and
 // decodes through the same parser; a route digest is never a gateway address.
+// Port intent affects saved destination equality and launch-secret scope. The
+// legacy route digest remains for explicit unconfigured service callers.
 public struct NativeSSHGateway: Sendable, Hashable, Codable {
   public let host: String, user: String?, port: UInt32, routeIdentity: String
   public let canonicalURI: String
+  public var intentIdentity: String { "ssh-request-v2:" + SHA256.hash(data:Data(("tidyvnc-ssh-intent-v2\0" + canonicalURI).utf8)).map { String(format:"%02x",$0) }.joined() }
+  public let portIsExplicit: Bool
   public init(_ gateway: String) throws {
     guard gateway.utf8.count <= 4096, !gateway.isEmpty,
           !gateway.utf8.contains(0) else { throw NativeTunnelError.invalidRequest }
@@ -68,18 +75,19 @@ public struct NativeSSHGateway: Sendable, Hashable, Codable {
       user = candidate; destination = String(userParts[1])
     } else { user = nil }
     var host = destination, port: UInt32 = 22
+    var explicitPort = false
     if destination.hasPrefix("[") {
       guard let end = destination.firstIndex(of:"]") else { throw NativeTunnelError.invalidRequest }
       host = String(destination[...end]); let suffix = String(destination[destination.index(after:end)...])
       if !suffix.isEmpty {
         guard uri, suffix.hasPrefix(":"), let number = NativeListenPort.parse(String(suffix.dropFirst())), number > 0 else { throw NativeTunnelError.invalidRequest }
-        port = number
+        port = number; explicitPort = true
       }
     } else if destination.contains(":") {
       guard uri, destination.filter({ $0 == ":" }).count == 1,
             let delimiter = destination.firstIndex(of:":"),
             let number = NativeListenPort.parse(String(destination[destination.index(after:delimiter)...])), number > 0 else { throw NativeTunnelError.invalidRequest }
-      host = String(destination[..<delimiter]); port = number
+      host = String(destination[..<delimiter]); port = number; explicitPort = true
     }
     guard !host.isEmpty, !host.hasPrefix("-"), !host.contains("/"), !host.contains("\\") else { throw NativeTunnelError.invalidRequest }
     let parsed: TunnelEndpoint
@@ -87,8 +95,8 @@ public struct NativeSSHGateway: Sendable, Hashable, Codable {
     // SSH destination is passed as one final argument; scope bytes are exact.
     guard !parsed.host.hasPrefix("-") else { throw NativeTunnelError.invalidRequest }
     self.host = parsed.host + (parsed.scope.isEmpty ? "" : "%" + parsed.scope)
-    self.port = port; self.user = user
-    canonicalURI = "ssh://" + (user.map { $0 + "@" } ?? "") + parsed.forwardingHost + ":" + String(port)
+    self.port = port; self.user = user; portIsExplicit = explicitPort
+    canonicalURI = "ssh://" + (user.map { $0 + "@" } ?? "") + parsed.forwardingHost + (explicitPort ? ":" + String(port) : "")
     // Every admitted value must remain admissible after encode/decode. Adding
     // the URI scheme and default port can otherwise exceed the input bound.
     guard canonicalURI.utf8.count <= 4096 else { throw NativeTunnelError.invalidRequest }
@@ -99,13 +107,32 @@ public struct NativeSSHGateway: Sendable, Hashable, Codable {
     }
     routeIdentity = "ssh-v1:" + hash.finalize().map { String(format:"%02x",$0) }.joined()
   }
+  private struct Key: CodingKey {
+    let stringValue: String
+    var intValue: Int? { nil }
+    init(stringValue: String) { self.stringValue = stringValue }
+    init?(intValue: Int) { return nil }
+    static let version = Key(stringValue:"version"), uri = Key(stringValue:"uri")
+  }
   public init(from decoder: any Decoder) throws {
-    let container = try decoder.singleValueContainer()
-    do { try self.init(container.decode(String.self)) }
-    catch { throw DecodingError.dataCorruptedError(in:container,debugDescription:"Invalid SSH gateway") }
+    let value = try decoder.singleValueContainer()
+    do {
+      if let legacy = try? value.decode(String.self) {
+        // Version-one strings always meant a concrete port, even when a
+        // hand-authored historical record omitted :22. Never reinterpret them.
+        let parsed = try Self(legacy)
+        try self.init(parsed.canonicalURI + (parsed.portIsExplicit ? "" : ":22"))
+      } else {
+        let object = try decoder.container(keyedBy:Key.self)
+        guard Set(object.allKeys.map(\.stringValue)) == ["version","uri"],
+              try object.decode(Int.self,forKey:.version) == 2 else { throw NativeTunnelError.invalidRequest }
+        try self.init(object.decode(String.self,forKey:.uri))
+      }
+    } catch { throw DecodingError.dataCorruptedError(in:value,debugDescription:"Invalid SSH gateway") }
   }
   public func encode(to encoder: any Encoder) throws {
-    var container = encoder.singleValueContainer(); try container.encode(canonicalURI)
+    var object = encoder.container(keyedBy:Key.self)
+    try object.encode(2,forKey:.version); try object.encode(canonicalURI,forKey:.uri)
   }
 }
 
@@ -117,22 +144,25 @@ public struct NativeSSHTunnelRequest: Sendable {
   public var gatewayPort: UInt32 { gateway.port }
   private let remote: TunnelEndpoint
   private let family: String
+  let network: NativeNetworkPolicy
   public init(endpoint: String, gateway: String, network: NativeNetworkPolicy = .builtIn) throws {
     try self.init(endpoint:endpoint,gateway:NativeSSHGateway(gateway),network:network)
   }
   public init(endpoint: String, gateway: NativeSSHGateway, network: NativeNetworkPolicy = .builtIn) throws {
     guard !endpoint.isEmpty, network.ipv4 || network.ipv6 else { throw NativeTunnelError.invalidRequest }
+    self.network = network
     remote = try TunnelEndpoint(endpoint); self.endpoint = endpoint; self.gateway = gateway
     family = network.ipv4 && network.ipv6 ? "any" : (network.ipv4 ? "inet" : "inet6")
   }
-  // First implementation supports known host keys and noninteractive key/agent
-  // auth. Config commands, other masters and detached children are excluded.
+  // Authentication and new-key review use optional native prompts. Config
+  // commands, other masters and detached children are excluded.
   // A private master acknowledges each forward before RFB admission.
   // UI/CLI support must disclose these capabilities.
-  func arguments(_ command: NativeSSHCommand, socket: String) -> [String] {
+  func arguments(_ command: NativeSSHCommand, socket: String, interactive: Bool = false) -> [String] {
     let control = URL(fileURLWithPath:socket).deletingLastPathComponent().appendingPathComponent("control").path
-    var result = ["-F","/dev/null","-T","-n","-o","BatchMode=yes","-o","StrictHostKeyChecking=yes",
-      "-o","UpdateHostKeys=no","-o","ExitOnForwardFailure=yes","-o","StreamLocalBindMask=0177",
+    var result = ["-F","/dev/null","-T","-n","-o",interactive ? "BatchMode=no" : "BatchMode=yes","-o",interactive ? "StrictHostKeyChecking=ask" : "StrictHostKeyChecking=yes",
+      "-o","FingerprintHash=sha256",
+      "-o","UpdateHostKeys=no","-o","LogLevel=INFO","-o","LogVerbose=none","-o","ExitOnForwardFailure=yes","-o","StreamLocalBindMask=0177",
       "-o","StreamLocalBindUnlink=no","-S",control,"-o","ControlPersist=no",
       "-o","ForkAfterAuthentication=no","-o","ConnectionAttempts=1","-o","ConnectTimeout=15",
       "-o","AddressFamily=\(family)","-o","ForwardAgent=no","-o","ForwardX11=no","-o","PermitLocalCommand=no",
@@ -151,9 +181,15 @@ public struct NativeTunnelRoute: Sendable {
   public let endpoint: String, localEndpoint: String, routeIdentity: String
 }
 public protocol NativeTunnelOwning: Sendable {
+  func prepare() async throws -> String?
   func start() async throws -> NativeTunnelRoute
   func waitForExit() async -> NativeTunnelExit?
   func close() async
+}
+
+public extension NativeTunnelOwning {
+  // Existing explicit-route adapters need no asynchronous resolution.
+  func prepare() async throws -> String? { nil }
 }
 
 // Exact private directory and leaf only; cleanup never recursively follows a
@@ -217,24 +253,46 @@ public actor NativeSSHTunnel: NativeTunnelOwning {
   private let arguments: @Sendable (NativeSSHCommand,String) -> [String]
   private let environment: [String:String]
   private let timeout: Duration
+  private let authentication: NativeSSHAuthentication?
+  private let preparation: NativeSSHPreparedGateway?
+  private var diagnostics: NativeTunnelOutput?
+  private var diagnosticDrain: Task<Void,Never>?
+  private var preflight: Task<Void,any Error>?
+  private var askpass: NativeSSHAskpass?
   private var child: NativeTunnelProcess?
   private var controlChild: NativeTunnelProcess?
   private var directory: TunnelDirectory?
   private var starting = false, closed = false
   private var route: NativeTunnelRoute?
-  public init(request: NativeSSHTunnelRequest) {
-    self.request = request; executable = "/usr/bin/ssh"; arguments = { request.arguments($0,socket:$1) }; timeout = .seconds(20)
+  public init(request: NativeSSHTunnelRequest, authentication: NativeSSHAuthentication? = nil) {
+    preparation = nil
+    self.request = request; self.authentication = authentication; executable = "/usr/bin/ssh"
+    arguments = { request.arguments($0,socket:$1,interactive:authentication != nil) }
+    timeout = .seconds(authentication == nil ? 20 : 300)
     var environment = ["PATH":"/usr/bin:/bin","LC_ALL":"C","SSH_ASKPASS_REQUIRE":"never"]
     if let raw = getenv("SSH_AUTH_SOCK"), strnlen(raw,4097) <= 4096, let socket = String(validatingCString:raw), socket.hasPrefix("/") {
       environment["SSH_AUTH_SOCK"] = socket
     }
     self.environment = environment
   }
+  init(prepared: NativeSSHPreparedGateway, endpoint: String, network: NativeNetworkPolicy? = nil,
+       authentication: NativeSSHAuthentication? = nil) throws {
+    let network = network ?? prepared.network
+    guard network == prepared.network else { throw NativeTunnelError.invalidRequest }
+    let request = try NativeSSHTunnelRequest(endpoint:endpoint,gateway:prepared.resolved.gateway,network:network)
+    self.request = request; self.preparation = prepared; self.authentication = authentication
+    executable = "/usr/bin/ssh"; timeout = .seconds(authentication == nil ? 20 : 300)
+    arguments = { prepared.arguments(request,command:$0,socket:$1,interactive:authentication != nil) }
+    var environment = prepared.environment; environment["SSH_ASKPASS_REQUIRE"] = "never"
+    self.environment = environment
+  }
   // A private test executable exercises actual process ownership without SSH
   // credentials, network hosts, external config, or user stores.
-  init(request: NativeSSHTunnelRequest, executable: String, timeout: Duration,
+  init(request: NativeSSHTunnelRequest, executable: String, timeout: Duration, authentication: NativeSSHAuthentication? = nil,
        arguments: @escaping @Sendable (NativeSSHCommand,String) -> [String]) {
-    self.request = request; self.executable = executable; self.timeout = timeout; self.arguments = arguments; environment = [:]
+    preparation = nil
+    self.request = request; self.executable = executable; self.timeout = timeout; self.arguments = arguments
+    self.authentication = authentication; environment = [:]
   }
   public func start() async throws -> NativeTunnelRoute {
     guard !closed else { throw NativeTunnelError.closed }
@@ -242,9 +300,40 @@ public actor NativeSSHTunnel: NativeTunnelOwning {
     if let route, child?.exit == nil { return route }
     guard child == nil else { throw NativeTunnelError.closed }
     try Task.checkCancellation(); starting = true; defer { starting = false }
+    let saveFailure = NativeSSHSaveFailure()
     do {
       let directory = try TunnelDirectory(); self.directory = directory
-      let child = try NativeTunnelProcess.launch(executable:executable,arguments:arguments(.master,directory.socket),environment:environment) { directory.remove() }
+      var environment = environment
+      var masterArguments = arguments(.master,directory.socket)
+      if let preparation {
+        let values = masterArguments
+        let work = Task { try await preparation.verify(masterArguments:values) }; preflight = work
+        try await withTaskCancellationHandler { try await work.value } onCancel: { work.cancel() }
+        preflight = nil
+        try Task.checkCancellation(); guard !closed else { throw NativeTunnelError.closed }
+      }
+      let askpass: NativeSSHAskpass?
+      if let authentication {
+        guard authentication.helper.isFileURL, authentication.helper.path.hasPrefix("/"),
+              !authentication.helper.path.utf8.contains(0),
+              FileManager.default.isExecutableFile(atPath:authentication.helper.path) else { throw NativeTunnelError.launchFailed }
+        askpass = try NativeSSHAskpass(directory:directory.path,request:request,hostKeyLookupName:preparation?.resolved.hostKeyLookupName) { await authentication.interaction.ask($0) }
+        environment["SSH_ASKPASS"] = authentication.helper.path
+        environment["SSH_ASKPASS_REQUIRE"] = "force"
+        environment["TIDYVNC_ASKPASS_SOCKET"] = directory.path + "/askpass"
+        // KnownHostsCommand is parsed into argv by OpenSSH, not a shell. Only
+        // this fixed program/argument template is supplied; the path is quoted
+        // for that parser and the executable token is not percent-expanded.
+        let helper = authentication.helper.path.replacingOccurrences(of:"\\",with:"\\\\").replacingOccurrences(of:"\"",with:"\\\"")
+        masterArguments = ["-o","KnownHostsCommand=\"\(helper)\" --host-key %I %H %t %K"] + masterArguments
+      } else { askpass = nil }
+      self.askpass = askpass
+      let diagnostics = try NativeTunnelOutput(saveFailure:saveFailure); self.diagnostics = diagnostics
+      let child = try NativeTunnelProcess.launch(executable:executable,arguments:masterArguments,environment:environment,output:diagnostics,standardError:true) {
+        // A dropped tunnel still drains its prompt before removing the parent.
+        askpass?.stop()
+        Task { await askpass?.close(); directory.remove() }
+      }
       self.child = child
       return try await withTaskCancellationHandler {
         let clock = ContinuousClock(), deadline = clock.now.advanced(by:timeout)
@@ -253,19 +342,27 @@ public actor NativeSSHTunnel: NativeTunnelOwning {
           guard !closed else { throw NativeTunnelError.closed }
           guard child.exit == nil else { throw NativeTunnelError.startupFailed }
           if directory.ready("control"), try await command(.check,directory:directory,deadline:deadline) == .exited(0) {
+            do { try await diagnostics.drainAvailable() } catch { throw NativeTunnelError.startupFailed }
+            if saveFailure.failed { throw NativeTunnelError.hostKeySaveFailed }
             guard try await command(.forward,directory:directory,deadline:deadline) == .exited(0),
                   child.exit == nil, directory.ready("forward") else { throw NativeTunnelError.startupFailed }
             try Task.checkCancellation()
             guard !closed else { throw NativeTunnelError.closed }
-            let route = NativeTunnelRoute(endpoint:request.endpoint,localEndpoint:directory.socket,routeIdentity:request.routeIdentity)
+            let route = NativeTunnelRoute(endpoint:request.endpoint,localEndpoint:directory.socket,routeIdentity:preparation?.resolved.routeIdentity ?? request.routeIdentity)
             self.route = route; return route
           }
           try await Task.sleep(for:.milliseconds(20))
         }
         throw NativeTunnelError.timedOut
-      } onCancel: { child.cancel() }
+      } onCancel: { askpass?.stop(); child.cancel() }
     } catch {
-      await close(); throw error
+      await close()
+      // Authentication can end before the master acknowledges readiness. Drain
+      // diagnostics first so that its earlier save failure is still reported.
+      if !Task.isCancelled, (error as? NativeTunnelError) != .closed, saveFailure.failed {
+        throw NativeTunnelError.hostKeySaveFailed
+      }
+      throw error
     }
   }
   private func command(_ command: NativeSSHCommand, directory: TunnelDirectory,
@@ -286,10 +383,34 @@ public actor NativeSSHTunnel: NativeTunnelOwning {
   public func waitForExit() async -> NativeTunnelExit? { guard let child else { return nil }; return await child.wait() }
   public func close() async {
     closed = true; route = nil
+    preflight?.cancel(); if let preflight { _ = await preflight.result }; preflight = nil
+    askpass?.stop()
     child?.cancel(); controlChild?.cancel()
     if let controlChild { _ = await controlChild.wait() }
     if let child { _ = await child.wait() }
+    await drainDiagnostics()
+    await askpass?.close(); askpass = nil
     directory?.remove(); directory = nil
+    await preparation?.close()
   }
-  deinit { child?.cancel(); controlChild?.cancel(); if child == nil { directory?.remove() } }
+  private func drainDiagnostics() async {
+    if let diagnosticDrain { await diagnosticDrain.value; return }
+    guard let diagnostics else { return }
+    let task = Task { _ = try? await diagnostics.take() }
+    diagnosticDrain = task
+    await task.value; self.diagnostics = nil
+  }
+  deinit {
+    preflight?.cancel(); askpass?.stop(); child?.cancel(); controlChild?.cancel()
+    let preflight = preflight, preparation = preparation, directory = directory
+    let child = child, controlChild = controlChild, askpass = askpass, diagnostics = diagnostics, diagnosticDrain = diagnosticDrain
+    Task {
+      _ = await preflight?.result
+      if let controlChild { _ = await controlChild.wait() }
+      if let child { _ = await child.wait() }
+      if let diagnosticDrain { await diagnosticDrain.value }
+      else { _ = try? await diagnostics?.take() }
+      await askpass?.close(); directory?.remove(); await preparation?.close()
+    }
+  }
 }

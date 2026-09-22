@@ -44,6 +44,22 @@ static void relay(int incoming, int port) {
   }
 }
 int main(int argc, char** argv) {
+  if (argc == 3 && (!strcmp(argv[1],"--output") || !strcmp(argv[1],"--output-stderr"))) {
+    if (!strcmp(argv[1],"--output-stderr") && dup2(2,1) < 0) return 1;
+    if (!strcmp(argv[2],"hang")) { signal(SIGTERM,SIG_IGN); for (;;) pause(); }
+    if (!strcmp(argv[2],"descendant")) {
+      if (fork() == 0) { signal(SIGTERM,SIG_IGN); for (;;) pause(); }
+      return 0;
+    }
+    int blocks = !strcmp(argv[2],"large") ? 256 : !strcmp(argv[2],"exact") ? 16 : 0;
+    char bytes[4096]; memset(bytes,'x',sizeof(bytes));
+    if (blocks) { for (int i = 0; i < blocks; ++i) if (write(1,bytes,sizeof(bytes)) != sizeof(bytes)) return 1; return 0; }
+    const char* message = !strcmp(argv[2],"save-failure") ?
+      "Failed to add the host to the list of known hosts (private-fixture-path).\r\n" :
+      "hostname gateway.invalid\nuser fixture\nport 2222\n";
+    for (const char* c = message; *c; ++c) if (write(1,c,1) != 1) return 1;
+    return 0;
+  }
   if (argc == 3 && !strcmp(argv[1],"--descriptors")) {
     errno = 0;
     return getpgrp() == getpid() && fcntl(atoi(argv[2]),F_GETFD) == -1 && errno == EBADF ? 0 : 79;

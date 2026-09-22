@@ -178,6 +178,17 @@ public actor NativeProfileHistoryStore {
     }
     for value in history { try destination(value) }
   }
+  private func validateGatewayObject(_ value: Any?, schema: Int) throws {
+    guard let value else { return }
+    if schema < 12 {
+      guard value is String else { throw NativeStorageError.corrupt }
+    } else {
+      guard let object = value as? [String:Any] else { throw NativeStorageError.corrupt }
+      try keys(object,allowed:["version","uri"],required:["version","uri"])
+      guard let version = object["version"] as? NSNumber, CFGetTypeID(version) != CFBooleanGetTypeID(),
+            version.doubleValue == 2, object["uri"] is String else { throw NativeStorageError.corrupt }
+    }
+  }
   private func load() throws -> (NativeProfileHistorySnapshot, Data?) {
     guard let bytes = try backing.read() else {
       return (.init(revision:nil,profiles:[],recentConnections:[],historyState:.uninitialized),nil)
@@ -187,7 +198,7 @@ public actor NativeProfileHistoryStore {
       guard let object = try JSONSerialization.jsonObject(with: bytes) as? [String: Any],
             let schema = object["schema"] as? NSNumber, CFGetTypeID(schema) != CFBooleanGetTypeID(),
             schema.doubleValue >= 1, schema.doubleValue.rounded(.towardZero) == schema.doubleValue else { throw NativeStorageError.corrupt }
-      guard schema.doubleValue <= 11 else { throw NativeStorageError.futureSchema }
+      guard schema.doubleValue <= 12 else { throw NativeStorageError.futureSchema }
       var fields: Set<String> = ["schema", "revision", "profiles", schema.intValue >= 11 ? "recentConnections" : "recentEndpoints"]
       if schema.intValue >= 10 { fields.insert("historyState") }
       try keys(object, allowed: fields, required: fields)
@@ -201,7 +212,10 @@ public actor NativeProfileHistoryStore {
         guard let history = object["recentConnections"] as? [[String:Any]] else { throw NativeStorageError.corrupt }
         historyCount = history.count
         guard historyCount <= Self.historyCapacity else { throw NativeStorageError.resourceLimit }
-        for value in history { try keys(value,allowed:["endpoint","sshGateway"],required:["endpoint"]) }
+        for value in history {
+          try keys(value,allowed:["endpoint","sshGateway"],required:["endpoint"])
+          try validateGatewayObject(value["sshGateway"],schema:schema.intValue)
+        }
       } else {
         guard let history = object["recentEndpoints"] as? [String] else { throw NativeStorageError.corrupt }
         historyCount = history.count
@@ -211,6 +225,7 @@ public actor NativeProfileHistoryStore {
         var fields: Set<String> = ["id", "name", "endpoint", "settings", "credentialReference"]
         if schema.intValue >= 11 { fields.insert("sshGateway") }
         try keys(profile, allowed: fields, required: ["id", "name", "endpoint", "settings"])
+        try validateGatewayObject(profile["sshGateway"],schema:schema.intValue)
         guard let settings = profile["settings"] as? [String: Any] else { throw NativeStorageError.corrupt }
         try validateSettingsObject(settings, inputAllowed: schema.intValue >= 2, scalingAllowed: schema.intValue >= 3, trustFilesAllowed: schema.intValue >= 4, securityAllowed: schema.intValue >= 5, priorityAllowed: schema.intValue >= 6, connectionAllowed: schema.intValue >= 7, resizeAllowed: schema.intValue >= 8, fullscreenAllowed: schema.intValue >= 9)
       }
@@ -229,7 +244,7 @@ public actor NativeProfileHistoryStore {
   }
   private func save(profiles: [NativeConnectionProfile], history: [NativeConnectionDestination], state: NativeHistoryState, expected: Data?) throws -> NativeProfileHistorySnapshot {
     try validate(profiles,history)
-    let record = Record(schema:11,revision:UUID(),profiles:profiles,recentConnections:history,historyState:state)
+    let record = Record(schema:12,revision:UUID(),profiles:profiles,recentConnections:history,historyState:state)
     let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
     let encoded = try encoder.encode(record)
     guard encoded.count <= NativePrivateFile.maximumBytes else { throw NativeStorageError.tooLarge }

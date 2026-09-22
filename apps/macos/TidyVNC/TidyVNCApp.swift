@@ -474,6 +474,17 @@ private struct ConnectionContent: View {
           .help(model.isReverse ? "Source address of this incoming connection; it is not an outbound destination." : "Enter host:display, host::port, [IPv6]:display, or a Unix socket path.")
           .accessibilityIdentifier("connection.endpoint").disabled(!model.canEditDestination)
           .onSubmit { model.connect() }
+        if model.busy {
+          ProgressView().controlSize(.small)
+          Button("Cancel") { model.cancel() }.accessibilityIdentifier("connection.cancel")
+        } else if session.snapshot.state == .connected {
+          Button("Disconnect") { model.disconnect() }.accessibilityIdentifier("connection.disconnect")
+        } else if !model.isReverse {
+          Button("Connect") { model.connect() }.disabled(!model.canConnect).keyboardShortcut(.defaultAction)
+            .accessibilityIdentifier("connection.connect")
+        }
+      }.padding(.horizontal,14).padding(.top,14).padding(.bottom,8)
+      HStack(spacing: 12) {
         if let history = model.history {
           RecentConnectionsButton(model: history, canSelect:model.canEditDestination) { model.selectDestination($0) }
         }
@@ -506,16 +517,8 @@ private struct ConnectionContent: View {
         Button { model.openEncoding() } label: { Image(systemName: "slider.horizontal.3") }
           .disabled(!model.canOpenEncoding).help("Encoding settings for this connection")
           .accessibilityLabel("Encoding settings").accessibilityIdentifier("connection.encoding")
-        if model.busy {
-          ProgressView().controlSize(.small)
-          Button("Cancel") { model.cancel() }.accessibilityIdentifier("connection.cancel")
-        } else if session.snapshot.state == .connected {
-          Button("Disconnect") { model.disconnect() }.accessibilityIdentifier("connection.disconnect")
-        } else if !model.isReverse {
-          Button("Connect") { model.connect() }.disabled(!model.canConnect).keyboardShortcut(.defaultAction)
-            .accessibilityIdentifier("connection.connect")
-        }
-      }.padding(14)
+        Spacer(minLength:0)
+      }.padding(.horizontal,14).padding(.bottom,8)
       EndpointIssueView(issue: model.endpointIssue).padding(.horizontal, 14)
       if !model.isReverse {
         VStack(alignment:.leading,spacing:4) {
@@ -524,7 +527,7 @@ private struct ConnectionContent: View {
             .help("Enter user@host or ssh://user@host:port. Leave empty for a direct connection.")
           if let issue = model.gatewayIssue { Text(issue).foregroundStyle(.red).font(.caption) }
           if !model.sshGatewayText.isEmpty {
-            Text("SSH currently requires an existing host key and key or agent authentication. Password prompts, new host-key approval, and SSH configuration files are not supported yet.")
+            Text("SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected.")
               .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
           }
         }.padding(.horizontal,14).padding(.bottom,8)
@@ -603,6 +606,8 @@ private struct ConnectionContent: View {
       }
     })) { sheet in
       switch sheet {
+      case .ssh(let request):
+        SSHAuthenticationSheet(interaction:model.sshInteraction,request:request,cancel:model.cancel).interactiveDismissDisabled()
       case .authentication(let request):
         AuthenticationSheet(model: model, session: session, request: request).interactiveDismissDisabled()
       case .information:
@@ -649,6 +654,7 @@ private struct ConnectionContent: View {
     }
   }
   private enum Sheet: Identifiable {
+    case ssh(NativeSSHQuestion)
     case fullscreen(NativeFullscreenDraft)
     case resizePolicy(NativeRemoteResizePolicyDraft)
     case remoteResize(NativeRemoteResizeDraft)
@@ -656,6 +662,7 @@ private struct ConnectionContent: View {
     case authentication(NativePrompt), encoding(NativeSessionEncodingDraft), scaling(NativeScalingDraft), input(NativeInputDraft), information(UUID)
     var id: String {
       switch self {
+      case .ssh(let request): return "ssh-\(request.id)"
       case .authentication(let request): return "authentication-\(request.generation)-\(request.id)"
       case .information(let id): return "information-\(id)"
       case .input(let draft): return "input-\(draft.id)"
@@ -670,6 +677,7 @@ private struct ConnectionContent: View {
     }
   }
   private var presentedSheet: Sheet? {
+    if let question = model.sshInteraction.question { return .ssh(question) }
     if let prompt = session.prompt { return .authentication(prompt) }
     if let id = model.informationID { return .information(id) }
     if let draft = model.inputDraft { return .input(draft) }

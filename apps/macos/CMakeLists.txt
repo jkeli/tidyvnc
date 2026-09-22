@@ -21,9 +21,13 @@ execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/native
 set(resources ${TIDYVNC_SOURCE_DIR}/media/icons/tidyvnc.icns
   ${TIDYVNC_SOURCE_DIR}/README.rst ${TIDYVNC_SOURCE_DIR}/LICENCE.TXT)
 set_source_files_properties(${resources} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+set(askpass_helper ${NATIVE_CORE_BUILD}/platform/macos/tidyvnc-ssh-askpass)
+set_source_files_properties(${askpass_helper} PROPERTIES MACOSX_PACKAGE_LOCATION MacOS)
 add_executable(TidyVNC MACOSX_BUNDLE TidyVNC/TidyVNCMain.swift TidyVNC/TidyVNCApp.swift TidyVNC/ConnectionModel.swift TidyVNC/AuthenticationSheet.swift TidyVNC/TrustDetailsView.swift
   TidyVNC/SecuritySettingsFields.swift TidyVNC/TrustFileSettingsFields.swift TidyVNC/TrustLibraryView.swift TidyVNC/PreferencesSettingsView.swift TidyVNC/EncodingSettingsFields.swift TidyVNC/ConnectionSettingsFields.swift
   TidyVNC/FullscreenDefaultsFields.swift
+  TidyVNC/SSHAuthenticationSheet.swift
+  ${askpass_helper}
   TidyVNC/DocumentExportView.swift
   TidyVNC/ListenerModel.swift
   TidyVNC/ListenerView.swift
@@ -43,7 +47,7 @@ set_target_properties(TidyVNC PROPERTIES
   XCODE_ATTRIBUTE_SWIFT_VERSION 6.0
   XCODE_ATTRIBUTE_PRODUCT_MODULE_NAME TidyVNCApp
   XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${native_bundle_identifier}
-  XCODE_ATTRIBUTE_SWIFT_INCLUDE_PATHS "${NATIVE_CORE_BUILD}/platform/macos/modules ${TIDYVNC_SOURCE_DIR}/viewer/bridge ${TIDYVNC_SOURCE_DIR}/platform/macos/KeyMap"
+  XCODE_ATTRIBUTE_SWIFT_INCLUDE_PATHS "${NATIVE_CORE_BUILD}/platform/macos/modules ${TIDYVNC_SOURCE_DIR}/viewer/bridge ${TIDYVNC_SOURCE_DIR}/platform/macos/KeyMap ${TIDYVNC_SOURCE_DIR}/platform/macos/Tunnel/Askpass"
   XCODE_ATTRIBUTE_SWIFT_STRICT_CONCURRENCY complete
   XCODE_ATTRIBUTE_SWIFT_TREAT_WARNINGS_AS_ERRORS YES
   XCODE_ATTRIBUTE_SWIFT_COMPILATION_MODE wholemodule
@@ -55,3 +59,6 @@ set_target_properties(TidyVNC PROPERTIES
   XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME NO
   XCODE_ATTRIBUTE_CLANG_MODULE_CACHE_PATH ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache
   XCODE_ATTRIBUTE_SWIFT_MODULE_CACHE_PATH ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache)
+add_custom_command(TARGET TidyVNC POST_BUILD
+  COMMAND /usr/bin/codesign --force --sign - "$<TARGET_BUNDLE_DIR:TidyVNC>/Contents/MacOS/tidyvnc-ssh-askpass"
+  VERBATIM)

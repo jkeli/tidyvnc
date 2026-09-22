@@ -48,6 +48,32 @@ final class Inspector: NativeInvocationPathInspecting, @unchecked Sendable {
   func kind(at path: String) -> NativeInvocationPathKind { lock.withLock { paths.append(path) }; return result }
 }
 func classification() async throws {
+  let gateway = try NativeSSHGateway("ssh://alice@gateway.invalid:2222")
+  let routed = try NativeInvocationBootstrap.launch(.init(arguments:["-via=" + gateway.canonicalURI,"target.invalid"]),workingDirectory:"/launch")
+  try check(try routed.invocation.gateway() == gateway && routed.connectsOnReady,"validated CLI gateway retains user and port")
+  let cleared = try NativeInvocationBootstrap.launch(.init(arguments:["-via=gateway","-via=","target.invalid"]),workingDirectory:"/launch",customTunnelCommandPresent:true)
+  try check(try cleared.invocation.gateway(inheriting:gateway) == nil,"explicit empty via clears inherited routing")
+  for (arguments,reason) in [
+    (["-via=bad gateway","-via=valid"],NativeInvocationResolutionFailure.Reason.invalidValue),
+    (["-via=gateway","-listen","./file"],.tunnelListenUnsupported),
+    (["-via=gateway","/private-socket"],.invalidTunnelTarget)
+  ] {
+    let probe = Inspector(.socket)
+    do {
+      _ = try NativeInvocationBootstrap.launch(.init(arguments:arguments),workingDirectory:"/launch",inspector:probe)
+      throw Failure(message:"incompatible tunnel invocation admitted")
+    } catch let failure as NativeInvocationResolutionFailure {
+      try check(failure.reason == reason,"typed tunnel preflight failure")
+      if reason != .invalidTunnelTarget { try check(probe.calls.isEmpty,"gateway/listen rejection precedes path inspection") }
+    }
+  }
+  let customProbe = Inspector(.file)
+  do {
+    _ = try NativeInvocationBootstrap.launch(.init(arguments:["-via=gateway","./file"]),workingDirectory:"/launch",inspector:customProbe,customTunnelCommandPresent:true)
+    throw Failure(message:"shell customization silently ignored")
+  } catch let failure as NativeInvocationResolutionFailure {
+    try check(failure.reason == .customTunnelCommandUnsupported && customProbe.calls.isEmpty,"custom command rejected before file inspection")
+  }
   let inspector = Inspector(.file)
   let bare = try NativeInvocationBootstrap.launch(.init(arguments:["file.tidyvnc"]),workingDirectory:"/launch",inspector:inspector)
   try check(bare.invocation.endpoint == "file.tidyvnc" && bare.connectsOnReady && inspector.calls.isEmpty,"bare file-like name remains retained host spelling")
@@ -55,9 +81,9 @@ func classification() async throws {
   try check(relative.document != nil && relative.invocation.endpoint.isEmpty && !relative.connectsOnReady && inspector.calls == ["/launch/./file.tidyvnc"],"relative explicit file classified using captured cwd")
   let untouched = Inspector(.socket)
   do {
-    _ = try NativeInvocationBootstrap.launch(.init(arguments:["-via=private","/private-path"]),workingDirectory:"/launch",inspector:untouched)
+    _ = try NativeInvocationBootstrap.launch(.init(arguments:["-via=private invalid","/private-path"]),workingDirectory:"/launch",inspector:untouched)
     throw Failure(message:"unsupported adapter accepted")
-  } catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .unsupportedOption && untouched.calls.isEmpty,"native option preflight precedes path inspection") }
+  } catch let failure as NativeInvocationResolutionFailure { try check(failure.reason == .invalidValue && untouched.calls.isEmpty,"native option preflight precedes path inspection") }
   let listen = try NativeInvocationBootstrap.launch(.init(arguments:["-listen"]),workingDirectory:"/launch",inspector:untouched)
   try check(listen.listen?.port == 5500 && listen.listen?.ipv4 == true && listen.listen?.ipv6 == true &&
     listen.invocation.endpoint.isEmpty && !listen.connectsOnReady && listen.document == nil,"listen defaults never create an outbound endpoint")

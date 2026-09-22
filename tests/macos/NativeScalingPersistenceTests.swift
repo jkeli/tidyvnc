@@ -53,7 +53,7 @@ func stores() async throws {
     let saved = try await store.upsert(profile,expected: initial.revision)
     let reopened = NativeProfileHistoryStore(backing: backing), read = try await reopened.read()
     try check(read == saved && read.recentEndpoints == ["recent"] && read.profiles[0].settings.scaling?.scaling == "125%x80%" && read.profiles[0].settings.scaling?.devicePixels == nil,"profile canonical sizing and absence survive reopen")
-    try check((try JSONSerialization.jsonObject(with: backing.read()!) as! [String: Any])["schema"] as? Int == 11,"profile explicit upgrade")
+    try check((try JSONSerialization.jsonObject(with: backing.read()!) as! [String: Any])["schema"] as? Int == 12,"profile explicit upgrade")
     do { _ = try await store.upsert(profile,expected: initial.revision); throw Failure(message: "overwrote stale profile") }
     catch NativeStorageError.conflict {}
     await reopened.close(); await store.close()

@@ -101,6 +101,7 @@ public enum NativeSessionDefaultsPurpose: Sendable { case connection, listener }
   @Published public private(set) var inherited = NativePreferences()
   @Published public private(set) var overrides = NativePreferences()
   @Published public private(set) var profile: NativeConnectionProfile?
+  @Published public private(set) var sshGateway: NativeSSHGateway?
   @Published public private(set) var profileError: NativeStorageError?
   @Published public private(set) var session: NativeSession?
   @Published public private(set) var prepared: NativePreparedSessionDefaults?
@@ -280,10 +281,11 @@ public enum NativeSessionDefaultsPurpose: Sendable { case connection, listener }
     }
     do {
       let configuration = try review.resolution.configuration(acknowledging:Set(review.resolution.notices.map(\.line)))
+      let gateway = try resolvedGateway(profile:profile,endpoint:review.resolution.endpoint)
       let created = purpose == .connection ? try runtime.makeSession(configuration:configuration) : nil
       // Metadata precedes session publication so subscribers set the file address
       // (including an explicit empty one) before enabling connection admission.
-      documentResolution = review.resolution; documentReview = nil; documentMappingContext = nil
+      sshGateway = gateway; documentResolution = review.resolution; documentReview = nil; documentMappingContext = nil
       prepared = .init(configuration:configuration,inherited:inherited,document:documentResolution,invocation:invocationResolution)
       session = created; isReady = true; documentIssue = nil
     } catch { documentReview = nil; documentFailed(error) }
@@ -320,13 +322,24 @@ public enum NativeSessionDefaultsPurpose: Sendable { case connection, listener }
   }
   private func install(_ values: NativePreferences, profile: NativeConnectionProfile?, configuration: NativeSessionConfiguration) throws {
     guard session == nil else { throw NativePreferencesError.unavailable }
+    let gateway = try resolvedGateway(profile:profile,endpoint:invocationResolution?.endpoint ?? profile?.endpoint ?? "")
     // Publish profile metadata before the session so the connection controller
     // installs its address before exposing Connect. Never apply a late profile.
     self.profile = profile
+    sshGateway = gateway
     let created = purpose == .connection ? try runtime.makeSession(configuration:configuration) : nil
     prepared = .init(configuration:configuration,inherited:values,document:documentResolution,invocation:invocationResolution)
     session = created
     inherited = values; overrides = NativePreferences(); error = nil; isReady = true
+  }
+  private func resolvedGateway(profile: NativeConnectionProfile?, endpoint: String) throws -> NativeSSHGateway? {
+    let gateway: NativeSSHGateway?
+    if let invocationRequest { gateway = try invocationRequest.gateway(inheriting:profile?.sshGateway,endpoint:endpoint) }
+    else { gateway = profile?.sshGateway }
+    if gateway != nil && purpose == .listener {
+      throw NativeInvocationResolutionFailure(reason:.tunnelListenUnsupported,argument:0)
+    }
+    return gateway
   }
   public func useBuiltInDefaults() {
     guard !stopped, !isLoading, !isReady, error != nil else { return }

@@ -697,3 +697,41 @@ if(Python3_Interpreter_FOUND)
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tunnel-ssh.py $<TARGET_FILE:native-tunnel-tests>)
   set_tests_properties(NativeTunnel.IsolatedOpenSSH PROPERTIES TIMEOUT 45 SKIP_RETURN_CODE 77)
 endif()
+
+add_executable(native-tunnel-controller-tests NativeTunnelControllerTests.swift support/TrustFixtures.swift ../../apps/macos/TidyVNC/ConnectionModel.swift)
+set_target_properties(native-tunnel-controller-tests PROPERTIES Swift_MODULE_NAME NativeTunnelControllerTests)
+target_compile_options(native-tunnel-controller-tests PRIVATE -swift-version 6 -strict-concurrency=complete
+  -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+target_include_directories(native-tunnel-controller-tests PRIVATE support)
+target_link_libraries(native-tunnel-controller-tests PRIVATE tidyvnc_macos_bridge native-test-peer)
+add_dependencies(native-tunnel-controller-tests native-tunnel-child)
+add_test(NAME NativeTunnel.ConnectionControllerLifecycle COMMAND native-tunnel-controller-tests $<TARGET_FILE:native-tunnel-child>)
+set_tests_properties(NativeTunnel.ConnectionControllerLifecycle PROPERTIES TIMEOUT 60)
+if(Python3_Interpreter_FOUND)
+  add_test(NAME NativeTunnel.ConnectionControllerOpenSSH
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tunnel-ssh.py $<TARGET_FILE:native-tunnel-controller-tests>)
+  set_tests_properties(NativeTunnel.ConnectionControllerOpenSSH PROPERTIES TIMEOUT 45 SKIP_RETURN_CODE 77)
+endif()
+
+add_executable(native-ssh-askpass-tests NativeSSHAskpassTests.swift ../../apps/macos/TidyVNC/SSHAuthenticationSheet.swift)
+set_target_properties(native-ssh-askpass-tests PROPERTIES Swift_MODULE_NAME NativeSSHAskpassTests)
+target_compile_options(native-ssh-askpass-tests PRIVATE -swift-version 6 -strict-concurrency=complete
+  -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+target_include_directories(native-ssh-askpass-tests PRIVATE support)
+target_link_libraries(native-ssh-askpass-tests PRIVATE tidyvnc_macos_bridge native-test-peer)
+add_dependencies(native-ssh-askpass-tests tidyvnc-ssh-askpass)
+add_test(NAME NativeTunnel.AskpassTransportAndInteraction COMMAND native-ssh-askpass-tests $<TARGET_FILE:tidyvnc-ssh-askpass>)
+set_tests_properties(NativeTunnel.AskpassTransportAndInteraction PROPERTIES TIMEOUT 40)
+if(Python3_Interpreter_FOUND)
+  add_test(NAME NativeTunnel.AskpassOpenSSH
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tunnel-ssh.py $<TARGET_FILE:native-ssh-askpass-tests> $<TARGET_FILE:tidyvnc-ssh-askpass>)
+  set_tests_properties(NativeTunnel.AskpassOpenSSH PROPERTIES TIMEOUT 45 SKIP_RETURN_CODE 77)
+endif()
+
+if(Python3_Interpreter_FOUND)
+  foreach(algorithm rsa ecdsa)
+    add_test(NAME NativeTunnel.HostKey-${algorithm}
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tunnel-ssh.py $<TARGET_FILE:native-ssh-askpass-tests> $<TARGET_FILE:tidyvnc-ssh-askpass> ${algorithm})
+    set_tests_properties(NativeTunnel.HostKey-${algorithm} PROPERTIES TIMEOUT 45 SKIP_RETURN_CODE 77)
+  endforeach()
+endif()

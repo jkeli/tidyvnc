@@ -75,7 +75,7 @@ struct ProfileLibraryView: View {
                 .help("Enter user@host or ssh://user@host:port. Leave empty for a direct connection.")
               if let issue = model.gatewayIssue { Text(issue).font(.caption).foregroundStyle(.red) }
               if !model.gatewayText.isEmpty {
-                Text("SSH currently requires an existing host key and key or agent authentication. Password prompts, new host-key approval, and SSH configuration files are not supported yet.")
+                Text("SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected.")
                   .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
               }
               Text("Settings without a profile override use app defaults for each new connection.")

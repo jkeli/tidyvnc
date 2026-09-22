@@ -229,8 +229,11 @@ func inputs(user: [UInt8]? = nil, password: [UInt8]? = nil, file: URL? = nil) th
 }
 
 @MainActor func routeInputs() async throws {
+  let inherited = try NativeSSHGateway("gateway.invalid")
+  let explicit = try NativeSSHGateway("ssh://gateway.invalid:22")
+  try check(inherited.intentIdentity != explicit.intentIdentity,"port inheritance is distinct launch intent")
   let runtime = try NativeRuntime()
-  for initialRoute: String? in [nil,"gateway-A"] {
+  for (initialRoute,requested): (String?,String?) in [(nil,nil),("gateway-A",nil),("requested-alias","requested-alias")] {
     let peer = try Peer()
     var configuration = NativeSessionConfiguration(); configuration.securityTypes = [2]
     let session = try runtime.makeSession(configuration:configuration)
@@ -240,7 +243,7 @@ func inputs(user: [UInt8]? = nil, password: [UInt8]? = nil, file: URL? = nil) th
     // can happen later when the first explicitly selected tunnel is prepared.
     credentials.bindLaunchEndpoint(peer.endpoint,routeIdentity:initialRoute)
     for (route,automatic) in [("gateway-A",true),("gateway-A",true),("gateway-B",false),("gateway-A",false)] {
-      credentials.beginAttempt(endpoint:peer.endpoint,routeIdentity:route)
+      credentials.beginAttempt(endpoint:peer.endpoint,routeIdentity:route,requestedRouteIdentity:requested)
       let operation = Task { try await session.connect(endpoint:peer.endpoint,through:peer.endpoint,routeIdentity:route) }
       try await until { session.prompt != nil }
       let prompt = session.prompt!; credentials.inspect(prompt)

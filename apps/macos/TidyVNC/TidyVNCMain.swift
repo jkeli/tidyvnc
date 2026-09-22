@@ -13,7 +13,8 @@ import TidyVNCNative
       if let terminal = try NativeInvocationBootstrap.terminal(options,version:NativeBuildInfo.version,copyright:attribution) {
         FileHandle.standardError.write(Data(terminal.text.utf8)); exit(terminal.exitCode)
       }
-      var launch = try NativeInvocationBootstrap.launch(options,workingDirectory:FileManager.default.currentDirectoryPath)
+      var launch = try NativeInvocationBootstrap.launch(options,workingDirectory:FileManager.default.currentDirectoryPath,
+        customTunnelCommandPresent:getenv("VNC_VIA_CMD") != nil)
       launch.credentials = try NativeLaunchCredentialInputs.capture(passwordFile:
         NativeLaunchCredentialInputs.passwordFile(options,workingDirectory:launch.invocation.workingDirectory))
       try NativeProcessLogging.start(options)

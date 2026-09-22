@@ -448,6 +448,10 @@ if(UNIX AND NOT APPLE AND BUILD_PLATFORM_APPS)
   endif()
 endif()
 
+# Production libraries and the top-level libtool dependency walk both consume
+# this imported target. Do not rely on optional GTest discovery to make it
+# visible outside common/core and common/network's directory scopes.
+find_package(Threads REQUIRED)
 find_package(GTest)
 
 # Generate config.h and make sure the source finds it
