@@ -1,8 +1,8 @@
 # Native UI architecture and macOS SwiftUI migration
 
 For the current implementation checkpoint and restart instructions, see
-[RESUME.md](RESUME.md) (2026-09-21, commit `1ba1fe0e`). The immediate next work is
-reviewed connection-file listener startup. The entire plan remains in scope.
+[RESUME.md](RESUME.md) (2026-09-21, implementation checkpoint `1ba1fe0e` plus the
+current reviewed file-listener follow-up). The entire plan remains in scope.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,
@@ -1123,6 +1123,8 @@ the existing asynchronous drain contracts. Numeric CLI `-listen [port]` now open
 and starts a listener once, carries CLI settings to incoming sessions and transfers
 captured credentials to only the first opened incoming window. Stop/close clears
 unclaimed inputs. Native ports use checked decimal 0–65535 instead of unchecked
-retained `atoi`; paths fail explicitly before IO. Configuration-file listen startup,
-full app interaction and installed reverse acceptance remain open; see LISTEN.md
-and the 2026-09-21 TODO evidence.
+retained `atoi`. Explicit file startup now resolves defaults/CLI/file settings and
+display mapping for review without a session or bind. Approval freezes configuration
+and metadata for incoming windows; they do not reread preferences or the source.
+Unix socket listeners remain unsupported. Full app interaction and installed reverse
+acceptance remain open; see LISTEN.md and the 2026-09-21 TODO evidence.

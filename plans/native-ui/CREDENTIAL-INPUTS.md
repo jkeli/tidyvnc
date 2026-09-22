@@ -98,5 +98,6 @@ successfully opened incoming window claims them. Later peers receive CLI setting
 but no credential owner and do not recreate the PasswordFile policy. Explicit
 Stop/close clears unclaimed inputs; it does not revoke an already admitted window's
 owner. Manual listeners do not capture credentials. All reverse windows continue to
-exclude Keychain, saved trust/history and outbound retry. Connection-file listener
-startup is not yet supported. See LISTEN.md.
+exclude Keychain, saved trust/history and outbound retry. File-listener startup uses
+the same owner, held while file settings are reviewed; cancelling review or closing
+clears unclaimed inputs. Reloading settings never recaptures credentials. See LISTEN.md.

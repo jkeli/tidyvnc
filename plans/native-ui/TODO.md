@@ -3,8 +3,8 @@
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-21, records committed
 checkpoint `1ba1fe0e`, current connection-file listen work, validation and next steps.
-The interrupted file-listener prototype was removed before that commit; numeric
-CLI listening is implemented, while explicit-file listening remains unsupported.
+The interrupted prototype was removed before that commit. The current follow-up
+implements reviewed file listening; see the latest evidence and RESUME.md.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -88,7 +88,8 @@ may disappear merely because it is absent from an initial mockup.
   - [x] Listener C/Swift boundary: copied ordered events, explicit peer handoff into
     configured reusable sessions, coalesced callbacks and joined runtime shutdown.
     Manual/numeric CLI presentation and connection-only reverse identity are now
-    implemented; explicit-file listening and installed acceptance remain open.
+    implemented; reviewed file listening is implemented below, while installed
+    acceptance remains open.
   - [x] Separate bounded listener runtime, ordered Starting/Listening/Stopping/
     terminal events, bounded incoming peers, expiry, explicit accept/reject,
     peer handoff into session workers and joined asynchronous close.
@@ -450,8 +451,11 @@ UI uses, with migration and credential behavior verified independently.
     and listener/window/quit drain. Installed acceptance remains open; see LISTEN.md
     and the presentation evidence below.
   - [x] Numeric CLI listen launch, one-shot listener scene, family selection,
-    per-incoming CLI options and single-owner launch credentials. Explicit file
-    listening and full app/installed interaction remain open; see LISTEN.md.
+    per-incoming CLI options and single-owner launch credentials. Full app/installed
+    interaction remains open; see LISTEN.md.
+  - [x] Reviewed connection-file listening, checked ServerName port interpretation,
+    no session/bind before approval, immutable settings reuse across incoming
+    windows, display mapping/revalidation and cancellation during file IO/review.
   - [x] App-executable CLI bootstrap, one-shot first-window launch, automatic
     direct-host connection, no-host form and reviewed file startup. No-file monitor
     recovery, new-window/zero-window isolation and terminal paths are covered by
@@ -7716,3 +7720,36 @@ Configuration-file listen review/precedence, tunnels and the remaining native pl
 stay open. Host scope remains arm64 macOS 27, provisional target 14 with newer
 Homebrew dependencies and crypto-disabled sanitizer builds; older OS/Intel/Linux
 runtime acceptance is not claimed. All edits remain in the existing working tree.
+
+### 2026-09-21 — Reviewed connection-file listener checkpoint
+
+The current implementation follow-up is uncommitted on top of `0d80192e` (the
+clipboard/UI-thread fix preserved on resume). This planning checkpoint records
+the working-tree implementation separately from the earlier numeric-listen commit.
+File listen startup now classifies file/socket paths, prepares defaults → CLI →
+file settings without a session or bind, and requires explicit review. Every
+recognized ServerName occurrence uses checked decimal port validation; empty or
+absent means 5500. Mapping/re-edit preserves that interpretation. Approval retains
+configuration and provenance for incoming windows without rereading preferences
+or the source file. Selected displays are checked before accepting each peer;
+cancel/close prevents late publication and clears unclaimed launch credentials.
+
+Normal native/app builds passed. The full native suite passed **77/77 (87.91 s)**;
+the six affected document/invocation/listener tests passed **6/6 ASan (3.80 s)** and
+**6/6 TSan (17.20 s)**. Strict deep signature verification, **29/29** isolated
+actual-executable terminal cases and branding checks passed (1650 unchanged
+deferred entries). No C ABI or persisted schema changed. Logs use the temporary
+prefix `/tmp/tidyvnc-file-listen-`.
+
+The private fixture's review screenshot was inspected: port, enabled families,
+ignored-field notice and approval/cancel controls were legible. Its process had no
+TCP listener before approval. After approval, two waiting peers and the expected
+listening port were observed, but the first capture had incomplete window chrome.
+**Post-approval visual acceptance remains pending.** A second preview was started
+for a stable capture; RESUME.md records its handle and cleanup steps. These checks
+do not establish full-app interaction or installed acceptance.
+
+Resume by completing that visual check and reviewing the implementation diff,
+then continue tunnel entry paths and the unchecked plan gates. Host scope remains
+arm64 macOS 27, provisional target 14 with newer dependencies and crypto-disabled
+sanitizer builds. Older OS, Intel, Linux and release acceptance remain open.

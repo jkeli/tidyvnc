@@ -2370,5 +2370,23 @@ window-opening callback, keeps it on failed opening, and clears it on Stop/close
 ConnectionModel claims only the explicitly attached reverse owner; it never derives
 file-only inputs for subsequent peers from the repeated option request. All reverse
 sessions keep history/Keychain/durable trust disabled. Ordinary window credentials
-and settings precedence remain unchanged. Explicit connection-file listen startup
-and installed interaction remain open.
+and settings precedence remain unchanged. Installed interaction remains open.
+
+### Reviewed listener configuration ownership
+
+NativeSessionDefaultsPurpose.listener retains the existing async reader, file/CLI
+overlay and review/mapping lifecycle but produces NativePreparedSessionDefaults
+without a NativeSession. The approved value contains configuration and its inherited,
+document and invocation metadata; it owns no credential payload or native worker.
+NativeDocumentEndpointUse.listenPort validates each ServerName occurrence and travels
+through mapping reconstruction. The approved listenPort is typed separately from the
+ordinary document endpoint string. File schemas and C exports are unchanged.
+
+ListenerModel starts preparation once on scene appearance, binds only after current
+review approval, and passes the approved value to accepted windows. ConnectionModel
+reuses it through NativeSessionDefaults before reverse admission, bypassing later
+store/file reads. Selected display IDs must still be connected at explicit peer
+acceptance; existing session/fullscreen topology handling applies thereafter. Cancel
+review clears unclaimed launch inputs. Close stops preparation, removes observations,
+revokes queued starts and asynchronously drains the reader and listener. A listener
+owns and stops a display service only when it created that service itself.

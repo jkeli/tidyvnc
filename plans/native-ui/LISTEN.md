@@ -2,9 +2,9 @@
 
 The portable listener has a C ABI, a Swift owner and a native listener window under
 File > Listen for Connections. Native `-listen [port]` launches the same presentation
-and starts listening once. Explicit connection-file listen startup remains pending.
-The current checkpoint and proposed preparation/review work are recorded in
-[RESUME.md](RESUME.md). No partial file-listener implementation is committed.
+and starts listening once. `-listen ./connection.tidyvnc` prepares file settings
+for review before binding. The current checkpoint and resumption work are recorded
+in [RESUME.md](RESUME.md).
 
 ## Ownership and admission
 
@@ -87,7 +87,7 @@ active connection menu target. Manually showing the listener window does not bin
 access a user store; binding requires Start, and target session preferences are
 read after Accept.
 
-## Integration still required
+## CLI startup and file review
 
 CLI bootstrap resolves the final `listen` boolean before classifying operands.
 With listen enabled, no operand selects 5500, and an ASCII decimal 0–65535 selects
@@ -98,15 +98,37 @@ operand and uses unchecked `atoi` for a digit-prefixed one. No display-number of
 is applied. This checked native policy is not a claim of retained CLI parity.
 UseIPv4/UseIPv6 use their last validated assignment, default true, and cannot both
 be false for a listen launch. Disabled listen follows ordinary outbound handling.
-Paths fail explicitly before metadata inspection, file reads, credentials or bind;
-configuration-file review/precedence still needs its own listener preparation flow.
+Paths use the existing file/socket classification with the captured working
+directory. Unix socket listeners fail explicitly. Configuration files use the
+bounded regular-file reader and defaults → CLI → file precedence. Every recognized
+ServerName occurrence must be empty or a checked decimal port; absent/empty chooses
+5500. Port zero remains ephemeral. Unknown/platform-only fields retain explicit
+ignored-field review; this does not extend the compatibility file's field catalog.
+
+NativeSessionDefaults has a listener preparation purpose: file read, resolution,
+display mapping, ignored-field review and topology revalidation occur without
+allocating a session or binding a socket. The listener scene displays the port and
+enabled families. Its Start Listening approval produces NativePreparedSessionDefaults,
+an owned configuration plus inherited/document/invocation metadata. Incoming windows
+consume this value without rereading the source file or preferences, preserving
+reviewed precedence, provenance and inactive cursor shape. Manual/numeric listeners
+continue their existing per-incoming defaults resolution.
+
+Mapping reconstruction retains the file's listener-port interpretation. Stale
+approval IDs and display topology changes cannot bind. Before accepting a peer,
+selected display IDs from the approved configuration must still be connected;
+reconnect them or close/reopen the file to choose others. They are never silently
+renumbered. Ordinary session/fullscreen topology handling continues after admission.
+Closing during file IO cancels publication and awaits reader completion. Cancelling
+review clears unclaimed credentials; an explicit reload cannot recapture them.
 
 The first ordinary SwiftUI scene consumes startup once and presents a listener
 instead of constructing an outbound ConnectionModel. Finder/profile windows do not
 consume that request. Subsequent ordinary windows are normal outbound forms. Scene
 reappearance cannot restart a stopped listener. The CLI option request follows each
 accepted peer through NativeSessionDefaults, including display recovery before
-session admission. The process-captured credential owner transfers only to the first
+session admission for numeric launches or the approved file snapshot for file launches.
+The process-captured credential owner transfers only to the first
 successfully opened incoming window. It is not restored, cloned or recreated from
 PasswordFile for later peers. Failed window opening keeps the unclaimed owner;
 Stop/close clears it. An admitted window retains its own owner when listening stops.

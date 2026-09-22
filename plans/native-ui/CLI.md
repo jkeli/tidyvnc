@@ -7,8 +7,8 @@ initialization and consumes one process-local request in its first ordinary wind
 Resolution applies defaults/profile → CLI → explicit file without writing stores.
 Direct hosts connect when ready; explicit files retain review and manual Connect.
 File/socket classification and no-file monitor recovery are implemented. Remaining
-option adapters, connection-file listen startup and tunnels remain required. Numeric
-`-listen [port]` startup is implemented; see LISTEN.md for its checked-port policy.
+option adapters and tunnels remain required. Numeric `-listen [port]` and reviewed
+`-listen ./file.tidyvnc` startup are implemented; see LISTEN.md for checked-port policy.
 Launch credential inputs are
 implemented with connection-scoped ownership; see CREDENTIAL-INPUTS.md.
 This document does not declare CLI parity or authorize shipping SwiftUI as default.
@@ -444,5 +444,8 @@ consumes startup in a listener scene, binds once using UseIPv4/UseIPv6, and pass
 CLI settings to accepted windows. Only the first opened incoming window can claim
 launch credentials. Stop clears unclaimed credentials; later peers never recapture
 the environment or PasswordFile policy. Ports use checked decimal 0–65535, default
-5500; unlike retained `atoi`, suffixes/nonnumeric values fail explicitly. Connection
-files/socket paths still fail before IO. LISTEN.md records the remaining scope.
+5500; unlike retained `atoi`, suffixes/nonnumeric values fail explicitly. File paths
+now prepare defaults → CLI → file settings and monitor choices for explicit review
+before binding. File ServerName supplies the checked port (empty/absent → 5500).
+Incoming windows reuse the approved settings without rereading files/preferences.
+Unix socket listeners fail explicitly. LISTEN.md records the remaining scope.
