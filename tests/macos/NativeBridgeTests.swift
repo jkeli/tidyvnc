@@ -112,6 +112,26 @@ final class Peer: @unchecked Sendable {
   try expect(password.allSatisfy { $0 == 0 }, "rejected password buffer wiped")
 }
 
+@MainActor func routedConnectionUsesPreparedLocalTransport() async throws {
+  let runtime = try NativeRuntime(), session = try runtime.makeSession(configuration:configuration(1))
+  let peer = try Peer()
+  for route in ["", "bad\0route"] {
+    do {
+      _ = try await session.connect(endpoint:"remote.invalid:1",through:peer.endpoint,routeIdentity:route)
+      throw TestFailure(description:"Invalid tunnel route admitted")
+    } catch let error as NativeError { try expect(error.status == .invalidArgument,"typed tunnel admission rejection") }
+  }
+  try expect(session.snapshot.state == .idle,"invalid tunnel admission leaves session reusable")
+  let connected = try await session.connect(endpoint:"remote.invalid:1",through:peer.endpoint,routeIdentity:"ssh:gateway")
+  try expect(connected.snapshot.state == .connected,"routed RFB connection does not resolve logical target")
+  _ = await serverFrame(session)
+  _ = try await session.disconnect()
+  let nextPeer = try Peer()
+  _ = try await session.connect(endpoint:nextPeer.endpoint)
+  _ = await serverFrame(session)
+  try await runtime.shutdown()
+}
+
 @MainActor final class Counter { var value = 0 }
 @MainActor func cancellationAndIndependentProgress() async throws {
   let runtime = try NativeRuntime(); let parked = try runtime.makeSession(configuration: configuration(2)); let waiting = try Peer(authentication: true)
@@ -286,6 +306,7 @@ func ignoreReady(_ context: UnsafeMutableRawPointer?, _ subscription: UInt64, _ 
     do {
       try await connectFramesInputReconnect(); print("PASS connect, frames, wire input, reconnect, retained images")
       try await credentialsAreOwnedAndWiped(); print("PASS owned VNC prompt and secret submission")
+      try await routedConnectionUsesPreparedLocalTransport(); print("PASS routed transport, validation and direct reconnect")
       try await cancellationAndIndependentProgress(); print("PASS task cancellation, MainActor heartbeat and independent session")
       try await closeResumesPendingCommandsAndDoesNotRetainModels(); print("PASS close/drain, pending continuations and repeated ownership cleanup")
       try await queuedDeliveryCoalescesAndRejectsTeardownAndOldGenerations(); print("PASS coalesced delivery, queued teardown and stale generation")

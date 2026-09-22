@@ -223,6 +223,27 @@ public final class NativeSession: ObservableObject {
   public func disconnect() async throws -> NativeCompletion {
     try await submit { tidyvnc_session_disconnect(handle.raw, generation, $0, $1) }
   }
+  // The caller owns a ready tunnel until this session's transport has drained.
+  // Durable credential/trust owners must use endpoint + routeIdentity as well.
+  public func connect(endpoint: String, through localEndpoint: String, routeIdentity: String) async throws -> NativeCompletion {
+    var raw: UInt64 = 0
+    _ = try withText(endpoint) { endpoint in
+      try withText(routeIdentity) { route in
+        try checked { tidyvnc_endpoint_create(endpoint,route,0,&raw,$0) }
+      }
+    }
+    let target = NativeHandle(adopting:raw)
+    return try await submit(advancesGeneration:true) { operation,error in
+      var options = abi(tidyvnc_connect_options.self)
+      let status = tidyvnc_connect_options_init(&options,error)
+      guard status == UInt32(TIDYVNC_OK) else { return status }
+      options.ipv4 = networkPolicy.ipv4 ? 1 : 0; options.ipv6 = networkPolicy.ipv6 ? 1 : 0
+      return withText(localEndpoint) { bytes in
+        options.endpoint = bytes
+        return tidyvnc_session_connect_routed(handle.raw,target.raw,&options,operation,error)
+      }
+    }
+  }
   func acceptIncoming(listener: NativeHandle, incoming: UInt64) async throws -> NativeCompletion {
     try await submit(advancesGeneration:true) { tidyvnc_listener_accept(listener.raw,incoming,handle.raw,$0,$1) }
   }

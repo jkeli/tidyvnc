@@ -96,6 +96,37 @@ TEST(SocketConnector, NumericIpv6AndNumericScopeConnectWithoutDns)
   exchange(*transport, peer.value);
 }
 
+TEST(SocketConnector, RoutedLocalSocketKeepsRemoteTLSNameWithoutResolvingTarget)
+{
+  for (int family : {AF_INET, AF_INET6}) {
+    Listener listener(family);
+    const auto local = Endpoint::parse((family == AF_INET ? "127.0.0.1::" : "[::1]::") + std::to_string(listener.port));
+    auto attempt = prepareRoutedSocketConnection(Endpoint::parse("REMOTE.invalid:1",false,"ssh:gateway"),local);
+    EXPECT_EQ(attempt->serverName(),"remote.invalid");
+    std::vector<ConnectionPhase> phases;
+    auto transport = attempt->run([&](ConnectionPhase phase) { phases.push_back(phase); });
+    Descriptor peer(listener.accept()); exchange(*transport,peer.value);
+    EXPECT_EQ(phases,(std::vector<ConnectionPhase>{ConnectionPhase::Connecting}));
+    auto control = attempt->control(); attempt.reset(); control->cancel();
+    exchange(*transport,peer.value); // setup cancellation cannot close an admitted transport
+  }
+}
+
+TEST(SocketConnector, RoutedAdmissionRejectsMissingIdentityAndNonlocalForwarders)
+{
+  const auto target = Endpoint::parse("remote.invalid",false,"ssh:gateway");
+  const auto local = Endpoint::parse("127.0.0.1::5901");
+  EXPECT_THROW(prepareRoutedSocketConnection(Endpoint::parse("remote.invalid"),local),std::invalid_argument);
+  EXPECT_THROW(prepareRoutedSocketConnection(Endpoint::parse("/tmp/remote",true,"route"),local),std::invalid_argument);
+  EXPECT_THROW(prepareRoutedSocketConnection(target,Endpoint::parse("127.0.0.1",false,"nested")),std::invalid_argument);
+  for (const auto& value : {"localhost", "192.0.2.1", "[2001:db8::1]", "[::1%0]", "127.0.0.1::0"})
+    EXPECT_THROW(prepareRoutedSocketConnection(target,Endpoint::parse(value)),std::invalid_argument);
+  auto cancelled = prepareRoutedSocketConnection(target,local);
+  cancelled->control()->cancel();
+  try { cancelled->run({}); FAIL() << "Expected cancellation"; }
+  catch (const ConnectionError& error) { EXPECT_EQ(error.code,ConnectionErrorCode::Cancelled); }
+}
+
 TEST(SocketConnector, UnixSocketPathConnectsAndPreservesBytes)
 {
   char pattern[] = "/tmp/tidyvnc-connect-XXXXXX";
@@ -114,6 +145,11 @@ TEST(SocketConnector, UnixSocketPathConnectsAndPreservesBytes)
   auto transport = attempt->run({});
   Descriptor peer(::accept(listener.value, nullptr, nullptr)); ASSERT_GE(peer.value, 0);
   EXPECT_EQ(attempt->serverName(), path); exchange(*transport, peer.value);
+  auto routed = prepareRoutedSocketConnection(Endpoint::parse("REMOTE.invalid:2",false,"ssh:gateway"),Endpoint::parse(path));
+  EXPECT_EQ(routed->serverName(),"remote.invalid");
+  auto forwarded = routed->run({});
+  Descriptor forwardedPeer(::accept(listener.value,nullptr,nullptr)); ASSERT_GE(forwardedPeer.value,0);
+  exchange(*forwarded,forwardedPeer.value);
 }
 
 TEST(SocketConnector, CancelBeforeStartIsStickyAndRetainedControlIsSafe)

@@ -165,8 +165,8 @@ void resolve(State& state, const Endpoint& endpoint, const SocketConnectOptions&
 
 class Connector final : public ConnectionAttempt {
 public:
-  Connector(const Endpoint& endpoint_, const SocketConnectOptions& options_)
-    : endpoint(endpoint_), options(options_), state(std::make_shared<State>()),
+  Connector(const Endpoint& endpoint_, const Endpoint& identity_, const SocketConnectOptions& options_)
+    : endpoint(endpoint_), identity(identity_), options(options_), state(std::make_shared<State>()),
       token(std::make_shared<Control>(state))
   {
     for (auto timeout : {options.resolveTimeout, options.connectTimeout, options.addressTimeout})
@@ -175,7 +175,7 @@ public:
     if (endpoint.transport() == EndpointTransport::Tcp && !options.ipv4 && !options.ipv6)
       throw std::invalid_argument("No connection address family enabled");
   }
-  std::string serverName() const override { return endpoint.transport() == EndpointTransport::Tcp ? endpoint.host() : endpoint.path(); }
+  std::string serverName() const override { return identity.transport() == EndpointTransport::Tcp ? identity.host() : identity.path(); }
   std::shared_ptr<TransportControl> control() const override { return token; }
   std::unique_ptr<SessionTransport> run(const Progress& progress) override
   {
@@ -250,7 +250,7 @@ public:
     }
   }
 private:
-  const Endpoint endpoint;
+  const Endpoint endpoint, identity;
   const SocketConnectOptions options;
   std::shared_ptr<State> state;
   std::shared_ptr<TransportControl> token;
@@ -258,6 +258,17 @@ private:
 }
 std::unique_ptr<ConnectionAttempt> prepareSocketConnection(const Endpoint& endpoint, const SocketConnectOptions& options)
 {
-  return std::unique_ptr<ConnectionAttempt>(new Connector(endpoint, options));
+  return std::unique_ptr<ConnectionAttempt>(new Connector(endpoint, endpoint, options));
+}
+std::unique_ptr<ConnectionAttempt> prepareRoutedSocketConnection(
+  const Endpoint& target, const Endpoint& local, const SocketConnectOptions& options)
+{
+  if (target.transport() != EndpointTransport::Tcp || target.route().empty() ||
+      !local.route().empty() || !local.scope().empty())
+    throw std::invalid_argument("Invalid tunnel endpoint");
+  if (local.transport() == EndpointTransport::Tcp &&
+      (local.port() == 0 || (local.host() != "127.0.0.1" && local.host() != "::1")))
+    throw std::invalid_argument("Invalid tunnel forwarding address");
+  return std::unique_ptr<ConnectionAttempt>(new Connector(local, target, options));
 }
 }

@@ -19,5 +19,14 @@ struct SocketConnectOptions {
 // Timeouts must be 1..60000ms; at least one IP family must be enabled for TCP.
 std::unique_ptr<ConnectionAttempt> prepareSocketConnection(
   const Endpoint& endpoint, const SocketConnectOptions& options = SocketConnectOptions());
+// A host-owned tunnel has already established a local forwarding socket. Dial
+// only that socket while using the logical TCP target's name for RFB/TLS. The
+// target must have a nonempty route identity; local must be an unrouted Unix
+// socket or numeric loopback TCP endpoint. This does not launch/own a tunnel.
+// The host retains its tunnel through transport drain and scopes saved trust
+// and credentials to target + route, never to the forwarding address.
+std::unique_ptr<ConnectionAttempt> prepareRoutedSocketConnection(
+  const Endpoint& target, const Endpoint& local,
+  const SocketConnectOptions& options = SocketConnectOptions());
 }
 #endif

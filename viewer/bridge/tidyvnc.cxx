@@ -54,7 +54,7 @@ constexpr size_t handleLimit = 4096, runtimeLimit = 8;
 constexpr uint64_t features = TIDYVNC_FEATURE_RUNTIME | TIDYVNC_FEATURE_EVENT_POLL |
   TIDYVNC_FEATURE_IMAGES | TIDYVNC_FEATURE_INPUT | TIDYVNC_FEATURE_PROMPTS | TIDYVNC_FEATURE_CALLBACKS | TIDYVNC_FEATURE_GEOMETRY | TIDYVNC_FEATURE_CLIPBOARD | TIDYVNC_FEATURE_ENCODING | TIDYVNC_FEATURE_ENDPOINT_VALIDATION | TIDYVNC_FEATURE_SCALING | TIDYVNC_FEATURE_TILE_RENDERER | TIDYVNC_FEATURE_DAMAGE_GEOMETRY | TIDYVNC_FEATURE_CURSOR_RENDERER | TIDYVNC_FEATURE_INPUT_POLICY | TIDYVNC_FEATURE_SHORTCUTS | TIDYVNC_FEATURE_INPUT_RELEASE
 #if defined(__APPLE__) || defined(__linux__)
-  | TIDYVNC_FEATURE_TCP_UNIX_CONNECT | TIDYVNC_FEATURE_LISTENER
+  | TIDYVNC_FEATURE_TCP_UNIX_CONNECT | TIDYVNC_FEATURE_LISTENER | TIDYVNC_FEATURE_ROUTED_CONNECT
 #endif
 #ifdef HAVE_GNUTLS
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
@@ -1452,6 +1452,22 @@ tidyvnc_status tidyvnc_session_connect(tidyvnc_handle id,const tidyvnc_connect_o
     settings.connectTimeout = std::chrono::milliseconds(options->connect_timeout_ms);
     settings.addressTimeout = std::chrono::milliseconds(options->address_timeout_ms);
     submitted(live->connect(prepareSocketConnection(address,settings)),out); return TIDYVNC_OK;
+#else
+    return TIDYVNC_UNSUPPORTED;
+#endif
+  });
+}
+tidyvnc_status tidyvnc_session_connect_routed(tidyvnc_handle id,tidyvnc_handle target,
+  const tidyvnc_connect_options* options,tidyvnc_operation* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t { header(options); header(out); require(!options->reserved); boolean(options->ipv4); boolean(options->ipv6);
+    auto live = session(id); auto identity = get<EndpointIdentity>(target,Kind::Endpoint);
+    auto local = endpointValue(options->endpoint);
+#if defined(__APPLE__) || defined(__linux__)
+    SocketConnectOptions settings; settings.ipv4 = options->ipv4; settings.ipv6 = options->ipv6;
+    settings.resolveTimeout = std::chrono::milliseconds(options->resolve_timeout_ms);
+    settings.connectTimeout = std::chrono::milliseconds(options->connect_timeout_ms);
+    settings.addressTimeout = std::chrono::milliseconds(options->address_timeout_ms);
+    submitted(live->connect(prepareRoutedSocketConnection(identity->value,local,settings)),out); return TIDYVNC_OK;
 #else
     return TIDYVNC_UNSUPPORTED;
 #endif

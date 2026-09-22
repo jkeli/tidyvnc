@@ -905,6 +905,27 @@ int main(void)
   connect_options.endpoint.data = (const uint8_t*)"bad\0host"; connect_options.endpoint.length = 8;
   CHECK(tidyvnc_session_connect(session,&connect_options,&operation,&error) == TIDYVNC_INVALID_ARGUMENT);
   CHECK(tidyvnc_session_key(session,1,1,65,0,2,&error) == TIDYVNC_INVALID_ARGUMENT);
+  {
+    tidyvnc_handle target = 0;
+    tidyvnc_bytes remote = {(const uint8_t*)"remote.invalid",14}, route = {(const uint8_t*)"ssh:gateway",11};
+    tidyvnc_bytes empty = {NULL,0};
+    CHECK(abi.features & TIDYVNC_FEATURE_ROUTED_CONNECT);
+    connect_options.endpoint.data = (const uint8_t*)"127.0.0.1::5901"; connect_options.endpoint.length = 15;
+    CHECK(tidyvnc_session_connect_routed(session,runtime,&connect_options,&operation,&error) == TIDYVNC_WRONG_HANDLE_TYPE);
+    CHECK(tidyvnc_endpoint_create(remote,empty,0,&target,&error) == TIDYVNC_OK);
+    CHECK(tidyvnc_session_connect_routed(session,target,&connect_options,&operation,&error) == TIDYVNC_INVALID_ARGUMENT);
+    CHECK(tidyvnc_release(target,&error) == TIDYVNC_OK);
+    CHECK(tidyvnc_endpoint_create(remote,route,0,&target,&error) == TIDYVNC_OK);
+    connect_options.endpoint.data = (const uint8_t*)"192.0.2.1"; connect_options.endpoint.length = 9;
+    CHECK(tidyvnc_session_connect_routed(session,target,&connect_options,&operation,&error) == TIDYVNC_INVALID_ARGUMENT);
+    connect_options.version = 2;
+    CHECK(tidyvnc_session_connect_routed(session,target,&connect_options,&operation,&error) == TIDYVNC_ABI_MISMATCH);
+    connect_options.version = 1;
+    CHECK(tidyvnc_session_connect_routed(session,target,&connect_options,NULL,&error) == TIDYVNC_INVALID_ARGUMENT);
+    CHECK(operation.operation == 0);
+    CHECK(tidyvnc_release(target,&error) == TIDYVNC_OK);
+    CHECK(tidyvnc_session_connect_routed(session,target,&connect_options,&operation,&error) == TIDYVNC_INVALID_HANDLE);
+  }
   CHECK(tidyvnc_session_pointer(session,1,0,0,UINT32_MAX,&error) == TIDYVNC_INVALID_ARGUMENT);
   CHECK(tidyvnc_session_focus(session,2,1,&error) == TIDYVNC_STALE);
   CHECK(abi.features & TIDYVNC_FEATURE_INPUT_POLICY);

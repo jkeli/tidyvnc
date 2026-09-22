@@ -66,6 +66,7 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 #define TIDYVNC_FEATURE_PASSWORD_FILE_REPLY 2199023255552ULL
 #define TIDYVNC_FEATURE_CREDENTIAL_BYTES 4398046511104ULL
 #define TIDYVNC_FEATURE_LISTENER 8796093022208ULL
+#define TIDYVNC_FEATURE_ROUTED_CONNECT 17592186044416ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -764,6 +765,14 @@ tidyvnc_status tidyvnc_session_create_with_message_limits(tidyvnc_handle runtime
 tidyvnc_status tidyvnc_session_encoding(tidyvnc_handle, tidyvnc_handle*, tidyvnc_error*);
 tidyvnc_status tidyvnc_session_apply_encoding(tidyvnc_handle, uint64_t generation, tidyvnc_handle encoding, tidyvnc_operation*, tidyvnc_error*);
 tidyvnc_status tidyvnc_session_connect(tidyvnc_handle, const tidyvnc_connect_options*, tidyvnc_operation*, tidyvnc_error*);
+/* Connect through an already prepared, host-owned local tunnel socket. target is
+ * an endpoint handle with TCP transport and a nonempty route identity. options
+ * describes only the forwarding socket: Unix or numeric 127.0.0.1/::1, no scope,
+ * nonzero TCP port. TLS uses target's host, never the forwarding address. Copies
+ * both endpoints before return. The host owns tunnel startup/cancellation/drain
+ * and must key credentials/trust by target + route. Direct connect is unchanged. */
+tidyvnc_status tidyvnc_session_connect_routed(tidyvnc_handle, tidyvnc_handle target,
+  const tidyvnc_connect_options*, tidyvnc_operation*, tidyvnc_error*);
 tidyvnc_status tidyvnc_session_disconnect(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
 tidyvnc_status tidyvnc_session_refresh(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
 /* Stateless shared geometry validation. Bounds 1..65535; unique screen IDs,
