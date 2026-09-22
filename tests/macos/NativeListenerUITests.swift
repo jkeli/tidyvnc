@@ -28,12 +28,20 @@ final class Peer: @unchecked Sendable {
   }
   deinit { native_test_peer_destroy(raw) }
 }
-@MainActor func render(_ controller: ListenerWindowController,_ name: String) async throws {
+@MainActor func render(_ controller: ListenerWindowController,_ name: String, minimum: Bool = false, dark: Bool = false) async throws {
   let root = URL(fileURLWithPath:"/tmp/tidyvnc-listen-ui-images")
   try FileManager.default.createDirectory(at:root,withIntermediateDirectories:true)
   guard let window = controller.window, let view = window.contentView else { throw Failure(message:"Missing listener window") }
-  window.setContentSize(NSSize(width:700,height:560)); view.layoutSubtreeIfNeeded(); window.displayIfNeeded()
+  window.setContentSize(minimum ? NSSize(width:660,height:472) : NSSize(width:700,height:560))
+  window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
+  view.appearance = window.appearance
+  view.layoutSubtreeIfNeeded(); window.displayIfNeeded()
   try await Task.sleep(for:.milliseconds(60))
+  try check(abs(window.contentMinSize.width-660) < 1 && abs(window.contentMinSize.height-472) < 1,
+    "listener minimum survives hosting: \(window.contentMinSize)")
+  guard let fitting = controller.contentSizeThatFits(view.bounds.size) else { throw Failure(message:"Missing listener content") }
+  try check(fitting.width <= view.bounds.width && fitting.height <= view.bounds.height,"listener \(name) fits: \(fitting) within \(view.bounds.size)")
+  window.displayIfNeeded()
   guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"Missing image") }
   view.effectiveAppearance.performAsCurrentDrawingAppearance { view.cacheDisplay(in:view.bounds,to:bitmap) }
   try bitmap.representation(using:.png,properties:[:])!.write(to:root.appendingPathComponent(name+".png"))
@@ -51,6 +59,7 @@ final class Peer: @unchecked Sendable {
     "hosting controller installation preserves the initial window size")
   controller.showWindow(nil)
   try await render(controller,"idle")
+  try await render(controller,"idle-minimum",minimum:true)
   listener.port = "65536"; listener.start()
   try check(listener.issue != nil && listener.phase == .idle,"port validation before opening sockets")
   listener.port = "0"; listener.ipv4 = false; listener.ipv6 = false; listener.start()
@@ -64,6 +73,7 @@ final class Peer: @unchecked Sendable {
   defer { withExtendedLifetime((first,second)) {} }
   try await until("two incoming") { listener.incoming.count == 2 }
   try await render(controller,"incoming")
+  try await render(controller,"incoming-minimum-dark",minimum:true,dark:true)
   let a = listener.incoming[0], b = listener.incoming[1]
   listener.accept(a); listener.accept(a)
   try check(models.count == 1,"one window reservation per peer")
@@ -85,6 +95,7 @@ final class Peer: @unchecked Sendable {
   listener.stop(); try await until("stop") { listener.phase == .stopped }
   try check(models.allSatisfy { $0.session?.snapshot.state == .connected },"stopping leaves accepted windows connected")
   try await render(controller,"stopped")
+  try await render(controller,"stopped-minimum",minimum:true)
   for model in models { model.disconnect() }
   try await until("disconnected") { models.allSatisfy { $0.session?.snapshot.state == .closed && !$0.busy } }
   for model in models {
@@ -227,6 +238,7 @@ actor ListenerDocumentReader: NativeDocumentReading {
   try check(preparation.documentReview?.resolution.listenPort == 0 && preparation.documentReview?.resolution.notices.count == 1,
     "listener port and ignored field shown for review")
   try await render(controller,"file-review")
+  try await render(controller,"file-review-minimum",minimum:true)
   screens.connected = false; displays.refresh(); listener.acceptDocument(old)
   try check(!preparation.isReady && listener.addresses.isEmpty,"topology change revokes file approval before bind")
   screens.connected = true; displays.refresh()

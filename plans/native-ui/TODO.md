@@ -3,8 +3,8 @@
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
 implementation, validation and next steps. The catalog now has **645** entries;
-profile/history/import localization and minimum-window fixes now join the migrated
-settings groups. Next: remaining menu/connection/document/listener/status
+profile/history/import localization joins the migrated settings groups. Defaults
+import and listener fixtures now also prove preserved hosted content minima. Next: remaining menu/connection/document/listener/status
 localization and fixed controller/gateway errors. Interactive/physical/installed acceptance and release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
@@ -8833,3 +8833,52 @@ Continue remaining menus/connection/status/listener, document/defaults-import an
 controller/gateway localization. Check other host controllers with empty sizing
 options for the same lost-minimum behavior. The entire unchecked plan remains;
 N4.16/N4.17 and broader interactive/physical/installed/release gates stay open.
+
+
+### 2026-09-22 — Defaults/listener/reverse hosted minimum sizes
+
+New assertions reproduced the lost-minimum issue before the production change:
+`NativeImport.NativePresentationAndFirstUse` and
+`NativeListener.PresentationAndConnectionRouting` both failed with a content minimum
+of **(0, 0)** after their hosting views completed layout. Manual `window.minSize`
+assignments were being reset by an empty hosting sizing policy.
+
+Defaults import now defines a 640×572 content floor and propagates `.minSize` from
+its host. Both listener content branches define 660×472 and use the same policy.
+The former manual 640×600/660×500 window minima include this host's title bar;
+content dimensions are now authoritative. Tests assert those minima stay constant
+through source choices, review, mapping, error, idle, incoming, stopped and reviewed
+file-listen states, and capture minimum-size content. Existing import consent,
+source-preservation, conflict and drain checks and listener handoff/authentication/
+CLI/file-review/reconnect isolation remain in the same fixtures.
+
+The accepted reverse-connection host in AppCoordinator now propagates its existing
+ConnectionRoot 640×420 content floor. Startup listener registration relies on its
+shared view floor. The app compiles/signs these paths; no new actual-app startup or
+reverse-window UI inspection is claimed. Those interactive gates remain open.
+
+Listener screenshots initially lacked their window backing color; ListenerView now
+uses the native window background, and the fixture applies appearance to its host
+before drawing. Final minimum idle and incoming-dark images have readable controls;
+defaults mapping/review minimum images were also inspected. Scroll captures show
+only visible content. No broad dark-mode/accessibility acceptance is inferred.
+
+Validation:
+
+- Reproduction: **0/2**, both failing solely on the new zero-minimum assertions.
+- Fixed defaults presentation, defaults mapping and listener UI/model tests:
+  **3/3 (4.26 s)**. After the background/capture refinement, final listener:
+  **1/1 (1.30 s)**. Native target builds and final app build pass.
+- Strict deep app signature, **645** catalog values/fallback/interpolation,
+  **32/32** actual executable terminal cases, branding baseline **1650** and diff
+  checks pass. Catalog, protocol, storage format and persistence policy unchanged.
+- Full suite and sanitizers were not rerun for the view/hosting changes. Existing
+  newer dependency deployment warnings remain; no macOS 14, physical, installed-app,
+  actual user-window, VoiceOver or release acceptance follows.
+
+Evidence: `/tmp/tidyvnc-window-minimum-{repro-build,repro-tests,build,tests,
+render-build,final-listener,final-app,terminal,bundle,branding}.log`.
+Images: `/tmp/tidyvnc-listen-ui-images/*minimum*.png`,
+`build/native-ui-swift/tests/macos/{import-ui-render,defaults-mapping-ui-render}/*minimum*.png`.
+All process handles completed. Continue the entire unchecked checklist, including
+remaining localization and actual startup/reverse-window/accessibility acceptance.

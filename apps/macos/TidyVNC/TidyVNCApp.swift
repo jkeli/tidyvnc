@@ -138,7 +138,7 @@ struct TidyVNCApp: App {
   func registerListener(_ window: NSWindow, model: ListenerModel) {
     guard startupListener === model, startupListenerWindow !== window, !quitting else { return }
     startupListenerWindow = window
-    window.setContentSize(NSSize(width:700,height:560)); window.minSize = NSSize(width:660,height:500)
+    window.setContentSize(NSSize(width:700,height:560))
     NotificationCenter.default.addObserver(self,selector:#selector(startupListenerClosed(_:)),name:NSWindow.willCloseNotification,object:window)
     NotificationCenter.default.addObserver(self,selector:#selector(windowActivated(_:)),name:NSWindow.didBecomeKeyNotification,object:window)
     if window.isKeyWindow { active = nil }
@@ -159,9 +159,9 @@ struct TidyVNCApp: App {
     let window = NSWindow(contentRect:NSRect(x:0,y:0,width:960,height:700),
       styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
     window.title = "Incoming Connection"; window.isReleasedWhenClosed = false
-    let content = NSHostingController(rootView:ConnectionRoot(coordinator:self,model:model)); content.sizingOptions = []
+    let content = NSHostingController(rootView:ConnectionRoot(coordinator:self,model:model)); content.sizingOptions = [.minSize]
     window.contentViewController = content
-    window.setContentSize(NSSize(width:960,height:700)); window.minSize = NSSize(width:640,height:420)
+    window.setContentSize(NSSize(width:960,height:700))
     let controller = NSWindowController(window:window); reverseWindows[ObjectIdentifier(window)] = controller
     register(window,model:model); window.center(); controller.showWindow(nil); window.makeKeyAndOrderFront(nil)
     return true

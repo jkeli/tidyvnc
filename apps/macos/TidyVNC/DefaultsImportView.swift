@@ -150,7 +150,7 @@ struct DefaultsImportView: View {
       }
     }
     .fixedSize(horizontal:false,vertical:false)
-    .padding(24).frame(minWidth:600,minHeight:520,alignment:.topLeading)
+    .padding(24).frame(minWidth:640,minHeight:572,alignment:.topLeading)
     .background(Color(nsColor:.windowBackgroundColor))
   }
   private func reviewContent(_ review: NativeDefaultsImportReview) -> some View {
@@ -291,11 +291,11 @@ private struct DefaultsImportMappingView: View {
     window.delegate = self
     let content = NSHostingController(rootView:DefaultsImportView(state:state,displays:displays,
       openConnection:openConnection,close:{ [weak self] in self?.close() }))
-    // AppKit owns window sizing. A review's different intrinsic width must not
-    // resize the window or replace its minimum size while the user is reading.
-    content.sizingOptions = []
+    // Propagate the view’s content floor; an empty sizing policy resets an
+    // explicitly assigned AppKit minimum after the host completes layout.
+    content.sizingOptions = [.minSize]
     hosting = content; window.contentViewController = content
-    window.setContentSize(NSSize(width:660,height:640)); window.minSize = NSSize(width:640,height:600)
+    window.setContentSize(NSSize(width:660,height:640))
     window.center()
   }
   required init?(coder: NSCoder) { nil }

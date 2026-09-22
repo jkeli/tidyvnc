@@ -8,7 +8,9 @@ are implemented. Actual Help/About interaction and expanded Settings/trust layou
 now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
 input/display, installed-app and release gates are not yet accepted. Continue remaining menu/connection/document/listener/status localization and fixed
 controller/gateway errors, plus interactive acceptance. Profile/history/import text
-and minimum-window fixes now have focused evidence. Fullscreen/remote-resize fields now also have localized
+and minimum-window fixes now have focused evidence. Defaults-import and listener
+hosts now also preserve their content minimums after AppKit layout; reverse hosts
+use the same policy, with actual-app acceptance still open. Fullscreen/remote-resize fields now also have localized
 text and expanded layouts, with physical display order preserved under RTL; see
 the latest RESUME/TODO evidence.
 

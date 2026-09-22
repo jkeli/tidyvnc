@@ -4,6 +4,35 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Hosted window minimums
+
+Fresh regressions reproduced the history-import sizing bug in defaults import and
+listener windows: both reported a zero content minimum after their hosting views
+finished layout. Defaults import now propagates a 640×572 content floor; listener
+normal/preparation views propagate 660×472. `NSHostingController.sizingOptions`
+uses `.minSize`, replacing the ineffective manual window minimum. The listener
+also renders an explicit native window background. The accepted reverse-connection
+host uses the same policy with ConnectionRoot’s existing 640×420 content floor.
+The startup listener relies on its shared view floor instead of a second manual
+minimum. Reverse/startup real-app interaction is not yet accepted.
+
+Defaults import choices/review/errors/mapping and listener idle/incoming/stopped/
+file-review fixtures now assert stable minima and render at those minima. All three
+focused tests pass (4.26 s); the final listener/background rerun passes (1.30 s).
+Minimum defaults-mapping and listener light/dark captures were inspected. These
+are isolated fixtures, not physical-network, VoiceOver or installed-app evidence.
+
+Final app build, strict deep signature, **645** packaged catalog values/fallback/
+interpolation, **32** terminal cases, branding baseline **1650** and diff checks
+pass. No strings, protocols, storage schemas or persistence policies changed.
+Full-suite/sanitizers were not rerun. Exact logs and initial failing assertions are
+in TODO. No CUA/user-app action was attempted.
+
+Continue remaining app menu/connection/status/listener and document/defaults-import
+localization, controlled controller/gateway errors, and actual window/accessibility
+acceptance. All other unchecked parity, physical, installed-app, deployment, CI,
+performance and release requirements remain in scope.
+
 ## Latest follow-up (2026-09-22) — Profiles, history and import localization
 
 The catalog now has **645** English source entries. Profile/history presentation,

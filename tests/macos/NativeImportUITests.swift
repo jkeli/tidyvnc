@@ -100,15 +100,21 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     for _ in 0..<2000 { if condition() { return }; try await Task.sleep(for:.milliseconds(2)) }
     throw Failure(message:"Import UI fixture timed out")
   }
-  func render(_ name: String, dark: Bool = false) async throws {
+  func render(_ name: String, dark: Bool = false, minimum: Bool = false) async throws {
     guard let window = controller?.window, let view = window.contentView,
           let index = CommandLine.arguments.firstIndex(of:"--output"), index+1 < CommandLine.arguments.count else { throw Failure(message:"missing render context") }
+    try check(abs(window.contentMinSize.width-640) < 1 && abs(window.contentMinSize.height-572) < 1,
+      "defaults import minimum survives hosting: \(window.contentMinSize)")
+    let originalSize = view.bounds.size
+    if minimum { window.setContentSize(window.contentMinSize) }
+    defer { if minimum { window.setContentSize(originalSize) } }
     let directory = URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true)
     try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
     window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
     view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(100)); view.layoutSubtreeIfNeeded()
     guard let fitting = controller?.contentSizeThatFits(view.bounds.size) else { throw Failure(message:"missing content") }
     try check(fitting.width <= view.bounds.width && fitting.height <= view.bounds.height,"import content \(fitting) fits window \(view.bounds.size)")
+    window.displayIfNeeded()
     guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing bitmap") }
     view.cacheDisplay(in:view.bounds,to:bitmap)
     guard let bytes = bitmap.representation(using:.png,properties:[:]) else { throw Failure(message:"missing PNG") }
@@ -117,6 +123,7 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
   func verify() async throws {
     try await until { availability.canOffer }
     try await render("choices")
+    try await render("choices-minimum",minimum:true)
     let state = controller!.state
     let order = try snapshot.documentMonitorOrder()
     _ = state.begin(origin:.currentXDG,legacyDisplays:order)
@@ -127,6 +134,7 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     _ = state.begin(origin:.currentXDG,legacyDisplays:order)
     try await until { state.review != nil }
     try await render("review-light"); try await render("review-dark",dark:true)
+    try await render("review-minimum",minimum:true)
     let review = state.review!
     state.approve(cancelled,acknowledging:Set(review.proposal.notices.map(\.line)),currentDisplays:order)
     try check(state.review?.id == review.id,"stale UI approval ignored")
@@ -134,6 +142,7 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     try await until { !state.hasPending }
     try check(state.issue != nil && backing.read() == nil,"display change fails before native write")
     try await render("changed-displays")
+    try await render("changed-displays-minimum",minimum:true)
     _ = state.begin(origin:.currentXDG,legacyDisplays:order)
     try await until { state.review != nil }
     let accepted = state.review!

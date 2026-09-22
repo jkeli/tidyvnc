@@ -78,15 +78,21 @@ actor ReaderGate: NativeDocumentReading {
     for _ in 0..<2000 { if condition() { return }; try await Task.sleep(for:.milliseconds(2)) }
     throw Failure(message:"Defaults mapping fixture timed out")
   }
-  func render(_ name: String, dark: Bool = false) async throws {
+  func render(_ name: String, dark: Bool = false, minimum: Bool = false) async throws {
     guard let window = controller?.window, let view = window.contentView,
           let index = CommandLine.arguments.firstIndex(of:"--output"), index+1 < CommandLine.arguments.count else { throw Failure(message:"missing render context") }
+    try check(abs(window.contentMinSize.width-640) < 1 && abs(window.contentMinSize.height-572) < 1,
+      "defaults import minimum survives hosting: \(window.contentMinSize)")
+    let originalSize = view.bounds.size
+    if minimum { window.setContentSize(window.contentMinSize) }
+    defer { if minimum { window.setContentSize(originalSize) } }
     let directory = URL(fileURLWithPath:CommandLine.arguments[index+1],isDirectory:true)
     try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
     window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
     view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(100)); view.layoutSubtreeIfNeeded()
     guard let fitting = controller?.contentSizeThatFits(view.bounds.size) else { throw Failure(message:"missing content") }
     try check(fitting.width <= view.bounds.width && fitting.height <= view.bounds.height,"defaults mapping fits window")
+    window.displayIfNeeded()
     guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing bitmap") }
     view.cacheDisplay(in:view.bounds,to:bitmap)
     try bitmap.representation(using:.png,properties:[:])!.write(to:directory.appendingPathComponent(name+".png"))
@@ -105,6 +111,7 @@ actor ReaderGate: NativeDocumentReading {
     try check(Set(retained.map(\.name)) == ["Shared","FullScreenMode","FullScreenSelectedMonitors"],"recovery retains only allowed settings")
     try check(!retained.contains { $0.encodedValue.contains("private-") },"excluded and unknown values are absent from retained recovery")
     try await render("mapping-light"); try await render("mapping-dark",dark:true)
+    try await render("mapping-minimum",minimum:true)
     state.resolveMapping(UUID(),assignments:[2:.init("left"),2147483647:.init("right")],availableDisplays:snapshot.displays.map(\.id))
     try check(state.mapping?.id == first.id,"stale mapping ignored")
     state.resolveMapping(first.id,assignments:[2:.init("left")],availableDisplays:snapshot.displays.map(\.id))
@@ -121,6 +128,7 @@ actor ReaderGate: NativeDocumentReading {
     state.approve(reviewed.id,acknowledging:[],currentDisplays:snapshot.displays.map(\.id))
     try check(state.review != nil && memory.read() == nil,"mapping does not grant omission consent")
     try await render("review")
+    try await render("review-minimum",minimum:true)
     state.editMapping(reviewed.id,legacyDisplays:[],availableDisplays:snapshot.displays.map(\.id))
     let second = state.mapping!
     try check(second.id != first.id && second.suggested == reviewed.monitorMapping,"re-edit preserves explicit choices with fresh identity")

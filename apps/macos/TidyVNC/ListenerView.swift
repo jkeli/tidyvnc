@@ -6,9 +6,11 @@ import TidyVNCNative
 struct ListenerView: View {
   @ObservedObject var model: ListenerModel
   var body: some View {
-    if let preparation = model.preparation, !preparation.isReady, let displays = model.displays {
-      ListenerPreparationView(model:model,preparation:preparation,displays:displays)
-    } else { listener }
+    Group {
+      if let preparation = model.preparation, !preparation.isReady, let displays = model.displays {
+        ListenerPreparationView(model:model,preparation:preparation,displays:displays)
+      } else { listener }
+    }.background(Color(nsColor:.windowBackgroundColor))
   }
   private var listener: some View {
     VStack(alignment:.leading,spacing:18) {
@@ -62,7 +64,7 @@ struct ListenerView: View {
       }.frame(minHeight:130)
       Text("Waiting connections expire after 30 seconds. Stopping the listener leaves accepted connections open. Incoming connections use connection-only passwords and trust decisions; they are not saved to history.")
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-    }.padding(24).frame(minWidth:640,minHeight:470)
+    }.padding(24).frame(minWidth:660,minHeight:472)
   }
   private var status: String {
     switch model.phase {
@@ -104,7 +106,7 @@ private struct ListenerPreparationView: View {
           Button("Use Built-in Defaults") { preparation.useBuiltInDefaults() }.disabled(model.closing)
         } else { ProgressView("Loading listener settings…") }
       }.frame(maxWidth:.infinity,alignment:.leading).padding(24)
-    }.frame(minWidth:640,minHeight:470)
+    }.frame(minWidth:660,minHeight:472)
   }
 }
 
@@ -121,11 +123,12 @@ private struct ListenerPreparationView: View {
       styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
     window.title = "Listen for Connections"; window.isReleasedWhenClosed = false
     super.init(window:window); window.delegate = self
-    let content = NSHostingController(rootView:ListenerView(model:model)); content.sizingOptions = []
+    let content = NSHostingController(rootView:ListenerView(model:model)); content.sizingOptions = [.minSize]
     hosting = content; window.contentViewController = content
-    window.setContentSize(NSSize(width:700,height:560)); window.minSize = NSSize(width:660,height:500); window.center()
+    window.setContentSize(NSSize(width:700,height:560)); window.center()
   }
   required init?(coder:NSCoder) { nil }
+  func contentSizeThatFits(_ size: NSSize) -> NSSize? { hosting?.sizeThatFits(in:size) }
   override func showWindow(_ sender:Any?) {
     guard !isClosing else { return }; super.showWindow(sender); window?.makeKeyAndOrderFront(sender)
   }
