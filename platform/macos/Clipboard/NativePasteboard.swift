@@ -51,6 +51,9 @@ private final class PasteboardCancellation: @unchecked Sendable {
   nonisolated static let remoteType = NSPasteboard.PasteboardType("io.github.jkeli.tidyvnc.remote-clipboard")
   private let worker: PasteboardWorker
   public init(_ board: NSPasteboard = .general) { worker = PasteboardWorker(board) }
+  // Test hosts can share the same queue for simulated local pasteboard changes;
+  // they must not access the worker's NSPasteboard concurrently on MainActor.
+  init(worker: PasteboardWorker) { self.worker = worker }
   public func currentChange() async throws -> Int { try await worker.perform { $0.changeCount } }
   nonisolated static func validate(_ text: String, maximumBytes: Int) throws {
     guard maximumBytes > 0, maximumBytes <= 16 * 1024 * 1024 else { throw NativePasteboardError.tooLarge }

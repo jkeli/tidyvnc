@@ -79,7 +79,10 @@ actor GatedRenderer: NativeTileRendering {
   func clear() async throws { try await renderer.clear() }
 }
 @MainActor func color(_ view: NativeDesktopView, x: Double, y: Double) throws -> NSColor {
-  guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"No canvas bitmap") }
+  // Render directly into sRGB instead of round-tripping through a potentially
+  // narrower physical display profile and irreversibly clipping source colors.
+  guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds)?.converting(to:.sRGB,renderingIntent:.default) else { throw Failure(message:"No canvas bitmap") }
+  bitmap.size = view.bounds.size
   view.cacheDisplay(in:view.bounds,to:bitmap)
   guard let normalized = bitmap.converting(to:.sRGB,renderingIntent:.default),
         let color = normalized.colorAt(x:Int(x*Double(bitmap.pixelsWide)/view.bounds.width),y:Int(y*Double(bitmap.pixelsHigh)/view.bounds.height))?.usingColorSpace(.sRGB)
@@ -115,7 +118,7 @@ actor GatedRenderer: NativeTileRendering {
   // The display-profile round trip can add up to 0.2 in a non-dominant channel.
   // Check unambiguous quadrant colors, not an exact unprofiled byte match.
   try check(red.redComponent > 0.9 && red.greenComponent < 0.3 && green.greenComponent > 0.9 && green.redComponent < 0.1 &&
-    blue.blueComponent > 0.9 && blue.redComponent < 0.1 && white.redComponent > 0.9 && white.greenComponent > 0.9,"displayed quadrants belong to their respective regions")
+    blue.blueComponent > 0.9 && blue.redComponent < 0.1 && white.redComponent > 0.9 && white.greenComponent > 0.9,"displayed quadrants belong to their respective regions: \(red), \(green), \(blue), \(white)")
   try session.setFocused(true); move(left,x:100,y:50)
   try await until { native_test_peer_has_input(peer,5,0,0,0) != 0 }
   move(right,x:100,y:50); try await until { native_test_peer_has_input(peer,5,0,1,0) != 0 }

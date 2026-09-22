@@ -81,8 +81,21 @@ final class Peer {
 @MainActor func routedPasteboard() async throws {
   let board = NSPasteboard(name: NSPasteboard.Name("io.github.jkeli.tidyvnc.tests.\(UUID().uuidString)"))
   defer { board.releaseGlobally() }
-  board.clearContents(); board.setString("alpha", forType: .string)
-  let coordinator = NativeClipboardCoordinator(pasteboard: NativePasteboard(board), automaticPolling: false)
+  let worker = PasteboardWorker(board)
+  func local(_ text: String) async throws {
+    _ = try await worker.perform { board in board.clearContents(); return board.setString(text,forType:.string) }
+  }
+  func text() async throws -> String? { try await worker.perform { $0.string(forType:.string) } }
+  func change() async throws -> Int { try await worker.perform { $0.changeCount } }
+  func waitForText(_ expected: String) async throws {
+    for _ in 0..<1000 {
+      if try await text() == expected { return }
+      try await Task.sleep(for:.milliseconds(2))
+    }
+    throw Failure(message:"Timed out waiting for serialized pasteboard text")
+  }
+  try await local("alpha")
+  let coordinator = NativeClipboardCoordinator(pasteboard: NativePasteboard(worker:worker), automaticPolling: false)
   defer { coordinator.stop() }
   let runtime = try NativeRuntime(), first = try runtime.makeSession(configuration: configuration()), second = try runtime.makeSession(configuration: configuration())
   let a = Peer(), b = Peer()
@@ -98,38 +111,41 @@ final class Peer {
   coordinator.poll(); coordinator.poll(); try await Task.sleep(for: .milliseconds(20))
   try check(a.count("alpha") == 1 && b.count("alpha") == 0, "unchanged board sent once to one session")
   native_test_peer_clipboard(a.raw)
-  try await until("remote native pasteboard") { board.string(forType: .string) == "café\n" }
-  let remoteCount = board.changeCount
+  try await waitForText("café\n")
+  let remoteCount = try await change()
   try first.setFocused(false); try second.setFocused(true); coordinator.poll()
   try await Task.sleep(for: .milliseconds(30))
   try check(b.count([99,97,102,233,10]) == 0, "remote provenance survives cross-session focus change")
-  board.clearContents(); board.setString("beta", forType: .string); coordinator.poll()
+  try await local("beta"); coordinator.poll()
   try await until("second local clipboard wire") { b.count("beta") == 1 }
-  try check(a.count("beta") == 0 && board.changeCount > remoteCount, "new local copy routes to second only")
+  let betaChange = try await change()
+  try check(a.count("beta") == 0 && betaChange > remoteCount, "new local copy routes to second only")
   try second.setClipboardPolicy(send: false, receive: true)
-  board.clearContents(); board.setString("blocked", forType: .string); coordinator.poll()
+  try await local("blocked"); coordinator.poll()
   try await Task.sleep(for: .milliseconds(30)); try check(b.count("blocked") == 0, "send disabled independently")
   native_test_peer_clipboard(b.raw)
-  try await until("receive while send disabled") { board.string(forType: .string) == "café\n" }
+  try await waitForText("café\n")
   try second.setClipboardPolicy(send: true, receive: false)
-  board.clearContents(); board.setString("gamma", forType: .string); coordinator.poll()
+  try await local("gamma"); coordinator.poll()
   try await until("send while receive disabled") { b.count("gamma") == 1 }
   native_test_peer_clipboard(b.raw); try await Task.sleep(for: .milliseconds(40))
-  try check(board.string(forType: .string) == "gamma", "receive disabled preserves board")
+  let gamma = try await text()
+  try check(gamma == "gamma", "receive disabled preserves board")
   try first.setFocused(true)
-  board.clearContents(); board.setString("ambiguous", forType: .string); coordinator.poll()
+  try await local("ambiguous"); coordinator.poll()
   try await Task.sleep(for: .milliseconds(30))
   try check(a.count("ambiguous") == 0 && b.count("ambiguous") == 0, "ambiguous focus sends to neither session")
   try first.setFocused(false); try second.setViewOnly(true)
-  board.clearContents(); board.setString("view-only", forType: .string); coordinator.poll()
+  try await local("view-only"); coordinator.poll()
   native_test_peer_clipboard(b.raw); try await Task.sleep(for: .milliseconds(30))
-  try check(b.count("view-only") == 0 && board.string(forType: .string) == "view-only", "view-only blocks both native directions")
+  let viewOnly = try await text()
+  try check(b.count("view-only") == 0 && viewOnly == "view-only", "view-only blocks both native directions")
   try second.setViewOnly(false)
   coordinator.setApplicationActive(false)
-  board.clearContents(); board.setString("background", forType: .string); coordinator.poll()
+  try await local("background"); coordinator.poll()
   try await Task.sleep(for: .milliseconds(30)); try check(b.count("background") == 0 && !second.isFocused, "app deactivation invalidates input routing")
   coordinator.setApplicationActive(true); try second.setFocused(true)
-  board.clearContents(); board.setString("cancel-before-admission", forType: .string); coordinator.poll()
+  try await local("cancel-before-admission"); coordinator.poll()
   try second.setFocused(false); coordinator.poll()
   try await Task.sleep(for: .milliseconds(30)); try check(b.count("cancel-before-admission") == 0, "queued host work rejects lost focus")
   coordinator.unregister(first); coordinator.unregister(second); await coordinator.close()

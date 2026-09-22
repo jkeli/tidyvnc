@@ -34,11 +34,13 @@ func check(_ value: @autoclosure () -> Bool, _ message: String) throws { if !val
   try check(view.displayedImage != nil, "frame delivered to AppKit")
   try check(view.desktopRectangle == CGRect(x: 50, y: 0, width: 200, height: 200), "letterbox placement")
   let retained = view.displayedImage!
-  let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)!
+  // Choose the destination space before drawing. A display-profile capture can
+  // clip out-of-gamut source colors that conversion afterward cannot recover.
+  let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)!.converting(to: .sRGB, renderingIntent: .default)!
+  bitmap.size = view.bounds.size
   view.cacheDisplay(in: view.bounds, to: bitmap)
   let sx = CGFloat(bitmap.pixelsWide)/view.bounds.width, sy = CGFloat(bitmap.pixelsHigh)/view.bounds.height
-  // AppKit caches into the current display profile (e.g. Color LCD/P3).
-  // Convert the bitmap itself: colorAt does not preserve this ICC profile.
+  // colorAt does not preserve arbitrary ICC profiles; sample an sRGB bitmap.
   let normalized = bitmap.converting(to: .sRGB, renderingIntent: .default)!
   func color(_ x: CGFloat, _ y: CGFloat) -> NSColor { normalized.colorAt(x: Int(x*sx), y: Int(y*sy))!.usingColorSpace(.sRGB)! }
   let red = color(75,25), green = color(175,25), blue = color(75,125), white = color(175,125)
@@ -51,7 +53,7 @@ func check(_ value: @autoclosure () -> Bool, _ message: String) throws { if !val
   try check(red.redComponent > 0.9 && red.blueComponent < 0.1 && green.greenComponent > 0.9 && green.redComponent < 0.1,
     "top source row is red/green with opaque padding")
   try check(blue.blueComponent > 0.9 && blue.redComponent < 0.1 && white.redComponent > 0.9 && white.greenComponent > 0.9,
-    "bottom source row is blue/white")
+    "bottom source row is blue/white: \(blue), \(white)")
   try check(color(10,100).redComponent < 0.1, "black letterbox")
   print("PASS AppKit retained image, channels, opaque alpha, row orientation and letterbox")
   // Explicit core focus avoids stealing the user's foreground app in this test.
