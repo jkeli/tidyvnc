@@ -1,15 +1,14 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records implementation
-checkpoint `0507ab9b`, grouped test/SSH/Help-localization commits, validation and
-next steps. The current next fix is the expanded trust-library destination label;
-remaining localization, interactive/physical/installed acceptance and release
-gates stay open. See the latest evidence and RESUME.md.
-The commit checkpoint passes the full normal native suite **85/85 (130.78 s)**,
-strict app/helper signatures, 32 terminal cases, 228 catalog lookups with fallback
-and interpolation checks, branding and whitespace checks. Sanitizers were not
-rerun at this checkpoint; installed/minimum-OS/physical acceptance is not implied.
+**Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
+implementation, validation and next steps. The catalog now has **460** entries;
+input/scaling/security/connection/certificate-file localization and expanded
+layouts pass focused checks. Next: fullscreen/remote-resize, then remaining UI
+localization. Interactive/physical/installed acceptance and release gates stay open.
+The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
+Latest presentation-only checks and their limits are recorded at the end of this
+file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -8675,3 +8674,51 @@ failure predates the final rebuild; relaunch through CUA when access recovers.
 Continue the complete unchecked checklist; next localization includes remaining
 settings subfields and must remove English inheritance-label comparisons before
 translating their profile reset behavior. N4.15/N4.16/N4.17 remain open.
+
+### 2026-09-22 — Input/scaling/security/certificate-file localization
+
+The catalog grows from 304 to **460** English source entries. Input, scaling,
+connection options, security method/TLS priority and certificate-file controls,
+connection-local sheets and fixed model errors now use stable catalog IDs with
+English defaults. Whole-sentence interpolation preserves literal option/path-like
+values and percent signs. Protocol method names and stored enum/wire values remain
+unchanged. Input/scaling reset labels use a typed inheritance source; translated
+English is no longer compared for reset behavior. Input accessibility IDs are
+independent of localized display labels. No ABI or persistence-schema changes.
+
+Expanded rendering found an oversized scaling sheet and then horizontal Form
+column overflow despite passing fitting assertions. Scaling now uses a vertical
+stack of full-width controls. Inherited selections show a short picker label plus
+a wrapping effective-value caption. Input modifiers use two columns; input,
+scaling and security scroll regions are bounded, preserving action/recovery space.
+Certificate paths occupy their own row, with Choose/None below and explicit
+accessibility labels. CA/CRL action labels use complete localized strings instead
+of lowercase/concatenated fragments. The final scaling/defaults/trust-file PNGs and
+mirrored input/security light/dark examples were inspected. Scroller images show
+only the visible viewport; interaction/VoiceOver/translation acceptance stays open.
+
+Validation:
+
+- Focused targets and final app build pass. Profile/input/scaling/security/
+  connection model tests: **5/5 (1.60 s)**; configured certificate-file inheritance:
+  **1/1 (0.17 s)**. Final ordinary settings renderer: **1/1 (26.61 s)**.
+- Final expanded and mirrored expanded fixture runs exit 0. The initial scaling
+  height failure and subsequent visually detected Form/picker/path issues were
+  fixed before the final builds. An initial CTest command addressed the build root,
+  which registers no tests; the reported pass is from `tests/macos` above.
+- All **460** packaged catalog values, missing-key/untranslated-language fallback
+  and interpolation checks pass. One intermediate bundle check used a newly edited
+  catalog with an older app and correctly rejected the absent effective-value key;
+  rebuilding the app and rerunning resolves it. The final test directly checks
+  effective-value interpolation and preserves literal `100%`/`125%x80%` values.
+- Strict deep app signature, **32/32** executable terminal cases with isolated
+  HOME/XDG unchanged, branding baseline **1650**, and whitespace checks pass.
+- No full 85-test or sanitizer rerun for these presentation changes. No new actual
+  app interaction, installed/physical/minimum-OS or release acceptance is claimed.
+
+Evidence: `/tmp/tidyvnc-fields-{model-build,model-tests,trust-tests,captions-build,
+final-app,final-render,final-bundle,final-terminal,final-branding,final-rtl}.log`,
+`/tmp/tidyvnc-fields-captions-expanded.log`,
+`/tmp/tidyvnc-fields-captions-expanded/`, `/tmp/tidyvnc-fields-final-rtl/`.
+All recorded process handles completed. Next: fullscreen/remote-resize localization
+and the remaining unchecked plan. N4.16 and all parent acceptance gates stay open.

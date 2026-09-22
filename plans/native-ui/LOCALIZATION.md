@@ -57,12 +57,14 @@ selection and saved-password buttons were truncated. The retention label now
 appears above its full-width picker, and saved-password actions are vertical.
 This targeted fixture does not establish expansion support for the remaining UI.
 
-The catalog now contains 304 English source entries. Settings section labels,
+The catalog now contains 460 English source entries. Settings section labels,
 clipboard defaults, storage recovery messages, encoding controls/source labels and
 the live encoding sheet have stable IDs. Encoding option/value and unavailable
 choice messages use literal interpolated arguments; ranges, protocol names and
-stored values still come from the shared schema. Other settings fields, menus,
-profiles/documents/listeners and status strings remain to be migrated.
+stored values still come from the shared schema. Input, scaling, connection options,
+security/TLS priority and certificate-file controls and fixed model errors are now
+also covered. Fullscreen/remote-resize settings, menus, profiles/documents/listeners
+and status strings remain to be migrated.
 
 The trust-library destination now has a wrapping visible label and an explicit
 accessibility name. Native trust save/replace buttons still truncate long labels,
@@ -93,3 +95,15 @@ It checks compiled bundle values, English development-region fallback for an
 untranslated language, and the explicit default for an absent key. The focused
 `NativeConnection.ErrorsAndRetry` CTest separately exercises category selection,
 redaction, cancellation and retry using an executable without the catalog.
+
+Input/scaling reset labels use a typed inheritance source, never comparison with
+translated English. Input accessibility IDs are stable across display languages.
+Inherited choices use a short picker label and a wrapping effective-value caption;
+modifier controls use two columns. Live input/scaling/security content scrolls
+within bounded sheets, leaving recovery/actions available. Scaling uses a vertical
+stack because Form columns overflowed even though fitting assertions passed.
+Certificate-file paths are full-width with separate Choose/None actions and
+explicit accessibility labels. CA/CRL actions use complete localized sentences,
+without lowercasing or joining translated fragments. Synthetic expanded screenshots
+and the packaged interpolation check cover literal percent signs and setting
+values; no translation, physical-device or full accessibility acceptance is implied.

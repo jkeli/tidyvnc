@@ -8,7 +8,7 @@ struct TrustFileSettingsFields: View {
   let inherited: NativeTrustFiles
   let inheritance: String
   let contextID: String
-  var scopeMessage = "Changes apply to new connection windows."
+  var scopeMessage = String(localized:"settings.defaults.changes.apply.to.new.connection.windows", defaultValue:"Changes apply to new connection windows.")
   private enum Field { case ca, crl }
   @MainActor private final class Selection: ObservableObject {
     @Published var showing = false
@@ -20,11 +20,13 @@ struct TrustFileSettingsFields: View {
   @StateObject private var selection = Selection()
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("For X509 TLS connections, a CA file adds certificate authorities to system trust. A CRL file adds certificate revocations. Files must contain PEM data.")
+      Text(String(localized:"settings.trustFiles.for.x509.tls.connections.a.ca.file.adds.certificate.authorities.to.system", defaultValue:"For X509 TLS connections, a CA file adds certificate authorities to system trust. A CRL file adds certificate revocations. Files must contain PEM data."))
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-      file("Certificate authorities", .ca, \NativeTrustFiles.caFile)
-      file("Certificate revocations", .crl, \NativeTrustFiles.crlFile)
-      Text("Selected files are read at each connection attempt. If a file cannot be loaded, the connection fails. " + scopeMessage)
+      file(String(localized:"settings.trustFiles.certificate.authorities", defaultValue:"Certificate authorities"), .ca, \NativeTrustFiles.caFile)
+      file(String(localized:"settings.trustFiles.certificate.revocations", defaultValue:"Certificate revocations"), .crl, \NativeTrustFiles.crlFile)
+      Text(String(localized:"settings.trustFiles.selected.files.are.read.at.each.connection.attempt.if.a.file.cannot", defaultValue:"Selected files are read at each connection attempt. If a file cannot be loaded, the connection fails."))
+        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+      Text(scopeMessage)
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
     .fileImporter(isPresented: $selection.showing, allowedContentTypes: [.item]) { result in
@@ -40,23 +42,25 @@ struct TrustFileSettingsFields: View {
   }
   private func file(_ title: String, _ field: Field, _ key: WritableKeyPath<NativeTrustFiles,String?>) -> some View {
     VStack(alignment: .leading, spacing: 6) {
-      Toggle("Override \(title.lowercased())", isOn: Binding(get: { patch[keyPath: key] != nil }, set: {
+      Toggle(field == .ca ? String(localized:"settings.trustFiles.override.certificate.authorities", defaultValue:"Override certificate authorities") : String(localized:"settings.trustFiles.override.certificate.revocations", defaultValue:"Override certificate revocations"), isOn: Binding(get: { patch[keyPath: key] != nil }, set: {
         patch[keyPath: key] = $0 ? (inherited[keyPath: key] ?? "") : nil
       })).accessibilityIdentifier("trustFiles.override.\(field)")
-      HStack {
-        TextField(title, text: Binding(get: { patch[keyPath: key] ?? inherited[keyPath: key] ?? "" }, set: { patch[keyPath: key] = $0 }))
-          .textFieldStyle(.roundedBorder).accessibilityIdentifier("trustFiles.path.\(field)")
-        Button("Choose…") {
+      VStack(alignment: .leading, spacing: 6) {
+        TextField("", text: Binding(get: { patch[keyPath: key] ?? inherited[keyPath: key] ?? "" }, set: { patch[keyPath: key] = $0 }))
+          .textFieldStyle(.roundedBorder).accessibilityLabel(title).accessibilityIdentifier("trustFiles.path.\(field)")
+        HStack {
+        Button(String(localized:"settings.trustFiles.choose", defaultValue:"Choose…")) {
           selection.field = field; selection.submitted = patch; selection.context = contextID; selection.showing = true
-        }.accessibilityLabel("Choose \(title.lowercased()) file")
-        Button("None") { patch[keyPath: key] = "" }.accessibilityLabel("No additional \(title.lowercased()) file")
+        }.accessibilityLabel(field == .ca ? String(localized:"settings.trustFiles.choose.certificate.authorities.file", defaultValue:"Choose certificate authorities file") : String(localized:"settings.trustFiles.choose.certificate.revocations.file", defaultValue:"Choose certificate revocations file"))
+        Button(String(localized:"settings.trustFiles.none", defaultValue:"None")) { patch[keyPath: key] = "" }.accessibilityLabel(field == .ca ? String(localized:"settings.trustFiles.no.additional.certificate.authorities.file", defaultValue:"No additional certificate authorities file") : String(localized:"settings.trustFiles.no.additional.certificate.revocations.file", defaultValue:"No additional certificate revocations file"))
+        }
       }.disabled(patch[keyPath: key] == nil)
       if let path = patch[keyPath: key], !NativeTrustFiles.isValidPath(path) {
-        Text("Enter a valid full file path, or leave it empty for no additional file.")
+        Text(String(localized:"settings.trustFiles.enter.a.valid.full.file.path.or.leave.it.empty.for.no", defaultValue:"Enter a valid full file path, or leave it empty for no additional file."))
           .font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
       } else {
-        Text(patch[keyPath: key] == nil ? "\(inheritance): \((inherited[keyPath: key] ?? "").isEmpty ? "no additional file" : "selected file")" :
-          patch[keyPath: key] == "" ? "No additional file" : "Selected file")
+        Text(patch[keyPath: key] == nil ? String(localized:"settings.trustFiles.inherited.status", defaultValue:"\(inheritance): \((inherited[keyPath: key] ?? "").isEmpty ? String(localized:"settings.trustFiles.no.additional.file", defaultValue:"no additional file") : String(localized:"settings.trustFiles.selected.file", defaultValue:"selected file"))") :
+          patch[keyPath: key] == "" ? String(localized:"settings.trustFiles.no.additional.file.title", defaultValue:"No additional file") : String(localized:"settings.trustFiles.selected.file.title", defaultValue:"Selected file"))
           .font(.caption).foregroundStyle(.secondary)
       }
     }

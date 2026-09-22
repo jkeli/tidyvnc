@@ -3648,6 +3648,1878 @@
           }
         }
       }
+    },
+    "settings.input.view.only": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View only"
+          }
+        }
+      }
+    },
+    "settings.input.emulate.middle.mouse.button": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emulate middle mouse button"
+          }
+        }
+      }
+    },
+    "settings.input.capture.system.keys.in.full.screen": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture system keys in full screen"
+          }
+        }
+      }
+    },
+    "settings.input.keyboard.capture.requires.macos.accessibility.permission.and.stops.when.the.desktop.loses": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard capture requires macOS Accessibility permission and stops when the desktop loses focus."
+          }
+        }
+      }
+    },
+    "settings.input.cursor.fallback": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cursor fallback"
+          }
+        }
+      }
+    },
+    "settings.input.override.viewer.shortcut.modifiers": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override viewer shortcut modifiers"
+          }
+        }
+      }
+    },
+    "settings.input.control": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Control"
+          }
+        }
+      }
+    },
+    "settings.input.shift": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shift"
+          }
+        }
+      }
+    },
+    "settings.input.option": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option"
+          }
+        }
+      }
+    },
+    "settings.input.command": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command"
+          }
+        }
+      }
+    },
+    "settings.input.viewer.shortcuts.are.off.release.keyboard.capture.from.the.connection.menu": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viewer shortcuts are off. Release keyboard capture from the Connection menu."
+          }
+        }
+      }
+    },
+    "settings.input.press.these.modifiers.alone.to.release.keyboard.capture.add.g.to.capture": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press these modifiers alone to release keyboard capture; add G to capture, M for the connection menu, or Return for full screen."
+          }
+        }
+      }
+    },
+    "settings.input.on": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        }
+      }
+    },
+    "settings.input.off": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        }
+      }
+    },
+    "settings.input.hidden": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden"
+          }
+        }
+      }
+    },
+    "settings.input.dot": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dot"
+          }
+        }
+      }
+    },
+    "settings.input.system.pointer": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System pointer"
+          }
+        }
+      }
+    },
+    "settings.input.shortcuts.off": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "shortcuts off"
+          }
+        }
+      }
+    },
+    "settings.input.input.settings": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Settings"
+          }
+        }
+      }
+    },
+    "settings.input.these.settings.apply.to.this.connection": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These settings apply to this connection."
+          }
+        }
+      }
+    },
+    "settings.input.watch.the.remote.desktop.without.sending.keyboard.pointer.or.clipboard.input.enabling": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watch the remote desktop without sending keyboard, pointer or clipboard input. Enabling this releases held keys and mouse buttons."
+          }
+        }
+      }
+    },
+    "settings.input.press.the.left.and.right.mouse.buttons.together.for.a.middle.click": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press the left and right mouse buttons together for a middle click. Single-button presses wait briefly for the second button."
+          }
+        }
+      }
+    },
+    "settings.input.requires.macos.accessibility.permission.keyboard.capture.stops.when.this.desktop.loses.focus": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires macOS Accessibility permission. Keyboard capture stops when this desktop loses focus."
+          }
+        }
+      }
+    },
+    "settings.input.viewer.shortcut.modifiers": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viewer shortcut modifiers"
+          }
+        }
+      }
+    },
+    "settings.input.used.when.the.server.supplies.no.visible.cursor.view.only.mode.always": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used when the server supplies no visible cursor. View-only mode always uses the system pointer."
+          }
+        }
+      }
+    },
+    "settings.input.saved.profile.override": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved profile override"
+          }
+        }
+      }
+    },
+    "settings.input.this.connection.override": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection override"
+          }
+        }
+      }
+    },
+    "settings.input.command.line.override": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command-line override"
+          }
+        }
+      }
+    },
+    "settings.input.viewer.shortcuts.are.off.use.the.connection.menu.to.release.keyboard.capture": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viewer shortcuts are off. Use the Connection menu to release keyboard capture."
+          }
+        }
+      }
+    },
+    "settings.input.input.settings.changed.while.this.editor.was.open.close.and.reopen.it": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input settings changed while this editor was open. Close and reopen it to use the latest settings."
+          }
+        }
+      }
+    },
+    "settings.input.this.connection.s.input.settings.are.no.longer.available": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection’s input settings are no longer available."
+          }
+        }
+      }
+    },
+    "settings.input.input.settings.could.not.be.applied.close.and.reopen.the.editor.to": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input settings could not be applied. Close and reopen the editor to try again."
+          }
+        }
+      }
+    },
+    "settings.scaling.no.scaling.100": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No scaling (100%)"
+          }
+        }
+      }
+    },
+    "settings.scaling.fit.window.stretch": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fit window (stretch)"
+          }
+        }
+      }
+    },
+    "settings.scaling.fit.window.keep.proportions": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fit window (keep proportions)"
+          }
+        }
+      }
+    },
+    "settings.scaling.fit.width": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fit width"
+          }
+        }
+      }
+    },
+    "settings.scaling.fit.height": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fit height"
+          }
+        }
+      }
+    },
+    "settings.scaling.exact.dimensions": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact dimensions"
+          }
+        }
+      }
+    },
+    "settings.scaling.percentage": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Percentage"
+          }
+        }
+      }
+    },
+    "settings.scaling.independent.percentages": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Independent percentages"
+          }
+        }
+      }
+    },
+    "settings.scaling.override.desktop.sizing": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override desktop sizing"
+          }
+        }
+      }
+    },
+    "settings.scaling.scaling.value": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling value"
+          }
+        }
+      }
+    },
+    "settings.scaling.choose.mode": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Mode"
+          }
+        }
+      }
+    },
+    "settings.scaling.choose.a.mode.or.enter.dimensions.such.as.1920x1080.a.percentage.such": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a mode, or enter dimensions such as 1920x1080, a percentage such as 137.5, or independent percentages such as 125%x80%."
+          }
+        }
+      }
+    },
+    "settings.scaling.size.units": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Size units"
+          }
+        }
+      }
+    },
+    "settings.scaling.device.pixels": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device pixels"
+          }
+        }
+      }
+    },
+    "settings.scaling.logical.points": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logical points"
+          }
+        }
+      }
+    },
+    "settings.scaling.fit.modes.use.the.available.window.space.this.unit.preference.is.kept": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fit modes use the available window space. This unit preference is kept for explicit sizes."
+          }
+        }
+      }
+    },
+    "settings.scaling.on.a.retina.display.one.logical.point.spans.multiple.device.pixels": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On a Retina display, one logical point spans multiple device pixels."
+          }
+        }
+      }
+    },
+    "settings.scaling.scaling.quality": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling quality"
+          }
+        }
+      }
+    },
+    "settings.scaling.scaling.changes.the.local.presentation.it.does.not.change.the.remote.desktop": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling changes the local presentation; it does not change the remote desktop resolution. Sizes that exceed a display’s limits temporarily use a fit mode."
+          }
+        }
+      }
+    },
+    "settings.scaling.enter.a.valid.scaling.value.dimensions.range.from.1.to.65535.percentages": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid scaling value. Dimensions range from 1 to 65535; percentages range from 0.01 to 10000 with up to two decimal places."
+          }
+        }
+      }
+    },
+    "settings.scaling.nearest.neighbor": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nearest neighbor"
+          }
+        }
+      }
+    },
+    "settings.scaling.bilinear": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilinear"
+          }
+        }
+      }
+    },
+    "settings.scaling.area.averaging": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Area averaging"
+          }
+        }
+      }
+    },
+    "settings.scaling.scaling.settings": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling Settings"
+          }
+        }
+      }
+    },
+    "settings.scaling.change.how.this.connection.s.desktop.fits.in.the.window.the.remote": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change how this connection’s desktop fits in the window. The remote desktop resolution stays the same."
+          }
+        }
+      }
+    },
+    "settings.scaling.mode": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        }
+      }
+    },
+    "settings.scaling.dimensions": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dimensions"
+          }
+        }
+      }
+    },
+    "settings.scaling.fit.modes.always.use.the.available.window.space": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fit modes always use the available window space."
+          }
+        }
+      }
+    },
+    "settings.scaling.this.size.exceeds.the.display.limits.choose.a.smaller.size.or.a": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This size exceeds the display limits. Choose a smaller size or a fit mode."
+          }
+        }
+      }
+    },
+    "settings.scaling.scaling.changed.while.this.editor.was.open.close.and.reopen.it.to": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling changed while this editor was open. Close and reopen it to use the latest settings."
+          }
+        }
+      }
+    },
+    "settings.scaling.this.connection.s.scaling.settings.are.no.longer.available": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection’s scaling settings are no longer available."
+          }
+        }
+      }
+    },
+    "settings.scaling.enter.a.valid.value.for.the.selected.scaling.mode": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid value for the selected scaling mode."
+          }
+        }
+      }
+    },
+    "settings.scaling.width.x.height.each.from.1.to.65535.for.example.1920x1080": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Width x height, each from 1 to 65535. For example: 1920x1080."
+          }
+        }
+      }
+    },
+    "settings.scaling.width.x.height.each.from.0.01.to.10000.with.up.to": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Width% x height%, each from 0.01 to 10000 with up to two decimal places. For example: 125%x80%."
+          }
+        }
+      }
+    },
+    "settings.scaling.from.0.01.to.10000.with.up.to.two.decimal.places.for": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From 0.01 to 10000, with up to two decimal places. For example: 137.5."
+          }
+        }
+      }
+    },
+    "settings.scaling.keeps.pixel.edges.sharp.enlarged.pixels.may.look.blocky": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keeps pixel edges sharp. Enlarged pixels may look blocky."
+          }
+        }
+      }
+    },
+    "settings.scaling.blends.nearby.pixels.for.smooth.scaling.fine.details.may.soften": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blends nearby pixels for smooth scaling. Fine details may soften."
+          }
+        }
+      }
+    },
+    "settings.scaling.averages.pixels.when.shrinking.the.desktop.uses.more.processing.time": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Averages pixels when shrinking the desktop. Uses more processing time."
+          }
+        }
+      }
+    },
+    "settings.connection.share.server.with.other.viewers": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share server with other viewers"
+          }
+        }
+      }
+    },
+    "settings.connection.requests.shared.access.when.connecting.with.sharing.off.the.server.may.disconnect": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests shared access when connecting. With sharing off, the server may disconnect other viewers. The server’s policy determines the result."
+          }
+        }
+      }
+    },
+    "settings.connection.offer.retry.after.connection.errors": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offer Retry after connection errors"
+          }
+        }
+      }
+    },
+    "settings.connection.shows.a.retry.action.for.recoverable.connection.errors.tidyvnc.reconnects.only.when": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows a Retry action for recoverable connection errors. TidyVNC reconnects only when you choose Retry or Connect."
+          }
+        }
+      }
+    },
+    "settings.connection.connection.options": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Options"
+          }
+        }
+      }
+    },
+    "settings.connection.apply.while.disconnected.then.connect.again.these.options.stay.in.this.window": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply while disconnected, then connect again. These options stay in this window; saved defaults and profiles remain unchanged."
+          }
+        }
+      }
+    },
+    "settings.connection.initial.setting": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Initial setting"
+          }
+        }
+      }
+    },
+    "settings.connection.applied.to.this.connection.window": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied to this connection window."
+          }
+        }
+      }
+    },
+    "settings.connection.built.in.default": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "built-in default"
+          }
+        }
+      }
+    },
+    "settings.connection.app.default": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "app default"
+          }
+        }
+      }
+    },
+    "settings.connection.profile": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "profile"
+          }
+        }
+      }
+    },
+    "settings.connection.connection.override": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "connection override"
+          }
+        }
+      }
+    },
+    "settings.connection.connection.file": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "connection file"
+          }
+        }
+      }
+    },
+    "settings.connection.command.line": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "command line"
+          }
+        }
+      }
+    },
+    "settings.security.allow.the.methods.your.server.may.negotiate.the.server.s.offer.order": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow the methods your server may negotiate. The server’s offer order determines the choice. Changes apply to new connection windows."
+          }
+        }
+      }
+    },
+    "settings.security.advanced.tls.priority": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced TLS Priority"
+          }
+        }
+      }
+    },
+    "settings.security.override.allowed.security.methods": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override allowed security methods"
+          }
+        }
+      }
+    },
+    "settings.security.explicit.selection": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit selection"
+          }
+        }
+      }
+    },
+    "settings.security.no.methods.are.allowed.new.connections.will.be.refused": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No methods are allowed. New connections will be refused."
+          }
+        }
+      }
+    },
+    "settings.security.the.security.selection.is.invalid.or.unavailable.in.this.build": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The security selection is invalid or unavailable in this build."
+          }
+        }
+      }
+    },
+    "settings.security.desktop.traffic.remains.unencrypted": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop traffic remains unencrypted."
+          }
+        }
+      }
+    },
+    "settings.security.unavailable.in.this.build": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable in this build"
+          }
+        }
+      }
+    },
+    "settings.security.unencrypted.session": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unencrypted session"
+          }
+        }
+      }
+    },
+    "settings.security.tls.without.server.identity.verification": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TLS without server identity verification"
+          }
+        }
+      }
+    },
+    "settings.security.tls.with.x509.certificate.verification": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TLS with X509 certificate verification"
+          }
+        }
+      }
+    },
+    "settings.security.rsa.aes.session.encryption": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RSA-AES session encryption"
+          }
+        }
+      }
+    },
+    "settings.security.rsa.aes.authentication.only": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RSA-AES authentication only"
+          }
+        }
+      }
+    },
+    "settings.security.legacy.authentication.only": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy authentication only"
+          }
+        }
+      }
+    },
+    "settings.security.no.user.authentication": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No user authentication"
+          }
+        }
+      }
+    },
+    "settings.security.vnc.password": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VNC password"
+          }
+        }
+      }
+    },
+    "settings.security.username.and.password": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Username and password"
+          }
+        }
+      }
+    },
+    "settings.security.server.selects.password.or.username.and.password": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server selects password or username and password"
+          }
+        }
+      }
+    },
+    "settings.security.override.tls.priority": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override TLS priority"
+          }
+        }
+      }
+    },
+    "settings.security.library.default.empty": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Library default (empty)"
+          }
+        }
+      }
+    },
+    "settings.security.use.library.default": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Library Default"
+          }
+        }
+      }
+    },
+    "settings.security.library.default": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Library default"
+          }
+        }
+      }
+    },
+    "settings.security.custom.tls.priority": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom TLS priority"
+          }
+        }
+      }
+    },
+    "settings.security.applies.to.tls.methods.when.connecting.gnutls.expressions.are.checked.on.apply": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies to TLS methods when connecting. GnuTLS expressions are checked on Apply or Save; the server must support the chosen algorithms and TLS versions."
+          }
+        }
+      }
+    },
+    "settings.security.use.at.most.4096.utf.8.bytes.with.no.nul.characters": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use at most 4096 UTF-8 bytes with no NUL characters."
+          }
+        }
+      }
+    },
+    "settings.security.custom.tls.priorities.are.unavailable.in.this.build.use.the.library.default": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom TLS priorities are unavailable in this build. Use the library default or inherit."
+          }
+        }
+      }
+    },
+    "settings.trustFiles.for.x509.tls.connections.a.ca.file.adds.certificate.authorities.to.system": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For X509 TLS connections, a CA file adds certificate authorities to system trust. A CRL file adds certificate revocations. Files must contain PEM data."
+          }
+        }
+      }
+    },
+    "settings.trustFiles.certificate.authorities": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate authorities"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.certificate.revocations": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Certificate revocations"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.selected.files.are.read.at.each.connection.attempt.if.a.file.cannot": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected files are read at each connection attempt. If a file cannot be loaded, the connection fails."
+          }
+        }
+      }
+    },
+    "settings.trustFiles.override.certificate.authorities": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override certificate authorities"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.override.certificate.revocations": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override certificate revocations"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.choose": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose…"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.choose.certificate.authorities.file": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose certificate authorities file"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.choose.certificate.revocations.file": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose certificate revocations file"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.none": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.no.additional.certificate.authorities.file": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No additional certificate authorities file"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.no.additional.certificate.revocations.file": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No additional certificate revocations file"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.enter.a.valid.full.file.path.or.leave.it.empty.for.no": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid full file path, or leave it empty for no additional file."
+          }
+        }
+      }
+    },
+    "settings.trustFiles.no.additional.file": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no additional file"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.selected.file": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "selected file"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.no.additional.file.title": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No additional file"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.selected.file.title": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected file"
+          }
+        }
+      }
+    },
+    "settings.security.connection.security": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Security"
+          }
+        }
+      }
+    },
+    "settings.security.apply.while.disconnected.then.connect.again.changes.stay.in.this.window.and": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply while disconnected, then connect again. Changes stay in this window and do not update saved defaults or profiles."
+          }
+        }
+      }
+    },
+    "settings.security.use.this.window.s.initial.settings": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this window’s initial settings"
+          }
+        }
+      }
+    },
+    "settings.security.allow.the.methods.the.server.may.negotiate.on.the.next.connection.the": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow the methods the server may negotiate on the next connection. The server’s offer order determines the choice."
+          }
+        }
+      }
+    },
+    "settings.security.changes.apply.when.this.window.connects.again": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes apply when this window connects again."
+          }
+        }
+      }
+    },
+    "settings.security.applied.for.the.next.connection.in.this.window": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied for the next connection in this window."
+          }
+        }
+      }
+    },
+    "settings.security.checking.security.settings": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking security settings…"
+          }
+        }
+      }
+    },
+    "settings.security.the.connection.changed.reload.security.settings.before.applying": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection changed. Reload security settings before applying."
+          }
+        }
+      }
+    },
+    "settings.security.current.source.connection.override": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current source: connection override"
+          }
+        }
+      }
+    },
+    "settings.security.security.settings.are.unavailable.disconnect.then.reload": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security settings are unavailable. Disconnect, then reload."
+          }
+        }
+      }
+    },
+    "settings.security.the.tls.priority.expression.is.invalid.correct.it.or.use.the.library": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The TLS priority expression is invalid. Correct it or use the library default."
+          }
+        }
+      }
+    },
+    "settings.security.a.security.setting.is.invalid.or.unavailable.in.this.build": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A security setting is invalid or unavailable in this build."
+          }
+        }
+      }
+    },
+    "settings.security.a.security.setting.is.unavailable.in.this.build.correct.it.before.applying": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A security setting is unavailable in this build. Correct it before applying."
+          }
+        }
+      }
+    },
+    "settings.security.applying.security.settings.was.cancelled": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applying security settings was cancelled."
+          }
+        }
+      }
+    },
+    "settings.security.the.connection.or.security.settings.changed.reload.before.applying": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection or security settings changed. Reload before applying."
+          }
+        }
+      }
+    },
+    "settings.connection.the.connection.changed.reload.before.applying": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection changed. Reload before applying."
+          }
+        }
+      }
+    },
+    "settings.connection.disconnect.and.wait.for.the.connection.to.close.then.reload": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect and wait for the connection to close, then reload."
+          }
+        }
+      }
+    },
+    "settings.connection.the.connection.or.options.changed.reload.before.applying": {
+      "comment": "Native settings label or fixed diagnostic; do not translate stored protocol values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection or options changed. Reload before applying."
+          }
+        }
+      }
+    },
+    "settings.inheritance.value": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%@)"
+          }
+        }
+      }
+    },
+    "settings.input.inherited.modifiers": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@."
+          }
+        }
+      }
+    },
+    "settings.input.shortcut.instructions": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ alone releases keyboard capture. Add G to capture, M for the connection menu, or Return for full screen. Add Space, release Space, then press a key to send that combination to the remote desktop."
+          }
+        }
+      }
+    },
+    "settings.scaling.inherited.mode": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@ (%@)."
+          }
+        }
+      }
+    },
+    "settings.connection.sources": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared access: %@ · Retry: %@"
+          }
+        }
+      }
+    },
+    "settings.security.aes.authentication": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-bit AES · %@"
+          }
+        }
+      }
+    },
+    "settings.trustFiles.inherited.status": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@"
+          }
+        }
+      }
+    },
+    "settings.security.sources": {
+      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Methods: %@ · TLS priority: %@"
+          }
+        }
+      }
+    },
+    "settings.inheritance.use.app.defaults": {
+      "comment": "Resets the input or scaling section to its typed inheritance source.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use App Defaults"
+          }
+        }
+      }
+    },
+    "settings.inheritance.use.builtin.defaults": {
+      "comment": "Resets the input or scaling section to its typed inheritance source.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Built-in Defaults"
+          }
+        }
+      }
+    },
+    "settings.inheritance.effective.value": {
+      "comment": "Actual inherited value shown beneath a settings picker. Argument is an already-localized value.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effective value: %@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

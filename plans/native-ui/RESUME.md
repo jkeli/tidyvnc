@@ -4,6 +4,37 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Input, scaling and security localization
+
+The catalog now has **460** English source entries. Input, scaling, connection
+options, security methods/TLS priority and certificate-file fields, including
+connection-local sheets and fixed model errors, use stable catalog IDs. Reset
+labels now use typed source information rather than comparing translated English;
+input accessibility identifiers are independent of display text. Stored values,
+protocol behavior and persistence schemas are unchanged.
+
+Expanded screenshots exposed scaling Form columns overflowing the sheet, inherited
+picker labels truncating, compressed certificate paths and oversized sheet content.
+Scaling uses vertically arranged full-width controls; inherited effective values
+wrap below pickers. Certificate paths occupy their own row, modifier controls use
+a two-column grid, and input/scaling/security sheets bound their scroll content
+while preserving recovery/actions. Final expanded and ordinary rendering passes;
+representative visible content was inspected. These are synthetic layout checks,
+not complete interactive scrolling, VoiceOver or shipping-language acceptance.
+
+The final app build, strict deep signature, **460** packaged values with fallback/
+literal-interpolation checks, **32** terminal cases, branding baseline **1650** and
+diff checks pass. Five focused input/scaling/profile/security/connection tests pass
+(1.60 s), configured certificate-file inheritance passes (0.17 s), and the final
+ordinary renderer passes (26.61 s). No full-suite or sanitizer rerun was needed for
+these presentation changes. Exact logs and mirrored render evidence are in TODO.
+
+Next localization: fullscreen/display selection, explicit/automatic remote resize,
+then remaining menus, connection/profile/document/history/listener/status UI and
+fixed errors. The earlier CUA New Profile pipe failure remains unresolved; no new
+actual-app interaction is claimed. All unchecked parity, accessibility, physical,
+installed-app, deployment, CI and release gates remain in scope.
+
 ## Latest follow-up (2026-09-22) — Settings localization and visible UI checks
 
 Implementation commits: `86d36a54` (compatible Help state wrappers) and

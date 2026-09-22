@@ -20,7 +20,7 @@ import Foundation
       MainActor.assumeIsolated {
         guard let self, let baseline = self.baseline else { return }
         if baseline.generation != snapshot.generation || ![.idle,.closed,.failed].contains(snapshot.state) {
-          self.needsReload = true; self.didApply = false; self.error = "The connection changed. Reload before applying."
+          self.needsReload = true; self.didApply = false; self.error = String(localized:"settings.connection.the.connection.changed.reload.before.applying", defaultValue:"The connection changed. Reload before applying.")
         }
       }
     },session.$isClosing.sink { [weak self] closing in if closing { MainActor.assumeIsolated { self?.stop() } } }]
@@ -36,14 +36,14 @@ import Foundation
       baseline = value; shared = value.shared == initialShared ? nil : value.shared
       reconnectOnError = value.reconnectOnError == initialReconnectOnError ? nil : value.reconnectOnError
       needsReload = false; error = nil; didApply = false
-    } catch { self.error = "Disconnect and wait for the connection to close, then reload."; needsReload = true }
+    } catch { self.error = String(localized:"settings.connection.disconnect.and.wait.for.the.connection.to.close.then.reload", defaultValue:"Disconnect and wait for the connection to close, then reload."); needsReload = true }
   }
   public func apply() {
     guard canApply, let session, let baseline else { return }
     do {
       try session.setConnectionOptions(shared:shared ?? initialShared,reconnectOnError:reconnectOnError ?? initialReconnectOnError,expected:baseline)
       self.baseline = try session.connectionOptions(); didApply = true; error = nil
-    } catch { needsReload = true; self.error = "The connection or options changed. Reload before applying." }
+    } catch { needsReload = true; self.error = String(localized:"settings.connection.the.connection.or.options.changed.reload.before.applying", defaultValue:"The connection or options changed. Reload before applying.") }
   }
   public func cancel() { stop() }
   public func stop() { stopped = true; observations.removeAll() }

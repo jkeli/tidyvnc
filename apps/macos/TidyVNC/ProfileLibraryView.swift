@@ -116,12 +116,12 @@ struct ProfileLibraryView: View {
               GroupBox("Scaling") {
                 ScalingDefaultsFields(patch: Binding(get: { model.draft?.settings.scaling ?? NativeScalingPreferences() }, set: {
                   if model.canEdit { model.draft?.settings.scaling = $0 == NativeScalingPreferences() ? nil : $0 }
-                }), inherited: model.inheritedScaling, inheritance: "Use app default").padding(8)
+                }), inherited: model.inheritedScaling, inheritance: String(localized:"settings.encoding.use.app.default", defaultValue:"Use app default"), resetSource: .appDefaults).padding(8)
               }
               GroupBox("Input") {
                 InputDefaultsFields(patch: Binding(get: { model.draft?.settings.input ?? NativeInputPreferences() }, set: {
                   if model.canEdit { model.draft?.settings.input = $0 == NativeInputPreferences() ? nil : $0 }
-                }), inherited: model.inheritedInput, inheritance: "Use app default").padding(8)
+                }), inherited: model.inheritedInput, inheritance: String(localized:"settings.encoding.use.app.default", defaultValue:"Use app default"), resetSource: .appDefaults).padding(8)
               }
               GroupBox("Encoding") {
                 VStack(alignment: .leading) {

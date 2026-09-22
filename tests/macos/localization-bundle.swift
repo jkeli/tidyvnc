@@ -45,5 +45,15 @@ precondition(inheritEncoding == "Use app default for " + encoding)
 let quality = "7"
 let settingValue = String(localized:"settings.encoding.option.value",defaultValue:"\(encoding): \(quality)",bundle:bundle)
 precondition(settingValue == encoding + ": " + quality)
+let inherited = String(localized:"settings.inheritance.effective.value",defaultValue:"Effective value: \(encoding)",bundle:bundle)
+precondition(inherited == "Effective value: " + encoding)
+let mode = "125%x80%"
+let scalingSource = String(localized:"settings.scaling.inherited.mode",defaultValue:"\(encoding): \(mode) (\(mode)).",bundle:bundle)
+precondition(scalingSource == encoding + ": " + mode + " (" + mode + ").")
+let aesBits = "256"
+let security = String(localized:"settings.security.aes.authentication",defaultValue:"\(aesBits)-bit AES · \(encoding)",bundle:bundle)
+precondition(security == "256-bit AES · " + encoding)
+let percentLabel = String(localized:"settings.scaling.no.scaling.100",defaultValue:"No scaling (100%)",bundle:bundle)
+precondition(percentLabel == "No scaling (100%)")
 print("PASS \(strings.count) packaged catalog values; untranslated-language and missing-key fallbacks; English development region")
 print("PASS destination/fingerprint/setting interpolation preserves literal values and UInt32 key sizes")
