@@ -24,6 +24,7 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
   func fail(_ issue: NativeCredentialStoreIssue?) { lock.withLock { failure = issue } }
   func blockNextLookup() { lock.withLock { blockLookup = true } }
   func seed(_ key: NativeCredentialKey, password: String) { lock.withLock { entries[key] = Array(password.utf8) } }
+  func contains(_ key: NativeCredentialKey) -> Bool { lock.withLock { entries[key] != nil } }
   func lookup(_ key: NativeCredentialKey, interaction: NativeCredentialInteraction) throws -> NativeCredentialSecret {
     let blocked = lock.withLock { operations.append("lookup"); let value = blockLookup; blockLookup = false; return value }
     if blocked { lookupEntered.signal(); lookupRelease.wait() }
@@ -188,7 +189,57 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
 }
 @main struct NativeCredentialRetentionTests {
   @MainActor static func main() async {
-    do { try await run() }
+    do { try await run(); try await routeScopes() }
     catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }
+}
+
+@MainActor func routeScopes() async throws {
+  let runtime = try NativeRuntime(), vault = Vault(), store = NativeCredentialStore(backing:vault)
+  var configuration = NativeSessionConfiguration(); configuration.securityTypes = [2]
+  let session = try runtime.makeSession(configuration:configuration)
+  let credentials = NativeAuthenticationCredentials(store:store); credentials.bind(session)
+  let peer = native_test_peer_create_reconnecting(1)!
+  defer { native_test_peer_destroy(peer) }
+  let endpoint = "127.0.0.1::\(native_test_peer_port(peer))"
+  let keyA = try NativeCredentialKey(endpoint:endpoint,routeIdentity:"gateway-A",authentication:.passwordOnly(securityType:2))
+  let keyB = try NativeCredentialKey(endpoint:endpoint,routeIdentity:"gateway-B",authentication:.passwordOnly(securityType:2))
+  let direct = try NativeCredentialKey(endpoint:endpoint,authentication:.passwordOnly(securityType:2))
+  func start(_ route: String) async throws -> (NativePrompt,Task<NativeCompletion,Error>) {
+    credentials.beginAttempt(endpoint:endpoint,routeIdentity:route)
+    let operation = Task {
+      if route.isEmpty { return try await session.connect(endpoint:endpoint) }
+      return try await session.connect(endpoint:endpoint,through:endpoint,routeIdentity:route)
+    }
+    try await until { session.prompt != nil }
+    return (session.prompt!,operation)
+  }
+  func answer(_ prompt: NativePrompt,_ retention: NativeCredentialRetention) throws {
+    var user: [UInt8] = [], password = Array("password".utf8)
+    try credentials.submit(prompt,username:&user,password:&password,retention:retention)
+  }
+  func finish(_ operation: Task<NativeCompletion,Error>) async throws {
+    _ = try await operation.value; credentials.observe(session.snapshot)
+    try await until { !credentials.isWorking }
+    _ = try await session.disconnect(); credentials.observe(session.snapshot)
+  }
+  let (first,firstOperation) = try await start("gateway-A")
+  try answer(first,.remember); try await finish(firstOperation)
+  try check(vault.contains(keyA) && !vault.contains(keyB) && !vault.contains(direct),"remembered password belongs to target plus route")
+  let (second,secondOperation) = try await start("gateway-B")
+  credentials.useSaved(second,username:""); try await until { !credentials.isWorking }
+  try check(session.prompt == second && credentials.notice?.contains("No saved password") == true,"another gateway cannot read the remembered password")
+  try answer(second,.session); try await finish(secondOperation)
+  let (same,sameOperation) = try await start("gateway-B")
+  try check(credentials.canUseSession(same,username:""),"session credential survives a retry on the same route")
+  try credentials.useSession(same,username:""); try await finish(sameOperation)
+  let (changed,changedOperation) = try await start("gateway-A")
+  try check(!credentials.hasSessionCredential && !credentials.canUseSession(changed,username:""),"route change clears retained session credential")
+  credentials.useSaved(changed,username:""); try await finish(changedOperation)
+  let (plain,plainOperation) = try await start("")
+  credentials.useSaved(plain,username:""); try await until { !credentials.isWorking }
+  try check(session.prompt == plain && credentials.notice?.contains("No saved password") == true,"direct connection cannot read tunnel credentials")
+  try answer(plain,.useOnce); try await finish(plainOperation)
+  await credentials.close(); await store.close(); try await runtime.shutdown()
+  print("PASS credential retention and remembered lookup isolate gateway routes and direct connections")
 }

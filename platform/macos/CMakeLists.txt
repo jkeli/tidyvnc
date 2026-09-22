@@ -35,6 +35,8 @@ add_library(tidyvnc_macos_bridge STATIC
   Bridge/NativeConnectionIssue.swift
   Bridge/NativeDelivery.swift
   Bridge/NativeRuntime.swift
+  Tunnel/NativeTunnelProcess.swift
+  Tunnel/NativeSSHTunnel.swift
   Bridge/NativeListener.swift
   Bridge/NativeSession.swift
   Bridge/NativePointerTiming.swift

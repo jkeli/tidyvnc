@@ -680,3 +680,20 @@ add_custom_command(TARGET native-listener-ui-tests POST_BUILD
   COMMAND /usr/bin/codesign --force --sign - "$<TARGET_BUNDLE_DIR:native-listener-ui-tests>" VERBATIM)
 add_test(NAME NativeListener.PresentationAndConnectionRouting COMMAND native-listener-ui-tests)
 set_tests_properties(NativeListener.PresentationAndConnectionRouting PROPERTIES TIMEOUT 45)
+
+add_executable(native-tunnel-child support/tunnel-child.c)
+add_executable(native-tunnel-tests NativeTunnelTests.swift)
+set_target_properties(native-tunnel-tests PROPERTIES Swift_MODULE_NAME NativeTunnelTests)
+target_compile_options(native-tunnel-tests PRIVATE -swift-version 6 -strict-concurrency=complete
+  -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+target_include_directories(native-tunnel-tests PRIVATE support)
+target_link_libraries(native-tunnel-tests PRIVATE tidyvnc_macos_bridge native-test-peer)
+add_dependencies(native-tunnel-tests native-tunnel-child)
+add_test(NAME NativeTunnel.ProcessOwnershipAndForwarding COMMAND native-tunnel-tests $<TARGET_FILE:native-tunnel-child>)
+set_tests_properties(NativeTunnel.ProcessOwnershipAndForwarding PROPERTIES TIMEOUT 40)
+find_package(Python3 QUIET COMPONENTS Interpreter)
+if(Python3_Interpreter_FOUND)
+  add_test(NAME NativeTunnel.IsolatedOpenSSH
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tunnel-ssh.py $<TARGET_FILE:native-tunnel-tests>)
+  set_tests_properties(NativeTunnel.IsolatedOpenSSH PROPERTIES TIMEOUT 45 SKIP_RETURN_CODE 77)
+endif()

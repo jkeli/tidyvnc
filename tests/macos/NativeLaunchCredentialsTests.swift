@@ -221,5 +221,42 @@ func inputs(user: [UInt8]? = nil, password: [UInt8]? = nil, file: URL? = nil) th
   print("PASS launch credential ownership, precedence, raw bytes, endpoint scope and drained cancellation")
 }
 @main struct NativeLaunchCredentialsTests {
-  @MainActor static func main() async throws { try await run(capture:CommandLine.arguments.contains("--capture")) }
+  @MainActor static func main() async throws {
+    let capture = CommandLine.arguments.contains("--capture")
+    try await run(capture:capture)
+    if !capture { try await routeInputs() }
+  }
+}
+
+@MainActor func routeInputs() async throws {
+  let runtime = try NativeRuntime()
+  for initialRoute: String? in [nil,"gateway-A"] {
+    let peer = try Peer()
+    var configuration = NativeSessionConfiguration(); configuration.securityTypes = [2]
+    let session = try runtime.makeSession(configuration:configuration)
+    let credentials = NativeAuthenticationCredentials(launchInputs:try inputs(password:Array("password".utf8)))
+    credentials.bind(session)
+    // Ordinary publication may bind only the final file endpoint; route binding
+    // can happen later when the first explicitly selected tunnel is prepared.
+    credentials.bindLaunchEndpoint(peer.endpoint,routeIdentity:initialRoute)
+    for (route,automatic) in [("gateway-A",true),("gateway-A",true),("gateway-B",false),("gateway-A",false)] {
+      credentials.beginAttempt(endpoint:peer.endpoint,routeIdentity:route)
+      let operation = Task { try await session.connect(endpoint:peer.endpoint,through:peer.endpoint,routeIdentity:route) }
+      try await until { session.prompt != nil }
+      let prompt = session.prompt!; credentials.inspect(prompt)
+      if automatic {
+        _ = try await operation.value
+        try await until { !credentials.isWorking }
+        try check(session.snapshot.state == .connected,"launch input follows only its bound gateway route")
+      } else {
+        try await Task.sleep(for:.milliseconds(30))
+        try check(session.prompt == prompt && !credentials.isWorking,"changing route destroys launch inputs without replay")
+      }
+      _ = try await session.disconnect()
+      if !automatic { _ = try? await operation.value }
+    }
+    await credentials.close(); try await session.close()
+  }
+  try await runtime.shutdown()
+  print("PASS launch credentials bind once to the selected gateway route and cannot replay after route changes")
 }

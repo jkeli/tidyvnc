@@ -15,6 +15,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   private weak var session: NativeSession?
   private let store: NativeCredentialStore?
   private var endpoint: String?
+  private var routeIdentity = ""
   private var stopped = false
   private var epoch: UInt64 = 0
   private var work: Task<Void,Never>?
@@ -29,6 +30,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   private var savedSubmission: UInt64?
   private var launch: NativeLaunchCredentialPayload?
   private var launchEndpoint: String?
+  private var launchRouteIdentity: String?
   private let passwordFileReader: any NativePasswordFileReading
   private var automaticPrompt: NativePrompt?
   public init(store: NativeCredentialStore? = nil, launchInputs: NativeLaunchCredentialInputs? = nil,
@@ -37,10 +39,16 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   }
   // The resolved initial CLI/file endpoint binds before editable UI admission.
   // An empty form binds on its first explicit connection attempt.
-  public func bindLaunchEndpoint(_ endpoint: String) {
+  public func bindLaunchEndpoint(_ endpoint: String, routeIdentity: String? = nil) {
     guard launch != nil, !endpoint.isEmpty else { return }
     if launchEndpoint == nil { launchEndpoint = endpoint }
     else { endpointChanged(to:endpoint) }
+    if let routeIdentity, launch != nil {
+      if let expected = launchRouteIdentity, !expected.utf8.elementsEqual(routeIdentity.utf8) {
+        discardLaunch(); epoch &+= 1
+        if automaticPrompt != nil { work?.cancel(); automaticPrompt = nil }
+      } else { launchRouteIdentity = routeIdentity }
+    }
   }
   public func endpointChanged(to endpoint: String) {
     if let expected = launchEndpoint, !expected.utf8.elementsEqual(endpoint.utf8) {
@@ -48,7 +56,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
       if automaticPrompt != nil { work?.cancel(); automaticPrompt = nil }
     }
   }
-  private func discardLaunch() { launch?.clear(); launch = nil; launchEndpoint = nil }
+  private func discardLaunch() { launch?.clear(); launch = nil; launchEndpoint = nil; launchRouteIdentity = nil }
   // Combine publishes before NativeSession.prompt changes. Schedule admission
   // on the main actor, then recheck the published prompt before accessing input.
   public func inspect(_ request: NativePrompt?) {
@@ -103,12 +111,13 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     return false
   }
   public func bind(_ session: NativeSession) { self.session = session }
-  public func beginAttempt(endpoint: String) {
+  public func beginAttempt(endpoint: String, routeIdentity: String = "") {
     guard !stopped, !isWorking else { return }
-    bindLaunchEndpoint(endpoint)
-    if self.endpoint.map({ Array($0.utf8) != Array(endpoint.utf8) }) ?? false { forgetSession() }
+    bindLaunchEndpoint(endpoint,routeIdentity:routeIdentity)
+    if (self.endpoint.map({ !$0.utf8.elementsEqual(endpoint.utf8) }) ?? false) ||
+       !self.routeIdentity.utf8.elementsEqual(routeIdentity.utf8) { forgetSession() }
     pending?.secret.clear(); pending = nil; savedSubmission = nil
-    self.endpoint = endpoint; notice = nil; epoch &+= 1
+    self.endpoint = endpoint; self.routeIdentity = routeIdentity; notice = nil; epoch &+= 1
   }
   private func isCurrent(_ request: NativePrompt) -> Bool {
     !stopped && request.kind == .credentials && session?.isClosing == false &&
@@ -116,7 +125,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   }
   private func key(_ request: NativePrompt, username: String) throws -> NativeCredentialKey {
     guard isCurrent(request), let endpoint else { throw NativeError(.stale, "Inactive credential request") }
-    return try NativeCredentialKey(endpoint: endpoint,
+    return try NativeCredentialKey(endpoint: endpoint, routeIdentity: routeIdentity,
       authentication: request.usernameRequired ? .usernamePassword(securityType: request.securityType) : .passwordOnly(securityType: request.securityType),
       username: request.usernameRequired ? username : "")
   }
@@ -242,7 +251,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     epoch &+= 1; work?.cancel(); automaticPrompt = nil; pending?.secret.clear(); pending = nil
     discardLaunch(); forgetSession(); savedSubmission = nil; notice = nil
   }
-  public func stop() { stopped = true; clear(); endpoint = nil; session = nil }
+  public func stop() { stopped = true; clear(); endpoint = nil; routeIdentity = ""; session = nil }
   public func close() async { stop(); await work?.value }
   public func dismissNotice() { notice = nil }
   private static func storeMessage(_ error: Error) -> String {
