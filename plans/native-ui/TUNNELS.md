@@ -22,8 +22,7 @@ The additive ROUTED_CONNECT feature has one new C export (112 total), with no
 change to existing structs. Route persistence evolves separately below. The Swift wrapper requires the
 feature and exposes connect(endpoint:through:routeIdentity:). It does not authorize
 credential reuse, launch a process, or infer the destination from a local port.
-The caller owns the tunnel until the RFB transport is drained. This is currently
-a service boundary, not a completed `via` launch path.
+The caller owns the tunnel until the RFB transport is drained. The app controller and CLI `via` path now own this boundary as described below.
 
 ## Owned SSH process service
 
@@ -40,19 +39,28 @@ private 0700 directory with empty ACL, a private SSH master control socket and a
 0600 forwarding socket. It starts `/usr/bin/ssh` with explicit argv, checks the
 master and requests forwarding with `-O forward`; only successful acknowledgement
 and the expected private socket permit RFB admission. Socket-file creation alone
-is not readiness. Startup has a monotonic 20-second deadline. No local TCP port
+is not readiness. Startup has a monotonic 20-second deadline without interaction, or five minutes
+when native SSH prompts are enabled. No local TCP port
 reservation/release race is needed. UseIPv4/UseIPv6 apply to reaching the gateway;
 the gateway resolves the remote target itself.
 
-The initial service uses `-F /dev/null`, BatchMode, StrictHostKeyChecking and
-UpdateHostKeys=no. It uses existing known-host keys and noninteractive default-key
-or agent authentication. It cannot presently prompt for SSH passwords/passphrases,
-approve new host keys, apply user SSH configuration/aliases/proxies, or evaluate
-VNC_VIA_CMD. These limitations must be resolved or explicitly presented before
+The app uses an admitted private config snapshot and UpdateHostKeys=no. Explicit
+unconfigured service callers retain `-F /dev/null`. Noninteractive owners use
+StrictHostKeyChecking=yes; native interaction uses ask with the bound key review
+described below.
+It uses existing known-host keys and default-key or agent authentication. The app
+now enables password/passphrase interaction through its bundled SSH_ASKPASS helper;
+service callers without NativeSSHAuthentication retain BatchMode=yes. Supported
+static ~/.ssh/config aliases and settings are captured before connecting. Proxy
+hops, command execution and VNC_VIA_CMD remain unsupported.
+New plain Ed25519/RSA/ECDSA keys have native review; unsupported key formats fail
+closed when approval would be needed. Existing keys and trusted certificates remain
+subject to OpenSSH verification. These limitations must be resolved or explicitly presented before
 advertising app/CLI support; they do not close the complete tunnel parity item.
 Environment inheritance is restricted to fixed PATH/locale/askpass policy and the
 named SSH_AUTH_SOCK input. VNC credentials are never forwarded into SSH's argv or
-environment. Standard input/output/error use `/dev/null`; errors are fixed text.
+environment. Standard input/output use `/dev/null`; master stderr is streamed into
+a constant-space save-failure classifier and discarded. Errors are fixed text.
 
 NativeTunnelProcess uses posix_spawn with a fresh process group, closed inherited
 descriptors and reset signal policy. Exit arrives through a dispatch process
@@ -103,32 +111,46 @@ selection carries the complete destination; profile/connection gateway fields sh
 current authentication/configuration limitations; live export includes gateway
 omission review. The temporary routed-profile admission rejection is removed.
 
-This integration was interrupted before dedicated controller lifecycle tests were
-added. Treat startup/admission cancellation, remote/child failure, cleanup ordering,
-reconnect and close/quit as unverified until those tests exercise the app owner.
-Service-level process tests do not prove app-level ownership. CLI `via` remains
-unsupported, and the complete tunnel parity items remain open.
+Dedicated controller tests now exercise startup and committed-connect cancellation,
+remote disconnect, child exit, fresh-owner reconnect, repeated close and dropped
+presentation. They observe the terminal RFB state before ordinary tunnel close,
+hold cleanup to prove replacement admission stays disabled, and verify saved and
+session credentials stay isolated between gateway users and direct connections.
+A second controller fixture uses the isolated OpenSSH daemon with disposable keys.
+It covers unknown-key rejection, actual forwarding, remote/child exit and reconnect.
+These fixtures do not establish physical app interaction or installed acceptance.
+
+CLI `via` now validates every occurrence before path inspection/file reads, retains
+user/host/port identity, and resolves the forwarding target after explicit file
+review. Empty `via` explicitly selects a direct route. Listener combinations and
+Unix targets fail before session/tunnel allocation; files are necessarily read and
+reviewed before checking their final target. The resolved gateway is published before
+session publication and launch-credential binding. Compatibility files do not gain a
+new route field. `VNC_VIA_CMD` presence with an active CLI gateway fails before
+credential capture, logging or application startup; no command text is evaluated or
+reflected. Help describes native password/passphrase interaction, the existing-host-key
+policy and unsupported host-key/configuration features. The complete parity items remain open.
 
 ## Remaining implementation
 
-1. Wire the validated gateway request and deterministic route identity into the
-   invocation path, preserving SSH user/host/port distinctions. Resolve the final target after
-   defaults/CLI/file review. Reject incompatible listen/Unix-target cases before
-   side effects. Do not silently reinterpret custom VNC_VIA_CMD shell programs.
+1. Extend CLI/file and actual app acceptance across route-aware profile/recent
+   selection, trust decisions and installed launch paths. The initial CLI adapter
+   and explicit shell-customization rejection are implemented above.
 2. Extend actual SSH acceptance to child/server death and verify deployment-floor
    availability. The isolated daemon test now covers unknown host-key rejection,
    disposable-key authentication, routed RFB and cleanup. Extend authentication/host-key interaction
    and supported configuration policy without introducing shell interpolation,
    secret-bearing argv or detached children.
-3. Finish and verify the initial ConnectionModel path through tunnel preparation
-   and routed connect. Test complete destination retention, credential/trust route
+3. Extend ConnectionModel acceptance through native app interactions and TLS
+   certificate/host-key decisions. Test complete destination retention, credential/trust route
    binding, launch-input ownership and current-route export. Prove old transport
    drain precedes ordinary SSH teardown and close/quit joins pending startup. Test
    remote/child death, stale exit observation and fresh-owner reconnect. Exercise
    route-aware recent/profile UI with actual interactions.
 4. Test actual process lifecycle and routed RFB/TLS identity, CLI/file precedence,
    cancellation at startup/admission/connected states, child failure, credential
-   separation and app presentation. Then advertise `via` support in bootstrap/help.
+   separation and app presentation. Bootstrap/help now advertise the limited
+   adapter and state its limitations.
    End-to-end SSH and installed network/privacy acceptance are separate gates.
 
 ### Connection owner integration checklist
@@ -173,3 +195,101 @@ Use `ctest --test-dir build/native-ui-swift/tests/macos --output-on-failure
 --no-tests=error -R '^NativeTunnel\\.'` after building native-tunnel-tests. The same
 selection runs in the ASan/TSan build trees. Exact results and platform limits are
 recorded in TODO.md and RESUME.md.
+
+NativeTunnel.ConnectionControllerLifecycle compiles the production ConnectionModel
+with an injected owner wrapping the real private child relay. It also exercises
+CLI target/file routing, launch-password binding and final-file Unix-target rejection.
+NativeTunnel.ConnectionControllerOpenSSH runs the same app owner against the isolated
+daemon via tunnel-ssh.py. Both are included in the full native CTest suite; focused
+selection is `-R '^NativeTunnel.ConnectionController'`. See TODO.md for final evidence.
+
+## Native SSH prompt transport
+
+NativeSSHAskpass owns a separate Unix socket inside each attempt's private directory.
+The C helper validates the directory ACL/mode, socket owner/mode and peer UID. Frames
+have explicit type/version/length bounds; prompts are bounded UTF-8 plain text and
+responses reject NUL/CR/LF and values beyond SSH's 1023-byte bound. No response goes
+into argv, environment, files, errors or diagnostic output. The helper emits only
+the response line to SSH's pipe. Secret byte buffers are cleared after use; SwiftUI
+field strings follow the existing authentication UI's limited lifetime.
+
+The utility worker never blocks MainActor. NativeSSHInteraction scopes each prompt
+by UUID and immutable gateway/target; cancellation rejects late responses. Peer
+exit, startup cancellation, window close and timeout revoke the prompt. Joined
+cleanup drains the interaction and socket before removing the tunnel directory.
+Concurrent connection attempts have separate sockets and presentation owners.
+
+The helper follows OpenSSH's [readpass protocol](https://github.com/openssh/openssh-portable/blob/master/readpass.c).
+Permission and notification hints are handled separately from secret responses.
+A permission hint is not a host-key decision; structured key observation is
+required for the separate host-key review below. SSH responses are use-once and do not enter VNC Keychain retention.
+
+NativeTunnel.AskpassTransportAndInteraction exercises the real helper subprocess,
+private directory rejection, bounded responses, stale answers, session isolation,
+peer disappearance and joined close. NativeTunnel.AskpassOpenSSH uses a disposable
+encrypted client key with the isolated daemon to exercise the actual passphrase
+prompt, startup cancellation and routed RFB. App packaging signs the helper before
+the development bundle; distribution identity/hardening remains a separate gate.
+
+
+## Bound SSH gateway key review
+
+The app supplies a fixed KnownHostsCommand helper template. OpenSSH splits this
+into argv and expands tokens in the arguments; no shell is invoked. The executable
+path is quoted for that parser, including spaces/backslashes/quotes. The helper
+emits no known_hosts entries and does not select trusted keys. Its HOSTNAME call
+sends only the lookup hostname, key algorithm and public-key blob over the private
+socket; ORDER/ADDRESS calls leave OpenSSH's ordinary lookup unchanged.
+
+NativeSSHHostKey validates the destination and wire key structure, then computes
+SHA-256 from the actual public-key bytes. Current new-key review supports plain
+Ed25519, RSA and NIST ECDSA keys. SSH's confirmation must contain the matching
+hostname, algorithm and computed fingerprint. Unsupported or mismatched host-key
+confirmations are cancelled instead of falling back to a password field.
+
+The native sheet displays the immutable gateway/desktop context and calculated
+fingerprint, with Cancel as the default. Trust and Save returns that exact
+fingerprint. OpenSSH independently compares it with its offered key and owns the
+known-hosts write before authentication. The app does not parse prompt prose into
+trusted key material, append key records, or allow a generic yes response through
+its typed host-key model. Remote authentication text cannot itself write trust;
+the underlying OpenSSH confirmation state still governs any save.
+
+OpenSSH's existing changed/revoked-key checks remain authoritative. A changed
+saved key is not offered as a new-key override. Cancellation before approval does
+not create a known-hosts record; cancellation after an explicit approval may leave
+the approved key saved, as the sheet explains. VNC server trust is independent.
+
+An initial known-hosts write failure reported by OpenSSH now prevents forwarding
+and VNC admission, with a fixed file-access error. The master runs with native-owned
+LogLevel=INFO and LogVerbose=none so config verbosity cannot hide that failure.
+The stderr reader retains only matcher state, drains noisy streams in constant
+space, and joins descriptor cleanup on close/deallocation. Readiness drains bytes
+already emitted before the master acknowledgement; error cleanup also checks the
+flag if authentication ends earlier. Task cancellation keeps its normal semantics.
+No diagnostic text can approve a key; a forged failure line can only deny admission.
+This observes OpenSSH's reported write result, not a separate persistence/durability
+or external known-hosts-file integrity guarantee. Installed native interaction and
+older deployment-floor SSH versions still need acceptance.
+
+Protocol references: [KnownHostsCommand documentation](https://man.openbsd.org/ssh_config#KnownHostsCommand)
+and [OpenSSH host verification](https://github.com/openssh/openssh-portable/blob/master/sshconnect.c).
+This is not complete SSH configuration, certificate enrollment, deployment-floor
+or installed app interaction acceptance. Exact current test evidence is in TODO.md.
+
+## Configuration resolution prerequisite
+
+NativeTunnelOutput adds single-use bounded stdout capture to the existing owned
+process service. A nonblocking dispatch reader drains the pipe, rejects overflow,
+and cancels the same PID-pinned process group. Descriptor closure waits for the
+read source's cancellation handler. Launch failure and parent/descendant exit
+release pipe owners. Configuration probes retain bounded stdout only. Masters use
+a separate stderr mode that retains no raw text and reduces the stream to a fixed
+host-key write-failure flag; authentication responses remain on private askpass IPC.
+
+NativeSSHConfigurationProbe resolves the admitted snapshot with a deadline and
+joined cancellation, validates bounded UTF-8 output and returns a typed effective
+gateway/key identity plus an opaque policy digest. NativeConfiguredSSHTunnel owns
+preparation in the app; credentials/trust bind to its result before SSH/RFB starts.
+See [SSH-CONFIGURATION.md](SSH-CONFIGURATION.md) for snapshot, inherited-port intent,
+resolved identity, supported settings and remaining acceptance requirements.

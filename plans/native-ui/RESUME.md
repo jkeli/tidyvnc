@@ -1,8 +1,374 @@
 # Native UI work handoff
 
-Updated 2026-09-21. Read this first when resuming, then use [TODO.md](TODO.md)
+Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
+
+## Committed checkpoint (2026-09-22)
+
+The accumulated implementation is committed by purpose at the user's request:
+
+- `8aed5265`: serialize pasteboard fixtures and render color checks in sRGB.
+- `a1bd4414`: supported SSH configuration snapshots, native askpass/host-key
+  review, joined process/diagnostic cleanup and effective-route credential/trust
+  isolation, including storage migration and app integration.
+- `0507ab9b`: Help/About resources, 228 English source localization entries,
+  complete interpolated trust/status messages and expanded authentication controls.
+
+Planning, CLI/SSH policy, UI acceptance and localization documentation are
+committed separately. No publication or release is implied. The entire PLAN
+remains active; no incomplete acceptance gate has been checked off for this commit.
+
+Fresh checkpoint validation: the complete normal native build passes and the full
+native CTest suite passes **85/85 (130.78 s)**, including isolated OpenSSH tests.
+Strict deep app and helper signatures pass; 32 executable terminal cases, all 228
+compiled catalog values plus fallback/interpolation, branding baseline 1650 and
+diff checks pass. This full-suite result supersedes older partial/full-suite
+observations below. Evidence: `/tmp/tidyvnc-commit-{native-build,native-tests,
+terminal,localization,branding}.log`. The app was already rebuilt from the same
+implementation in the preceding slice. All recorded build/test handles completed.
+Sanitizers were not rerun for this commit checkpoint; previous SSH sanitizer
+results and their TLS-disabled limitations remain historical evidence only.
+
+## Implementation evidence (2026-09-22)
+
+Credential/password-file notices, saved-trust errors and the trust library add
+60 localization entries (228 total). Fixed diagnostics and saved fingerprints use
+whole sentences with literal arguments. App build, packaged lookup/fallback/
+interpolation, strict deep signature, 32 terminal cases, branding and diff pass.
+Eight focused storage/credential/trust/rendering tests pass (40.42 s).
+
+New tests/macos/localization-expansion.py creates a temporary test bundle with
+padded authentication/credential/trust/action strings, preserving placeholder
+count. The first expanded run passed geometry tests but screenshots showed
+truncated password retention and saved-password controls. AuthenticationSheet now
+puts the retention label above a full-width picker and stacks saved-password
+actions. Final app build and ordinary renderer pass (36.92 s), final expanded
+renderer exits 0, and light/dark remembered-password captures show full labels.
+The expanded trust-library screenshot still shows a truncated destination
+placeholder: next replace placeholder-only guidance with a visible wrapping label
+and retain an explicit accessibility label. Other expanded trust screens also
+need visual review; passing fitting-size checks alone is insufficient.
+
+Evidence: `/tmp/tidyvnc-storage-localization-*`,
+`/tmp/tidyvnc-settings-expanded-final.log`, `/tmp/tidyvnc-settings-expanded-renders/`.
+All process handles are terminal. A fresh CUA getApp still reports native pipe
+closed, so no actual app/VoiceOver acceptance is claimed. The overall plan and
+remaining localization, physical, installed-app and release gates stay open.
+
+Authentication/trust localization adds 96 entries (168 total). AuthenticationSheet,
+SSHAuthenticationSheet, TrustDetailsView, credential-protection guidance and native
+certificate/key presentation now use stable IDs with English defaults. Destination
+confirmations and expected/received fingerprints use whole localized sentences
+with literal interpolated arguments. No trust/credential/protocol behavior changed.
+RSA key bits use a UInt32-compatible placeholder. The interpolation test initially
+expected ungrouped digits; it now checks locale-aware formatting (2,048 here).
+
+Final app and focused builds pass. Settings rendering, credential retention,
+certificate policy/presentation and SSH askpass interaction pass 4/4 (39.16 s).
+All 168 packaged values, missing-key/untranslated-language defaults and typed
+interpolation pass; strict deep signature, branding baseline 1650 and diff pass.
+Representative authentication/SSH light/dark English screenshots were inspected.
+Evidence: `/tmp/tidyvnc-auth-localization-*`; all process handles are terminal.
+No sanitizer, real-SSH or full-suite rerun was required for this presentation-only
+slice. Expanded authentication/trust layouts, RTL/VoiceOver/interactive acceptance,
+credential-store and saved-trust notices and other UI localization remain open.
+The current SDK/dependency build is not minimum-OS acceptance.
+
+The catalog now contains 72 English source entries: 46 connection diagnostics,
+25 Help strings and the explicit About action. Help menu/window titles, guide,
+topics, links and loading/error text use stable IDs with defaults. A doubled-string
+offscreen fixture exposed horizontal overflow from the segmented topic picker;
+ViewThatFits now uses a menu when segments do not fit. Corrected minimum/default
+light/dark captures and normal English minimum-size capture were inspected.
+Final app build, 72 packaged lookups, missing-key/untranslated-language fallback,
+strict deep signature, branding and diff checks pass. All build/render processes
+completed. Logs: `/tmp/tidyvnc-help-localization-*`; expanded captures:
+`/tmp/tidyvnc-help-expanded-renders/`. This is synthetic layout evidence, not
+shipping translations or interactive/VoiceOver/RTL acceptance. Continue the
+remaining native controls/prompts/settings localization and full checklist.
+
+Native localization now has an English source catalog compiled by Xcode and an
+explicit English development region. NativeConnectionIssue's 46 titles/messages
+use stable IDs with redacted English default values. Actual bundled lookups,
+untranslated French-locale fallback and missing-key defaults pass; strict deep
+signature and the focused ErrorsAndRetry CTest pass. No gettext catalog or
+translator attribution changed. See LOCALIZATION.md and the repeatable
+tests/macos/localization-bundle.swift packaging check. Other native strings and
+long-string layout coverage remain unfinished. Evidence prefix:
+`/tmp/tidyvnc-localization-`. App and focused test builds are terminal success.
+
+Native Help and About credits are now implemented (N4.15 remains open for actual
+UI/accessibility acceptance). The Help menu opens a dedicated SwiftUI window with
+connection guidance, project/support links, and asynchronously loaded bundled
+README/licence text. Credits.rtf supplies the standard About panel's upstream
+attribution. The app build, strict deep signature and 32 terminal cases pass;
+all three packaged documents match their source bytes and the RTF parses.
+Offscreen guide renders at 560×440 and 720×640 in light/dark wrap correctly. An
+initial intrinsic-fitting-size assertion was unsuitable for scrollable text;
+actual constrained screenshots were inspected instead. This is not interactive
+Help or About acceptance. CUA getApp still fails with native pipe closed, so the
+running older app has not been relaunched or its new Help controls exercised.
+Evidence: `/tmp/tidyvnc-native-help-final-build.log`,
+`/tmp/tidyvnc-native-help-terminal.log`, `/tmp/tidyvnc-help-renders/`.
+All build/render processes are terminal. Continue localization and the complete
+remaining checklist while interactive UI access is unavailable.
+
+The latest slice reports OpenSSH's initial known-hosts write failures before VNC
+admission. NativeTunnelOutput has a stderr mode that keeps only a fixed classifier
+state, never raw diagnostic text; large streams drain in constant space. The master
+pins LogLevel=INFO / LogVerbose=none. Readiness drains pending stderr before creating
+the forward, and error cleanup preserves the specific save error when authentication
+ends early. Close/deinit join the shared diagnostic drain; cancellation is preserved.
+
+Fixtures cover stderr-only classification, every marker split, no raw retention,
+large output, configured QUIET/LogVerbose overrides, and failed saves with both
+successful and ended authentication for Ed25519/RSA/ECDSA. Normal 8/8 passes (26.03 s).
+ASan initially passed 7/8, with the new controller trust fixture failing because that
+build omits GnuTLS. Scope-only tests now explicitly use public fixture SPKI only on
+unsupported extraction; normal builds still extract the real DER key. Corrected
+normal controller 2/2 passes (4.26 s), ASan affected case 1/1 (2.93 s), and TSan full
+SSH suite 8/8 (51.74 s). Do not claim TLS-codec sanitizer coverage from that fixture.
+
+A noisy-process regression from initially capping diagnostic volume was corrected
+by constant-space discard. The expanded intentional-auth-failure sequence also hit
+sshd source penalties; only the private fixture disables them after probing -T for
+support, preserving older sshd compatibility. System SSH configuration is untouched.
+Final app build, strict app/helper signatures, 32 terminal cases, branding baseline
+1650 and diff checks pass. All build/test handles completed. Exact logs are at the
+end of TODO.md. Full 85-test suite was not repeated.
+
+Native UI access failed again: Saved Profiles opened empty, but New Profile caused
+cua_repl to report its native pipe closed. Re-read and reset/rebind failed. The app
+remained alive (PID 17988, vncviewer, sleeping at 0% CPU); no app crash was established.
+No Save action was invoked; the resulting unsaved draft is unverified. The CUA binding
+is now undefined after reset. The running native process predates the latest build;
+quit/relaunch through CUA when inspection recovers. See UI-ACCEPTANCE.md. Do not use
+other UI-automation technologies to work around the connector restriction.
+
+Next: configured preparation cancellation/deallocation coverage, native/installed
+SSH save-failure interaction and remaining native screens/keyboard/VoiceOver work.
+Further key formats, TLS-enabled sanitizer acceptance, deployment-floor behavior,
+installed Keychain, physical displays and release gates remain open. The whole PLAN
+remains active. No ABI/storage schema change. Save-failure detection observes SSH's
+reported initial write result, not a separate durability or file-integrity guarantee.
+
+Previous slice: real configured-route password/trust-scope controller tests passed,
+and native screenshots exposed then verified the corrected two-row connection
+header at 640 points. That layout remains built; the profile connector failure above
+does not invalidate those earlier observations, but later screens remain unverified.
+
+The preceding slice wires configured SSH into the app:
+
+Configured SSH is integrated with ConnectionModel. NativeConfiguredSSHTunnel
+owns default-config preparation, cancellation and cleanup. ConnectionTunnelAttempt
+awaits the effective route before credential/trust binding and requires forwarding
+to return that same route. Requested aliases remain editable/saved destinations.
+Launch credentials now bind separately to requested intent (including inherited vs
+explicit :22) and the first effective route; a changed resolution destroys them.
+UI and terminal help describe the admitted config subset and its restrictions.
+
+Controller fixtures cover configured aliases through real SSH/RFB with launch
+credentials, fresh reconnect after explicit secret-clearing Disconnect, rejected
+config on retry, and cancellation/close before SSH starts. Credential fixtures
+cover unchanged requested intent with changed effective routes and port intent.
+Normal full suite: 84/85 passed in 129.04 s; the sole failure was a new test's invalid
+bare host:22 syntax. After fixing it to ssh://host:22, all four affected launch and
+controller cases passed (3.69 s). No production failure remained; full 85 was not
+repeated after the fixture correction. ASan 10/10 (24.63 s), TSan 10/10 (50.59 s).
+Final app build, strict app/helper signatures, 32 terminal cases, branding and diff
+checks pass. All build/test handles completed. Exact logs and the initial fixture
+failures/cleanup are recorded at TODO.md's end.
+
+At that checkpoint, the next work was resolved-route credential/trust acceptance
+and preparation cancellation/deallocation, followed by host-key save-failure and
+native/installed interactions. The route-scope and initial native UI progress above
+supersede that next-step ordering. Do not infer that controller fixtures satisfy native UI,
+physical display, installed Keychain, deployment or release gates. The entire
+PLAN remains active. C ABI 112, defaults schema 11 and profile/history schema 12
+are unchanged. SSH-CONFIGURATION.md describes current admission boundaries.
+
+The previous slice added prepareDefault, captured address-family policy, absent
+config handling and configured interactive/helper acceptance. Normal 8/8 (19.91 s),
+ASan 8/8 (23.08 s), TSan 8/8 (44.56 s), app/signatures/32 terminal cases passed.
+
+The preceding slice wires prepared gateways into an internal NativeSSHTunnel initializer.
+Launch pins effective host/user/port/explicit key alias, preserves the requested
+alias for config selection, escapes percent bytes in HostName, and disables further
+canonicalization. An owned cancellable preflight compares typed route plus an
+opaque digest of non-owned effective settings before launching the master. Changed
+Match policy rejects; Match localnetwork is rejected during snapshot admission.
+Askpass observes the prepared key lookup identity. Close/deinit join preflight,
+master/control children and prompts before releasing snapshot files.
+
+Tests now reach RFB through actual configured SSH aliases with default and explicit
+HostKeyAlias, original-source mutation after preparation, startup close and dropped
+owners. Normal 8/8 (15.17 s), ASan 8/8 (17.19 s), TSan 8/8 (37.12 s). App build,
+strict app/helper signatures, 32 terminal cases, branding and diff checks pass.
+All recorded processes completed. An initial extended fixture timeout was traced
+to reusing a one-shot VNC peer; fixed with fresh peers. Its verified orphaned SSH
+master and two private directories were explicitly cleaned; no configured acceptance
+snapshot directories remain. Full 85-test suite was not repeated for this slice.
+
+Next: absent-default-config preparation, explicit network policy in initial
+resolution, configured interactive/helper acceptance, then ConnectionModel attempt
+publication and credential/trust/launch-secret/retry binding before RFB. Public app
+factory still uses -F /dev/null; configuration remains correctly disclosed as
+unsupported until integration is complete. Read SSH-CONFIGURATION.md for the
+master-policy boundary and unsupported dynamic matching. C ABI 112, defaults schema
+11 and profile/history schema 12 remain unchanged. Exact evidence is at TODO's end.
+
+The preceding slice adds typed resolved gateway/key identity and an owned preparation.
+NativeSSHResolvedGateway validates hostname/user/port and optional hostkeyalias,
+computes the exact key lookup name and an ssh-v2 digest over the effective route.
+NativeSSHPreparedGateway retains the requested alias, immutable admitted snapshot
+and typed result; resolution failure joins snapshot cleanup. Explicit user/port
+invocation values override config while an inherited port is omitted from probe argv.
+These APIs remain internal and are not wired into app admission or master launch.
+
+Focused tunnel tests pass 8/8 (14.59 s), covering real OpenSSH alias/precedence,
+scoped IPv6, key aliases, immutable re-probing, changed source resolutions,
+credential/trust namespace separation and failed-resolution cleanup. App build,
+strict bundle/helper signatures, 32 terminal cases, branding and diff checks pass.
+All recorded processes completed. Full 85-test and sanitizer suites were not
+repeated for this internal preparation slice; the preceding full run is below.
+Exact evidence is at the end of TODO.md.
+
+Next: enforce prepared host/user/port/key lookup and effective policy in the owned
+master (including canonicalization/Match re-evaluation and default alias/certificate
+semantics), handle absent default config, and connect askpass observation to the
+prepared key identity. Then publish the immutable attempt and bind credentials/
+trust atomically before RFB, including launch-secret/retry rules. Read
+SSH-CONFIGURATION.md; do not just swap route digests while retaining a re-evaluated
+master route. Config support is still honestly disclosed as unsupported in the app.
+
+The preceding slice adds explicit/inherited SSH port intent and profile/history
+schema 12. NativeSSHGateway canonical URIs omit an inherited port; portIsExplicit
+retains the distinction. New Codable values are closed version-2 {version,uri}
+objects. Historical strings (including hand-authored omitted ports) decode to a
+concrete 22, preserving old behavior. Schema 11 remains read-only until an explicit
+mutation upgrades the full record. Defaults schema stays 11; C ABI stays 112.
+History preserves explicit/inherited destinations separately, and recent/profile
+editing carries that distinction through the canonical URI.
+
+Full normal native suite passes 85/85 (120.76 s), including old profile/history
+migration, strict new gateway validation and all model/import/invocation/tunnel
+consumers. App build, strict bundle/helper signature verification and 32 terminal cases
+pass; branding and diff checks pass. All recorded build/test handles completed.
+Sanitizers were not repeated for this immutable value/storage follow-up; the
+preceding snapshot's sanitizer evidence remains scoped to that checkpoint.
+Exact logs are at the end of TODO.md.
+
+Next: typed effective host-key lookup/route identity, owned snapshot/probe
+preparation, then atomic ConnectionModel credential/trust binding before RFB.
+The current launcher and legacy route digest still use concrete port 22;
+persisted intent does not enable configuration support by itself. Do not replace
+-F /dev/null or use requested alias identity for a resolved connection.
+
+The preceding slice finished the next snapshot ownership/admission checks. Private
+files receive exact 0600 permissions; directory setup works with umask 0777 and
+cleanup preserves a replacement directory while unlinking owned files through its
+original descriptor. Include tokenization preserves literal hashes inside a word
+and does not normalize non-ASCII whitespace into directive syntax. Actual OpenSSH
+comparisons cover unquoted/single/double-quoted hash paths and trailing comments.
+Additional fixtures cover ACL rejection, exact/aggregate byte and file-count
+limits, prepared-construction failure and restrictive umask in a separate process.
+
+Final normal/ASan/TSan tunnel runs pass 8/8 (14.01/15.53/36.71 s). The initial new
+umask test failed and drove the directory-setup fix; its corrected focused run
+passed 1/1. The earlier transient concurrent ASan probe failure remains documented
+at the end of TODO.md; these final runs did not reproduce it. All normal/sanitizer and app build/test handles completed. App build, strict
+bundle/helper signatures, 32 terminal cases and branding checks pass. Full 85-test
+suite was not repeated for this internal snapshot follow-up; exact evidence is
+at the end of TODO.md.
+
+Remaining integration: resolved host-key/route identity and ConnectionModel
+preparation before credential/trust binding and RFB admission. Existing stored gateway strings must
+retain their explicit :22 meaning; do not reinterpret them as configuration port
+inheritance. Snapshot/probe internals remain unwired to the app. Current Include
+limits reject escapes, percent/environment/named-user tilde expansion and final
+symlink files. Keep those limitations explicit. The entire plan remains open;
+consult SSH-CONFIGURATION.md before enabling app admission.
+
+The preceding follow-up adds the owned configuration-probe prerequisite:
+NativeTunnelOutput provides bounded single-use stdout with cancellation/drain;
+NativeSSHConfigurationProbe returns a validated effective hostname/user/port from
+`ssh -G -F /dev/null`. It does not admit user configuration or change app routing.
+Read [SSH-CONFIGURATION.md](SSH-CONFIGURATION.md) before enabling configuration:
+immutable snapshots, explicit/inherited port intent, resolved route/host-key
+identities and credential/trust admission still need integration.
+
+Final focused tests: 8/8 normal, ASan and TSan; app build, strict bundle/helper
+signatures and 32/32 terminal cases pass. All recorded processes completed. The
+85/85 full-suite result below predates only this internal probe follow-up; the
+full suite was not repeated. Exact evidence is at the end of TODO.md.
+
+The preceding follow-up adds bound SSH gateway-key review on top of the native
+askpass transport. A fixed KnownHostsCommand helper observes the actual offered
+key without supplying trusted entries. NativeSSHHostKey validates gateway/type/blob
+and computes SHA-256. Matching new-key confirmation presents a separate native
+review; Trust and Save returns the exact fingerprint for OpenSSH to verify and
+save. Cancel is the default. Changed and revoked keys remain rejected by SSH.
+New-key review currently supports plain Ed25519/RSA/NIST ECDSA. Unsupported new-key
+formats fail closed; existing trusted keys/certificates still use SSH verification.
+`-F /dev/null` remains: supported user SSH configuration is the next major gap.
+
+The helper/interaction/sheet implementation from the preceding checkpoint remains:
+private bounded Unix-socket IPC, per-connection cancellation and joined cleanup,
+use-once SSH responses separate from VNC credentials, and signed bundle packaging.
+The isolated daemon now verifies independent fingerprints, cancelled approval,
+exact saved key, reconnect, changed/revoked rejection and a helper path containing
+spaces, quotes, percent and dollar characters. RSA and ECDSA variants bring the
+native suite to 85 tests. Light/dark host-key sheets fit and were inspected.
+Final checks: 85/85 normal native tests, 8/8 tunnel tests under ASan and TSan,
+strict signed app/helper verification and 32/32 terminal cases. The bundled helper
+also passed the real SSH fixture. All recorded processes completed. Exact evidence
+for this follow-up is at the end of TODO.md. The prior
+83/81-test checkpoints below predate gateway-key review.
+
+Next: supported SSH configuration policy, further password/MFA and actual app
+prompt/close/quit acceptance, known-host save-failure reporting, remaining key-format
+and IPv6/scoped-host acceptance, then the full-plan inventory/hardware/installed/
+deployment/release gates. Do not reimplement basic askpass or common new-key review.
+A permission hint alone is still not a host-key decision; structured key observation
+and fingerprint binding are required. No C ABI/store schema change (112/11).
+
+This checkpoint supersedes the older next-step text below. Changes are currently
+uncommitted; inspect status/diff before continuing. Dedicated ConnectionModel
+lifecycle coverage and the initial CLI `via` adapter are now implemented. The new
+NativeTunnelControllerTests fixture exercises actual child forwarding, startup and
+committed-connect cancellation, remote/child exit, cleanup admission gating, fresh
+reconnect, repeated close, dropped presentation, routed credential isolation,
+CLI/file launch-password scope, export omission and final-file Unix-target rejection.
+A separate CTest exercises the app controller against an isolated OpenSSH daemon.
+
+`NativeInvocationRequest.gateway` validates gateway occurrences, explicit empty
+routing and final targets. `NativeSessionDefaults.sshGateway` publishes the selected
+route before its session so ConnectionModel binds launch credentials correctly.
+The executable rejects an active gateway with VNC_VIA_CMD before further startup;
+listen/gateway and Unix/gateway combinations cannot allocate sessions or tunnels.
+Help describes missing interactive authentication, new-host-key and SSH configuration
+support. No C ABI or persisted schema changed (112 exports; schemas remain 11).
+
+A clean build exposed missing top-level visibility of Threads::Threads without
+GoogleTest. CMake now discovers the production dependency in the top-level scope.
+The full native run also found monitor-profile-dependent color fixture failures
+and a half-point overflow in the settings conflict form. Color fixtures now choose
+sRGB before drawing and preserve logical bitmap size; recovery UI groups Reload
+with its error. Both color checks and the full settings-render test pass focused
+checks. Light/dark conflict captures were inspected.
+
+Next: finish SSH configuration support and authentication/trust acceptance, actual
+route-aware app/trust interactions and the remaining complete-plan inventory,
+physical-device, installed, performance and release gates. Do not repeat the old
+instruction to add basic controller tests or reject CLI `via` as unsupported.
+The final regression also exposed a clipboard fixture sharing one NSPasteboard
+between MainActor and its worker. Simulated local writes and reads now use the
+same worker through an internal injection initializer; production async clipboard
+behavior stays intact. Final checks: 81/81 normal native tests (109.31 s), 7/7 ASan (7.38 s),
+7/7 TSan (23.29 s), ten consecutive normal clipboard runs, successful app build,
+strict deep signature and 32/32 terminal cases. All recorded builds/tests completed.
+Validation details are at the end of TODO.md.
 
 ## Current state
 
@@ -25,10 +391,9 @@ for the full checklist and historical evidence. The objective remains the entire
 The interrupted app integration now has ConnectionTunnelAttempt ownership,
 route-scoped trust/credential admission, gateway fields in connection/profile UI,
 complete recent-connection selection, and current-route export capture. The
-previous temporary routed-profile rejection has been removed. This is initial
-integration: dedicated controller tests for startup/admission cancellation,
-remote/child death, cleanup ordering, reconnect and close/quit are still missing.
-CLI `via` remains unsupported. Interactive SSH authentication, new host-key review,
+previous temporary routed-profile rejection has been removed. Dedicated controller tests now cover startup/admission cancellation,
+remote/child death, cleanup ordering, reconnect and close. CLI `via` now has a
+noninteractive adapter; see the latest working-tree checkpoint above. SSH authentication acceptance, new host-key review,
 SSH configuration support and installed/deployment acceptance remain open.
 
 Native `-listen [port]` and File > Listen for Connections already worked. The new
@@ -162,30 +527,25 @@ not use them. Do not confuse a fixture screenshot with full installed-app accept
 
 ## Next steps
 
-1. Inspect the current diff and latest evidence. Resolve any newly found file-listener
-   issue before moving on; retain the complete ordinary/native regression coverage.
-   The post-approval listener screenshot check is now complete: the stable capture
-   shows the full window and both peers, with displayed/socket port 51786 matching.
-   Both recorded previews exited normally; preview control files were removed.
-2. Finish and test the initial app tunnel integration in ConnectionModel. Add an
-   injected-factory controller fixture using the existing private child relay and
-   isolated SSH support. Verify startup cancellation, cancellation after a committed
-   connect, remote disconnect, child death, disconnect/reconnect, dropped owners,
-   old exit observers and repeated window close/quit. Assert the RFB transport drains
-   before ordinary tunnel close, and no new attempt starts during cleanup. Cover
-   actual credential/trust route isolation, complete recent/profile selection and
-   live export gateway-loss review. Existing gateway/service/storage tests do not
-   establish these connection-controller lifecycle properties.
-   Then wire CLI `via` through NativeSSHGateway preflight and final file target
-   resolution, reject listen/Unix-target incompatibilities before side effects,
-   and handle unsupported VNC_VIA_CMD explicitly. Do not evaluate shell strings.
-   Interactive SSH authentication/host-key/configuration support remains separate
-   required work. See [TUNNELS.md](TUNNELS.md) for contracts and current limitations.
-3. Continue the unchecked parity inventory and option coverage, localization and
-   accessibility, actual app interactions (including quit while Save is presented),
-   physical keyboard/fullscreen/Spaces/multidisplay, installed Finder/LAN/privacy/
-   firewall, performance, deployment/architecture and signing/release gates. These
-   priorities do not replace or narrow the numbered checklist.
+1. Fix the expanded trust-library destination placeholder by adding a visible
+   wrapping label and preserving its accessibility name. Rerun the ordinary and
+   synthetic expansion renderer, then inspect the actual PNGs. Review the other
+   expanded trust screens; geometry assertions alone missed earlier truncation.
+2. Continue stable-ID catalog migration for remaining settings, connection/menu,
+   document/profile/history, listener and status UI. Preserve gettext attribution
+   and source-language defaults. Extend long-string and RTL checks without
+   presenting synthetic padding as a shipping translation. See LOCALIZATION.md.
+3. When CUA native access recovers, relaunch the rebuilt app and resume actual
+   Help/About, profile, SSH authentication/save-failure and trust interactions,
+   keyboard/VoiceOver and close/quit checks. The last getApp still failed with its
+   native pipe closed; no crash or lock was established. Do not bypass CUA using
+   other UI automation. See UI-ACCEPTANCE.md and SSH-CONFIGURATION.md.
+4. Continue the entire unchecked parity inventory and option coverage, physical
+   keyboard/fullscreen/Spaces/multidisplay, installed Finder/LAN/privacy/Keychain,
+   performance, minimum-OS/architecture, CI, signing and release gates. The current
+   dependencies are newer than the declared deployment floor. These priorities
+   do not replace or narrow the numbered checklist; N4.15/N4.16 and release remain
+   open despite the implementation commits.
 
 ## Commands and environment
 

@@ -336,7 +336,7 @@ remains open.
 
 `NativeProfileHistoryStore` is an actor over an injected byte backing, with list/read,
 stable-UUID upsert/delete, recent-endpoint insertion/removal and explicit history
-clear. One schema-11 record (with schema-1 through schema-10 read compatibility) holds profiles and most-recent-first history with a UUID
+clear. One schema-12 record (with schema-1 through schema-11 read compatibility) holds profiles and most-recent-first history with a UUID
 revision. Every accepted mutation produces a new revision. The complete record is
 compared, so profile and history writers cannot silently overwrite each other.
 History keeps 20 complete destinations, matching the retained viewer's history
@@ -344,7 +344,9 @@ limit. Each has exact target text and an optional validated SSH gateway; inserti
 moves only a duplicate of that complete destination to the front. Target names are
 not DNS resolved or canonicalized by storage. Gateway spelling is canonicalized
 without IO. Schemas 1–10 load as direct destinations without rewriting bytes;
-explicit mutation writes schema 11. Older readers reject the new schema instead
+explicit mutation writes schema 12. Versioned gateway objects retain explicit versus
+inherited port intent. Historical gateway strings always retain concrete ports
+(including omitted port 22); reading does not rewrite them. Older readers reject the new schema instead
 of dropping its route. Endpoint-only compatibility accessors expose direct entries
 only; they cannot convert a stored gateway into a direct connection. Profiles are limited to 256, names to 256
 UTF-8 bytes, addresses to 4096 bytes, and the file to 2 MiB.
@@ -1527,17 +1529,28 @@ ROUTED_CONNECT feature preserves the target hostname for RFB/TLS while dialing o
 an unrouted Unix socket or numeric 127.0.0.1/::1 endpoint. A nonempty route identity
 is mandatory. The caller must retain the tunnel until transport drain and use the
 logical target plus route for credentials/trust. This boundary does not launch SSH;
-initial connection-window ownership is wired, with dedicated lifecycle tests and
-the CLI adapter still pending.
+connection-window ownership, dedicated lifecycle tests and the initial CLI adapter
+are implemented.
 See [TUNNELS.md](../../plans/native-ui/TUNNELS.md).
 
 NativeSSHTunnel now implements an owned, asynchronous SSH master/control-client
 service. It validates gateway and target grammar, derives route identity, waits
 for forwarding acknowledgement, and supplies a private Unix forwarding socket.
 Startup cancellation/timeout, process exit and close use a joined process-group
-owner with PID-safe signal/reap ordering. The first implementation supports existing
-host keys and noninteractive key/agent authentication, excludes SSH config command
-execution, and does not inherit VNC credential environment. Private-process and
-isolated real OpenSSH tests cover the service; dedicated app lifecycle validation,
-CLI wiring and interactive SSH authentication/trust remain open. The service itself
-adds no further C ABI change; destination persistence uses schema 11 as described above.
+owner with PID-safe signal/reap ordering. It supports existing host keys and key/agent
+authentication, plus use-once native password/passphrase prompts through a bundled
+private-socket askpass helper. It excludes SSH config command execution and does not
+inherit VNC credential environment. Private-process, controller and isolated real
+OpenSSH tests cover forwarding, prompt cancellation and cleanup. Structured gateway
+key observation binds native Ed25519/RSA/ECDSA new-key review to a computed SHA-256
+fingerprint. OpenSSH owns verification and saving after explicit approval; changed
+and revoked keys remain rejected. NativeConfiguredSSHTunnel captures supported
+~/.ssh/config settings and prepares the effective gateway before the app binds VNC
+credentials/trust or starts RFB. Requested aliases remain the saved destination;
+launch secrets bind separately to requested intent and the first effective route.
+Each reconnect prepares a new snapshot. Command execution, proxy hops and dynamic
+network Match rules are rejected. Additional key-format enrollment and
+installed app acceptance remain open. Reported initial host-key write failures now
+abort before VNC admission with a fixed error; raw SSH diagnostics are discarded
+through a constant-space classifier. The service itself
+adds no further C ABI change; destination persistence uses schema 12 as described above.

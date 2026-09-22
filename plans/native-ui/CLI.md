@@ -7,7 +7,9 @@ initialization and consumes one process-local request in its first ordinary wind
 Resolution applies defaults/profile → CLI → explicit file without writing stores.
 Direct hosts connect when ready; explicit files retain review and manual Connect.
 File/socket classification and no-file monitor recovery are implemented. Remaining
-option adapters and tunnels remain required. Numeric `-listen [port]` and reviewed
+option parity and installed/native interaction acceptance remain required. SSH
+authentication and admitted ~/.ssh/config settings use the owned native tunnel path;
+see TUNNELS.md for restrictions. Numeric `-listen [port]` and reviewed
 `-listen ./file.tidyvnc` startup are implemented; see LISTEN.md for checked-port policy.
 Launch credential inputs are
 implemented with connection-scoped ownership; see CREDENTIAL-INPUTS.md.
@@ -201,7 +203,7 @@ remain ignored with review; they cannot overwrite the policy. Save As discloses
 omitted IPv4/IPv6 settings and requires acknowledgment, including built-in values
 that may differ from the receiving viewer. Native stores and file schemas are
 unchanged. The listener now applies the same family flags at bind time; see
-LISTEN.md. Tunnel adapters remain unsupported.
+LISTEN.md. For SSH forwarding these flags select the gateway address family; the gateway resolves the target.
 
 ## Pointer-event timing
 
@@ -372,8 +374,9 @@ session/profile/defaults field was added. Tests use private temporary paths.
 ## Remaining implementation sequence
 
 1. Complete diagnostic localization and logging/help/installed acceptance.
-2. Add native listen/reverse and supported tunnel adapters with explicit unsupported errors, no shell-string
-   interpolation/relaunch and no local-port identity confusion.
+2. Complete SSH authentication/host-key/configuration interaction and installed
+   listen/tunnel acceptance. Initial native listener and prompt-capable `via` adapters
+   are implemented with explicit limitations and no shell interpolation.
 3. Finish help/defaults parity and installed cold/warm Finder/LAN/privacy acceptance,
    failed/cancelled launch cleanup and independent process invocations, including
    authentication and remaining adapters. Preserve ordinary successful-connection
@@ -449,3 +452,21 @@ now prepare defaults → CLI → file settings and monitor choices for explicit 
 before binding. File ServerName supplies the checked port (empty/absent → 5500).
 Incoming windows reuse the approved settings without rereading files/preferences.
 Unix socket listeners fail explicitly. LISTEN.md records the remaining scope.
+
+## SSH invocation routing (2026-09-22)
+
+`via` accepts a validated `[user@]host` or `ssh://[user@]host[:port]`. Every
+occurrence is validated; the last valid occurrence wins, and an explicit empty
+value selects direct routing. Preflight rejects an active gateway with `listen`
+before path inspection. Known Unix-socket operands fail before session creation;
+explicit files retain review, then validate their final target before allocating a
+session. Gateway identity is published before the session and launch-password scope.
+The compatibility file has no gateway field and export continues to require an
+explicit gateway-loss acknowledgement.
+
+The executable checks only the presence of `VNC_VIA_CMD`; when a CLI gateway is
+active, it reports an unsupported customization before credentials, logging or app
+startup. Its contents are never copied, evaluated, logged or passed to SSH. An empty
+`via` does not use SSH and does not consult that customization. Help documents the
+key/agent-only, existing-known-host-key behavior and missing interactive/configuration
+support. See TUNNELS.md for ownership, tests and remaining parity work.
