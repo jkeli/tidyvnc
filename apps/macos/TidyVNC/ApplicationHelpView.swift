@@ -2,6 +2,10 @@
 import Foundation
 import SwiftUI
 
+// Keep the macOS 14 property wrapper explicit with newer SDKs that also
+// provide a State macro, as in AuthenticationSheet.
+private typealias HelpFieldState<Value> = SwiftUI.State<Value>
+
 struct ApplicationHelpView: View {
   private enum Page: CaseIterable, Identifiable {
     case guide, acknowledgements, licence
@@ -14,9 +18,9 @@ struct ApplicationHelpView: View {
     }
     var id: Self { self }
   }
-  @State private var page: Page = .guide
-  @State private var document = ""
-  @State private var loading = false
+  @HelpFieldState<Page> private var page = .guide
+  @HelpFieldState<String> private var document = ""
+  @HelpFieldState<Bool> private var loading = false
   var body: some View {
     VStack(alignment:.leading,spacing:16) {
       Text(String(localized:"help.title", defaultValue:"TidyVNC Help")).font(.title)
