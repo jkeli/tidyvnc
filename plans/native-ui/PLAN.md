@@ -1135,3 +1135,11 @@ and route-scoped credential retention/launch inputs. App/CLI admission, route-aw
 history/profile/export behavior, interactive SSH authentication/trust/configuration
 and deployment/installed acceptance remain open. See TUNNELS.md and RESUME.md;
 the complete plan remains active.
+
+Route persistence follow-up: NativeSSHGateway now validates independently of a
+remote target. Profile/history schema 11 and the history queue retain complete
+server/gateway destinations; compatibility export requires a separate gateway-loss
+acknowledgement. Initial app selection and attempt ownership are now wired and
+replace the temporary routed-profile rejection. Dedicated app tunnel lifecycle
+validation and CLI integration remain open. See TUNNELS.md for the migration and
+next integration step.

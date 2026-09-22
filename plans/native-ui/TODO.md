@@ -7843,3 +7843,82 @@ remain uncommitted; the planning checkpoint is committed separately.
 Next: app attempt ownership and child-exit handling, route-aware persistence/export,
 CLI/file review wiring and honest SSH capability presentation. Parent N3.18/N4.11
 and the complete plan remain open; arm64/macOS 27/deployment-floor limits still apply.
+
+### 2026-09-21 — Preserve SSH routes in native storage and export review
+
+NativeSSHGateway now validates without a remote endpoint or IO; request construction
+can wait for final file/default target resolution. The gateway Codable boundary
+stores a canonical URI and validates it again on decode. Its canonical byte bound
+ensures every accepted value can be read back. No supplied route digest is trusted.
+
+NativeConnectionDestination pairs exact UTF-8 target text with an optional gateway.
+Profile/history schema **11** stores complete recent destinations and optional
+profile gateways. Schemas 1–10 load as direct entries without writes; explicit
+mutation atomically upgrades while preserving settings, IDs, credential references,
+address ordering and history initialization/import markers. Direct and separate
+user/host/port routes coexist, canonical equivalent gateways coalesce, and removal
+selects the complete destination. Endpoint equality does not fold distinct Unicode
+byte spellings. NativeRecentHistory's bounded queue and reload/clear now retain
+complete destinations; endpoint-only compatibility accessors expose direct entries
+only. Malformed/unknown route data and unsupported routed targets preserve old bytes.
+
+NativeDocumentExportCapture preserves gateway metadata across monitor remapping.
+Export adds a separate SSH gateway omission acknowledgement explaining that the
+receiving viewer connects directly unless its gateway is configured separately.
+The gateway and digest never enter compatibility-file output.
+
+This is prerequisite storage/export work, not finished app tunnel support.
+NativeSessionDefaults rejects routed profiles before publishing a session until
+ConnectionModel owns the complete route. Existing profile editing preserves the
+new field. Replace that temporary guard during actual app integration; update
+recent/profile selection and live export capture together. CLI `via` remains
+unsupported; N3.18/N4.11 and the complete plan remain open.
+
+Regression coverage adds fresh private-file reopen, canonical route deduplication,
+route-specific delete/conflict, schemas 1–10 migration, invalid-route preservation,
+Unicode endpoint identity, queued-route lifetime, profile edit/admission behavior,
+and gateway omission review before/after monitor remapping. Final focused tests
+passed **7/7 ASan (5.86 s)** and **7/7 TSan (21.52 s)**, including the isolated
+real OpenSSH test with no skips. Final full normal native regression passed
+**79/79 (87.73 s)** after correcting two stale schema-10 assertions and adding the
+UTF-8/URI-bound checks. The app rebuilt, strict deep signature verification and
+**29/29** isolated executable terminal checks passed. Branding/whitespace checks
+passed (1650 unchanged deferred occurrences). All builds/tests/fixtures completed;
+changes remain uncommitted. Defaults schema 11 and C ABI 112 exports are unchanged;
+profile/history schema is now 11. Existing arm64/macOS 27/deployment-floor limits
+remain. Evidence prefix: `/tmp/tidyvnc-route-storage-final-`.
+
+### 2026-09-22 — Commit initial app route integration and record remaining coverage
+
+At the user's request, accumulated implementation changes were grouped into four
+commits: reviewed file listening (`7d80856b`), routed transport identity
+(`0913db13`), owned SSH processes and route-scoped credentials (`9cabf307`), and
+route-aware storage/export plus initial connection-window integration (`9fcaa879`).
+The preceding entries' uncommitted status is historical; planning changes are
+checkpointed separately.
+
+ConnectionModel now owns a fresh tunnel per attempt, scopes credentials/trust to
+the logical destination and gateway, observes matching child exit, and shares an
+uncancelled cleanup task intended to drain RFB before SSH. Recent selection carries
+the complete destination; profile/connection gateway fields explain current SSH
+limits; live export requires gateway-loss acknowledgement. The temporary routed
+profile rejection described above has been removed. A sendable save-closure capture
+error discovered during this checkpoint was fixed before committing.
+
+Both normal native and app builds passed. Full native regression passed **79/79
+(96.50 s)**, including process/OpenSSH fixtures; strict deep signature verification
+and **29/29** isolated executable terminal checks passed. Branding and whitespace
+checks passed. All recorded builds/tests/fixtures completed. Evidence prefix:
+`/tmp/tidyvnc-commit-check-`. Earlier ASan/TSan evidence predates the new controller
+integration; no sanitizer rerun or dedicated app tunnel lifecycle test was added
+in this commit checkpoint.
+
+Resume by adding an injected-factory ConnectionModel fixture for startup/admission
+cancellation, committed-connect cancellation, remote/child death, stale observers,
+disconnect/reconnect, dropped owners and repeated close/quit. Assert RFB drains
+before ordinary tunnel teardown, cleanup prevents a new attempt, and startup and
+exit observation are joined. Then wire CLI `via` through early gateway validation
+and final file target resolution, with explicit listen/Unix incompatibility and
+unsupported VNC_VIA_CMD handling. Interactive SSH authentication, host-key review,
+configuration policy and installed/deployment acceptance remain open, as do
+N3.18/N4.11 and the complete plan. See RESUME.md and TUNNELS.md for the handoff.

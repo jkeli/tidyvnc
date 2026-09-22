@@ -336,12 +336,17 @@ remains open.
 
 `NativeProfileHistoryStore` is an actor over an injected byte backing, with list/read,
 stable-UUID upsert/delete, recent-endpoint insertion/removal and explicit history
-clear. One schema-10 record (with schema-1 through schema-9 read compatibility) holds profiles and most-recent-first history with a UUID
+clear. One schema-11 record (with schema-1 through schema-10 read compatibility) holds profiles and most-recent-first history with a UUID
 revision. Every accepted mutation produces a new revision. The complete record is
 compared, so profile and history writers cannot silently overwrite each other.
-History keeps 20 exact address strings, matching the retained viewer's history
-limit; insertion moves an exact duplicate to the front. Names/aliases are not DNS
-resolved or canonicalized by storage. Profiles are limited to 256, names to 256
+History keeps 20 complete destinations, matching the retained viewer's history
+limit. Each has exact target text and an optional validated SSH gateway; insertion
+moves only a duplicate of that complete destination to the front. Target names are
+not DNS resolved or canonicalized by storage. Gateway spelling is canonicalized
+without IO. Schemas 1–10 load as direct destinations without rewriting bytes;
+explicit mutation writes schema 11. Older readers reject the new schema instead
+of dropping its route. Endpoint-only compatibility accessors expose direct entries
+only; they cannot convert a stored gateway into a direct connection. Profiles are limited to 256, names to 256
 UTF-8 bytes, addresses to 4096 bytes, and the file to 2 MiB.
 
 Schema 10 records history initialization separately from profile existence.
@@ -351,15 +356,20 @@ the imported list, fresh revision and `currentXDG`/`legacy` state together while
 preserving profiles. Later edits and clears retain that origin, preventing
 reimport. Historical schemas cannot distinguish untouched history from a prior
 clear, so they remain authoritative even when empty. Reads never migrate bytes.
-The explicit-source history parser/service are implemented; history import UI
-and app integration remain open. See [IMPORTS.md](../../plans/native-ui/IMPORTS.md).
+The explicit-source history parser/service and native review UI are implemented;
+installed-app acceptance remains open. See [IMPORTS.md](../../plans/native-ui/IMPORTS.md).
 
 Profiles contain names, original endpoint text, the current typed clipboard/encoding/
-input/scaling patch and an optional opaque credential UUID. They do not contain secret fields,
+input/scaling patch, an optional opaque credential UUID and an optional SSH gateway. They do not contain secret fields,
 arbitrary setting dictionaries, transient errors or permission guesses. Applying
 a profile preserves absent base values and labels explicit encoding/input/scaling fields with
 profile provenance. Protocol address validation remains the shared parser's job,
-not a second parser in the store. Broader setting fields and credential-reference
+not a second parser in the store. Routed destinations additionally pass the shared
+SSH request validation so Unix targets cannot be paired with a gateway. Initial
+app integration now carries complete destinations through profile/recent selection,
+connection attempts and export review. Dedicated tunnel-controller lifecycle tests
+and CLI admission are still pending; see TUNNELS.md.
+Broader setting fields and credential-reference
 resolution/scoping are still separate work. Unknown envelope/profile/settings keys,
 wrong types/nulls, duplicate IDs/history, unsupported decoder values, corrupt and
 future records fail without rewriting them; clear/delete never bypass validation.
@@ -1503,5 +1513,31 @@ scene and binds once, with checked port and family settings. Accepted sessions
 inherit CLI options; only the first successfully opened incoming window receives
 the launch credential owner. Stop/close revokes unclaimed inputs. Reappearing views
 and later incoming peers cannot recapture credentials or replay the launch. Explicit
-file/socket listen operands still fail before IO. Native test 77 covers model/window
-lifetime and loopback routing; TODO.md records the limited visual/installed scope.
+connection files prepare defaults/CLI/file settings and monitor choices for review
+without a session or bind. Approved configuration and provenance are reused for
+incoming windows without rereading the source or preferences. Unix socket listening
+remains unsupported. Native test 77 covers model/window lifetime and loopback
+routing; TODO.md records the limited visual/installed scope.
+
+## Prepared tunnel transport boundary
+
+NativeSession.connect(endpoint:through:routeIdentity:) accepts a logical TCP target
+and an already established local forwarding socket. The C ABI's additive
+ROUTED_CONNECT feature preserves the target hostname for RFB/TLS while dialing only
+an unrouted Unix socket or numeric 127.0.0.1/::1 endpoint. A nonempty route identity
+is mandatory. The caller must retain the tunnel until transport drain and use the
+logical target plus route for credentials/trust. This boundary does not launch SSH;
+initial connection-window ownership is wired, with dedicated lifecycle tests and
+the CLI adapter still pending.
+See [TUNNELS.md](../../plans/native-ui/TUNNELS.md).
+
+NativeSSHTunnel now implements an owned, asynchronous SSH master/control-client
+service. It validates gateway and target grammar, derives route identity, waits
+for forwarding acknowledgement, and supplies a private Unix forwarding socket.
+Startup cancellation/timeout, process exit and close use a joined process-group
+owner with PID-safe signal/reap ordering. The first implementation supports existing
+host keys and noninteractive key/agent authentication, excludes SSH config command
+execution, and does not inherit VNC credential environment. Private-process and
+isolated real OpenSSH tests cover the service; dedicated app lifecycle validation,
+CLI wiring and interactive SSH authentication/trust remain open. The service itself
+adds no further C ABI change; destination persistence uses schema 11 as described above.

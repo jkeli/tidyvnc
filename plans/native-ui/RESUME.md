@@ -11,16 +11,25 @@ for the full checklist and historical evidence. The objective remains the entire
 - `26fd7022`: previous planning handoff.
 - `0d80192e`: a subsequent clipboard/UI-thread fix found on resume; preserved.
 - `00f39b26`: reviewed file-listener planning checkpoint committed at user request.
-- Current uncommitted follow-up: **reviewed connection-file listening**, including
-  preparation without a session, immutable configuration reuse, UI and tests.
-  A subsequent uncommitted **routed local socket boundary** now preserves a
-  tunnel target's hostname independently of its forwarding socket (TUNNELS.md).
-  The uncommitted **owned SSH process service** now validates gateway syntax,
-  establishes acknowledged private Unix forwarding, and cancels/drains its own
-  master/control child processes. It is not yet wired into app/CLI startup.
-  Credential retention and launch inputs now accept route identity; the app must
-  pass the selected tunnel route when its connection lifecycle is integrated.
-  Inspect current Git state before editing; do not remove another task's changes.
+- `20698e2c`: SSH service/credential planning checkpoint committed at user request.
+- `7d80856b`: reviewed connection-file listening, immutable prepared settings,
+  listener UI and regression coverage.
+- `0913db13`: routed local sockets preserve logical server identity through the
+  C ABI and Swift session bridge.
+- `9cabf307`: owned SSH master/control processes, validated gateway values,
+  route-scoped credentials and isolated child/OpenSSH fixtures.
+- `9fcaa879`: profile/history schema 11, export omission review and initial app
+  gateway integration.
+  Inspect Git history/status before editing; preserve other contributors' changes.
+
+The interrupted app integration now has ConnectionTunnelAttempt ownership,
+route-scoped trust/credential admission, gateway fields in connection/profile UI,
+complete recent-connection selection, and current-route export capture. The
+previous temporary routed-profile rejection has been removed. This is initial
+integration: dedicated controller tests for startup/admission cancellation,
+remote/child death, cleanup ordering, reconnect and close/quit are still missing.
+CLI `via` remains unsupported. Interactive SSH authentication, new host-key review,
+SSH configuration support and installed/deployment acceptance remain open.
 
 Native `-listen [port]` and File > Listen for Connections already worked. The new
 path is `vncviewer -listen ./connection.tidyvnc`. It classifies files versus sockets,
@@ -110,9 +119,38 @@ Route-aware credential follow-up: retention and both launch-credential tests pas
 passed strict deep signature verification and **29/29** executable terminal cases.
 No further ABI or schema change (112 C exports). All recorded builds, tests,
 private children and isolated daemon fixtures completed. Latest credential evidence:
-`/tmp/tidyvnc-tunnel-credentials-*`. The complete native suite has not been rerun
-after the credential API change; the affected tests above cover its default and
-route-specific authentication behavior.
+`/tmp/tidyvnc-tunnel-credentials-*`. At that checkpoint the complete native suite
+had not been rerun after the credential API change; the final run below now covers
+that outstanding regression check as well.
+
+Latest route-storage follow-up: final normal native suite **79/79 (87.73 s)**,
+focused **7/7 ASan (5.86 s)** and **7/7 TSan (21.52 s)**, including actual isolated
+OpenSSH/RFB with no skips. The first full run had two stale schema-10 assertions;
+both were corrected to schema 11 and passed, then the final full suite passed after
+UTF-8 identity and canonical-URI-bound fixes. The app rebuilt, strict deep signature
+verification and **29/29** isolated executable terminal checks passed. Branding
+(1650 unchanged deferred occurrences) and whitespace checks passed. Evidence:
+`/tmp/tidyvnc-route-storage-final-*`. All recorded build/test/fixture processes
+completed. Defaults schema stays 11 and C ABI stays 112 exports; profile/history
+schema is now 11. These results precede the interrupted app integration; see the
+2026-09-22 checkpoint below for current validation.
+
+### 2026-09-22 commit checkpoint
+
+The implementation changes above are committed by purpose at the user's request.
+The initial app integration now compiles after capturing the submitted profile
+value explicitly in the sendable save closure. Both normal native and app builds
+passed. The full native suite passed **79/79 (96.50 s)**, including the process and
+isolated OpenSSH fixtures. Strict deep app signature verification, **29/29**
+isolated executable terminal cases, branding and whitespace checks passed.
+Evidence: `/tmp/tidyvnc-commit-check-{build,app,tests,terminal,branding}.log`.
+All recorded build/test processes completed; no fixture was left running.
+
+ASan/TSan were not rerun for this checkpoint. Earlier sanitizer results cover the
+service/storage work before the interrupted controller changes; they do not verify
+the new app lifecycle. The next work is the dedicated ConnectionModel tunnel
+lifecycle coverage described below, followed by CLI/file routing. N3.18/N4.11 and
+the full plan remain open. Planning and resume changes are committed separately.
 
 Evidence prefix: `/tmp/tidyvnc-file-listen-`. Temporary logs/images can disappear;
 rerun checks when needed. The test fixture uses memory preferences and private peers.
@@ -129,27 +167,20 @@ not use them. Do not confuse a fixture screenshot with full installed-app accept
    The post-approval listener screenshot check is now complete: the stable capture
    shows the full window and both peers, with displayed/socket port 51786 matching.
    Both recorded previews exited normally; preview control files were removed.
-2. Continue N4.11 with supported tunnel entry paths. First inspect retained `via`/
-   `tunnel` parsing and execution, connection-file precedence, process ownership,
-   cancellation, effective endpoint identity and credential routing. Define an
-   argv-based subprocess contract; do not interpolate shell strings or place secrets
-   in relaunch arguments. Unsupported cases must fail explicitly. The new routed
-   socket boundary is implemented and has focused normal/sanitizer validation; see
-   [TUNNELS.md](TUNNELS.md). CLI `via` is still unsupported until its complete path
-   is wired, including credential/trust route identity and process drain.
-   The owned service and isolated real-SSH fixture are now implemented too.
-   NativeAuthenticationCredentials now accepts routeIdentity in beginAttempt/key
-   and optional early launch binding; focused normal/ASan/TSan tests pass. Preserve target/route through file
-   review and ConnectionModel startup, cancellation, reconnect and quit. Trust
-   already accepts an explicit routeIdentity. Add attempt-scoped child-exit
-   handling, honest SSH capability presentation, and `via`/listen incompatibility
-   checks before advertising support. Interactive SSH authentication/host-key and
-   configuration support remain open; see the service's current limits.
-   Extract gateway validation into an endpoint-independent value for CLI preflight
-   before file IO; build the complete tunnel request only after final file target
-   resolution. Define route-aware history/profile persistence and explicit export
-   omission review before enabling `via`, so reopening a saved destination cannot
-   silently replace a tunneled connection with a direct one.
+2. Finish and test the initial app tunnel integration in ConnectionModel. Add an
+   injected-factory controller fixture using the existing private child relay and
+   isolated SSH support. Verify startup cancellation, cancellation after a committed
+   connect, remote disconnect, child death, disconnect/reconnect, dropped owners,
+   old exit observers and repeated window close/quit. Assert the RFB transport drains
+   before ordinary tunnel close, and no new attempt starts during cleanup. Cover
+   actual credential/trust route isolation, complete recent/profile selection and
+   live export gateway-loss review. Existing gateway/service/storage tests do not
+   establish these connection-controller lifecycle properties.
+   Then wire CLI `via` through NativeSSHGateway preflight and final file target
+   resolution, reject listen/Unix-target incompatibilities before side effects,
+   and handle unsupported VNC_VIA_CMD explicitly. Do not evaluate shell strings.
+   Interactive SSH authentication/host-key/configuration support remains separate
+   required work. See [TUNNELS.md](TUNNELS.md) for contracts and current limitations.
 3. Continue the unchecked parity inventory and option coverage, localization and
    accessibility, actual app interactions (including quit while Save is presented),
    physical keyboard/fullscreen/Spaces/multidisplay, installed Finder/LAN/privacy/

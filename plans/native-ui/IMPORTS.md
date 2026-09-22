@@ -151,7 +151,7 @@ in **one** backing write. Regular saves and resets retain the marker. Repeated
 import refuses to overwrite the stored record, preventing reapplication even
 after reset. Invalid/unknown marker values fail closed. Schemas 1–10 remain
 readable without write-on-read; normal successful saves upgrade to 11. The separate
-profile/history schema is **10** as described below; the C ABI is unchanged.
+profile/history schema is now **11** (route persistence in TUNNELS.md); the C ABI is unchanged.
 
 Cancellation and validation failure before write do not mark migration. A backend
 failure before acceptance leaves no record. If a backend accepts the write and
@@ -204,9 +204,11 @@ state metadata fails closed. Defaults schema remains **11**.
 
 Schemas 1–9 remain readable without writes and are treated as already initialized,
 including an empty history list: those records cannot distinguish an untouched
-history from a deliberate prior clear. Explicit later writes upgrade them to 10
+history from a deliberate prior clear. Explicit later writes now upgrade them to 11
 while preserving that precedence. No historical emptiness is inferred as consent.
-Older native builds reject schema 10 rather than silently dropping its state.
+Schema 10 introduced this marker. Schema 11 retains it while representing recent
+connections with their routes; imported compatibility addresses remain direct.
+Older native builds reject newer schemas rather than silently dropping state.
 
 History import preserves the complete native profile array, including opaque
 credential references already there. It checks the shared revision and uses the

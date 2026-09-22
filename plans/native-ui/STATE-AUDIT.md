@@ -2416,4 +2416,25 @@ bind a reviewed endpoint before a route is known, then binds that route once at
 attempt admission (or earlier when explicitly supplied). Changing a bound route
 destroys launch input and revokes automatic replies; returning to the old route
 cannot recapture it. Route identity is nonsecret and never becomes a password or
-profile payload. ConnectionModel integration still needs to supply tunnel routes.
+profile payload. The initial ConnectionModel integration now supplies the selected
+gateway route; dedicated controller lifecycle coverage remains open.
+
+### Persisted SSH destination ownership
+
+NativeSSHGateway is immutable and validated before construction or decoding. Its
+canonical URI stores only gateway host/scope, user and port. A deterministic route
+digest is derived, never decoded as authority. NativeConnectionDestination pairs
+that value with exact logical target text. Schema 11 persists complete recent
+entries and optional profile gateways; old schemas are read as direct routes.
+Queued recency operations, deduplication, revision checks and deletion retain the
+whole destination. The history initialization marker uses the full collection,
+including when no direct endpoints exist. Compatibility endpoint-only accessors
+exclude routed entries so callers cannot accidentally strip their gateways.
+
+Export capture holds the gateway across monitor remapping and adds a distinct
+loss before serialization. Neither the URI nor digest reaches compatibility-file
+bytes. Initial app integration now uses an owned connection attempt, complete route
+selection and current-route export capture, replacing the temporary admission
+guard. Service/storage coverage does not prove controller cancellation, exit,
+reconnect or close/quit behavior; those dedicated tests are the next task. No SSH
+session is launched by storage.

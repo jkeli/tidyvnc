@@ -19,7 +19,7 @@ connector's existing contracts. Endpoint values are copied before C admission
 returns, so the caller may release the target handle afterward.
 
 The additive ROUTED_CONNECT feature has one new C export (112 total), with no
-change to existing structs or persisted schemas. The Swift wrapper requires the
+change to existing structs. Route persistence evolves separately below. The Swift wrapper requires the
 feature and exposes connect(endpoint:through:routeIdentity:). It does not authorize
 credential reuse, launch a process, or infer the destination from a local port.
 The caller owns the tunnel until the RFB transport is drained. This is currently
@@ -27,8 +27,10 @@ a service boundary, not a completed `via` launch path.
 
 ## Owned SSH process service
 
-NativeSSHTunnelRequest validates a TCP target and `[user@]host` or
-`ssh://[user@]host[:port]` gateway. Bracketed IPv6 is supported. Gateway identity
+NativeSSHGateway validates `[user@]host` or `ssh://[user@]host[:port]` independently
+of a target and without IO. Canonical URI length is bounded so every admitted value survives
+encode/decode. NativeSSHTunnelRequest pairs it with the final TCP
+target after file/default resolution. Bracketed IPv6 is supported. Gateway identity
 is a versioned digest of canonical host, exact scope, port and explicit/implicit
 user; it does not depend on the ephemeral forwarding socket. The target remains
 separate. Command/forwarding grammar characters are rejected before process IO.
@@ -71,6 +73,42 @@ documents local Unix socket `-L` forwarding and `-O check/forward`; ssh_config(5
 documents BatchMode, ExitOnForwardFailure and StreamLocalBindMask. This does not
 establish the deployment-floor SSH version or actual SSH authentication acceptance.
 
+## Route persistence and export
+
+Profile/history schema 11 stores an optional `sshGateway` canonical URI on profiles
+and complete recent destinations (`recentConnections`, each with endpoint and
+optional gateway). Gateway decoding always validates through NativeSSHGateway;
+derived route digests, forwarding sockets, secrets and SSH command customizations
+are not persisted. History identity is exact UTF-8 target text plus canonical gateway,
+so direct, different user/port/gateway routes coexist. The 20-entry bound applies
+to complete destinations. Removal and queued recency updates use the same identity.
+
+Schemas 1–10 load as direct routes without writing. An explicit mutation upgrades
+the complete record atomically, preserving profile IDs, settings, credential
+references, address order and history initialization/import markers. Unknown fields,
+invalid gateways, unsupported routed targets and canonical duplicate routes fail
+without rewriting. Older readers reject schema 11 rather than dropping routes.
+Endpoint-only compatibility accessors expose only direct entries.
+
+NativeDocumentExportCapture retains optional gateway metadata across monitor
+remapping. Compatibility export adds a separate `sshGateway` loss requiring explicit
+acknowledgement: the file will connect directly unless the gateway is configured
+separately. Gateway labels and digests do not enter exported file bytes.
+
+Initial app ownership is now wired through ConnectionTunnelAttempt in
+ConnectionModel. It creates a fresh tunnel per attempt, binds logical target and
+route to credentials/trust, and has a shared uncancelled cleanup task intended to
+drain RFB before closing SSH. Exit observations are scoped to the attempt. Recent
+selection carries the complete destination; profile/connection gateway fields show
+current authentication/configuration limitations; live export includes gateway
+omission review. The temporary routed-profile admission rejection is removed.
+
+This integration was interrupted before dedicated controller lifecycle tests were
+added. Treat startup/admission cancellation, remote/child failure, cleanup ordering,
+reconnect and close/quit as unverified until those tests exercise the app owner.
+Service-level process tests do not prove app-level ownership. CLI `via` remains
+unsupported, and the complete tunnel parity items remain open.
+
 ## Remaining implementation
 
 1. Wire the validated gateway request and deterministic route identity into the
@@ -82,20 +120,35 @@ establish the deployment-floor SSH version or actual SSH authentication acceptan
    disposable-key authentication, routed RFB and cleanup. Extend authentication/host-key interaction
    and supported configuration policy without introducing shell interpolation,
    secret-bearing argv or detached children.
-3. Wire the listener-independent outbound ConnectionModel path through tunnel
-   preparation and routed connect. Keep address/history/export logical, scope both
-   NativeAuthenticationCredentials and NativeCertificateTrust to target + route,
-   and preserve launch credential ownership. Stop the old transport before tearing
-   down its tunnel; cancel startup and drain on window close/quit. Reconnect must
-   create a fresh owned route without leaking children or reusing local identities.
-   The credential controller now supports route-scoped keys and launch binding;
-   ConnectionModel still passes the direct default. History/profile route storage
-   and explicit export-omission review need a defined policy before enabling CLI
-   support; storing only a target must not silently change its connection route.
+3. Finish and verify the initial ConnectionModel path through tunnel preparation
+   and routed connect. Test complete destination retention, credential/trust route
+   binding, launch-input ownership and current-route export. Prove old transport
+   drain precedes ordinary SSH teardown and close/quit joins pending startup. Test
+   remote/child death, stale exit observation and fresh-owner reconnect. Exercise
+   route-aware recent/profile UI with actual interactions.
 4. Test actual process lifecycle and routed RFB/TLS identity, CLI/file precedence,
    cancellation at startup/admission/connected states, child failure, credential
    separation and app presentation. Then advertise `via` support in bootstrap/help.
    End-to-end SSH and installed network/privacy acceptance are separate gates.
+
+### Connection owner integration checklist
+
+Capture one immutable NativeConnectionDestination before attempt admission. Use
+its logical target and gateway digest for credential/trust binding, and retain it
+for history, retry comparison and export. Create the tunnel owner before async
+startup so close/cancel can always reach it. Recheck attempt identity after every
+await before publishing readiness or errors. Keep Connect disabled while startup,
+RFB work or cleanup is outstanding.
+
+A cancelled NativeSession await consumes its admitted completion and may have
+raced a successful connect. Cleanup therefore needs its own uncancelled async
+drain: disconnect/close the RFB transport, then close/join the tunnel and its exit
+observer. Join pending startup on window close/quit. On remote disconnect, reap the
+otherwise still-running SSH master. Child exit must cancel/drain only its matching
+attempt; a late observer from an old attempt must never fail a replacement.
+Reconnect constructs a fresh owner. Test startup cancellation, committed-connect
+cancellation, remote/child exit, disconnect, repeated close, dropped presentation
+and route changes using the existing private child and isolated SSH fixtures.
 
 ## Reproducible checks
 
