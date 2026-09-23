@@ -580,7 +580,10 @@ UI uses, with migration and credential behavior verified independently.
     defaults/profile inheritance, connection source labels and reconnect restoration.
   - [x] Complete fullscreen automatic remote layout requests, exclusive canvas
     ownership, transition/minimize handoff and existing policy/initial-size gates.
-  - [ ] CLI fullscreen mapping, physical per-display acceptance and optional controls.
+  - [x] CLI fullscreen mapping (reviewed 2026-09-23): FullScreen, FullScreenMode,
+    FullScreenSelectedMonitors and the FullScreenAllMonitors migration have native
+    adapters with display-mapping review (`NativeInvocation.FileMonitorPrecedenceAndRecovery`).
+  - [ ] Physical per-display acceptance and optional controls.
 - [ ] N4.9 Separate app Settings defaults from live session override sheets; draft/apply/cancel and effective-source display; no mutation of other sessions.
   - [x] Clipboard app-default draft/apply/cancel, per-field source labels, revision
     conflict recovery and new-session-only default loading. Model tests prove
@@ -773,7 +776,9 @@ unchecked parity rows hidden by a visually complete connection screen.
   - [x] Native/software cursor presentation, hidden/dot/system fallback API,
     backing-scale changes, cancellation/drain and AppKit bitmap checks.
   - [x] Expose connection-local fallback settings with Apply/Cancel.
-  - [ ] Finish visible cursor/physical-display acceptance and policy persistence.
+  - [x] Cursor fallback policy persistence (reviewed 2026-09-23): `cursorFallback`
+    is an input default/profile field with strict decoding (`NativeInputPersistenceTests`).
+  - [ ] Finish visible cursor/physical-display acceptance.
 - [ ] N5.5 Implement AppKit keyboard/pointer/wheel translation, physical/logical key policy, IME/dead keys/repeats, local shortcuts and protocol scancodes without duplicate input.
   - [x] Extract bounded shared shortcut classifier, checked C handles and native
     decision routing, including modifier-only release and Space bypass.
@@ -808,8 +813,8 @@ unchecked parity rows hidden by a visually complete connection screen.
     geometry, token-owned handoff and actual RFB request/reply fixtures.
   - [x] Fullscreen statistics overlay with shared windowed content, transparent
     input routing and independent two-session/lifecycle validation.
-  - [ ] Visible app sheet/menu acceptance, CLI policy mapping and physical
-    monitor focus/topology/Spaces acceptance.
+  - [ ] Visible app sheet/menu acceptance and physical monitor focus/topology/Spaces
+    acceptance (CLI policy mapping is covered under N4.8).
 - [ ] N5.8 Run physical 1×/2× and mixed-density/multi-display tests with recorded OS/hardware; simulation alone does not complete this item.
 - [ ] N5.9 Run matched FLTK/native benchmarks against N0 budgets; record latency/CPU/memory/copy/damage results and resolve or explicitly review regressions before cutover.
   - Partial (2026-09-23): matched CPU/RSS/throughput per PERFORMANCE.md shows no
