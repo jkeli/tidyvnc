@@ -10,7 +10,8 @@
  * Parameters are applied to the core configuration (e.g. RSAKey=, X509Cert=,
  * X509Key=); VncPassword=<text> sets the obfuscated Password parameter. It listens on an ephemeral 127.0.0.1 port,
  * prints "127.0.0.1::<port>", serves one connection at a time and prints
- * "accepted", "authenticated <SecurityTypes>", "request" and "closed <reason>".
+ * "accepted", "authenticated <SecurityTypes>", "encodings <list>", "request" and
+ * "closed <reason>".
  * --close-after-update drops each connection after its first update. */
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
@@ -84,6 +85,15 @@ public:
     fflush(stdout);
   }
   bool updated() const { return sent; }
+  void setEncodings(int count, const int32_t* encodings) override
+  {
+    SConnection::setEncodings(count, encodings);
+    printf("encodings");
+    for (int i = 0; i < count; i++)
+      printf("%c%d", i ? ',' : ' ', encodings[i]);
+    printf("\n");
+    fflush(stdout);
+  }
   void setDesktopSize(int, int, const rfb::ScreenSet&) override {}
   void keyEvent(uint32_t, uint32_t, bool) override {}
   void pointerEvent(const core::Point&, uint16_t) override {}

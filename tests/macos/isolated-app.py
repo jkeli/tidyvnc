@@ -44,8 +44,17 @@ def environment(state):
     return env
 
 
-def launch(source, state, arguments, extra_env=None, home_files=None):
-    """home_files maps HOME-relative paths to text written (0600, parents 0700) before launch."""
+def seed(state, files):
+    """Writes {state-relative path: text} (0600, parents 0700), e.g. XDG_CONFIG_HOME/tidyvnc/..."""
+    for relative, text in (files or {}).items():
+        path = state / relative
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        path.write_text(text); path.chmod(0o600)
+
+
+def launch(source, state, arguments, extra_env=None, home_files=None, state_files=None):
+    """home_files maps HOME-relative and state_files state-relative paths to text,
+    written with seed() before launch."""
     state.mkdir(parents=True, exist_ok=False)
     state = state.resolve()
     info = plistlib.loads((source / 'Contents/Info.plist').read_bytes())
@@ -61,10 +70,7 @@ def launch(source, state, arguments, extra_env=None, home_files=None):
     subprocess.run(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(copied)], check=True)
     (state / 'fixture.json').write_text(json.dumps({'domain': domain, 'app': str(copied)}))
     env = environment(state)
-    for relative, text in (home_files or {}).items():
-        path = Path(env['HOME']) / relative
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        path.write_text(text); path.chmod(0o600)
+    seed(state, {**{'HOME/' + relative: text for relative, text in (home_files or {}).items()}, **(state_files or {})})
     subprocess.run([str(helper(state)), env['HOME'], domain], env=env, check=True, timeout=30)
     log = open(state / 'app.log', 'wb')
     process = subprocess.Popen([str(copied / 'Contents/MacOS' / info['CFBundleExecutable']), *arguments],

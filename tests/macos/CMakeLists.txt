@@ -21,6 +21,12 @@ set_target_properties(native-presentation-probe PROPERTIES Swift_MODULE_NAME Nat
 target_compile_options(native-presentation-probe PRIVATE -swift-version 6 -strict-concurrency=complete
   -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
 target_link_libraries(native-presentation-probe PRIVATE tidyvnc_macos_bridge)
+# Manual compatibility-export fixture for tests/integration/macos-rollback-smoke.py; not a CTest case.
+add_executable(native-export-fixture ExportFixture.swift)
+set_target_properties(native-export-fixture PROPERTIES Swift_MODULE_NAME NativeExportFixture)
+target_compile_options(native-export-fixture PRIVATE -swift-version 6 -strict-concurrency=complete
+  -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+target_link_libraries(native-export-fixture PRIVATE tidyvnc_macos_bridge)
 add_executable(native-bridge-tests NativeBridgeTests.swift)
 set_target_properties(native-bridge-tests PROPERTIES Swift_MODULE_NAME NativeBridgeTests)
 target_compile_options(native-bridge-tests PRIVATE
