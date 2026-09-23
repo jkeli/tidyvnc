@@ -44,7 +44,7 @@ def environment(state):
     return env
 
 
-def launch(source, state, arguments):
+def launch(source, state, arguments, extra_env=None):
     state.mkdir(parents=True, exist_ok=False)
     state = state.resolve()
     info = plistlib.loads((source / 'Contents/Info.plist').read_bytes())
@@ -63,8 +63,9 @@ def launch(source, state, arguments):
     subprocess.run([str(helper(state)), env['HOME'], domain], env=env, check=True, timeout=30)
     log = open(state / 'app.log', 'wb')
     process = subprocess.Popen([str(copied / 'Contents/MacOS' / info['CFBundleExecutable']), *arguments],
-                               env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
-    print(json.dumps({'domain': domain, 'pid': process.pid, 'app': str(copied)}))
+                               env={**env, **(extra_env or {})}, stdout=log, stderr=subprocess.STDOUT,
+                               start_new_session=True)
+    return {'domain': domain, 'pid': process.pid, 'app': str(copied), 'process': process}
 
 
 def cleanup(state):
@@ -84,7 +85,8 @@ if __name__ == '__main__':
         extra = sys.argv[4:]
         if extra[:1] == ['--']:
             extra = extra[1:]
-        launch(Path(sys.argv[2]).resolve(), Path(sys.argv[3]), extra)
+        result = launch(Path(sys.argv[2]).resolve(), Path(sys.argv[3]), extra)
+        print(json.dumps({key: value for key, value in result.items() if key != 'process'}))
     elif len(sys.argv) == 3 and sys.argv[1] == 'cleanup':
         cleanup(Path(sys.argv[2]))
     else:

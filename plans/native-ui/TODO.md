@@ -859,6 +859,15 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     Previously no layer decoded ZRLE, Hextile or JPEG. The Linux ASan run found
     uninitialized `seenHuffman`/`seenQuant` flags in `JPEGDecoder` (undefined bool
     read on the first image), now initialized.
+  - [x] Actual-app authentication (2026-09-23): `tests/integration/macos-auth-smoke.py`
+    launches isolated app copies against a VncAuth-only peer that verifies the DES
+    response with openssl. Correct `VNC_PASSWORD` connects and requests updates;
+    a wrong one is rejected once with no automatic retry and the app stays up; with
+    no credentials the app parks at its prompt while the peer vanishes and survives
+    without reconnecting. 3/3 cases pass in three runs; added to the native CI job.
+    Remaining actual-app gaps: clipboard traffic (the system pasteboard cannot be
+    isolated), listen/reverse accept and Retry/reconnect (both need a UI action),
+    tunnel, and TLS/RSA-AES trust (no TLS peer fixture).
 - [ ] N6.7 Validate final bundle identity, document associations, localization, credits, Local Network description, signing/resource seal and dependency paths; verify no FLTK linkage/symbols.
   - [x] Local ad hoc package identity/resources/notices/signature, full dylib
     closure, relocated CLI and read-only mounted-DMG inspection; see PACKAGING.md.

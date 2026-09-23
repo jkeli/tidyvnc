@@ -77,6 +77,12 @@ jobs:
             "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app/Contents/MacOS/vncviewer" \
             --frontend swiftui --report-dir build/native-ci/protocol \
             2>&1 | tee build/native-ci/protocol.log
+      - name: Run actual-app VNC authentication cases
+        run: |
+          set -o pipefail
+          python3 tests/integration/macos-auth-smoke.py \
+            "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
+            2>&1 | tee build/native-ci/auth.log
       - name: Inspect packaged app inside the read-only disk image
         run: |
           set -o pipefail
@@ -105,6 +111,7 @@ jobs:
             build/native-ci/NativeDevelopmentApp.zip
             build/native-ci/package-inspection.log
             build/native-ci/protocol.log
+            build/native-ci/auth.log
             build/native-ci/protocol/**
             build/native-ci/package/**/*.dmg
             build/native-ci/package/**/package-report.json
