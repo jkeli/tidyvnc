@@ -83,6 +83,13 @@ jobs:
           python3 tests/integration/macos-auth-smoke.py \
             "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
             2>&1 | tee build/native-ci/auth.log
+      - name: Run actual-app security handshakes against the project's server side
+        run: |
+          set -o pipefail
+          python3 tests/integration/macos-security-smoke.py \
+            "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
+            --peer build/native-ci/core/tests/macos/native-security-peer \
+            2>&1 | tee build/native-ci/security.log
       - name: Inspect packaged app inside the read-only disk image
         run: |
           set -o pipefail
@@ -112,6 +119,7 @@ jobs:
             build/native-ci/package-inspection.log
             build/native-ci/protocol.log
             build/native-ci/auth.log
+            build/native-ci/security.log
             build/native-ci/protocol/**
             build/native-ci/package/**/*.dmg
             build/native-ci/package/**/package-report.json

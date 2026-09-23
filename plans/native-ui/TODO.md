@@ -942,6 +942,18 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     at B–C with real sshd); peer loss during authentication at A only. **Gaps:** no
     actual-app case for bad credentials, clipboard traffic, trust, listen, tunnel or
     reconnect; TLS/RSA-AES/DH/MSLogonII never completed end to end outside core.
+  - [x] Actual-app security handshakes against the project's real server side
+    (2026-09-23): `tests/integration/macos-security-smoke.py` launches isolated
+    copies against `native-security-peer`, an `rfb::SConnection` server using
+    SecurityServer, SSecurityVncAuth, VeNCrypt/TLS and SSecurityRSAAES. Cases:
+    VncAuth; TLSNone and TLSVnc; X509None and X509Vnc with a fresh certificate
+    trusted via `-X509CA`; RA2, RA2ne, RA2_256 and RA2ne_256 (password-only
+    subtype). In each, the server reports authentication success and the app
+    requests a framebuffer update. RSA-AES keys are always unverified, so
+    `--accept-prompts` answers "Connect Once" through the accessibility API; the
+    other five cases run without it. This is the first end-to-end completion of
+    TLS, X509 and RSA-AES through the app. DH and MSLogonII have no server
+    implementation in the tree; they stay covered by core client tests only.
   - [x] Encoding round trips (2026-09-23): `EncodingRoundTrip.*` encodes a patterned
     framebuffer with the server EncodeManager and decodes it with the client:
     Raw, Hextile, ZRLE and lossless Tight reproduce every pixel; Tight/JPEG and

@@ -12,6 +12,9 @@ add_library(native-test-peer STATIC support/peer.cxx support/resize-peer.cxx)
 target_link_libraries(native-test-peer PRIVATE tidyvnc_viewer_core)
 add_executable(native-loopback-peer support/peer-main.cxx)
 target_link_libraries(native-loopback-peer PRIVATE native-test-peer)
+# Real server-side security handlers for tests/integration/macos-security-smoke.py.
+add_executable(native-security-peer support/security-peer.cxx)
+target_link_libraries(native-security-peer PRIVATE rfbserver rfb rdr core)
 # Manual presentation-latency probe driven by tests/perf/viewer-workloads.py --probe; not a CTest case.
 add_executable(native-presentation-probe PresentationProbe.swift)
 set_target_properties(native-presentation-probe PROPERTIES Swift_MODULE_NAME NativePresentationProbe)

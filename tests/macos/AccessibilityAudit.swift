@@ -10,6 +10,7 @@
 //   choose POPUP PREFIX     for each item of a pop-up or segmented picker: choose it, then audit
 //   confirm ID              AXConfirm (the accessibility equivalent of Return)
 //   value ID                print the element's AXValue as a JSON line
+//   dump                    print every text and interactive element as JSON lines
 //   audit NAME              print one JSON line describing interactive elements
 //   menuitem BUTTON ITEM    open a menu button and press one of its items
 //   close-others TITLE      close every window except the one with that title
@@ -64,13 +65,13 @@ final class Auditor {
     for child in children(element) where walk(child, depth: depth + 1, visit) { return true }
     return false
   }
-  func find(_ key: String) -> AXUIElement? {
+  func find(_ key: String, text: Bool = false) -> AXUIElement? {
     var match: AXUIElement?
     for window in windows {
       if walk(window, { element in
         let hit = string(element, kAXIdentifierAttribute) == key || string(element, kAXTitleAttribute) == key
           || string(element, kAXDescriptionAttribute) == key
-        if hit && string(element, kAXRoleAttribute) != "AXStaticText" { match = element }
+        if hit && (text || string(element, kAXRoleAttribute) != "AXStaticText") { match = element }
         return match != nil
       }) { break }
     }
@@ -185,8 +186,11 @@ do {
     case "menu": let top = try take(); try auditor.menu(top, try take())
     case "choose": let key = try take(), prefix = try take(); try auditor.choose(key) { auditor.audit(prefix + ":" + $0) }
     case "value":
-      let key = try take(), element = try auditor.waitFor(key)
-      print("{\"value\": \"\(key)\", \"text\": \"\((attribute(element, kAXValueAttribute) as? String) ?? "")\"}"); fflush(stdout)
+      let key = try take()
+      guard let element = auditor.find(key, text: true) else { throw Failure(description: "no element \(key)") }
+      let value = (attribute(element, kAXValueAttribute) as? String) ?? string(element, kAXDescriptionAttribute) ?? ""
+      let line = try JSONSerialization.data(withJSONObject: ["value": key, "text": value])
+      print(String(data: line, encoding: .utf8)!); fflush(stdout)
     case "confirm":
       let key = try take(), element = try auditor.waitFor(key)
       let result = AXUIElementPerformAction(element, kAXConfirmAction as CFString)
@@ -204,6 +208,19 @@ do {
       for window in auditor.windows where string(window, kAXTitleAttribute) != keep {
         if let button = attribute(window, kAXCloseButtonAttribute) { try auditor.press(button as! AXUIElement, "close") }
       }
+    case "dump":
+      for window in auditor.windows {
+        _ = auditor.walk(window) { element in
+          let role = string(element, kAXRoleAttribute) ?? ""
+          guard role == "AXStaticText" || interactiveRoles.contains(role) else { return false }
+          let entry: [String: Any] = ["role": role, "label": label(element) ?? "", "identifier": string(element, kAXIdentifierAttribute) ?? "",
+                                      "value": String(((attribute(element, kAXValueAttribute) as? String) ?? "").prefix(120)),
+                                      "enabled": (attribute(element, kAXEnabledAttribute) as? Bool) ?? true]
+          print(String(data: try! JSONSerialization.data(withJSONObject: ["dump": entry], options: [.sortedKeys]), encoding: .utf8)!)
+          return false
+        }
+      }
+      fflush(stdout)
     case "audit": auditor.audit(try take())
     case "close": try auditor.close(try take())
     case "sleep": usleep(useconds_t((Int(try take()) ?? 0) * 1000))
