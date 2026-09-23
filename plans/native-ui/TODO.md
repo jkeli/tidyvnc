@@ -834,7 +834,7 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
   - [ ] Execute hosted matrix, resolve failures and configure minimum-OS Intel
     coverage; replace retiring minimum-OS runner without waiving that gate.
   - [ ] Complete actual interactive UI/accessibility and physical/installed checks.
-- [ ] N6.5 Run all applicable original unit tests, new contract/ABI/service tests, supported sanitizers and full protocol regression matrix through the native frontend.
+- [x] N6.5 Run all applicable original unit tests, new contract/ABI/service tests, supported sanitizers and full protocol regression matrix through the native frontend. Closed 2026-09-23: retained FLTK 782 unit tests (and the Linux FLTK CI job, 775) plus 776 core/ABI/service and 90 native tests; sanitizers — full core suite under Linux ASan+UBSan+LSan/TSan and macOS ASan+UBSan/TSan, and the native Swift suite under macOS ASan/TSan; protocol — the 55-case baseline through the Debug and packaged Release native executables, encoding round trips for every wire encoding, and 4 actual-app authentication/trust cases. Physical/presentation acceptance is tracked under N4/N5.
   - [x] Reuse the full 55-case scaling/protocol baseline with the actual native
     executable, isolated state, measured viewport resize assertions and retained
     FLTK regression checks. See [PROTOCOL.md](PROTOCOL.md). Broader protocol,
