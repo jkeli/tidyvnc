@@ -214,7 +214,8 @@ do {
           let role = string(element, kAXRoleAttribute) ?? ""
           guard role == "AXStaticText" || interactiveRoles.contains(role) else { return false }
           let entry: [String: Any] = ["role": role, "label": label(element) ?? "", "identifier": string(element, kAXIdentifierAttribute) ?? "",
-                                      "value": String(((attribute(element, kAXValueAttribute) as? String) ?? "").prefix(120)),
+                                      "value": String(((attribute(element, kAXValueAttribute) as? String)
+                                        ?? (attribute(element, kAXValueAttribute) as? NSNumber)?.stringValue ?? "").prefix(120)),
                                       "enabled": (attribute(element, kAXEnabledAttribute) as? Bool) ?? true]
           print(String(data: try! JSONSerialization.data(withJSONObject: ["dump": entry], options: [.sortedKeys]), encoding: .utf8)!)
           return false

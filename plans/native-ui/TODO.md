@@ -358,7 +358,11 @@ cancellation; not yet permission to replace the shipping frontend.
     files, scaling, input and all eight encoding fields. PointerEventInterval,
     MaxCutText, UseIPv4/UseIPv6, Log, AlertOnFatalError, Maximize, geometry,
     PasswordFile and listen are CLI/launch-only by design (CAPABILITIES.md).
-  - [ ] Verify interactive Settings/defaults controls.
+  - [x] Actual-app persistence (2026-09-23, `tests/macos/persistence-acceptance.py`,
+    accessibility API only): clearing "Receive clipboard from server" in Settings
+    and pressing Apply survives quit and relaunch of the same isolated copy. It
+    is shown as an app-default override.
+  - [ ] Verify interactive Settings/defaults controls by keyboard and VoiceOver.
 - [ ] N3.2 Implement versioned profile/history storage under native Application Support with private permissions, atomic writes, bounded history and safe future-schema/corruption handling.
   - [x] Actor-owned typed profile/history file store, private Application Support
     backend, revision/locked atomic replacement, bounded history and corruption/
@@ -371,7 +375,10 @@ cancellation; not yet permission to replace the shipping frontend.
   - [x] Profiles use the same typed patches as defaults plus endpoint and SSH gateway;
     migrations (schemas 1–10 → 11) and document export/import flows are implemented
     and tested (reviewed 2026-09-23).
-  - [ ] Interactive profile/history/keyboard/accessibility verification.
+  - [x] Actual-app history persistence (2026-09-23, same script): a successful
+    connection appears in Recent connections after quit and relaunch.
+  - [ ] Interactive profile creation/editing (text entry cannot be automated
+    through AXValue with SWIFTUI bindings) and keyboard/VoiceOver verification.
 - [ ] N3.3 Implement connection document codecs and native open/save/overwrite flows; retain both accepted headers and new `.tidyvnc` exports. Never export secrets.
   - [x] Native Save As review/picker, explicit overwrite, private atomic writer,
     conflict/failure/cancellation handling, close/quit joins and result feedback.
