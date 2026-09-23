@@ -44,7 +44,7 @@ This planning update adds no acceptance evidence and changes no completion boxes
 - [ ] N0.4 Capture baseline native FLTK screenshots and keyboard/focus behavior; record hardware, OS, SDK, dependency versions, build flags, test totals and protocol results.
 - [ ] N0.5 Capture matched performance workloads and budgets: idle/scrolling/1080p/4K/multi-view, p50/p95 latency, CPU, memory, copies and damage. Record existing scaling budget requirements and provisional 10% regression threshold.
 - [ ] N0.6 Validate provisional macOS 14 deployment floor, Xcode/Swift/C++ versions, architecture matrix and dependency targets; record final supported configurations.
-- [ ] N0.7 Confirm C ABI/module-map/Swift wrapper and CMake-to-Xcode build arrangement; decide CLI app-executable versus launcher behavior without relaying secrets in arguments.
+- [x] N0.7 Confirm C ABI/module-map/Swift wrapper and CMake-to-Xcode build arrangement; decide CLI app-executable versus launcher behavior without relaying secrets in arguments. Decision (closed 2026-09-23): the app executable is the CLI (same-process bootstrap, no launcher/relaunch); secrets come only from captured `VNC_USERNAME`/`VNC_PASSWORD` or PasswordFile and never enter argv. All 47 parameters, listen and `via` have native adapters (CAPABILITIES.md), with 36 terminal cases on the development and packaged apps; one CMake core → Xcode path (BUILD.md) and the `TidyVNC` module map/Swift wrappers are in use.
   - [x] Shared stateless CLI syntax/catalog, retained lexer reuse, C ABI and Swift
     ownership wrappers. See [CLI.md](CLI.md).
   - [x] Same-process app-executable bootstrap with strict raw argv, pre-store
@@ -55,7 +55,7 @@ This planning update adds no acceptance evidence and changes no completion boxes
   - See [KEYCHAIN.md](KEYCHAIN.md): SecItem/Data Protection, local-only unlocked
     access, per-call interaction policy and provisioned application identity;
     ad hoc builds do not establish production access or upgrade acceptance.
-- [ ] N0.10 Review service/ABI contracts for OS-specific types, ownership, cancellation and errors; resolve gaps before extraction. Record decisions in PLAN or a linked decision log.
+- [x] N0.10 Review service/ABI contracts for OS-specific types, ownership, cancellation and errors; resolve gaps before extraction. Record decisions in PLAN or a linked decision log. Closed 2026-09-23 with the decision records: ABI — `tidyvnc.h` includes only `stdint.h` and exposes only fixed-width values, spans and opaque handles (enforced by `tests/viewer/headless.py`; see N2.1/N2.2/N2.9); services — the per-service audit and follow-ups under N1.9 (contracts, fakes, typed errors, deliberate process-wide exceptions, platform-owned path policy); cancellation/drain — N1.5/N1.6/N1.13 and STATE-AUDIT.md.
 
 Exit: reviewed inventory and decision record; baseline evidence exists. No screen
 may disappear merely because it is absent from an initial mockup.
@@ -851,7 +851,7 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
 - [ ] N6.11 Validate rollback to retained FLTK artifact using untouched legacy data and explicit profile export; do not overwrite native stores or transfer credentials automatically.
 - [ ] N6.12 Update BUILD-MACOS, migration/user docs, CLI help, package inspection tests, screenshots and other affected plans; distinguish local packaging from distribution portability/notarization.
 - [ ] N6.13 Review every parity row and acceptance gate; only then make SwiftUI the default/shipping macOS frontend and remove FLTK from that app's dependency path.
-- [ ] N6.14 Publish interface handoff documentation with types, state diagrams, thread/lifetime/error contracts and reusable tests for a future separate WinUI plan. Do not claim Windows implementation complete.
+- [x] N6.14 Publish interface handoff documentation with types, state diagrams, thread/lifetime/error contracts and reusable tests for a future separate WinUI plan. Do not claim Windows implementation complete. See [HANDOFF.md](HANDOFF.md) (2026-09-23): layers, ABI conventions, session/listener lifecycle diagram, threading and delivery, data/input/prompt/clipboard contracts, core- versus frontend-owned settings, required services with macOS references, and the reusable suites that already pass on Linux. It states that no Windows frontend or Windows execution exists.
 
 ## Deferred beyond this plan
 
