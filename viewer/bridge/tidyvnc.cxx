@@ -50,8 +50,9 @@
 #endif
 using namespace viewer;
 namespace {
+core::LogWriter viewportLog("NativeDesktop");
 constexpr size_t handleLimit = 4096, runtimeLimit = 8;
-constexpr uint64_t features = TIDYVNC_FEATURE_RUNTIME | TIDYVNC_FEATURE_EVENT_POLL |
+constexpr uint64_t features = TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS | TIDYVNC_FEATURE_RUNTIME | TIDYVNC_FEATURE_EVENT_POLL |
   TIDYVNC_FEATURE_IMAGES | TIDYVNC_FEATURE_INPUT | TIDYVNC_FEATURE_PROMPTS | TIDYVNC_FEATURE_CALLBACKS | TIDYVNC_FEATURE_GEOMETRY | TIDYVNC_FEATURE_CLIPBOARD | TIDYVNC_FEATURE_ENCODING | TIDYVNC_FEATURE_ENDPOINT_VALIDATION | TIDYVNC_FEATURE_SCALING | TIDYVNC_FEATURE_TILE_RENDERER | TIDYVNC_FEATURE_DAMAGE_GEOMETRY | TIDYVNC_FEATURE_CURSOR_RENDERER | TIDYVNC_FEATURE_INPUT_POLICY | TIDYVNC_FEATURE_SHORTCUTS | TIDYVNC_FEATURE_INPUT_RELEASE
 #if defined(__APPLE__) || defined(__linux__)
   | TIDYVNC_FEATURE_TCP_UNIX_CONNECT | TIDYVNC_FEATURE_LISTENER | TIDYVNC_FEATURE_ROUTED_CONNECT
@@ -1015,6 +1016,15 @@ tidyvnc_status tidyvnc_release(uint64_t id,tidyvnc_error* error) {
 }
 tidyvnc_status tidyvnc_runtime_options_init(tidyvnc_runtime_options* out,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t { header(out); auto value = output<tidyvnc_runtime_options>(); value.session_capacity = 16; *out = value; return TIDYVNC_OK; });
+}
+tidyvnc_status tidyvnc_logging_viewport(uint32_t width,uint32_t height,uint32_t backingWidth,uint32_t backingHeight,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    for (auto value : {width,height,backingWidth,backingHeight})
+      require(value > 0 && value <= static_cast<uint32_t>(INT32_MAX));
+    viewportLog.debug("Viewport logical %dx%d, backing %dx%d",
+      static_cast<int>(width),static_cast<int>(height),static_cast<int>(backingWidth),static_cast<int>(backingHeight));
+    return TIDYVNC_OK;
+  });
 }
 tidyvnc_status tidyvnc_logging_validate(tidyvnc_bytes policy,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t {

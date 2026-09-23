@@ -1,14 +1,16 @@
 # Native UI implementation checklist
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
-**Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
+**Resume here:** [RESUME.md](RESUME.md), updated 2026-09-23, records the current
 implementation, validation and next steps. N0.1/N0.2 now have a **162-row**
 [parity map](PARITY.md) and a complete **47-parameter** [capability inventory](CAPABILITIES.md),
 checked against the built catalog and both executable help outputs. The inventory
 identified AlertOnFatalError; its scoped native implementation and model/CLI tests now pass. The native `--test` build passes
 **3/3 viewer, 756/756 core and 89/89 native tests**, plus graph/configuration,
 localization, signature and 36 CLI checks. Local native app/DMG dependency assembly
-and mounted-image inspection pass; see [PACKAGING.md](PACKAGING.md). Native CI is
+and mounted-image inspection pass; see [PACKAGING.md](PACKAGING.md). The actual native
+55-case protocol baseline now passes, with the retained FLTK 55-case regression;
+see [PROTOCOL.md](PROTOCOL.md). Native CI is
 defined but hosted execution is unverified. A real SSH exit race is fixed with deterministic/repeated/sanitized
 proof; compiler localization freshness uses successful-build content receipts.
 The app has **1052 UI + 2 InfoPlist entries**, compiler coverage of **139 sources /
@@ -720,6 +722,10 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     coverage; replace retiring minimum-OS runner without waiving that gate.
   - [ ] Complete actual interactive UI/accessibility and physical/installed checks.
 - [ ] N6.5 Run all applicable original unit tests, new contract/ABI/service tests, supported sanitizers and full protocol regression matrix through the native frontend.
+  - [x] Reuse the full 55-case scaling/protocol baseline with the actual native
+    executable, isolated state, measured viewport resize assertions and retained
+    FLTK regression checks. See [PROTOCOL.md](PROTOCOL.md). Broader protocol,
+    sanitizers and physical/presentation acceptance remain open.
 - [ ] N6.6 Validate bad credentials/trust, clipboard, remote resize, reverse/listen, tunnel, peer disappearance and reconnect; protocol tests supplement native presentation/input evidence.
 - [ ] N6.7 Validate final bundle identity, document associations, localization, credits, Local Network description, signing/resource seal and dependency paths; verify no FLTK linkage/symbols.
   - [x] Local ad hoc package identity/resources/notices/signature, full dylib
@@ -9641,3 +9647,55 @@ before it can establish native baseline coverage. Next: that full native protoco
 baseline, supported minimum-OS/Intel dependency packages and intended signing /
 installed behavior, plus all remaining service/interaction/physical/performance
 and parity gates. The complete original goal stays active; FLTK stays the default.
+
+### N6.5 / N4.11 actual native protocol baseline and AppKit startup (2026-09-23)
+
+The full retained **55-case** baseline now runs through the actual native app with
+isolated Foundation paths, unique app/preference domains and a signed temporary
+copy. All wire assertions remain: fragmented updates, framebuffer/cursor changes,
+scaling suppression, explicit 123×97 size, measured automatic logical/device size
+and bounded denial retries. Native peer-close/socket drain is checked separately
+from fixture SIGTERM cleanup. It does not establish pixels/input, window dismissal
+or interactive app Quit. See [PROTOCOL.md](PROTOCOL.md).
+
+This exposed an actual startup defect: AppKit treated the endpoint operand as a
+file and suppressed the scene that consumes the parsed invocation. The entry
+point now disables that duplicate interpretation in the volatile argument domain
+before SwiftUI starts, without persistent preference or argv changes. The
+first-window/file-review fixtures now supply real process operands and use the
+same handoff. Their simplified app did not independently reproduce the failure;
+the actual-app timeout traces and passing full matrix are the before/after proof.
+All temporary startup traces were removed.
+
+An additive numeric-only viewport diagnostic uses the existing redacted debug
+route; the C header now has **113 status-returning exports**. Pure-C boundary and
+redaction/route checks pass. The ordinary preferences domain is unchanged, while
+alternate bundle identities get separate domains. A Foundation probe verifies
+HOME/Application Support before each fixture launch; cleanup accepts only exact
+UUID-suffixed fixture domains. HOME alone did not isolate CFPreferences.
+
+Final all-target Debug verification:
+`build/native-ui-frontend/verification/run-1hqziv5q/summary.json` —
+**3/3 viewer, 756/756 unit (21.70 s), 89/89 native (129.15 s)**, graph **170/3**,
+**10** configure checks, **1052 + 2** bundled localized values, strict signature
+and **36** actual CLI cases. Compiler coverage remains **139 sources / 1353 call
+sites**. Focused logging plus pure-C ABI checks pass **11/11 ASan+UBSan** and
+**11/11 TSan**; those existing builds disable crypto and retain uninstrumented
+system/dependency libraries. This is not a full sanitizer-matrix claim.
+
+Final reports `build/native-protocol-final/summary.json` and
+`build/fltk-protocol-final/summary.json` both pass **55/55**, with hashes checked
+against the tested executables. Native SHA-256:
+`244ea6912a4b5309699fa43b9ece7976f0d071a81e15c61d93db20c40e3b86bf`.
+Native measured/wire sizes are 960×525 logical and 1920×1050 device; both explicit
+cases send 123×97 and scaled automatic cases send nothing. These dimensions are
+observations of this run, not hardcoded acceptance values. The CI definition now
+runs/preserves this baseline; hosted execution is still unverified. Workflow
+YAML/shell parsing, branding **1650** and diff checks pass. All process handles
+completed. This change has not rebuilt the earlier Release DMG.
+
+N6.5's baseline subitem is complete; its broader protocol/sanitizer gate remains
+open. Next: remaining contract/global-state audits and broader protocol evidence,
+actual interaction/accessibility, physical/performance, supported minimum-OS/Intel,
+installed services/signing, hosted CI and final parity/cutover. The full original
+goal stays active; FLTK remains the shipping default.

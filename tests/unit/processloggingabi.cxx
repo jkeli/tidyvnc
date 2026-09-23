@@ -124,7 +124,13 @@ int main(int argc,char** argv) {
       check(tidyvnc_logging_configure(bytes("*::0"),&error)==TIDYVNC_BUSY);
       check(error.domain==TIDYVNC_DOMAIN_LOGGING && error.detail==TIDYVNC_LOGGING_FROZEN);
       runtime(); check(tidyvnc_logging_configure(bytes("*::0"),nullptr)==TIDYVNC_BUSY);
+      auto abi = init<tidyvnc_abi_info>();
+      check(tidyvnc_get_abi(&abi,nullptr)==TIDYVNC_OK && (abi.features & TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS));
+      check(tidyvnc_logging_viewport(0,480,1280,960,nullptr)==TIDYVNC_INVALID_ARGUMENT);
+      check(tidyvnc_logging_viewport(640,480,UINT32_MAX,960,nullptr)==TIDYVNC_INVALID_ARGUMENT);
+      check(tidyvnc_logging_viewport(640,480,1280,960,nullptr)==TIDYVNC_OK);
       const auto a=errors.read(), b=output.read();
+      check(a.find("Viewport logical 640x480, backing 1280x960")!=std::string::npos);
       check(a.find("Reading protocol version")!=std::string::npos);
       check(a.find("Diagnostic details redacted.")!=std::string::npos);
       check(a.find("Key pressed")==std::string::npos);

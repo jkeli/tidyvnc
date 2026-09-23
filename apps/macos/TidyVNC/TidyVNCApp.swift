@@ -103,7 +103,8 @@ struct TidyVNCApp: App {
     if let importPaths { historyImportService = NativeHistoryImportService(paths:importPaths,store:profiles) }
     do {
       runtime = try NativeRuntime()
-      let store = NativePreferencesStore(backing: try UserDefaultsPreferencesBacking())
+      let domain = (Bundle.main.bundleIdentifier ?? "io.github.jkeli.tidyvnc") + ".native.preferences"
+      let store = NativePreferencesStore(backing: try UserDefaultsPreferencesBacking(domain:domain))
       preferences = store; settings = NativePreferencesDraft(store: store)
       importAvailability = DefaultsImportAvailability(store:store)
       if let paths = importPaths {

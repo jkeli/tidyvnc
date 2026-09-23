@@ -339,3 +339,12 @@ observations to all rows here.
 4. Review source changes against this inventory and CAPABILITIES. Add new controls
    and options explicitly. N0 inventory completion is not N4/N5/N6 completion;
    FLTK stays the default until all original gates pass.
+
+
+### Actual executable protocol evidence (2026-09-23)
+
+[PROTOCOL.md](PROTOCOL.md) records all 55 baseline cases through the native app
+and the retained FLTK harness regression. This adds actual command-line startup,
+fragmented update/framebuffer/cursor replacement and measured resize-wire evidence
+to the scaling rows. It does not accept their displayed pixels, input, physical
+hardware or interaction columns, or the broader security/encoding matrix.

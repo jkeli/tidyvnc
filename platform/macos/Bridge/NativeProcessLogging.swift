@@ -1,10 +1,18 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 import TidyVNC
+import Foundation
 
 // Process startup policy, deliberately separate from session/defaults/profile
 // configuration. Validation is read-only; only the executable entry point starts
 // logging, after complete launch preflight and before constructing any runtime.
 public enum NativeProcessLogging {
+  // Measured local dimensions only. Logging failure must never affect resizing.
+  static func viewport(width: Double, height: Double, scale: Double) {
+    let values = [width,height,width * scale,height * scale].map { floor($0) }
+    guard scale.isFinite, scale > 0,
+          values.allSatisfy({ $0.isFinite && $0 >= 1 && $0 <= Double(Int32.max) }) else { return }
+    _ = tidyvnc_logging_viewport(UInt32(values[0]),UInt32(values[1]),UInt32(values[2]),UInt32(values[3]),nil)
+  }
   public static let defaultPolicy = "*:stderr:30"
   public static func validate(_ policy: String) throws {
     try policy.utf8CString.withUnsafeBufferPointer { buffer in

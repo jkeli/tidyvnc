@@ -80,12 +80,14 @@ TEST(RedactedLogger, AuditedNumericMetadataPreservesUsefulDiagnostics) {
   emit(logger,"CMsgReader","Invalid rectangle received: %dx%d at %d,%d exceeds %dx%d",800,600,-1,10,640,480);
   emit(logger,"CConnection","Ignoring clipboard request for unsupported formats 0x%x",0x80u);
   emit(logger,"ZlibOutStream","Calling deflate, avail_in %d, avail_out %d",10,20);
-  ASSERT_EQ(output.records.size(),5u);
+  emit(logger,"NativeDesktop","Viewport logical %dx%d, backing %dx%d",640,480,1280,960);
+  ASSERT_EQ(output.records.size(),6u);
   EXPECT_EQ(output.records[0].message,"Failed to resize remote session: 2");
   EXPECT_EQ(output.records[1].message,"Unknown encoding -42");
   EXPECT_EQ(output.records[2].message,"Invalid rectangle received: 800x600 at -1,10 exceeds 640x480");
   EXPECT_EQ(output.records[3].message,"Ignoring clipboard request for unsupported formats 0x80");
   EXPECT_EQ(output.records[4].message,"Calling deflate, avail_in 10, avail_out 20");
+  EXPECT_EQ(output.records[5].message,"Viewport logical 640x480, backing 1280x960");
 }
 
 TEST(RedactedLogger, KeyboardValuesAndPerKeyEventsAreSuppressed) {

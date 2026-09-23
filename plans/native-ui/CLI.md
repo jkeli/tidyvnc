@@ -102,7 +102,7 @@ parser; writer/target admission belongs to the logging adapter. Host-only string
 remain literal. Earlier invalid values cannot disappear behind duplicates or help.
 The additive `INVOCATION_VALUES` feature provides `tidyvnc_invocation_validate`,
 which publishes a new immutable owner only after success. NativeInvocationOptions
-copies canonical values into Swift. The C ABI now has **111 exports** with the input-timing, message-limit, window-geometry and process-logging additions below.
+copies canonical values into Swift. The C ABI now has **113 exports** with the input-timing, message-limit, window-geometry and process-logging additions below.
 
 NativeInvocationResolution applies supported ordinary settings with command-line
 provenance, plus remote-resize and initial DesktopSize policy. DesktopSize retains
@@ -483,3 +483,23 @@ Retry action. Required credential/trust decisions, user cancellation, editable
 validation/review and terminal-only errors retain their existing behavior.
 Compatibility files cannot override this CLI-only field; export requires explicit
 acknowledgment of the lost policy. See CONNECTION.md and current RESUME evidence.
+
+
+## AppKit command-line handoff (2026-09-23)
+
+The actual-app protocol fixture found that Cocoa could interpret the endpoint as
+an open-file operand, deliver it to `application(_:openFiles:)`, and leave no
+initial scene to consume the native invocation. After parsing/preflight and before
+`TidyVNCApp.main()`, the entry point now calls `prepareAppKit()`. It sets
+`NSTreatUnknownArgumentsAsOpen=false` in the process-only volatile argument domain,
+preserving other entries. No persistent user preference or raw argv is rewritten;
+CLI file review remains owned by the validated native request and Finder file
+callbacks keep their router. Real endpoint startup changes from accept timeout
+to passing the complete 55-case baseline. See [PROTOCOL.md](PROTOCOL.md).
+
+The existing first-window/file-review fixtures now include real argv operands
+and use this handoff, while preserving subsequent/warm-window ownership checks.
+Their simplified app did not independently reproduce the original actual-app
+failure; the actual executable baseline supplies that before/after evidence.
+The C ABI now has **113 status-returning exports**, including routed connect and
+the numeric viewport diagnostic used for measured protocol resize comparisons.

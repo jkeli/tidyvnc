@@ -9,9 +9,13 @@ This does NOT inspect displayed pixels or synthesize user input. Physical
 mixed-display/Spaces and interactive input checks remain separate.
 """
 import argparse
+import hashlib
 import itertools
+import json
 import math
 import os
+import plistlib
+import platform
 import tempfile
 import re
 import select
@@ -19,6 +23,7 @@ import socket
 import struct
 import subprocess
 import time
+import uuid
 from pathlib import Path
 
 
@@ -31,26 +36,38 @@ def layout(w, h, reason=0, result=0):
                      b'\1\0\0\0' + struct.pack('>IHHHHI', 7, 0, 0, w, h, 0))
 
 
-def run_case(viewer, mode, quality, units, remote_resize=False, explicit=False):
-    with socket.socket() as listener, tempfile.TemporaryDirectory(prefix='tidyvnc-smoke-') as state:
+def run_case(viewer, mode, quality, units, remote_resize=False, explicit=False,
+             native=None, log_path=None):
+    with socket.socket() as listener, tempfile.TemporaryDirectory(prefix='tidyvnc-smoke-') as state, tempfile.TemporaryFile() as output:
         listener.bind(('127.0.0.1', 0))
         listener.listen(1)
         listener.settimeout(10)
         args = [str(viewer), '-SendClipboard=0', '-AcceptClipboard=0',
                 '-AlertOnFatalError=0', '-ReconnectOnError=0', '-FullScreen=0',
-                '-AlwaysCursor=0', '-ViewOnly=0', '-Log=*:stderr:100',
+                '-AlwaysCursor=0', '-ViewOnly=0', '-Log=*:stderr:100', '-SecurityTypes=None',
                 f'-RemoteResize={int(remote_resize)}', f'-ScalingFactor={mode}',
                 f'-ScalingQuality={quality}', f'-DesktopPixelUnits={units}',
                 '-DesktopSize=123x97' if explicit else '-DesktopSize=',
                 f'127.0.0.1::{listener.getsockname()[1]}']
         env = os.environ.copy()
+        for name in ['VNC_USERNAME','VNC_PASSWORD','VNC_VIA_CMD','CFFIXED_USER_HOME','__CFPREFERENCES_AVOID_DAEMON']:
+            env.pop(name, None)
         for name in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME']:
-            directory = Path(state) / name
+            directory = Path(state).resolve() / name
             directory.mkdir()
             env[name] = str(directory)
-        process = subprocess.Popen(args, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if native:
+            env['CFFIXED_USER_HOME'] = env['HOME']
+            subprocess.run([str(native[0]),env['HOME'],native[1]],env=env,check=True,capture_output=True,timeout=10)
+        process = subprocess.Popen(args, env=env, stdout=output, stderr=subprocess.STDOUT)
         try:
-            client, _ = listener.accept()
+            try:
+                client, _ = listener.accept()
+            except TimeoutError:
+                if log_path and process.poll() is None:
+                    subprocess.run(['/usr/bin/sample',str(process.pid),'1','-file',str(log_path.with_suffix('.sample.txt'))],
+                                   capture_output=True,timeout=10)
+                raise
             with client:
                 client.settimeout(10)
 
@@ -143,31 +160,69 @@ def run_case(viewer, mode, quality, units, remote_resize=False, explicit=False):
                 # There can be one request before and one after the server's
                 # unsolicited framebuffer change; neither may loop on denial.
                 assert len(resize_requests) <= 2, resize_requests
-            _, stderr = process.communicate(timeout=10)
-            log = stderr.decode(errors='replace')
-            assert process.returncode in (0, 1), (process.returncode, log)
-            assert 'Display generation 1: FLTK 1.4.5' in log, log
-            assert 'CConn:       Connected' in log, log
+                if native:
+                    # Native failure closes the connection/window, while the app
+                    # stays alive. Prove socket drain before stopping our child;
+                    # SIGTERM cleanup is not evidence of interactive app Quit.
+                    client.shutdown(socket.SHUT_WR)
+                    drained = 0
+                    while True:
+                        pending = client.recv(4096)
+                        if not pending:
+                            break
+                        drained += len(pending)
+                        assert drained <= 1024*1024, 'unbounded output after peer close'
+                    assert process.poll() is None, 'native application exited unexpectedly'
+                    process.terminate()
+            process.communicate(timeout=10)
+            output.seek(0)
+            log = output.read().decode(errors='replace')
+            if native:
+                assert process.returncode == -15, (process.returncode,log)
+                assert 'Initialisation done' in log, log
+            else:
+                assert process.returncode in (0, 1), (process.returncode, log)
+                assert 'Display generation 1: FLTK 1.4.5' in log, log
+                assert 'CConn:       Connected' in log, log
             assert 'Assertion failed' not in log and 'terminate called' not in log, log
             if remote_resize and mode == '100' and not explicit:
-                metrics = re.search(r'backing ratio\s+([0-9.]+)x([0-9.]+), logical (\d+)x(\d+)', log)
-                assert metrics, log
-                qx, qy = float(metrics[1]), float(metrics[2])
-                width, height = int(metrics[3]), int(metrics[4])
-                expected = (math.floor(width*qx), math.floor(height*qy)) if units == 'Device' else (width, height)
+                if native:
+                    metrics = re.search(r'Viewport logical (\d+)x(\d+), backing (\d+)x(\d+)', log)
+                    assert metrics, log
+                    expected = tuple(map(int,metrics.group(3,4) if units == 'Device' else metrics.group(1,2)))
+                else:
+                    metrics = re.search(r'backing ratio\s+([0-9.]+)x([0-9.]+), logical (\d+)x(\d+)', log)
+                    assert metrics, log
+                    qx, qy = float(metrics[1]), float(metrics[2])
+                    width, height = int(metrics[3]), int(metrics[4])
+                    expected = (math.floor(width*qx), math.floor(height*qy)) if units == 'Device' else (width, height)
                 if expected != (320, 240):
                     assert resize_requests and resize_requests[0][:2] == expected, (expected, resize_requests)
-            return len(resize_requests)
+            return {'resizeRequests':len(resize_requests),
+                    'requestedDesktopSizes':[list(request[:2]) for request in resize_requests],
+                    'automaticViewportExpected':list(expected) if remote_resize and mode == '100' and not explicit else None,
+                    'processExitCode':process.returncode}
         finally:
             if process.poll() is None:
                 process.terminate()
-                process.communicate(timeout=10)
+                try:
+                    process.communicate(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.communicate(timeout=10)
+            output.seek(0)
+            if log_path:
+                log_path.write_bytes(output.read())
+            if native:
+                subprocess.run([str(native[0]),'--cleanup',native[1]],env=env,check=True,capture_output=True,timeout=10)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('viewer', type=Path)
     parser.add_argument('--quick', action='store_true', help='run a representative subset')
+    parser.add_argument('--frontend', choices=('fltk','swiftui'), default='fltk')
+    parser.add_argument('--report-dir', type=Path, help='New directory for summary and per-case logs')
     args = parser.parse_args()
     modes = ['100', 'Auto', 'FixedRatio', 'FitWidth', 'FitHeight', '641x359', '137.5', '125%x80%']
     cases = list(itertools.product(modes, ['Nearest', 'Bilinear', 'Area'], ['Logical', 'Device']))
@@ -175,18 +230,57 @@ def main():
         cases = [('100', 'Nearest', 'Device'), ('1600', 'Area', 'Logical')]
     if not args.quick:
         cases.append(('1600', 'Area', 'Logical'))
-    count = 0
-    for mode, quality, units in cases:
-        run_case(args.viewer.resolve(), mode, quality, units)
-        count += 1
-        print(f'PASS {mode} {quality} {units}', flush=True)
-    for mode, units, explicit in [('100', 'Logical', False), ('100', 'Device', False),
-                                  ('200', 'Logical', False), ('200', 'Device', False),
-                                  ('200', 'Logical', True), ('200', 'Device', True)]:
-        requests = run_case(args.viewer.resolve(), mode, 'Bilinear', units, True, explicit)
-        count += 1
-        print(f'PASS resize policy {mode} {units} explicit={explicit}, requests={requests}', flush=True)
-    print(f'{count} protocol/lifecycle cases passed; displayed pixels and user input were not asserted.')
+    matrix = [(mode,quality,units,False,False) for mode,quality,units in cases]
+    matrix += [(mode,'Bilinear',units,True,explicit) for mode,units,explicit in
+               [('100','Logical',False),('100','Device',False),('200','Logical',False),
+                ('200','Device',False),('200','Logical',True),('200','Device',True)]]
+    if args.report_dir:
+        args.report_dir.mkdir(parents=True,exist_ok=False)
+    report = {'frontend':args.frontend,'status':'running','expectedCases':len(matrix),'cases':[],
+              'viewer':str(args.viewer.resolve()),'executableSHA256':hashlib.sha256(args.viewer.read_bytes()).hexdigest(),
+              'macOS':platform.mac_ver()[0],'architecture':platform.machine(),
+              'excludes':['displayed pixels','user input','interactive window/quit acceptance']}
+    try:
+        with tempfile.TemporaryDirectory(prefix='tidyvnc-native-protocol-') as temporary:
+            temporary = Path(temporary).resolve()
+            viewer, native = args.viewer.resolve(), None
+            if args.frontend == 'swiftui':
+                source = viewer.parent.parent.parent
+                info = plistlib.loads((source/'Contents/Info.plist').read_bytes())
+                assert info['CFBundleIdentifier'] == 'io.github.jkeli.tidyvnc' and info['CFBundleExecutable'] == viewer.name
+                copied = temporary/'TidyVNC Protocol Fixture.app'
+                subprocess.run(['/usr/bin/ditto',str(source),str(copied)],check=True)
+                domain = 'io.github.jkeli.tidyvnc.protocol-fixture.'+str(uuid.uuid4())
+                info['CFBundleIdentifier'] = domain
+                (copied/'Contents/Info.plist').write_bytes(plistlib.dumps(info))
+                subprocess.run(['/usr/bin/codesign','--force','--sign','-','--identifier',domain,'--timestamp=none',str(copied)],check=True)
+                subprocess.run(['/usr/bin/codesign','--verify','--deep','--strict',str(copied)],check=True)
+                helper = temporary/'isolation'
+                subprocess.run(['xcrun','swiftc',str(Path(__file__).with_name('native-isolation.swift')),'-o',str(helper)],check=True)
+                viewer = copied/'Contents/MacOS'/viewer.name
+                native = (helper,domain)
+                report['fixtureIdentity'] = domain
+            for index, (mode,quality,units,resize,explicit) in enumerate(matrix,1):
+                case = dict(mode=mode,quality=quality,units=units,remoteResize=resize,explicit=explicit,status='running')
+                report['cases'].append(case)
+                log_path = args.report_dir/f'{index:02d}.log' if args.report_dir else None
+                try:
+                    case.update(run_case(viewer,mode,quality,units,resize,explicit,native,log_path))
+                    case['status'] = 'passed'
+                    print(f'PASS {index}/{len(matrix)} {mode} {quality} {units} resize={resize} explicit={explicit}',flush=True)
+                except Exception as error:
+                    case.update(status='failed',error=f'{type(error).__name__}: {error}')
+                    raise
+            report['status'] = 'passed'
+    except Exception as error:
+        report['error'] = f'{type(error).__name__}: {error}'
+        raise
+    finally:
+        if report['status'] != 'passed':
+            report['status'] = 'failed'
+        if args.report_dir:
+            (args.report_dir/'summary.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(f'{len(matrix)} protocol/lifecycle cases passed; displayed pixels and user input were not asserted.')
 
 
 if __name__ == '__main__':

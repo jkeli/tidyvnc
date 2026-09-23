@@ -67,6 +67,7 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 #define TIDYVNC_FEATURE_CREDENTIAL_BYTES 4398046511104ULL
 #define TIDYVNC_FEATURE_LISTENER 8796093022208ULL
 #define TIDYVNC_FEATURE_ROUTED_CONNECT 17592186044416ULL
+#define TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS 35184372088832ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -597,6 +598,13 @@ tidyvnc_status tidyvnc_release(tidyvnc_handle, tidyvnc_error*);
 /* Initializers populate validated construction defaults, without global config. */
 tidyvnc_status tidyvnc_runtime_options_init(tidyvnc_runtime_options*, tidyvnc_error*);
 tidyvnc_status tidyvnc_logging_validate(tidyvnc_bytes policy, tidyvnc_error*);
+/* Numeric local viewport metadata at debug level 100, writer NativeDesktop.
+ * All dimensions are 1..INT_MAX, rounded down by the host independently for
+ * logical units and backing pixels. No strings, endpoint, input or screen ID is
+ * accepted. Uses the existing process logging route; never changes its policy.
+ * A disabled route is a successful no-op. Callable after runtime creation. */
+tidyvnc_status tidyvnc_logging_viewport(uint32_t logical_width, uint32_t logical_height,
+  uint32_t backing_width, uint32_t backing_height, tidyvnc_error*);
 tidyvnc_status tidyvnc_logging_configure(tidyvnc_bytes policy, tidyvnc_error*);
 /* FILE_LOGGING: same startup gate, with a copied absolute UTF-8 file path for
  * embedding hosts. The path is validated even when file is unused; configuration

@@ -21,6 +21,7 @@ struct Event {
 // other output is constant. New/changed templates fall back to redaction.
 // A null message suppresses keyboard events, including their per-key timing.
 constexpr Event events[] = {
+  {"NativeDesktop","Viewport logical %dx%d, backing %dx%d","Viewport dimensions redacted.",true},
   {"Socket","Failed to flush remaining socket data on close","Failed to flush remaining socket data on close"},
   {"Socket","Failed to flush remaining socket data on close: %s","Failed to flush remaining socket data on close: [redacted]"},
   {"TcpSocket","Connecting to %s [%s] port %d","Connecting to [redacted] [[redacted]] port [redacted]"},

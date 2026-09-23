@@ -1,8 +1,60 @@
 # Native UI work handoff
 
-Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
+Updated 2026-09-23. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
+
+## Latest follow-up (2026-09-23) — Actual native protocol baseline and startup fix
+
+The full retained **55-case** baseline now runs through the actual native app with
+isolated Foundation paths, unique app/preference domains and a signed temporary
+copy. All wire assertions remain: fragmented updates, framebuffer/cursor changes,
+scaling suppression, explicit 123×97 size, measured automatic logical/device size
+and bounded denial retries. Native peer-close/socket drain is checked separately
+from fixture SIGTERM cleanup. It does not establish pixels/input, window dismissal
+or interactive app Quit. See [PROTOCOL.md](PROTOCOL.md).
+
+This exposed an actual startup defect: AppKit treated the endpoint operand as a
+file and suppressed the scene that consumes the parsed invocation. The entry
+point now disables that duplicate interpretation in the volatile argument domain
+before SwiftUI starts, without persistent preference or argv changes. The
+first-window/file-review fixtures now supply real process operands and use the
+same handoff. Their simplified app did not independently reproduce the failure;
+the actual-app timeout traces and passing full matrix are the before/after proof.
+All temporary startup traces were removed.
+
+An additive numeric-only viewport diagnostic uses the existing redacted debug
+route; the C header now has **113 status-returning exports**. Pure-C boundary and
+redaction/route checks pass. The ordinary preferences domain is unchanged, while
+alternate bundle identities get separate domains. A Foundation probe verifies
+HOME/Application Support before each fixture launch; cleanup accepts only exact
+UUID-suffixed fixture domains. HOME alone did not isolate CFPreferences.
+
+Final all-target Debug verification:
+`build/native-ui-frontend/verification/run-1hqziv5q/summary.json` —
+**3/3 viewer, 756/756 unit (21.70 s), 89/89 native (129.15 s)**, graph **170/3**,
+**10** configure checks, **1052 + 2** bundled localized values, strict signature
+and **36** actual CLI cases. Compiler coverage remains **139 sources / 1353 call
+sites**. Focused logging plus pure-C ABI checks pass **11/11 ASan+UBSan** and
+**11/11 TSan**; those existing builds disable crypto and retain uninstrumented
+system/dependency libraries. This is not a full sanitizer-matrix claim.
+
+Final reports `build/native-protocol-final/summary.json` and
+`build/fltk-protocol-final/summary.json` both pass **55/55**, with hashes checked
+against the tested executables. Native SHA-256:
+`244ea6912a4b5309699fa43b9ece7976f0d071a81e15c61d93db20c40e3b86bf`.
+Native measured/wire sizes are 960×525 logical and 1920×1050 device; both explicit
+cases send 123×97 and scaled automatic cases send nothing. These dimensions are
+observations of this run, not hardcoded acceptance values. The CI definition now
+runs/preserves this baseline; hosted execution is still unverified. Workflow
+YAML/shell parsing, branding **1650** and diff checks pass. All process handles
+completed. This change has not rebuilt the earlier Release DMG.
+
+N6.5's baseline subitem is complete; its broader protocol/sanitizer gate remains
+open. Next: remaining contract/global-state audits and broader protocol evidence,
+actual interaction/accessibility, physical/performance, supported minimum-OS/Intel,
+installed services/signing, hosted CI and final parity/cutover. The full original
+goal stays active; FLTK remains the shipping default.
 
 ## Latest follow-up (2026-09-22) — Clean Release validation
 

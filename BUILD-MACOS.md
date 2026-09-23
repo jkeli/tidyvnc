@@ -528,6 +528,10 @@ python3 tests/integration/macos-scaling-smoke.py build/hidpi/vncviewer/vncviewer
 python3 tests/integration/macos-scaling-smoke.py build/hidpi/vncviewer/vncviewer --quick
 ```
 
+For the experimental SwiftUI frontend, add `--frontend swiftui` and pass its app
+executable. `--report-dir` records a fresh run; see
+[the native protocol baseline](plans/native-ui/PROTOCOL.md) for isolation and scope.
+
 All 55 full-matrix protocol/lifecycle cases passed locally (48 scaling/quality/
 unit combinations, one oversized-cursor case and six resize-policy cases).
 The fixture checks the automatic Device request against the viewer's measured

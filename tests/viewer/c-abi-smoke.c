@@ -555,6 +555,9 @@ int main(void)
     CHECK(tidyvnc_window_geometry_parse((tidyvnc_bytes){input,sizeof(input)},&geometry,&error) == TIDYVNC_INVALID_ARGUMENT);
     CHECK(memcmp(&geometry,&preserved,sizeof(geometry)) == 0);
   }
+  CHECK(abi.features & TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS);
+  CHECK(tidyvnc_logging_viewport(640,480,1280,960,&error) == TIDYVNC_OK);
+  CHECK(tidyvnc_logging_viewport(640,0,1280,960,&error) == TIDYVNC_INVALID_ARGUMENT);
   if (abi.features & TIDYVNC_FEATURE_PROCESS_LOGGING) {
     const uint8_t policy[] = "*::0";
     CHECK(tidyvnc_logging_validate((tidyvnc_bytes){policy,sizeof(policy)-1},&error) == TIDYVNC_OK);

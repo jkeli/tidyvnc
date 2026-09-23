@@ -152,6 +152,9 @@ struct NativeResizeViewport: Equatable {
         screens:[.init(id:first.id,x:0,y:0,width:target.width,height:target.height,flags:first.flags)]) }
       lastAttempt = target; if target.initial { initialAttempted = true; initialViewport = geometry }
       if requested == current.layout { schedule(); return }
+      if case .window(let viewport)? = geometry {
+        NativeProcessLogging.viewport(width:viewport.width,height:viewport.height,scale:viewport.scale)
+      }
       message = nil
       operation = Task { @MainActor [weak self] in
         do { _ = try await session.requestAutomaticDesktopLayout(requested,expectedGeneration:target.generation) }

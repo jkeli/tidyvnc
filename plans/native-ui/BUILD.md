@@ -242,3 +242,12 @@ The Release DMG also passes mounted-image inspection and all 36 packaged CLI
 cases. See [PACKAGING.md](PACKAGING.md) for its exact artifact/hash and limitations.
 This establishes local optimized build/package evidence, not runtime performance
 budgets, the native 55-case protocol baseline, older-OS/Intel or installed services.
+
+
+## Native protocol baseline (2026-09-23)
+
+The actual native app now passes the retained 55-case scaling/protocol baseline
+through `macos-scaling-smoke.py --frontend swiftui`; see [PROTOCOL.md](PROTOCOL.md)
+for isolation, assertions and report commands. The CI matrix now defines this
+step after the full build and retains its summary/logs on failure as well as
+success. Local execution is verified; hosted execution remains unverified.

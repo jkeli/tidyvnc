@@ -19,6 +19,7 @@ import TidyVNCNative
         NativeLaunchCredentialInputs.passwordFile(options,workingDirectory:launch.invocation.workingDirectory))
       try NativeProcessLogging.start(options)
       TidyVNCLaunchContext.startup = NativeInvocationStartup(launch)
+      NativeInvocationBootstrap.prepareAppKit()
       TidyVNCApp.main()
     } catch let error as NativeLaunchCredentialIssue {
       fail(error.description)

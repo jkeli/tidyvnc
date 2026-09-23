@@ -7,4 +7,9 @@
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleVersion</key><string>1</string>
 <key>NSHighResolutionCapable</key><true/>
+<key>CFBundleDocumentTypes</key><array><dict>
+<key>CFBundleTypeExtensions</key><array><string>tidyvnc</string></array>
+<key>CFBundleTypeName</key><string>TidyVNC connection fixture</string>
+<key>CFBundleTypeRole</key><string>Viewer</string>
+</dict></array>
 </dict></plist>

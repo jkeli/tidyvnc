@@ -24,6 +24,13 @@ final class Memory: NativePreferencesBacking, @unchecked Sendable {
   var windows: [ObjectIdentifier:NSWindow] = [:]
   var open: OpenWindowAction?
   private var task: Task<Void,Never>?
+  private var argumentFileEvents = 0
+  func application(_ sender: NSApplication, openFiles filenames: [String]) {
+    argumentFileEvents += filenames.count; sender.reply(toOpenOrPrint:.failure)
+  }
+  func application(_ sender: NSApplication, open urls: [URL]) {
+    argumentFileEvents += urls.count; sender.reply(toOpenOrPrint:.failure)
+  }
   func make() -> ConnectionModel {
     let launch = LaunchContext.startup.take()
     let model = ConnectionModel(runtime:runtime,preferences:store,document:launch?.document,
@@ -39,6 +46,7 @@ final class Memory: NativePreferencesBacking, @unchecked Sendable {
     task = Task { @MainActor in
       do {
         try await until("first window") { self.models.count == 1 && self.windows.count == 1 && self.open != nil }
+        try check(argumentFileEvents == 0,"CLI operands must not become AppKit file events")
         let first = models[0]
         if LaunchContext.file != nil {
           try await until("file review") { first.defaults?.documentReview != nil }
@@ -132,7 +140,12 @@ struct LaunchApp: App {
 @main enum NativeInvocationLaunchUITests {
   @MainActor static func main() throws {
     var arguments = try NativeInvocationArguments.read(argc:CommandLine.argc,argv:CommandLine.unsafeArgv)
-    if ProcessInfo.processInfo.environment["TIDYVNC_LAUNCH_FIXTURE_FILE"] == "1" {
+    // Keep a real operand in process argv so AppKit can expose duplicate parsing.
+    // Replace only the parsed copy with the owned fixture's ephemeral destination.
+    let fileMode = ProcessInfo.processInfo.environment["TIDYVNC_LAUNCH_FIXTURE_FILE"] == "1"
+    try check(arguments.last == (fileMode ? "./fixture.tidyvnc" : "fixture.invalid"),"real process operand supplied")
+    arguments.removeLast()
+    if fileMode {
       let file = FileManager.default.temporaryDirectory.appendingPathComponent("tidy-launch-"+UUID().uuidString+".tidyvnc")
       try Data("TidyVNC Configuration file Version 1.0\nServerName=fixture.invalid\nShared=off\n".utf8).write(to:file)
       LaunchContext.file = file; arguments.append(file.path)
@@ -144,6 +157,11 @@ struct LaunchApp: App {
     let options = try NativeInvocationOptions(arguments:arguments)
     let launch = try NativeInvocationBootstrap.launch(options,workingDirectory:FileManager.default.currentDirectoryPath)
     LaunchContext.startup = NativeInvocationStartup(launch)
+    // Do not depend on the host's Cocoa defaults or a previous fixture launch.
+    UserDefaults.standard.setVolatileDomain(["NSTreatUnknownArgumentsAsOpen":true,"fixturePreserved":7],forName:UserDefaults.argumentDomain)
+    NativeInvocationBootstrap.prepareAppKit()
+    try check(!UserDefaults.standard.bool(forKey:"NSTreatUnknownArgumentsAsOpen") &&
+      UserDefaults.standard.integer(forKey:"fixturePreserved") == 7,"process-only AppKit handoff preserves other launch defaults")
     LaunchApp.main()
   }
 }

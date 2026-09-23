@@ -556,7 +556,7 @@ contracts, native integration and remaining automatic/display policy work.
 ## Session input timing
 
 INPUT_TIMING (68719476736) adds `tidyvnc_input_timing_init` and
-`tidyvnc_session_create_with_input_timing`. These are two of the current **111 exports**.
+`tidyvnc_session_create_with_input_timing`. These are two of the current **113 exports**.
 The size/version/reserved-checked timing value owns a pointer interval in milliseconds
 (0 through INT_MAX); initialization returns the shared viewer default of 17 ms.
 Creation also accepts the existing encoding handle and copies all configuration
@@ -685,8 +685,8 @@ retention or persistence; the host controls capture, scope and cancellation.
 
 ## Reverse listener ownership
 
-LISTENER (8796093022208, macOS/Linux) adds nine exports, bringing the current ABI
-export count to **111**. Listener creation uses the app runtime's separate lazy
+LISTENER (8796093022208, macOS/Linux) adds nine exports, bringing the ABI
+export count at that milestone to **111**. Listener creation uses the app runtime's separate lazy
 four-listener service. Copied snapshot/event structs expose numeric bound/peer
 addresses, pending counts, monotonic peer/event IDs and typed failure/native codes.
 Ordered queues preserve terminal delivery on overflow; no protocol bytes are read
@@ -706,3 +706,17 @@ peer ownership before dispatch. Its close drains workers and queued callbacks; i
 performs no recurring state polling. CLI activation, incoming-peer presentation,
 reverse identity/store policy and installed acceptance remain open. See
 [LISTEN.md](../../plans/native-ui/LISTEN.md) for the integration contract and bounds.
+
+
+### Numeric viewport diagnostics
+
+`TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS` (35184372088832) adds
+`tidyvnc_logging_viewport`, bringing the C header to 113 status-returning exports
+(including routed connect). It accepts logical and backing width/height in
+1..INT32_MAX; zero and overflow are rejected. The `NativeDesktop` writer emits
+only those four measurements at debug level 100 through the existing logging
+route. A disabled route is a successful no-op, including after runtime creation.
+No logging policy or session state changes. RedactedLogger admits only the exact
+numeric template. Native automatic-resize protocol tests use it to compare wire
+requests with measured viewport dimensions. See
+[PROTOCOL.md](../../plans/native-ui/PROTOCOL.md).

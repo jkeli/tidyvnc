@@ -1,7 +1,7 @@
 # Native UI architecture and macOS SwiftUI migration
 
 For the current implementation checkpoint and restart instructions, see
-[RESUME.md](RESUME.md) (updated 2026-09-22). The
+[RESUME.md](RESUME.md) (updated 2026-09-23). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
 review, native Help/About resources, and 1052 English-source UI entries plus 2 system-metadata entries
 are implemented. Actual Help/About interaction and expanded Settings/trust layouts
@@ -33,6 +33,12 @@ messages use complete localized sentences over typed values; affected tests pass
 The standard app build now verifies compiler localization records for all 139 Swift
 sources (1351 call sites) against the UI catalog. Dynamic text provenance and
 interactive accessibility still need acceptance; see the latest RESUME evidence.
+
+The latest checkpoint passes all 55 retained protocol baseline cases through the
+actual native executable, with measured resize assertions and isolated user state;
+see [PROTOCOL.md](PROTOCOL.md). It fixes duplicate AppKit interpretation of CLI
+operands. The full rebuilt automated suites pass **3/756/89**. This is baseline
+wire coverage, not complete protocol, presentation/input or interaction acceptance.
 
 N6.1/N6.3 now provide an explicit Apple-only SwiftUI frontend selector while FLTK
 remains the default. The root viewer target and convenience script share one

@@ -71,6 +71,17 @@ public struct NativeInvocationLaunch: Sendable {
   public var connectsOnReady: Bool { listen == nil && document == nil && !invocation.endpoint.isEmpty }
 }
 public enum NativeInvocationBootstrap {
+  // The native parser owns argv, including hostnames and explicit files. Without
+  // this process-only setting, AppKit interprets bare operands as openFiles and
+  // suppresses the initial scene that consumes our validated launch request.
+  // Real Finder/LaunchServices document events still use the document router.
+  @MainActor public static func prepareAppKit() {
+    let defaults = UserDefaults.standard
+    var arguments = defaults.volatileDomain(forName:UserDefaults.argumentDomain)
+    arguments["NSTreatUnknownArgumentsAsOpen"] = false
+    defaults.setVolatileDomain(arguments,forName:UserDefaults.argumentDomain)
+  }
+
   public static func terminal(_ options: NativeInvocationOptions, version: String, copyright: String = "") throws -> NativeInvocationTerminal? {
     guard options.action != .launch else { return nil }
     _ = try NativeProcessLogging.selection(options)

@@ -595,8 +595,8 @@ target_include_directories(native-invocation-launch-ui-tests PRIVATE support)
 target_link_libraries(native-invocation-launch-ui-tests PRIVATE tidyvnc_macos_bridge native-test-peer)
 add_custom_command(TARGET native-invocation-launch-ui-tests POST_BUILD
   COMMAND /usr/bin/codesign --force --sign - "$<TARGET_BUNDLE_DIR:native-invocation-launch-ui-tests>" VERBATIM)
-add_test(NAME NativeInvocation.SwiftUIFirstWindowOwnership COMMAND native-invocation-launch-ui-tests -Shared)
-add_test(NAME NativeInvocation.SwiftUIFileReviewOwnership COMMAND native-invocation-launch-ui-tests -Shared)
+add_test(NAME NativeInvocation.SwiftUIFirstWindowOwnership COMMAND native-invocation-launch-ui-tests -Shared=on fixture.invalid)
+add_test(NAME NativeInvocation.SwiftUIFileReviewOwnership COMMAND native-invocation-launch-ui-tests -Shared=on ./fixture.tidyvnc)
 set_tests_properties(NativeInvocation.SwiftUIFileReviewOwnership PROPERTIES ENVIRONMENT "TIDYVNC_LAUNCH_FIXTURE_FILE=1")
 set_tests_properties(NativeInvocation.SwiftUIFirstWindowOwnership NativeInvocation.SwiftUIFileReviewOwnership PROPERTIES TIMEOUT 40)
 
