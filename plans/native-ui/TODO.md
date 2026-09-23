@@ -796,8 +796,19 @@ UI uses, with migration and credential behavior verified independently.
   - [x] Text contrast: warning/error text moved from system orange/red (1.79:1
     on light sheets) to accessible semantic colours, with a contrast test
     (≥ 4.5:1 light/dark, ≥ 6:1 high contrast) across 26 app files.
-  - [ ] VoiceOver listening pass (reading order, announcements), keyboard
-    traversal/Escape/default actions and an on-device Increase Contrast look.
+  - [x] Keyboard default/cancel actions on presented sheets
+    (`NativeSettings.DraftRendering`, key events delivered to the sheet window):
+    - Input: Escape cancels; Return does nothing with no change and applies a
+      change.
+    - Scaling: Escape cancels without applying.
+    - Encoding: Escape is Done.
+    - Information: Return is Done.
+    - Trust sheet: Return is **Cancel** and never trusts; Escape cancels. A
+      mutation that made Connect Once the default is caught.
+    - Authentication: Escape cancels.
+  - [ ] VoiceOver listening pass (reading order, announcements), Tab traversal
+    (depends on the system Keyboard Navigation setting), Save-panel Command-Q and
+    an on-device Increase Contrast look.
 - [ ] N4.18 Update parity inventory with native screenshots and UI-test/manual evidence for every control and action; record intentional differences explicitly.
 
 Exit: all existing macOS UI behaviors have tested native counterparts; no

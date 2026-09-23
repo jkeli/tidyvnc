@@ -50,6 +50,12 @@ open in [TODO.md](TODO.md).
 
 ## Keyboard interaction with assistive technology
 
+- **Sheets.** Every settings sheet has a keyboard Cancel (Escape) and, where
+  applicable, a default action (Return) that applies only valid changes. On the
+  certificate/host-key trust sheet the default (Return) is **Cancel**; trusting
+  always needs an explicit Connect Once or a confirmed save. Tests deliver real
+  key events to the presented sheets (`NativeSettings.DraftRendering`).
+
 - While the remote desktop has focus, keystrokes go to the remote computer.
   Viewer commands use shortcut modifiers, **Control + Option by default**,
   configurable in Input settings: pressing them alone releases keyboard capture;

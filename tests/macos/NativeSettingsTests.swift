@@ -361,6 +361,115 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   print("PASS presented \(name) sheet \(sheet.frame.size): \(bands) matching line(s)")
   return bands
 }
+// Keyboard default/cancel actions of presented sheets (N4.17). Key events go to
+// the presented sheet window, as AppKit delivers them to the key sheet.
+@MainActor final class Counter { var value = 0 }
+@MainActor func presentForKeys<Content: View>(_ content: Content) async throws -> (NSWindow, NSWindow) {
+  let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 900), styleMask: [.titled], backing: .buffered, defer: false)
+  window.isReleasedWhenClosed = false
+  window.contentView = NSHostingView(rootView: Color.clear.sheet(isPresented: .constant(true)) { content })
+  window.orderFront(nil)
+  for _ in 0..<200 where window.attachedSheet == nil { try await Task.sleep(for: .milliseconds(10)) }
+  guard let sheet = window.attachedSheet else { throw Failure(message: "keyboard sheet was not presented") }
+  sheet.makeKey(); try await Task.sleep(for: .milliseconds(200))
+  return (window, sheet)
+}
+@MainActor func press(_ sheet: NSWindow, keyCode: UInt16, characters: String) async throws {
+  for type in [NSEvent.EventType.keyDown, .keyUp] {
+    guard let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+      windowNumber: sheet.windowNumber, context: nil, characters: characters, charactersIgnoringModifiers: characters,
+      isARepeat: false, keyCode: keyCode) else { throw Failure(message: "no key event") }
+    if type == .keyUp || !sheet.performKeyEquivalent(with: event) { sheet.sendEvent(event) }
+  }
+  try await Task.sleep(for: .milliseconds(200))
+}
+@MainActor func dismissKeyboard(_ window: NSWindow) { window.contentView = nil; window.orderOut(nil); window.close() }
+@MainActor func keyboardActions() async throws {
+  let escape = (UInt16(53), "\u{1b}"), enter = (UInt16(36), "\r")
+  let peer = native_test_peer_create_pattern(0)!
+  defer { native_test_peer_destroy(peer) }
+  let runtime = try NativeRuntime(), session = try runtime.makeSession()
+  _ = try await session.connect(endpoint: "127.0.0.1::\(native_test_peer_port(peer))")
+  // Input: Escape cancels; Return with no change does nothing; Return applies a change.
+  let input = NativeInputState(); input.bind(session)
+  for (name, change, key, expectDismiss, expectViewOnly) in [
+    ("input escape", true, escape, true, false), ("input return unchanged", false, enter, false, false),
+    ("input return applies", true, enter, true, true)] {
+    let dismissed = Counter(), draft = NativeInputDraft(state: input)
+    if change { draft.viewOnly = !input.value.viewOnly }
+    let before = input.value.viewOnly
+    let (window, sheet) = try await presentForKeys(InputSettingsSheet(model: draft, dismiss: { dismissed.value += 1 }))
+    try await press(sheet, keyCode: key.0, characters: key.1)
+    dismissKeyboard(window)
+    guard (dismissed.value == 1) == expectDismiss, (input.value.viewOnly != before) == expectViewOnly else {
+      throw Failure(message: "\(name): dismissed \(dismissed.value), view-only \(before) -> \(input.value.viewOnly)")
+    }
+    if expectViewOnly { let undo = NativeInputDraft(state: input); undo.viewOnly = before; _ = undo.apply() }
+    print("PASS keyboard \(name)")
+  }
+  input.stop()
+  // Scaling: Escape cancels without applying.
+  let scalingState = NativeScalingState(), scaling = NativeScalingDraft(state: scalingState), scalingDismissed = Counter()
+  scaling.filter = .nearest
+  let (scalingWindow, scalingSheet) = try await presentForKeys(ScalingSettingsSheet(model: scaling, dismiss: { scalingDismissed.value += 1 }))
+  try await press(scalingSheet, keyCode: escape.0, characters: escape.1)
+  dismissKeyboard(scalingWindow)
+  guard scalingDismissed.value == 1, scalingState.value.filter != .nearest else {
+    throw Failure(message: "scaling escape: dismissed \(scalingDismissed.value), filter \(scalingState.value.filter)")
+  }
+  print("PASS keyboard scaling escape")
+  // Live encoding: Escape is Done/Cancel.
+  let target = try EncodingTarget(), encoding = NativeSessionEncodingDraft(target: target), encodingDismissed = Counter()
+  encoding.reload()
+  let (encodingWindow, encodingSheet) = try await presentForKeys(SessionEncodingSheet(model: encoding, dismiss: { encodingDismissed.value += 1 }))
+  try await press(encodingSheet, keyCode: escape.0, characters: escape.1)
+  dismissKeyboard(encodingWindow)
+  guard encodingDismissed.value == 1 else { throw Failure(message: "encoding escape did not dismiss") }
+  print("PASS keyboard encoding escape")
+  // Information: Return is Done.
+  let infoDismissed = Counter()
+  let (infoWindow, infoSheet) = try await presentForKeys(ConnectionInformationSheet(endpoint: "fixture.invalid::5901", session: session,
+    copy: { _ in }, dismiss: { infoDismissed.value += 1 }))
+  try await press(infoSheet, keyCode: enter.0, characters: enter.1)
+  dismissKeyboard(infoWindow)
+  guard infoDismissed.value == 1 else { throw Failure(message: "information return did not dismiss") }
+  print("PASS keyboard information return")
+  // Authentication and trust prompts. ConnectionModel.cancel() also cancels the
+  // model's trust request (canConnectOnce turns false), which makes Cancel
+  // observable; a recording target shows whether any key trusted the certificate.
+  final class RecordingTrustTarget: NativeTrustTarget {
+    var prompt: NativePrompt?, generation: UInt64 = 7, isClosing = false, replies: [Bool] = []
+    func replyTrust(to request: NativePrompt, allowed: Bool) throws { replies.append(allowed) }
+  }
+  let model = ConnectionModel(runtime: runtime, preferences: NativePreferencesStore(backing: SettingsBacking()),
+                              credentialStore: NativeCredentialStore()) { _, _ in }
+  // The model binds its trust to its own session once that exists; set up after.
+  try await waitForEncoding { model.session != nil }
+  try await Task.sleep(for: .milliseconds(200))
+  let certificate = NativePrompt(id: 9, generation: 7, kind: .certificate, secure: false, usernameRequired: false,
+    certificateStatus: 66, serverName: "fixture.invalid", fingerprint: "", identity: trustFixtureCertificate)
+  let credentials = NativePrompt(id: 10, generation: 7, kind: .credentials, secure: false, securityType: 2,
+    usernameRequired: false, certificateStatus: 0, serverName: "fixture.invalid", fingerprint: "", identity: Data())
+  for (name, request, key, expectCancel) in [("trust without a key stays pending", certificate, nil, false),
+                                              ("trust return is cancel", certificate, enter, true),
+                                              ("trust escape", certificate, escape, true),
+                                              ("authentication escape", credentials, escape, true)] as [(String, NativePrompt, (UInt16, String)?, Bool)] {
+    let target = RecordingTrustTarget(); target.prompt = certificate
+    model.trust.bind(target); model.trust.beginAttempt(endpoint: "fixture.invalid::5902"); model.trust.inspect(certificate)
+    try await waitForTrust { model.trust.canConnectOnce(certificate) }
+    let (window, sheet) = try await presentForKeys(AuthenticationSheet(model: model, session: session, request: request,
+                                                                       trustModel: model.trust))
+    if let key { try await press(sheet, keyCode: key.0, characters: key.1) } else { try await Task.sleep(for: .milliseconds(200)) }
+    let active = model.trust.canConnectOnce(certificate), replies = target.replies
+    dismissKeyboard(window)
+    guard active != expectCancel, !replies.contains(true) else {
+      throw Failure(message: "\(name): trust request \(active ? "still active" : "cancelled"), replies \(replies)")
+    }
+    print("PASS keyboard \(name)")
+  }
+  await model.close()
+  try await session.close(); try await runtime.shutdown()
+}
 @MainActor func waitForTrust(_ ready: () -> Bool) async throws {
   for _ in 0..<1000 { if ready() { return }; try await Task.sleep(for: .milliseconds(3)) }
   throw Failure(message: "Trust render timed out")
@@ -490,6 +599,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     do {
       let directory = URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? NSTemporaryDirectory())
       try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+      try await keyboardActions()
       try await renderConnectionScreen(directory:directory)
       if CommandLine.arguments.contains("--connection-only") { return }
       try await renderRecentHistory(directory: directory)
