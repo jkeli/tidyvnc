@@ -107,3 +107,37 @@ at 0% CPU; no app crash was established. Do not mark draft-screen acceptance pas
 No Save action was invoked. Any resulting unsaved draft remains unverified.
 The running native instance predates the host-key save-failure rebuild and should
 be quit/relaunched through the UI connector before inspecting that new behavior.
+
+## 2026-09-23 — stale instances, quit and current connection window
+
+Computer-use access to `io.github.jkeli.tidyvnc` was granted. Two older dev
+instances were still running (the earlier `build/native-app` process PID 53970 and
+a pre-rebuild `build/native-ui-frontend` process); the shared bundle identifier
+made the connector pick one without a choice.
+
+- The earlier interrupted profile draft (see 2026-09-22) was on screen: New Profile
+  had opened an empty draft editor with Save and Open Connection disabled, Cancel
+  Edits and Discard Edits and Reload available, and Connection/Fullscreen sections
+  showing App default values. Cancel Edits returned to the empty library ("No saved
+  profiles", "Choose a profile or create a new one"); nothing was saved. This is
+  an old build, so it closes the earlier "unverified draft" question only.
+- TidyVNC › Quit TidyVNC terminated each stale instance with its Help, Saved
+  Profiles and connection windows open; no process remained. This is an actual
+  menu Quit of idle windows, not quit with pending IO/auth/store work (N6.10).
+- The current Debug build (launched from `build/native-ui-frontend`) opened one
+  960×700 connection window showing the defaults-import offer (Review Import… /
+  Not Now), the server address and SSH gateway fields, a disabled Connect button,
+  labelled toolbar controls (Recent connections, Saved profiles, Clipboard sharing,
+  Connection actions, Input/Scaling/Encoding settings), the "Connect to a desktop"
+  guidance and a "Ready" status. Not Now was deliberately not pressed: this build
+  shares the user's real preference domain.
+
+To avoid writing the user's real history/preferences during a connected check,
+`tests/macos/isolated-app.py` now launches a copy with a UUID bundle identifier,
+fresh HOME/XDG roots and a relocated Foundation home, reusing the protocol
+baseline's `native-isolation.swift` verification and cleanup. The loopback peer
+executable accepts `bell` and `keys <keysym>` commands for such checks. The copy
+launched and passed isolation, but the computer-use access request for its
+bundle identifier was **denied**, so no connected, keyboard, bell or menu
+interaction was performed; the copy, peer and fixture domains were removed.
+Connected-window, keyboard, VoiceOver and physical acceptance remain open.
