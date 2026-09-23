@@ -73,6 +73,23 @@ known socket leaves. This includes bounded direct `control.*` socket leaves left
 if a master is killed while staging its control socket, as shown in the
 [OpenSSH mux listener implementation](https://github.com/openssh/openssh-portable/blob/master/mux.c#L1234).
 Cleanup never recurses or removes regular files/symlinks under those names.
+
+The exit handler also accounts for early kernel notification: Darwin's
+[`proc_exit`](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_exit.c)
+posts NOTE_EXIT before marking the child waitable. A WNOHANG miss after notification
+now schedules one coalesced 10 ms retry, preserving WNOWAIT and the owned PID/group
+until the real status is available. It does not poll live children before an exit
+notification, block the UI thread, extend connection deadlines or fabricate exit
+status. Repeated wait/cancel still returns the one terminal result.
+
+The full automated workflow exposed an intermittent SSH configuration/prompt
+timeout. A deterministic test hides the first four waitid observations after
+launch: the old implementation loses completion, while the retry joins correctly
+and invokes the exit callback once. Real ECDSA review fixtures now report their
+fixed mode/configuration phase and propagate startup failures immediately instead
+of masking them as a missing prompt. They retain redacted typed configuration
+failure reasons without logging configuration content or credentials. See the
+latest RESUME/TODO evidence for full-suite, repetition and sanitizer results.
 Dropping an owner also requests cancellation; private cleanup
 remains retained until child exit. A fresh owner is required for reconnect.
 

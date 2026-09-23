@@ -1,0 +1,94 @@
+name: Native macOS viewer
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    name: Native ${{ matrix.id }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The provisional floor remains required while this image is available.
+          # macOS 14 hosted images retire 2026-11-02; replace with a suitable
+          # minimum-OS runner before then, rather than removing the floor check.
+          - id: minimum-arm64
+            os: macos-14
+            arch: arm64
+            xcode: /Applications/Xcode_16.2.app/Contents/Developer
+            configuration: Debug
+          - id: current-arm64
+            os: macos-26
+            arch: arm64
+            xcode: /Applications/Xcode_26.6.app/Contents/Developer
+            configuration: Debug
+          - id: current-intel
+            os: macos-26-intel
+            arch: x86_64
+            xcode: /Applications/Xcode_26.6.app/Contents/Developer
+            configuration: Debug
+          - id: release-arm64
+            os: macos-26
+            arch: arm64
+            xcode: /Applications/Xcode_26.6.app/Contents/Developer
+            configuration: Release
+          - id: preview-arm64
+            os: xcode-27
+            arch: arm64
+            xcode: /Applications/Xcode.app/Contents/Developer
+            configuration: Debug
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: ${{ matrix.xcode }}
+      NATIVE_CONFIGURATION: ${{ matrix.configuration }}
+      EXPECTED_ARCHITECTURE: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify runner and install protocol/test dependencies
+        run: |
+          test "$(uname -m)" = "$EXPECTED_ARCHITECTURE"
+          xcodebuild -version
+          brew install cmake ninja pixman jpeg-turbo gnutls nettle googletest
+      - name: Record actual host, toolchain and dependencies
+        run: |
+          mkdir -p build/native-ci
+          sw_vers > build/native-ci/host.txt
+          uname -m >> build/native-ci/host.txt
+          xcodebuild -version > build/native-ci/toolchain.txt
+          xcrun swift --version >> build/native-ci/toolchain.txt
+          cmake --version >> build/native-ci/toolchain.txt
+          brew info --json=v2 cmake ninja pixman jpeg-turbo gnutls nettle googletest > build/native-ci/dependencies.json
+      - name: Build app and verify all automated suites and bundle
+        run: |
+          set -o pipefail
+          python3 apps/macos/build.py --build-dir build/native-ci \
+            --developer-dir "$DEVELOPER_DIR" --prefix "$(brew --prefix)" \
+            --configuration "$NATIVE_CONFIGURATION" --parallel 2 --test \
+            2>&1 | tee build/native-ci/build.log
+      - name: Preserve development bundle for inspection
+        if: always()
+        run: |
+          app="build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app"
+          if [ -d "$app" ]; then
+            ditto -c -k --sequesterRsrc --keepParent "$app" build/native-ci/NativeDevelopmentApp.zip
+          fi
+      - name: Upload development evidence (not a distribution release)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-development-${{ matrix.id }}
+          if-no-files-found: warn
+          path: |
+            build/native-ci/host.txt
+            build/native-ci/toolchain.txt
+            build/native-ci/dependencies.json
+            build/native-ci/build.log
+            build/native-ci/NativeDevelopmentApp.zip
+            build/native-ci/verification/**/summary.json
+            build/native-ci/verification/**/*.xml
+            build/native-ci/verification/**/*.log
+            build/native-ci/core/tests/macos/**/*.png

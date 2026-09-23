@@ -92,4 +92,7 @@ endforeach()
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/LocalizationSources.txt "${app_localization_manifest}")
 add_custom_command(TARGET TidyVNC POST_BUILD
   COMMAND /usr/bin/codesign --force --sign - "$<TARGET_BUNDLE_DIR:TidyVNC>/Contents/MacOS/tidyvnc-ssh-askpass"
+  COMMAND ${Python3_EXECUTABLE} ${TIDYVNC_SOURCE_DIR}/tests/macos/localization-source.py
+    --record-build ${CMAKE_CURRENT_BINARY_DIR}/LocalizationSources.txt
+    ${CMAKE_CURRENT_BINARY_DIR}/build/TidyVNC.build/$<CONFIG>
   VERBATIM)

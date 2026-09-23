@@ -26,7 +26,7 @@ text now have catalog coverage and expanded behavior checks; see the latest evid
 CLI and Keychain presentation now have catalog coverage, protected syntax arguments
 and byte-identical English terminal output; real OS prompt acceptance remains open.
 Startup/desktop errors now use structured, redacted recovery and injected-failure
-checks. The latest full rebuilt native suite passes 86/86; see RESUME/TODO for scope.
+checks. The latest full rebuilt native suite passes 88/88; see RESUME/TODO for scope.
 Native metadata now has a separate compiled InfoPlist catalog. Trust identity
 messages use complete localized sentences over typed values; affected tests pass
 5/5 after the prior full-suite checkpoint. System Finder/privacy acceptance is open.
@@ -38,7 +38,12 @@ N6.1/N6.3 now provide an explicit Apple-only SwiftUI frontend selector while FLT
 remains the default. The root viewer target and convenience script share one
 CMake core → Xcode app path with checked configuration/SDK/architecture/floor
 handoff. Clean native/headless and retained FLTK build evidence is in [BUILD.md](BUILD.md).
-Full native CI, deployment/installed-app acceptance, packaging and cutover remain open.
+The automated all-target build/test path passes 3 viewer, 756 core and 88 native
+tests plus bundle/CLI checks. Native CI is defined; hosted matrix execution,
+deployment/installed-app acceptance, distribution packaging and cutover remain open.
+SSH exit notification now retains completion across Darwin's early notification;
+compiler localization freshness uses completed-build content receipts. See RESUME
+for the deterministic/repeated/sanitized checks and final full-run evidence.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,

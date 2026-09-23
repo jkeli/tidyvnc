@@ -34,6 +34,7 @@ class CatalogAuditTests(unittest.TestCase):
              "location": {"startingLine": 1, "startingColumn": 1}}]}}
         record.update(overrides)
         self.record.write_text(json.dumps(record))
+        audit_module.record_build(self.manifest, self.records)
 
     def run_audit(self):
         self.catalog.write_text(json.dumps({"sourceLanguage": "en", "strings": {
@@ -60,10 +61,24 @@ class CatalogAuditTests(unittest.TestCase):
         self.record.unlink()
         self.assertTrue(any("Missing current compiler record" in issue for issue in self.run_audit()[0]))
 
-    def test_stale_source_record(self):
-        newer = self.record.stat().st_mtime_ns + 1_000_000_000
-        os.utime(self.source, ns=(newer, newer))
-        self.assertTrue(any("Stale compiler record" in issue for issue in self.run_audit()[0]))
+    def test_changed_source_requires_completed_build(self):
+        self.source.write_text("// Changed after compilation\n")
+        self.assertTrue(any("Stale completed build receipt" in issue for issue in self.run_audit()[0]))
+
+    def test_byte_identical_record_can_predate_recompiled_source(self):
+        self.source.write_text("// Code-only change with identical localization output\n")
+        older = self.source.stat().st_mtime_ns - 1_000_000_000
+        os.utime(self.record, ns=(older, older))
+        audit_module.record_build(self.manifest, self.records)
+        self.assertEqual(self.run_audit(), ([], 1, 1, 1))
+
+    def test_record_changed_after_build_fails(self):
+        self.record.write_text(self.record.read_text() + "\n")
+        self.assertTrue(any("Stale completed build receipt" in issue for issue in self.run_audit()[0]))
+
+    def test_missing_receipt_fails(self):
+        self.manifest.with_suffix(".built.json").unlink()
+        self.assertTrue(any("Missing completed build receipt" in issue for issue in self.run_audit()[0]))
 
     def test_same_basename_wrong_source_cannot_satisfy_manifest(self):
         self.write_record(source=str(self.root / "other/Screen.swift"))

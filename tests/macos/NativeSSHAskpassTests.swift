@@ -205,6 +205,7 @@ func configuredFixture(request: NativeSSHTunnelRequest, key: String, known: Stri
       try (Data("@revoked ".utf8) + trustedBytes).write(to:URL(fileURLWithPath:knownBase + ".revoked"))
     }
   for mode in ["cancel","save","repeat","save-failure","save-failure-auth","changed","revoked"] {
+    print("CHECK host-key mode=\(mode), configured=\(configured)")
     let file = knownBase + ((mode == "changed" || mode == "revoked") ? "." + mode : mode == "cancel" ? ".cancelled" : ".new")
     // A regular file in the parent position makes saving impossible, even when
     // the fixture is run with elevated filesystem privileges.
@@ -224,7 +225,11 @@ func configuredFixture(request: NativeSSHTunnelRequest, key: String, known: Stri
         "-o","GlobalKnownHostsFile=/dev/null"] + request.arguments(command,socket:socket,interactive:true)
     }
     }
-    let starting = Task { try await owner.start() }
+    var startFailure: (any Error)?
+    let starting = Task {
+      do { return try await owner.start() }
+      catch { startFailure = error; throw error }
+    }
     do {
       if mode == "changed" || mode == "revoked" {
         do { _ = try await starting.value; throw Failure(message:"changed key connected") }
@@ -232,7 +237,8 @@ func configuredFixture(request: NativeSSHTunnelRequest, key: String, known: Stri
         try check(model.question == nil,"changed key cannot be approved as new")
         try check(try Data(contentsOf:URL(fileURLWithPath:file)) == (mode == "changed" ? changedBytes : Data("@revoked ".utf8) + trustedBytes),"changed/revoked key never overwritten")
       } else {
-        try await until("host-key or password request: \(mode), configured=\(configured)") { model.question != nil }
+        try await until("host-key or password request: \(mode), configured=\(configured)") { model.question != nil || startFailure != nil }
+        if let startFailure { throw startFailure }
         if mode != "repeat" {
           try check(model.question?.kind == .hostKey && model.question?.hostKey?.fingerprint == expected,"offered key fingerprint independently verified")
           try check(!FileManager.default.fileExists(atPath:effectiveFile),"no trust write before approval")
@@ -375,6 +381,15 @@ func keyValidation() throws {
       try await isolation(executable:executable); try await unsafeInputs(executable:executable)
       try await renderPrompts()
       print("PASS private SSH askpass transport, response bounds, route isolation, cancellation and joined cleanup")
+    } catch let error as NativeSSHConfigurationIssue {
+      let reason: String
+      switch error {
+      case .failed: reason = "process failed"
+      case .timedOut: reason = "process timed out"
+      case .invalidOutput: reason = "invalid output"
+      case .changedPolicy: reason = "changed policy"
+      }
+      FileHandle.standardError.write(Data("FAIL: SSH configuration \(reason)\n".utf8)); exit(1)
     } catch { FileHandle.standardError.write(Data("FAIL: \(error)\n".utf8)); exit(1) }
   }
 }

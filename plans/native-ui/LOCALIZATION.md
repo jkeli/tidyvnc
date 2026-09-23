@@ -381,7 +381,7 @@ python3 tests/macos/localization-source.py apps/macos/Localizable.xcstrings \
     build/native-app/app/build/TidyVNC.build/Debug
 ```
 
-The checker has 13 failure/coverage tests (`localization-source-tests.py`), registered
+The checker initially had 13 failure/coverage tests (`localization-source-tests.py`), registered
 as `NativeLocalization.CompilerCatalogAudit`. These cover incomplete/stale/wrong-source
 records, missing/orphaned keys, format mismatch and supported compiler edge cases.
 Compiler output sometimes omits locations on synthesized expressions; their
@@ -405,3 +405,23 @@ Profile inheritance/isolation and expanded rendering pass. An isolated SwiftUI
 accessibility-tree experiment returned no children and could not verify activation;
 that unsupported fixture is not part of the shipped suite. Actual VoiceOver and
 keyboard acceptance remain open and are not inferred from source labels or renders.
+
+The full build/test workflow subsequently exposed an invalid freshness assumption:
+Swift preserves a byte-identical `.stringsdata` file when recompiling a source whose
+localized content did not change. Comparing record/source mtimes therefore rejected
+a successfully rebuilt SSH process implementation. The check now uses
+`LocalizationSources.built.json`, emitted by each target's successful POST_BUILD
+step. It contains SHA-256 hashes of all current manifest sources and their compiler
+records. The audit requires a matching receipt, complete source records, supported
+record/table formats, and unchanged key/default/interpolation agreement with the
+catalog. Missing receipts and source/record changes after a completed build fail.
+Record timestamps are not used as proof of compilation.
+
+The native bridge now requires Python for its POST_BUILD receipt, including in
+bridge-only mode. The standalone audit command above is unchanged; build the
+targets to create receipts, rather than manually creating them during acceptance.
+The checker now has **16** regressions, including a recompiled source with an older
+unchanged record, changed source/record contents and missing receipt. This fixes
+incremental-build validation; it does not expand localization or interactive
+acceptance claims. Source/catalog counts remain **139 / 1351 / 1050**, plus the
+separate **2** system-metadata keys.

@@ -23,6 +23,40 @@ final class Paths: @unchecked Sendable {
   func add(_ value: String) { lock.withLock { values.append(value) } }
   var all: [String] { lock.withLock { values } }
 }
+// Darwin can deliver NOTE_EXIT before waitid reports a waitable child. Hide the
+// first observations to exercise that ordering without racing the real kernel.
+final class DelayedExitObservation: @unchecked Sendable {
+  private let lock = NSLock()
+  private var remaining = 4, observations = 0, callbacks = 0
+  func observe(_ pid: pid_t,_ information: UnsafeMutablePointer<siginfo_t>) -> Int32 {
+    let delay = lock.withLock { () -> Bool in
+      observations += 1
+      if remaining == 0 { return false }
+      remaining -= 1; return true
+    }
+    if delay { information.pointee = siginfo_t(); return 0 }
+    return waitid(P_PID,id_t(pid),information,WEXITED | WNOHANG | WNOWAIT)
+  }
+  func release() { lock.withLock { remaining = 0 } }
+  func exited() { lock.withLock { callbacks += 1 } }
+  var counts: (Int,Int) { lock.withLock { (observations,callbacks) } }
+}
+func earlyExitNotification() async throws {
+  let observer = DelayedExitObservation()
+  let child = try NativeTunnelProcess.launch(executable:"/usr/bin/true",arguments:[],environment:[:],
+    observeExit:{ observer.observe($0,$1) },onExit:{ observer.exited() })
+  for _ in 0..<200 where child.exit == nil { try await Task.sleep(for:.milliseconds(10)) }
+  guard child.exit != nil else {
+    // Ensure a failing implementation still releases its real child and waiter.
+    observer.release(); child.cancel(); _ = await child.wait()
+    throw Failure(description:"early exit notification lost before waitid became ready")
+  }
+  let first = await child.wait(), second = await child.wait()
+  child.cancel(); try await Task.sleep(for:.milliseconds(30))
+  let counts = observer.counts
+  try expect(first == .exited(0) && second == first && counts.0 >= 5 && counts.1 == 1,
+             "delayed waitability retains exit status, joins and delivers exactly once")
+}
 func fixture(_ request: NativeSSHTunnelRequest, executable: String, behavior: String = "ready", port: UInt32 = 0,
              timeout: Duration = .seconds(2), paths: Paths = Paths()) -> NativeSSHTunnel {
   return NativeSSHTunnel(request:request,executable:executable,timeout:timeout) { command,socket in
@@ -642,12 +676,14 @@ func snapshotRestrictiveUmask() async throws {
 @main struct Main {
   static func main() async {
     do {
+      if CommandLine.arguments == [CommandLine.arguments[0],"--early-exit"] { try await earlyExitNotification(); return }
       if CommandLine.arguments == [CommandLine.arguments[0],"--snapshot-umask"] { try await snapshotRestrictiveUmask(); return }
       if CommandLine.arguments.count == 5, CommandLine.arguments[1] == "--ssh" {
         try await realSSH(gateway:CommandLine.arguments[2],key:CommandLine.arguments[3],knownHosts:CommandLine.arguments[4]); return
       }
       guard CommandLine.arguments.count == 2 else { throw Failure(description:"fixture path missing") }
       try await requestChecks()
+      try await earlyExitNotification()
       try await boundedOutput(executable:CommandLine.arguments[1])
       try await configurationProbe(executable:CommandLine.arguments[1])
       try await configurationSnapshots()

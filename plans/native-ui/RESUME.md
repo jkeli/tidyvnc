@@ -4,6 +4,47 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Automated native verification and SSH exit recovery
+
+`apps/macos/build.py --test --parallel 2` now builds every target and requires
+complete, fresh CTest inventories/JUnit for viewer, unit and native suites, then
+checks frontend graphs/configuration failures, bundle localization/signature and
+the real CLI. Reports preserve failures/skips and cannot reuse an older run's XML.
+The five-job native CI definition retains existing FLTK/headless workflows, saves
+host/toolchain/dependency details and development artifacts. Hosted execution is
+not yet verified; N6.4 remains open. See [BUILD.md](BUILD.md).
+
+The first complete runs exposed an intermittent real SSH exit race: Darwin may
+post NOTE_EXIT before waitid can observe the child. The owned process now schedules
+one bounded-delay retry at a time after that notification, preserving pinned
+PID/group identity, joined cleanup and exactly-once completion. A deterministic
+regression fails on the old implementation and passes with the fix. Lifecycle and
+real ECDSA checks each pass 20 repetitions; targeted lifecycle checks also pass
+under ASan and TSan. See [TUNNELS.md](TUNNELS.md).
+
+A subsequent rebuild exposed the localization check's incorrect mtime assumption:
+Swift keeps unchanged localization records. Successful target builds now record
+source/record content hashes; the audit requires matching receipts plus complete
+records/catalog coverage. All 16 checker regressions pass. See [LOCALIZATION.md](LOCALIZATION.md).
+
+Final all-target build and verification pass in
+`build/native-ui-frontend/verification/run-yhdlyz2o/summary.json`: **3/3 viewer,
+756/756 unit (21.81 s), 88/88 native (129.47 s)**, graphs **168/3** with no FLTK,
+**10** configure rejection cases, **1050 UI + 2 metadata** bundle entries, strict
+signature and **32** CLI cases. Compiler audit covers **139 sources / 1351 sites**.
+Verifier regressions pass **9/9**; workflow YAML/shell parsing, branding baseline
+**1650** and diff checks pass. All process handles completed.
+
+Earlier failed reports are retained: `run-g6r34__1` caught duplicate pretty-name
+handling in the verifier; `run-f_dttci7` correctly caught the SSH failure. Neither
+is the final green result. The later mtime-gate failure stopped before verification.
+No hosted CI, Intel/minimum-OS, full sanitizer matrix, actual UI/VoiceOver, physical
+input/display, installed privacy/Keychain or distribution acceptance is claimed.
+Development dependencies still require macOS 26/27; the 14.0 floor is provisional.
+Next: exhaustive parity/capability inventory, remaining service/lifecycle gaps,
+distribution packaging and every unchecked acceptance gate. The complete original
+plan stays active and FLTK remains the shipping default.
+
 ## Latest follow-up (2026-09-22) — Explicit frontend build selection
 
 `TIDYVNC_UI=FLTK|SWIFTUI` now selects the application; FLTK remains the default.

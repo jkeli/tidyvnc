@@ -2,14 +2,15 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. Explicit frontend selection and the
-FLTK/native test split now complete **N6.1/N6.3**. Clean SwiftUI and headless
-builds pass, including **756/756** headless unit tests, three viewer tests, ten
-configuration rejection checks and **19/19** retained FLTK surface/state tests.
-The native app has **1050 UI + 2 InfoPlist entries**, with compiler audit coverage
-of **139 sources / 1351 call sites**. The 87-test full native suite was not rerun.
-See [BUILD.md](BUILD.md) and the latest evidence below. The complete migration,
-including interactive/physical/installed/deployment/CI/release gates, remains open.
+implementation, validation and next steps. The native `--test` build now passes
+**3/3 viewer, 756/756 core and 88/88 native tests**, plus graph/configuration,
+localization, signature and 32 CLI checks. Native CI is defined but hosted execution
+is unverified. A real SSH exit race is fixed with deterministic/repeated/sanitized
+proof; compiler localization freshness uses successful-build content receipts.
+The app has **1050 UI + 2 InfoPlist entries**, compiler coverage of **139 sources /
+1351 call sites**, and FLTK remains the default. See [BUILD.md](BUILD.md) and the
+latest evidence below. The complete migration, including interactive/physical/
+installed/deployment/CI/release gates, remains open.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues, N2.3–N2.7 native ownership/app vertical slice, and N6.1/N6.3 frontend selection/test separation. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -688,9 +689,18 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
   - [x] Shared root/convenience CMake → Xcode build, exported core dependencies and
     checked configuration/SDK/architecture/floor handoff, retaining the release
     identity source. Clean build and failure paths pass; see [BUILD.md](BUILD.md).
-  - [ ] Complete test/package automation and distribution dependency assembly.
+  - [x] All-target automated verification with mandatory GoogleTest, complete
+    CTest inventories/JUnit, fresh failure-preserving reports and bundle/CLI checks.
+    Local full pipeline passes; hosted execution remains N6.4.
+  - [ ] Complete distribution package builds and dependency assembly.
 - [x] N6.3 Split FLTK surface-dependent tests from GUI-independent tests; core-only and SwiftUI builds neither discover nor link FLTK. Clean headless/native graph proof and retained FLTK tests are in [BUILD.md](BUILD.md); other-platform CI remains N6.4.
 - [ ] N6.4 Add native build/model/adapter/UI CI jobs and retain Windows/Linux FLTK jobs; test chosen minimum/current macOS and supported architectures, recording unavailable runners.
+  - [x] Five-job native workflow definition, host/toolchain/dependency evidence,
+    failure logs/JUnit/render fixtures and development bundle artifacts. Existing
+    FLTK/headless workflows retained; YAML/shell parsing verified locally.
+  - [ ] Execute hosted matrix, resolve failures and configure minimum-OS Intel
+    coverage; replace retiring minimum-OS runner without waiving that gate.
+  - [ ] Complete actual interactive UI/accessibility and physical/installed checks.
 - [ ] N6.5 Run all applicable original unit tests, new contract/ABI/service tests, supported sanitizers and full protocol regression matrix through the native frontend.
 - [ ] N6.6 Validate bad credentials/trust, clipboard, remote resize, reverse/listen, tunnel, peer disappearance and reconnect; protocol tests supplement native presentation/input evidence.
 - [ ] N6.7 Validate final bundle identity, document associations, localization, credits, Local Network description, signing/resource seal and dependency paths; verify no FLTK linkage/symbols.
@@ -9397,3 +9407,59 @@ native suite, sanitizers, Intel/minimum-OS execution, UI/VoiceOver or installed
 privacy/Keychain acceptance is claimed. Host dylibs still require macOS 26/27;
 the declared 14.0 floor remains provisional. All process handles completed, and
 the entire original plan remains the goal.
+
+### Native verification/CI definition, SSH exit and localization receipts — 2026-09-22
+
+Commit: `fix(macos): harden SSH completion and automate native validation`.
+
+`build.py --test --parallel 2` now requires GoogleTest, builds all native/core
+executables and runs `verify-build.py`. Every run gets a fresh directory, saved
+commands/status, discovered CTest inventories and JUnit. Empty/missing/skipped/
+failed or mismatched coverage fails, preserving duplicate pretty-name counts.
+The driver checks graphs, ten configure failures, packaged localization, strict
+signature and the real app CLI. Nine verifier regressions pass. The five-job CI
+matrix records dependencies/toolchains and preserves development artifacts;
+workflow YAML and all four shell steps parse. No hosted run was dispatched.
+
+An initial verifier incorrectly rejected two distinct parameterized GoogleTests
+with identical pretty names. Counter-based matching fixes this without dropping
+multiplicity. Report `run-g6r34__1` records that failure despite passing actual
+3/756/88 suites. The next report `run-f_dttci7` correctly fails native coverage
+87/88 on intermittent real ECDSA startup. Diagnostic repetition and a deterministic
+fixture identified NOTE_EXIT preceding waitable child state on Darwin. The process
+owner now coalesces 10 ms retries only after exit notification, retaining WNOWAIT
+and the lock until descendant termination/reap. The old implementation fails
+`early exit notification lost before waitid became ready`; the corrected version
+passes. Lifecycle and real ECDSA each pass **20 repetitions** (152.73 s total).
+ASan and TSan each pass the isolated regression and full lifecycle fixture
+(**1/1, 3.29 s** and **1/1, 7.63 s**). These are targeted sanitizer checks.
+
+A subsequent app rebuild succeeded, but the compiler catalog gate rejected an
+unchanged `.stringsdata` timestamp. Swift intentionally preserves that timestamp.
+Core/app POST_BUILD now records source and compiler-record SHA256 values, and the
+audit requires matching completed receipts plus all existing coverage/default/
+interpolation checks. Sixteen checker regressions pass, including changed-source,
+changed-record, absent-receipt and old-but-valid unchanged-record cases. The actual
+final build accepts the unchanged older record with a valid completed receipt.
+Bridge-only builds now also require Python for receipt generation.
+
+Final command: `python3 apps/macos/build.py --build-dir build/native-ui-frontend
+--parallel 2 --test`. All-target build and compiler audit pass (**139 Swift
+sources / 1351 sites / 1050 keys**). Final report
+`build/native-ui-frontend/verification/run-yhdlyz2o/summary.json` is **passed**:
+**3/3 viewer, 756/756 unit (21.81 s), 88/88 native (129.47 s)**; **168 core / 3 app**
+FLTK-free graphs; **10** configure rejections; **1050 + 2** packaged values;
+strict signature and **32** terminal cases. App executable SHA256:
+`79c6d0b57af080ef2256f70e893069cc664fded1a429ca4da10f60e3f9bb098a`.
+Normal host is arm64 macOS 27, Xcode/SDK 27, Debug, NLS/audio/H.264 off and
+GnuTLS/nettle on. Branding baseline **1650** and diff checks pass.
+
+Logs: `/tmp/tidyvnc-verify-build-receipts.log` (final),
+`/tmp/tidyvnc-verify-exit-fix-repeat.log`, `/tmp/tidyvnc-verify-early-exit-{before,after}.log`,
+`/tmp/tidyvnc-verify-exit-{asan,tsan}{,-build,-lifecycle}.log`. Earlier
+`verify-build`, `verify-build-final` and `verify-build-validated` logs record the
+superseded checker, real SSH, and mtime failures respectively. All handles ended.
+No actual-user-app action, hosted CI, minimum-OS/Intel/Release execution, full
+sanitizer/protocol feature matrix, physical/VoiceOver, installed privacy/Keychain
+or distribution acceptance is inferred. N6.2 packaging, N6.4 execution and the
+remaining original plan stay open. FLTK remains the default.

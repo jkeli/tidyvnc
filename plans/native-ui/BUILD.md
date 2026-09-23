@@ -1,7 +1,8 @@
 # Native frontend build boundary
 
-Updated 2026-09-22. This records N6.1/N6.3 and the implemented build portion of
-N6.2. Full packaging, CI, installed-app acceptance and cutover remain open.
+Updated 2026-09-22. This records N6.1/N6.3 and the implemented build/test portions
+of N6.2. Native CI jobs are defined; hosted results are not yet verified. Full
+packaging, installed-app acceptance and cutover remain open.
 
 ## Selection and ownership
 
@@ -40,8 +41,31 @@ the convenience and direct CMake commands and their output paths.
 
 ## Reproduce validation
 
-After `python3 apps/macos/build.py`, build the optional test executables and run
-their separate CTest directories (the root directory does not aggregate tests):
+The complete scripted path is:
+
+```sh
+python3 apps/macos/build.py --test --parallel 2
+```
+
+This requires GoogleTest, requests the core/app File API graphs, builds all
+targets, then invokes `tests/macos/verify-build.py`. It runs all three CTest
+directories serially (120-second default timeout for tests without their own
+limit) and performs graph, configure-rejection, packaged
+localization, strict signature and actual CLI checks. Each run gets a fresh
+directory under `build/native-app/verification`, with per-stage logs, JUnit and
+`summary.json`. The summary records toolchain/host information, executable hash,
+commands, counts and explicit exclusions from acceptance. Stages continue after
+a failure to preserve diagnostic evidence, but the overall exit is nonzero.
+
+The verifier compares JUnit cases with the complete discovered CTest inventory,
+including repeated GoogleTest display names. Missing/extra tests, skips, disabled
+tests, failures, malformed reports and command failures cannot produce a pass.
+Nine failure/coverage tests are registered as `NativeBuild.CompleteTestEvidence`.
+CTest skips for an unavailable isolated SSH fixture remain incomplete acceptance;
+the job does not silently waive them.
+
+For individual investigation after building all targets, use the separate CTest
+directories (the root directory does not aggregate tests):
 
 ```sh
 cmake --build build/native-app/core --parallel 4
@@ -80,7 +104,7 @@ generated configuration's source/compile/link inputs. Run the independent
 [clean headless check](../../viewer/README.md) too. The frontend policy test is
 registered as `ViewerBuild.FrontendSelection` when Python is available.
 
-## Observed result and limits
+## Frontend selection checkpoint and limits
 
 On the arm64 macOS 27 development host with Xcode's macOS 27 SDK:
 
@@ -103,10 +127,66 @@ On the arm64 macOS 27 development host with Xcode's macOS 27 SDK:
 - The selected app passes 32 actual executable CLI cases, 1050 UI + 2 InfoPlist
   bundle values/fallback/interpolation checks, and strict deep signature validation.
 
-No full native suite or sanitizer rerun is claimed for this build-only change;
-the native suite remains 87 tests. The prior full native result was 86/86 before
+No full native suite or sanitizer rerun was claimed for the selection checkpoint;
+its native suite contained 87 tests. The earlier full result was 86/86 before
 the compiler/catalog test was added. The declared 14.0 floor is **not** validated:
 Homebrew dylibs on this host report macOS 26/27 minimums. A universal build, Intel
 execution, minimum/current-OS CI, bundled relocatable dependencies, production
 signing, Finder/Keychain/privacy acceptance, DMG/install/rollback and cutover all
 remain unchecked in TODO. These development results do not waive those gates.
+
+## Native CI definition
+
+`.github/workflows/native-macos.yml` runs the same `build.py --test` path with two
+build jobs. It preserves the existing Windows/Linux/macOS FLTK and headless
+workflows. The new matrix is:
+
+| Role | Runner | Architecture | Xcode | Configuration |
+| --- | --- | --- | --- | --- |
+| Provisional minimum OS | macos-14 | arm64 | 16.2 | Debug |
+| Current stable OS | macos-26 | arm64 | 26.6 | Debug |
+| Current stable Intel | macos-26-intel | x86_64 | 26.6 | Debug |
+| Optimized app/core | macos-26 | arm64 | 26.6 | Release |
+| Next toolchain/OS preview | xcode-27 | arm64 | image default | Debug |
+
+Runner labels and architecture follow GitHub's [hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+Xcode paths were checked against the official [macOS 14 ARM](https://github.com/actions/runner-images/blob/main/images/macos/macos-14-arm64-Readme.md),
+[macOS 26 ARM](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md)
+and [macOS 26 Intel](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md)
+image inventories. The [Xcode 27 image](https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md)
+is a preview and follows its default toolchain. These pages were checked on
+2026-09-22; actual toolchain, host and installed dependency versions are saved per
+run. The macOS 14 inventory announces retirement on 2026-11-02. Before retirement,
+provide a suitable minimum-OS runner; do not remove the gate to make CI green.
+
+The workflow checks the actual architecture, requires all suites, retains failure
+logs/JUnit/summary/rendered fixtures, and archives the development bundle when one
+exists. That ZIP is for inspection, including failed runs; it is not a distribution
+package or release. No deployment, publication, signing credential or secret is
+required. Homebrew dependencies are recorded but remain unbundled.
+
+No hosted job was run or result inspected in this checkpoint. Workflow YAML and
+its shell steps were parsed locally. Minimum-OS/Intel execution and older Swift
+compatibility remain unproven until real jobs pass. The provisional minimum on
+Intel also lacks a configured runner. Actual keyboard/VoiceOver, Finder/privacy/
+Keychain, mixed physical displays, production signing/dependency portability and
+notarization remain separate gates. N6.4 is still unchecked.
+
+## Automated verification checkpoint — 2026-09-22
+
+The final `build.py --build-dir build/native-ui-frontend --parallel 2 --test`
+finishes successfully. `verification/run-yhdlyz2o/summary.json` records **3/3
+viewer, 756/756 core (21.81 s), 88/88 native (129.47 s)**, FLTK-free graphs with
+168 core/3 app targets, 10 configure rejection cases, 1050 UI + 2 metadata bundle
+entries, strict signature and 32 executable CLI cases. The build's compiler audit
+passes 139 Swift sources/1351 call sites. Nine verifier regressions, workflow YAML
+and shell parsing, branding baseline 1650 and diff checks also pass.
+
+The pipeline uncovered a real SSH early-exit notification race, now fixed with a
+deterministic regression, 20 repetitions each of lifecycle/real ECDSA and targeted
+ASan/TSan lifecycle proof. A second rebuild exposed Swift's unchanged localization
+record timestamps; completed-build content receipts now establish freshness, with
+16 checker regressions. See [TUNNELS.md](TUNNELS.md), [LOCALIZATION.md](LOCALIZATION.md)
+and [TODO.md](TODO.md) for failed-run history and final evidence. This is Debug on
+arm64 macOS 27/SDK 27 with GnuTLS/nettle and without NLS/audio/H.264. It does not
+establish the unexecuted CI matrix, dependency portability or manual acceptance.

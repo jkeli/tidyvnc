@@ -18,11 +18,19 @@ final class NativeTunnelProcess: @unchecked Sendable {
   private var source: DispatchSourceProcess?
   private var waiters: [CheckedContinuation<NativeTunnelExit,Never>] = []
   private var cancelling = false
+  private var exitNotified = false, reapRetryScheduled = false
   private let onExit: @Sendable () -> Void
-  private init(onExit: @escaping @Sendable () -> Void) { self.onExit = onExit }
+  private let observeExit: @Sendable (pid_t, UnsafeMutablePointer<siginfo_t>) -> Int32
+  private init(observeExit: @escaping @Sendable (pid_t, UnsafeMutablePointer<siginfo_t>) -> Int32,
+               onExit: @escaping @Sendable () -> Void) {
+    self.observeExit = observeExit; self.onExit = onExit
+  }
 
   static func launch(executable: String, arguments: [String], environment: [String:String],
                      output: NativeTunnelOutput? = nil, standardError: Bool = false,
+                     observeExit: @escaping @Sendable (pid_t, UnsafeMutablePointer<siginfo_t>) -> Int32 = {
+                       waitid(P_PID,id_t($0),$1,WEXITED | WNOHANG | WNOWAIT)
+                     },
                      onExit: @escaping @Sendable () -> Void) throws -> NativeTunnelProcess {
     let writer = try output?.claimWriter()
     var spawned = false
@@ -61,7 +69,7 @@ final class NativeTunnelProcess: @unchecked Sendable {
     let env = environment.sorted { $0.key < $1.key }.map { strdup("\($0.key)=\($0.value)") }
     defer { for pointer in argv + env { free(pointer) } }
     guard argv.allSatisfy({ $0 != nil }), env.allSatisfy({ $0 != nil }) else { throw NativeTunnelError.launchFailed }
-    let owner = NativeTunnelProcess(onExit:onExit)
+    let owner = NativeTunnelProcess(observeExit:observeExit,onExit:onExit)
     var child: pid_t = 0
     let status = (argv + [nil]).withUnsafeBufferPointer { argv in
       (env + [nil]).withUnsafeBufferPointer { env in
@@ -72,7 +80,7 @@ final class NativeTunnelProcess: @unchecked Sendable {
     owner.pid = child; spawned = true
     let source = DispatchSource.makeProcessSource(identifier:child,eventMask:.exit,queue:.global(qos:.utility))
     // Retain the owner until exit, even if a cancelled caller drops its handle.
-    source.setEventHandler { owner.reap() }
+    source.setEventHandler { owner.reap(exitNotification:true) }
     owner.source = source; source.activate()
     output?.didSpawn { [weak owner] in owner?.cancel() }
     owner.reap()
@@ -101,16 +109,27 @@ final class NativeTunnelProcess: @unchecked Sendable {
       reap()
     }
   }
-  private func reap() {
+  private func reap(exitNotification: Bool = false, retry: Bool = false) {
     var completed: NativeTunnelExit?
     var continuations: [CheckedContinuation<NativeTunnelExit,Never>] = []
+    var scheduleRetry = false
     lock.withLock {
+      if retry { reapRetryScheduled = false }
       guard result == nil else { return }
+      exitNotified = exitNotified || exitNotification
       var information = siginfo_t()
       var observed: Int32
-      repeat { observed = waitid(P_PID,id_t(pid),&information,WEXITED | WNOHANG | WNOWAIT) } while observed == -1 && errno == EINTR
-      guard observed == 0,
-            information.si_pid == pid else { return }
+      repeat { observed = observeExit(pid,&information) } while observed == -1 && errno == EINTR
+      guard observed == 0, information.si_pid == pid else {
+        // Darwin posts NOTE_EXIT before making the child waitable. The process
+        // source need not deliver another event after a WNOHANG miss. Retry only
+        // after that exit notification, with one pending callback per owner.
+        // Keep WNOWAIT and the lock so PID/group identity stays pinned until reap.
+        if observed == 0, exitNotified, !reapRetryScheduled {
+          reapRetryScheduled = true; scheduleRetry = true
+        }
+        return
+      }
       // The unreaped leader pins this process-group identity while descendants
       // are terminated. Never signal a PID after releasing it with waitpid.
       _ = kill(-pid,SIGKILL)
@@ -121,6 +140,11 @@ final class NativeTunnelProcess: @unchecked Sendable {
       let value: NativeTunnelExit = status & 0x7f == 0 ? .exited((status >> 8) & 0xff) : .signalled(status & 0x7f)
       result = value; completed = value; continuations = waiters; waiters.removeAll()
       source?.cancel(); source = nil
+    }
+    if scheduleRetry {
+      DispatchQueue.global(qos:.utility).asyncAfter(deadline:.now() + .milliseconds(10)) { [self] in
+        reap(retry:true)
+      }
     }
     if let completed {
       onExit()

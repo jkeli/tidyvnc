@@ -53,7 +53,7 @@ def main():
         reject("missing-swift", ROOT, native + ["-DCMAKE_Swift_COMPILER=NOTFOUND"],
                "BUILD_MACOS_NATIVE requires a Swift 6 toolchain")
         reject("missing-xcode", ROOT, native,
-               "missing DEVELOPER_DIR path", developer=str(directory / "no-xcode"))
+               "DEVELOPER_DIR", developer=str(directory / "no-xcode"))
         # A real CLT installation must also be rejected, even though it has Swift.
         if Path("/Library/Developer/CommandLineTools").exists():
             reject("command-line-tools-only", ROOT, native,

@@ -6,7 +6,8 @@
 default** until the [native acceptance gates](plans/native-ui/TODO.md) pass.
 SwiftUI requires macOS, full Xcode with Swift 6, CMake 3.29+, Ninja, Python 3
 and the protocol libraries below. Command Line Tools alone can build the native
-bridge/tests, but cannot build the Xcode application. The initial deployment
+bridge/tests, but cannot build the Xcode application. Bridge-only builds also
+require Python for completed-build localization receipts. The initial deployment
 target is 14.0; this is not proof that current Homebrew dependencies run on macOS 14.
 
 The convenience command configures one CMake core and uses its `vncviewer` target
@@ -16,6 +17,21 @@ records against the catalog:
 ```sh
 python3 apps/macos/build.py --configuration Debug
 ```
+
+Add `--test` to require GoogleTest, build every test executable and run the full
+automated core/model/adapter/render-fixture and bundle checks. `--parallel` limits
+concurrent build jobs; CTest suites run serially to avoid competing AppKit fixtures:
+
+```sh
+python3 apps/macos/build.py --configuration Debug --parallel 2 --test
+```
+
+Each invocation saves a fresh `build/native-app/verification/run-*/summary.json`,
+JUnit reports and logs. Every registered test must run and pass; skipped tests
+fail this verification rather than silently satisfying coverage. Failed stages
+do not prevent collection of the remaining test and bundle evidence. These checks
+do not establish interactive keyboard/VoiceOver, physical-display, installed
+privacy/Keychain or distribution acceptance.
 
 Output: `build/native-app/app/Debug/TidyVNC.app`. Use `--configuration Release`,
 `--build-dir`, `--developer-dir`, `--prefix` or `--deployment-target` to select

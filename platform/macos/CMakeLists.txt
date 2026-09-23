@@ -129,6 +129,12 @@ foreach(source IN LISTS native_localization_sources)
   endif()
 endforeach()
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/LocalizationSources.txt "${native_localization_manifest}")
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_custom_command(TARGET tidyvnc_macos_bridge POST_BUILD
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/macos/localization-source.py
+    --record-build ${CMAKE_CURRENT_BINARY_DIR}/LocalizationSources.txt
+    ${CMAKE_CURRENT_BINARY_DIR}/localization
+  VERBATIM)
 target_include_directories(tidyvnc_macos_bridge INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/modules)
 target_link_libraries(tidyvnc_macos_bridge PUBLIC tidyvnc_viewer_c tidyvnc_macos_keymap tidyvnc_macos_askpass "-lc++")
 

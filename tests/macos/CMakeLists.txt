@@ -755,4 +755,7 @@ if(Python3_Interpreter_FOUND)
   add_test(NAME NativeLocalization.CompilerCatalogAudit
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/localization-source-tests.py)
   set_tests_properties(NativeLocalization.CompilerCatalogAudit PROPERTIES TIMEOUT 10)
+  add_test(NAME NativeBuild.CompleteTestEvidence
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/verify-build-tests.py)
+  set_tests_properties(NativeBuild.CompleteTestEvidence PROPERTIES TIMEOUT 10)
 endif()

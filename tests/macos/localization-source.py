@@ -6,8 +6,41 @@ the directory containing that module's compiler-emitted .stringsdata records.
 This checks annotated localization APIs, not arbitrary dynamic UI text or layout.
 """
 import argparse
+import hashlib
 import json
 from pathlib import Path
+
+
+def source_paths(manifest):
+    expected = {Path(line).resolve() for line in manifest.read_text().splitlines() if line}
+    if not expected:
+        raise ValueError(f"Empty source manifest: {manifest}")
+    missing = [str(path) for path in expected if not path.is_file()]
+    if missing:
+        raise ValueError(f"Missing manifest sources: {missing}")
+    return expected
+
+
+def records_for(directory, expected):
+    for path in sorted(directory.rglob("*.stringsdata")):
+        record = json.loads(path.read_text())
+        source = Path(record.get("source", "")).resolve()
+        if source in expected:
+            yield path, record, source
+
+
+def build_contents(manifest, directory):
+    expected = source_paths(manifest)
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    return {"version": 1, "sources": {str(path): digest(path) for path in sorted(expected)},
+            "records": {str(path.resolve()): digest(path) for path, _, _ in records_for(directory, expected)}}
+
+
+def record_build(manifest, directory):
+    # Called by the successful target's POST_BUILD command. Swift intentionally
+    # retains byte-identical .stringsdata files; their mtime is not compile proof.
+    receipt = manifest.with_suffix(".built.json")
+    receipt.write_text(json.dumps(build_contents(manifest, directory), indent=2) + "\n")
 
 
 def audit(catalog_path, modules):
@@ -17,25 +50,18 @@ def audit(catalog_path, modules):
     strings = catalog["strings"]
     errors, observed, sources, sites = [], set(), set(), set()
     for manifest, directory in modules:
-        expected = {Path(line).resolve() for line in manifest.read_text().splitlines() if line}
-        if not expected:
-            raise ValueError(f"Empty source manifest: {manifest}")
-        missing_files = [str(path) for path in expected if not path.is_file()]
-        if missing_files:
-            raise ValueError(f"Missing manifest sources: {missing_files}")
+        expected = source_paths(manifest)
+        receipt = manifest.with_suffix(".built.json")
+        if not receipt.is_file():
+            errors.append(f"Missing completed build receipt: {manifest}; rebuild the app")
+        elif json.loads(receipt.read_text()) != build_contents(manifest, directory):
+            errors.append(f"Stale completed build receipt: {manifest}; sources or records changed; rebuild the app")
         found = set()
-        for path in sorted(directory.rglob("*.stringsdata")):
-            record = json.loads(path.read_text())
-            source = Path(record.get("source", "")).resolve()
+        for path, record, source in records_for(directory, expected):
             # Ignore old files removed from the target and generated App Shortcuts
             # metadata. Only the current CMake source lists define this audit.
-            if source not in expected:
-                continue
             if record.get("version") != 1:
                 raise ValueError(f"Unsupported Swift localization record: {path}")
-            if path.stat().st_mtime_ns < source.stat().st_mtime_ns:
-                errors.append(f"Stale compiler record: {source}; rebuild the app")
-                continue
             found.add(source)
             for table, entries in record["tables"].items():
                 if table != "Localizable":
@@ -71,10 +97,19 @@ def audit(catalog_path, modules):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("catalog", type=Path)
-    parser.add_argument("--module", nargs=2, action="append", required=True,
+    parser.add_argument("catalog", type=Path, nargs="?")
+    parser.add_argument("--record-build", nargs=2, type=Path, metavar=("SOURCES", "RECORDS"),
+                        help="Record source/record hashes after successful target compilation")
+    parser.add_argument("--module", nargs=2, action="append",
                         type=Path, metavar=("SOURCES", "RECORDS"))
     args = parser.parse_args()
+    if args.record_build:
+        if args.catalog or args.module:
+            parser.error("--record-build cannot be combined with an audit")
+        record_build(*args.record_build)
+        return
+    if not args.catalog or not args.module:
+        parser.error("an audit requires a catalog and at least one --module")
     errors, sources, sites, keys = audit(args.catalog, args.module)
     if errors:
         raise SystemExit("\n".join(errors))
