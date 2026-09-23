@@ -288,3 +288,11 @@ covered by `tests/integration/macos-auth-smoke.py` (VNC_PASSWORD).
   past TLS.
 - File › Save Connection File As… and the Connection menu require the key window,
   so they were unavailable in background mode (Save-panel Command-Q remains open).
+
+## 2026-09-23 — keyboard pass access declined
+
+A further isolated copy was launched for a keyboard-only pass: Escape on the
+password prompt, Tab traversal, and Command-Q with the Save panel open (N3.3).
+The access request, which included system key combinations, was **denied**. No
+interaction took place; the copy, the peer and the fixture domains were removed.
+These keyboard checks remain open.

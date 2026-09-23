@@ -27,9 +27,13 @@ Everything still open needs one of:
    full-screen pass on 2026-09-23 verified keyboard pairing, Ctrl-Alt-Delete,
    Hold Control, view-only, info/statistics with live resize, the scaling filter,
    encoding cancel, recent connections, handshake cancel, the refused alert and
-   Settings vs live sheets (UI-ACCEPTANCE.md). Remaining: VoiceOver/contrast,
-   keyboard-only traversal, clipboard traffic (the pasteboard is not isolated),
-   auth/trust sheets, fullscreen and physical displays.
+   Settings vs live sheets (UI-ACCEPTANCE.md). A background pass verified the
+   auth sheet (and fixed a truncated credential warning) and the full TLS trust
+   flow (fingerprint/SPKI, Connect Once, saved exception, Forget, Cancel).
+   Remaining: VoiceOver/contrast, keyboard-only traversal, Escape on sheets and
+   Save-panel Command-Q (access for that pass was declined; ask before
+   re-requesting), clipboard traffic (the pasteboard is not isolated),
+   fullscreen and physical displays.
 2. **Hardware/installation** (N0.4 baseline screenshots, N0.6 minimum OS/Intel,
    N0.8/N5.7/N5.8 mixed displays and Spaces, N6.8–N6.10 installed consent, signing
    identity, Keychain upgrade, sleep/wake, N3.9–N3.12/N3.14 real Keychain).
