@@ -141,3 +141,40 @@ launched and passed isolation, but the computer-use access request for its
 bundle identifier was **denied**, so no connected, keyboard, bell or menu
 interaction was performed; the copy, peer and fixture domains were removed.
 Connected-window, keyboard, VoiceOver and physical acceptance remain open.
+
+## 2026-09-23 — isolated copy: first use, keyboard connect, display, disconnect, quit
+
+With the user's approval, computer-use drove an isolated copy launched by
+`tests/macos/isolated-app.py` (bundle `io.github.jkeli.tidyvnc.protocol-fixture.<uuid>`,
+fresh HOME/XDG, `-SecurityTypes=None -SendClipboard=0 -AcceptClipboard=0`) against
+the loopback peer (`native-loopback-peer`, 2×2 red/green/blue/white pattern). The
+user's current Space was a full-screen app, so only background (accessibility and
+raw window input) control was available; the full-screen approval was not answered.
+
+Observed in the actual app:
+
+- First launch with an empty home shows both first-use offers: "Review Import…"
+  for defaults and a separate "Review History…" for recent servers, each with Not Now.
+- Review Import… opens "Import Connection Defaults", which explains what is
+  excluded (passwords, addresses, security settings, certificate files, trust
+  decisions, tunnel commands, recent servers) and offers the current and legacy
+  sources separately. Reviewing the current source with no file shows "No defaults
+  file was found for that source…" and keeps the window open. Escape closes it.
+- Typing `127.0.0.1::62075` into the address field enables Connect; **Return alone
+  connects** (keyboard-first). The window then shows the desktop, "Connected",
+  "2 × 2", Disconnect in place of Connect, a disabled address field and enabled
+  input/scaling/encoding controls. The first-use offers are dismissed on connect.
+- **Displayed pixels:** the 2×2 pattern appears with correct orientation and channel
+  order (red top-left, green top-right, blue bottom-left, white bottom-right),
+  bilinear-scaled to fit and letterboxed. First actual-app displayed-pixel evidence.
+- The app log shows redacted security details (`Choosing security type [redacted]`).
+- Disconnect returns to "Disconnected" with the address kept and editable.
+- TidyVNC › Quit TidyVNC exits cleanly after the session; the successful
+  connection was recorded only in the isolated Application Support store.
+
+Not established (the app was never active or frontmost): remote keyboard/pointer
+input (by design, input is sent only from the focused desktop of the active app;
+the peer received no keys), connected Connection-menu commands (the menu showed
+"No active connection" because routing follows the key window), transient
+popovers such as Recent connections, VoiceOver and physical displays. Repeat with
+full-screen control from a regular desktop Space.

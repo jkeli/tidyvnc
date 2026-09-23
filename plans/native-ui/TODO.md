@@ -490,6 +490,11 @@ UI uses, with migration and credential behavior verified independently.
 ## N4 — Complete SwiftUI replacements
 
 - [ ] N4.1 Connection window: endpoint validation, recent hosts, Open/Save, Connect/Cancel, separate import choices and keyboard-first operation.
+  - 2026-09-23 actual-app (isolated copy, background control; UI-ACCEPTANCE.md):
+    separate defaults/history import offers, import window with explicit exclusions
+    and "no file" handling, Escape to close, Return-to-connect, connected state,
+    correct displayed pixels, Disconnect, menu Quit. Recent-hosts popover and
+    remote input need the app frontmost and remain open.
   - [x] Native Open and Save As menus, reviewed immutable export, explicit
     replacement confirmation and non-disruptive save feedback.
   - [x] Shared-parser endpoint preflight with typed inline errors and Connect/Save
@@ -833,6 +838,9 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     FLTK/headless workflows retained; YAML/shell parsing verified locally.
   - [ ] Execute hosted matrix, resolve failures and configure minimum-OS Intel
     coverage; replace retiring minimum-OS runner without waiving that gate.
+    **Blocked by owner decision (2026-09-23): hosted CI must not be enabled for
+    this project yet; do not push to run GitHub Actions.** Linux jobs are
+    reproduced locally in a Podman Ubuntu 24.04 container instead.
   - [ ] Complete actual interactive UI/accessibility and physical/installed checks.
 - [x] N6.5 Run all applicable original unit tests, new contract/ABI/service tests, supported sanitizers and full protocol regression matrix through the native frontend. Closed 2026-09-23: retained FLTK 782 unit tests (and the Linux FLTK CI job, 775) plus 776 core/ABI/service and 90 native tests; sanitizers — full core suite under Linux ASan+UBSan+LSan/TSan and macOS ASan+UBSan/TSan, and the native Swift suite under macOS ASan/TSan; protocol — the 55-case baseline through the Debug and packaged Release native executables, encoding round trips for every wire encoding, and 4 actual-app authentication/trust cases. Physical/presentation acceptance is tracked under N4/N5.
   - [x] Reuse the full 55-case scaling/protocol baseline with the actual native
