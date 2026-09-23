@@ -12,7 +12,10 @@ import TidyVNCNative
   @Published private(set) var incoming: [NativeIncomingPeer] = []
   @Published private(set) var addresses: [NativeListenerAddress] = []
   @Published private(set) var reserved: Set<UInt64> = []
-  @Published private(set) var issue: String?
+  @Published private(set) var closesAfterFailure = false
+  @Published private(set) var issue: String? {
+    didSet { closeAfterSilentFailure() }
+  }
   @Published private(set) var preparationCancelled = false
   let preparation: NativeSessionDefaults?
   let displays: NativeDisplayService?
@@ -51,8 +54,14 @@ import TidyVNCNative
         },purpose:.listener)
     } else { preparation = nil }
     if let options = launch?.listen { port = String(options.port); ipv4 = options.ipv4; ipv6 = options.ipv6 }
-    if requiresPreparation && preparation == nil { issue = String(localized:"listener.saved.defaults.are.unavailable.reopen.the.application.to.review.this.listener.file", defaultValue:"Saved defaults are unavailable. Reopen the application to review this listener file.") }
+    if requiresPreparation && preparation == nil { phase = .failed; issue = String(localized:"listener.saved.defaults.are.unavailable.reopen.the.application.to.review.this.listener.file", defaultValue:"Saved defaults are unavailable. Reopen the application to review this listener file.") }
     preparation?.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }.store(in:&preparationObservations)
+    // Property observers do not run for assignments during initialization.
+    closeAfterSilentFailure()
+  }
+  private func closeAfterSilentFailure() {
+    guard issue != nil, phase == .failed, invocation?.alertOnFatalError == false, !closing else { return }
+    issue = nil; requestClose(); closesAfterFailure = true
   }
   // Scene publication may repeat. Only the first appearance may bind on behalf
   // of the command line; Stop and window close revoke that request permanently.
@@ -116,6 +125,7 @@ import TidyVNCNative
           self.incoming = peers; self.reserved.formIntersection(Set(peers.map(\.id)))
         }.store(in:&self.observations)
         owner.$deliveryError.compactMap { $0 }.sink { [weak self] _ in
+          if self?.invocation?.alertOnFatalError == false { self?.phase = .failed }
           self?.issue = String(localized:"listener.listener.updates.could.not.be.delivered.stop.and.restart.the.listener", defaultValue:"Listener updates could not be delivered. Stop and restart the listener.")
         }.store(in:&self.observations)
       } catch {

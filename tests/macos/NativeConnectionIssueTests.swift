@@ -141,9 +141,60 @@ func refusedSocket() throws -> (Int32, String) {
   await model.close(); await other.close(); await preferences.close(); try await runtime.shutdown()
   print("PASS real refused connections, retry identity/generation, edited address, window isolation, remote close, cancel and shutdown")
 }
+@MainActor func failureAlertPolicy() async throws {
+  let runtime = try NativeRuntime(), preferences = NativePreferencesStore(backing:Preferences())
+  let healthy = ConnectionModel(runtime:runtime,preferences:preferences) { _,_ in }
+  try await until { healthy.defaults?.isReady == true }
+  let peer = native_test_peer_create_pattern(0)!
+  defer { native_test_peer_destroy(peer) }
+  healthy.endpoint = "127.0.0.1::\(native_test_peer_port(peer))"; healthy.connect()
+  try await until { !healthy.busy && healthy.session?.snapshot.state == .connected }
+  for alert in [false,true] {
+    for retry in [false,true] {
+      let options = try NativeInvocationOptions(arguments:["-AlertOnFatalError=\(alert ? "on" : "off")","-ReconnectOnError=\(retry ? "on" : "off")"])
+      let model = ConnectionModel(runtime:runtime,preferences:preferences,
+        invocation:.init(options:options,endpoint:"",workingDirectory:"/tmp")) { _,_ in }
+      try await until { model.defaults?.isReady == true }
+      let (fd,address) = try refusedSocket(); Darwin.close(fd)
+      model.endpoint = address; model.connect()
+      try await until { !model.busy && (model.closesAfterFailure || model.connectionProblem != nil) }
+      try check(model.session?.alertOnFatalError == alert,"immutable session alert policy")
+      if alert || retry {
+        guard let problem = model.connectionProblem else { throw Failure(message:"missing expected failure presentation") }
+        try check(!model.closing && model.offersRetryConnection(problem) == retry,"retry precedence over disabled fatal alerts")
+        model.dismissConnectionProblem(problem.id)
+      } else {
+        await model.close()
+        try check(model.closing && model.closesAfterFailure && model.message == nil && model.connectionProblem == nil && model.session?.isClosing == true,
+                  "silent non-retry failure joins owner without any alert")
+      }
+      try check(healthy.session?.snapshot.state == .connected && !healthy.closing && healthy.connectionProblem == nil,
+                "failed connection cannot close healthy session")
+      await model.close()
+    }
+  }
+  let cancellable = ConnectionModel(runtime:runtime,preferences:preferences,
+    invocation:.init(options:try .init(arguments:["-AlertOnFatalError=off","-ReconnectOnError=off"]),endpoint:"",workingDirectory:"/tmp")) { _,_ in }
+  try await until { cancellable.defaults?.isReady == true }
+  let authPeer = native_test_peer_create_pattern(1)!
+  defer { native_test_peer_destroy(authPeer) }
+  cancellable.endpoint = "127.0.0.1::\(native_test_peer_port(authPeer))"; cancellable.connect()
+  try await until { cancellable.session?.prompt != nil }
+  cancellable.cancel(); try await until { !cancellable.busy }
+  try check(!cancellable.closing && !cancellable.closesAfterFailure && cancellable.connectionProblem == nil && cancellable.message == nil,
+            "explicit cancellation is not a silent failure and does not close the window")
+  await cancellable.close()
+  let silent = ConnectionModel(error:"Startup fixture",alertOnFatalError:false)
+  let visible = ConnectionModel(error:"Startup fixture")
+  try check(silent.closesAfterFailure && silent.closing && silent.message == nil && visible.message != nil && !visible.closing,
+            "fatal pre-session startup honors alert policy")
+  await silent.close(); await visible.close()
+  await healthy.close(); await preferences.close(); try await runtime.shutdown()
+  print("PASS all alert/retry combinations, fatal startup, joined silent close and healthy-session isolation")
+}
 @main struct NativeConnectionIssueTests {
   @MainActor static func main() async {
-    do { try classification(); try await lifecycle() }
+    do { try classification(); try await lifecycle(); try await failureAlertPolicy() }
     catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }
 }

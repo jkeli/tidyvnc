@@ -12,6 +12,15 @@ func resolve(_ args: [String], base: NativeSessionConfiguration = .init(), displ
   try .init(options:NativeInvocationOptions(arguments:args),endpoint:"fixture.invalid",base:base,legacyDisplays:displays,workingDirectory:"/launch")
 }
 func values() throws {
+  let silent = try resolve(["-AlertOnFatalError=off"])
+  try check(!silent.configuration.alertOnFatalError,"native failure policy resolves")
+  let explicit = try resolve(["-AlertOnFatalError=off","-AlertOnFatalError"],base:silent.configuration)
+  try check(explicit.configuration.alertOnFatalError,"last validated occurrence wins")
+  let preserved = try NativeDocumentResolution(document:document("AlertOnFatalError=on\nShared=on"),base:silent.configuration).configuration(acknowledging:[2])
+  try check(!preserved.alertOnFatalError,"unsupported file fields cannot override launch policy")
+  do { _ = try resolve(["-AlertOnFatalError=private","-AlertOnFatalError=off"]); throw Failure(message:"invalid earlier alert value accepted") }
+  catch let failure as NativeInvocationFailure { try check(failure.problem == .invalidValue && failure.argument == 1,"every alert boolean validated") }
+
   let raw = try NativeInvocationSyntax(arguments:["-Shared=YES"])
   let canonical = try NativeInvocationOptions(arguments:["-Shared=YES","-QualityLevel=0x3"])
   try check(raw.assignments[0].value == "YES" && canonical.assignments.map(\.value) == ["on","3"],"raw syntax and canonical copy")

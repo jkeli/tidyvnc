@@ -425,3 +425,14 @@ unchanged record, changed source/record contents and missing receipt. This fixes
 incremental-build validation; it does not expand localization or interactive
 acceptance claims. Source/catalog counts remain **139 / 1351 / 1050**, plus the
 separate **2** system-metadata keys.
+
+## Scoped failure-alert policy (2026-09-22)
+
+Added `invocation.help.failure.alerts` and `document.failure.alerts.omitted`.
+Help explains Retry precedence and affected-window/application lifetime; export
+review explicitly acknowledges omission of the launch-only policy. Compiler
+coverage is now **139 sources / 1353 call sites / 1052 UI keys**. Final verification
+`run-bl32lpk7` passes all **1052 + 2** packaged lookups and native render/catalog
+fixtures. The export review's added paragraph and scroll-end images were visually
+inspected. These fixtures do not establish interactive keyboard or VoiceOver
+acceptance; those gates remain open.

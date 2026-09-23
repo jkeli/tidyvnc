@@ -296,7 +296,7 @@ including dormant values and field-specific reset labels.
 | E03 | ReconnectOnError Retry/Cancel | bound problem identity / model retry | CO; stale endpoint/generation/replaced alert cannot reconnect; two-session isolation |
 | E04 | Local Network permission suspicion | structured recovery + InfoPlist purpose text | CO, LO; actual installed Finder allow/deny/retry/real LAN still open; errno alone is not permission denial |
 | E05 | Renderer/cursor/input/fullscreen failure | NativePresentationIssue | CO, DT; fixed safe recovery, coalescing, fallback and later recovery |
-| E06 | AlertOnFatalError=false | **no native adapter yet** | CL confirms explicit rejection; implement scoped silent-failure/termination semantics without killing unrelated sessions |
+| E06 | AlertOnFatalError=false | immutable session/launch policy; one-shot joined window closure | CO, LI, CL, EX; retry precedence, fatal startup, reverse/bind isolation and export disclosure fixtures; actual window closure/keyboard acceptance remains open |
 
 ## Information, help and global UI acceptance
 
@@ -323,9 +323,10 @@ observations to all rows here.
 
 ## Gaps that determine the next work
 
-1. Implement E06 / AlertOnFatalError and verify precedence with ReconnectOnError,
-   cancellation, startup/connection failures and multiple windows. The current
-   explicit rejection is honest but incomplete parity.
+1. Complete actual E06 / AlertOnFatalError window acceptance. Native policy now
+   preserves Retry precedence and scopes silent closure to the failed owner;
+   startup, cancellation, connected-peer isolation, listener/reverse and CLI/export
+   regressions supplement the remaining actual-app checks in CONNECTION.md.
 2. Review visible compatibility differences: explicit native trust files and
    stable display selection, no arbitrary SSH command/proxy customization, native
    own-store imports, no implicit live session restoration. A restriction being

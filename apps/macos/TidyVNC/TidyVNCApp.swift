@@ -65,7 +65,7 @@ struct TidyVNCApp: App {
   private(set) var settings: NativePreferencesDraft?
   private(set) var profileLibrary: NativeProfileLibrary?
   private var startupError: String?
-  private struct Entry { weak var window: NSWindow?; let model: ConnectionModel }
+  private struct Entry { weak var window: NSWindow?; let model: ConnectionModel; var failureObservation: AnyCancellable? }
   private var windows: [ObjectIdentifier: Entry] = [:]
   private var quitting = false
   private var readyToTerminate = false
@@ -76,6 +76,7 @@ struct TidyVNCApp: App {
   private var startupListener: ListenerModel?
   private weak var startupListenerWindow: NSWindow?
   private var startupListenerCleanup: Task<Void,Never>?
+  private var startupListenerFailureObservation: AnyCancellable?
   private var reverseWindows: [ObjectIdentifier:NSWindowController] = [:]
   private let documentLaunch = NativeDocumentLaunchRouter()
   private let invocationStartup = TidyVNCLaunchContext.startup
@@ -113,7 +114,7 @@ struct TidyVNCApp: App {
   }
   func takeInvocation() -> NativeInvocationLaunch? { invocationStartup.take() }
   func makeConnection(profileID: UUID? = nil, document: NativeDocumentOpenRequest? = nil, launch: NativeInvocationLaunch? = nil) -> ConnectionModel {
-    guard let runtime, let preferences, !quitting else { return ConnectionModel(error: startupError ?? String(localized:"app.the.application.is.closing", defaultValue:"The application is closing.")) }
+    guard let runtime, let preferences, !quitting else { return ConnectionModel(error: startupError ?? String(localized:"app.the.application.is.closing", defaultValue:"The application is closing."),alertOnFatalError:launch?.invocation.alertOnFatalError ?? true) }
     return ConnectionModel(runtime: runtime, preferences: preferences, displays: displays, history: history, profileStore: profiles, profileID: profileID,
       document:document ?? launch?.document,invocation:launch?.invocation,connectOnReady:launch?.connectsOnReady == true,launchCredentials:launch?.credentials,credentialStore: credentials, trustStore: trustStore, savedTrustStore: savedTrust,hostKeyStore: savedHostKeys) { [weak self] session, model in
       model.fullscreen.onActivate = { [weak self, weak model] in if let model { self?.active = model } }
@@ -138,6 +139,14 @@ struct TidyVNCApp: App {
   func registerListener(_ window: NSWindow, model: ListenerModel) {
     guard startupListener === model, startupListenerWindow !== window, !quitting else { return }
     startupListenerWindow = window
+    startupListenerFailureObservation = model.$closesAfterFailure.filter { $0 }.prefix(1).sink { [weak self, weak window, weak model] _ in
+      Task { @MainActor in
+        guard let self, let window, let model else { return }
+        await model.close()
+        guard self.startupListener === model else { return }
+        window.close()
+      }
+    }
     window.setContentSize(NSSize(width:700,height:560))
     NotificationCenter.default.addObserver(self,selector:#selector(startupListenerClosed(_:)),name:NSWindow.willCloseNotification,object:window)
     NotificationCenter.default.addObserver(self,selector:#selector(windowActivated(_:)),name:NSWindow.didBecomeKeyNotification,object:window)
@@ -147,6 +156,7 @@ struct TidyVNCApp: App {
     guard let window = notification.object as? NSWindow, startupListenerWindow === window, let model = startupListener else { return }
     NotificationCenter.default.removeObserver(self,name:NSWindow.willCloseNotification,object:window)
     NotificationCenter.default.removeObserver(self,name:NSWindow.didBecomeKeyNotification,object:window)
+    startupListenerFailureObservation = nil
     startupListenerWindow = nil; startupListener = nil; model.requestClose()
     startupListenerCleanup = Task { await model.close() }
   }
@@ -253,6 +263,14 @@ struct TidyVNCApp: App {
   func register(_ window: NSWindow, model: ConnectionModel) {
     let id = ObjectIdentifier(window); guard windows[id] == nil else { return }
     windows[id] = Entry(window: window, model: model)
+    windows[id]?.failureObservation = model.$closesAfterFailure.filter { $0 }.prefix(1).sink { [weak self, weak window, weak model] _ in
+      Task { @MainActor in
+        guard let self, let window, let model else { return }
+        await model.close()
+        guard self.windows[id]?.model === model else { return }
+        window.close()
+      }
+    }
     model.fullscreen.windowStartup.attach(window)
     NotificationCenter.default.addObserver(self, selector: #selector(windowClosed(_:)), name: NSWindow.willCloseNotification, object: window)
     NotificationCenter.default.addObserver(self, selector: #selector(windowActivated(_:)), name: NSWindow.didBecomeKeyNotification, object: window)

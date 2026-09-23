@@ -75,3 +75,41 @@ and exclusive requests and a changed request on reconnect. A peer closure verifi
 that disabling Retry leaves manual Connect available. Controller/editor isolation
 and light/dark default/custom/session renders are tested separately from physical
 menu, keyboard, VoiceOver and server-specific shared-session acceptance.
+
+## Failure alert policy
+
+`AlertOnFatalError` is an immutable native session/launch setting, defaulting to
+on. It is CLI-only and is not a new global parameter, saved preference, or live
+editor. Every occurrence uses shared boolean validation; the last valid value
+wins. Explicit connection files cannot override it. Export discloses that the
+receiving viewer will use its own alert policy, including when the source uses
+the built-in value.
+
+For an eligible outgoing connection failure, ReconnectOnError still permits the
+existing Retry/Cancel alert even when AlertOnFatalError is off. The same bound
+problem identity, generation and unchanged destination checks apply; there is no
+automatic retry. Without a Retry action, disabled alerting starts the affected
+owner's existing joined shutdown and requests closure of its window after drain.
+Reverse connections never offer an outbound retry; their failure closes only the
+incoming window, preserving the accepting listener. A failed command-line
+listener closes its own window with alerting off. Fatal pre-session startup and
+SSH failures use the same no-retry policy. Enabled alerting retains current
+presentation and recovery.
+
+The app coordinator observes a one-shot close request, awaits cleanup, and checks
+that the window still belongs to that model. Other windows and the macOS
+application remain open. This is the native multi-window adaptation of the
+retained per-process viewer exit; it does not terminate unrelated sessions.
+Cancellation and requested disconnect are not failure-close triggers. Ordinary
+editable field, file-review and recoverable storage guidance are unchanged.
+Command-line syntax, invalid values and credential-capture errors still print a
+redacted terminal diagnostic and exit 1 before app initialization; the flag does
+not suppress these diagnostics or required authentication/trust decisions.
+
+The regression fixture covers all four alert/retry combinations with real refused
+loopback connections while another session remains connected, fatal pre-session
+startup, and authentication cancellation. Listener fixtures cover bind collision
+with another live listener and a connected reverse peer disappearing. Export and
+CLI fixtures cover loss acknowledgment, file precedence and terminal admission.
+See RESUME/TODO for actual build/test results; interactive window/VoiceOver and
+installed-app acceptance are separate gates.

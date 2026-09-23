@@ -5,13 +5,13 @@ Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 implementation, validation and next steps. N0.1/N0.2 now have a **162-row**
 [parity map](PARITY.md) and a complete **47-parameter** [capability inventory](CAPABILITIES.md),
 checked against the built catalog and both executable help outputs. The inventory
-identifies AlertOnFatalError as the next missing native adapter. The native `--test` build passes
+identified AlertOnFatalError; its scoped native implementation and model/CLI tests now pass. The native `--test` build passes
 **3/3 viewer, 756/756 core and 88/88 native tests**, plus graph/configuration,
-localization, signature and 32 CLI checks. Native CI is defined but hosted execution
+localization, signature and 36 CLI checks. Native CI is defined but hosted execution
 is unverified. A real SSH exit race is fixed with deterministic/repeated/sanitized
 proof; compiler localization freshness uses successful-build content receipts.
-The app has **1050 UI + 2 InfoPlist entries**, compiler coverage of **139 sources /
-1351 call sites**, and FLTK remains the default. See [BUILD.md](BUILD.md) and the
+The app has **1052 UI + 2 InfoPlist entries**, compiler coverage of **139 sources /
+1353 call sites**, and FLTK remains the default. See [BUILD.md](BUILD.md) and the
 latest evidence below. The complete migration, including interactive/physical/
 installed/deployment/CI/release gates, remains open.
 **Completed: N0.1/N0.2 inventories, N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues, N2.3–N2.7 native ownership/app vertical slice, and N6.1/N6.3 frontend selection/test separation. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
@@ -480,11 +480,12 @@ UI uses, with migration and credential behavior verified independently.
     copied from bounded core observations, with redacted diagnostic copying.
   - [ ] Physical fullscreen/minimize and multi-display transitions and interactive acceptance.
 - [ ] N4.11 Native app menus/Dock/new connection/open document/quit; Finder, CLI, explicit file, reverse/listen and supported tunnel entry paths work without secret-bearing relaunch arguments.
-  - [ ] Implement AlertOnFatalError: recognized but currently rejects both explicit
-    values at native startup. Preserve retained ReconnectOnError precedence and
-    fatal/non-retry/reverse distinctions without terminating unrelated windows.
-    See PARITY E06 and CAPABILITIES; verify startup, cancellation and multi-window
-    behavior before claiming complete CLI parity.
+  - [x] Implement AlertOnFatalError with immutable launch/session scope, retained
+    ReconnectOnError precedence and joined fatal/non-retry/reverse/startup cleanup.
+    Real socket/model tests preserve unrelated connections/listeners and explicit
+    cancellation; CLI/file/export policy is covered. See PARITY E06 and CONNECTION.
+  - [ ] Verify actual failure-window closure, Retry interaction and application
+    lifetime with multiple windows before accepting AlertOnFatalError parity.
   - [x] Noninteractive CLI `via`, per-occurrence gateway validation, final reviewed
     file target resolution, route-scoped launch passwords, listen/Unix rejection
     and explicit VNC_VIA_CMD rejection before startup. Help states limitations;
@@ -570,12 +571,12 @@ UI uses, with migration and credential behavior verified independently.
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
-  - Current source coverage: 1050 Localizable and 2 InfoPlist entries. App menus,
+  - Current source coverage: 1052 Localizable and 2 InfoPlist entries. App menus,
     connection/status, file panels, controller/gateway recovery, CLI/Keychain and
     typed startup/desktop recovery now join the earlier settings/import/trust work.
     System privacy/document-type strings have compiled metadata lookup evidence;
     expected/saved trust identities use complete messages over typed values.
-    Compiler extraction now verifies 139 current sources / 1350 localization call
+    Compiler extraction now verifies 139 current sources / 1353 localization call
     sites against the catalog during the standard app build. Long-text fixtures,
     fallback and literal interpolation checks pass. Finish dynamic text provenance
     and actual window/menu/panel acceptance;
@@ -9511,3 +9512,38 @@ build/suite rerun was needed for this documentation-only change. Latest full
 pipeline remains **3 viewer / 756 core / 88 native** from the preceding checkpoint.
 No actual UI, physical/VoiceOver, protocol-matrix, CI or installed/distribution
 acceptance is inferred. Full original goal remains active with FLTK default.
+
+### N4.11 scoped failure alert policy (2026-09-22)
+
+`AlertOnFatalError` now has a native adapter, defaults on, and is captured in an
+immutable launch/session value. Eligible outgoing errors still offer Retry when
+ReconnectOnError is on. With alerts off, fatal/non-retry connection and listener
+failures request joined owner cleanup, then the app coordinator closes that
+window. Reverse failure preserves the accepting listener; unrelated sessions and
+the macOS application remain open, including after the last window closes. This
+native lifetime adaptation is documented in CLI help; actual window acceptance
+remains open. Cancellation, editable validation and credential/trust decisions
+retain their existing behavior. See [CONNECTION.md](CONNECTION.md).
+
+Every CLI occurrence is validated; the last valid value wins. Compatibility-file
+fields cannot override it and still require ignored-field review. Export review
+now explicitly acknowledges that failure-alert policy is omitted. Two localized
+messages bring coverage to **139 sources / 1353 call sites / 1052 UI keys**, plus
+**2 InfoPlist** entries. The new export-review fixture images were inspected.
+
+The all-target build and first full verification passed (`run-u2u4a5tm`). Review
+then added a missing-preferences listener startup case and an explicit initializer
+policy check; the final incremental build and full verification passed in
+`build/native-ui-frontend/verification/run-bl32lpk7/summary.json`: **3/3 viewer,
+756/756 unit (21.50 s), 88/88 native (117.29 s)**, graph checks **168/3**, **10**
+configure rejection cases, **1052 + 2** packaged values, strict development
+signature and **36** actual executable CLI cases. Real socket fixtures cover all
+four alert/retry combinations, healthy-session isolation, cancelled authentication,
+bind failure, pre-session failure and reverse-peer loss. The first focused run
+caught a fixture missing the required ignored-file-field acknowledgment; correcting
+that fixture preserved the production review gate. No sanitizer rerun is claimed.
+
+N4.11 implementation evidence is updated; actual window/keyboard/VoiceOver,
+physical/protocol/performance, installed services, minimum-OS/Intel, hosted CI and
+distribution gates remain open. The complete original goal remains active and
+FLTK remains the shipping default. All build/test handles completed.

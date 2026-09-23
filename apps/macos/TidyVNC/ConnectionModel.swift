@@ -95,6 +95,9 @@ struct ConnectionProblem: Identifiable, Equatable {
 @MainActor final class ConnectionModel: ObservableObject {
   private let reverse: ReverseConnectionRequest?
   private var reverseAttempted = false
+  private let startupAlertOnFatalError: Bool
+  @Published private(set) var closesAfterFailure = false
+  private var alertOnFatalError: Bool { session?.alertOnFatalError ?? startupAlertOnFatalError }
   var isReverse: Bool { reverse != nil }
   var session: NativeSession? { defaults?.session }
   let defaults: NativeSessionDefaults?
@@ -189,6 +192,8 @@ struct ConnectionProblem: Identifiable, Equatable {
     }
     self.fullscreen = fullscreen
     self.reverse = reverse
+    startupAlertOnFatalError = reverse?.prepared?.configuration.alertOnFatalError ??
+      (reverse?.invocation ?? invocation)?.alertOnFatalError ?? true
     self.history = reverse == nil ? history : nil; self.displays = displays
     let credentialInputs: NativeLaunchCredentialInputs?
     if let reverse { credentialInputs = reverse.credentials }
@@ -272,7 +277,25 @@ struct ConnectionProblem: Identifiable, Equatable {
     }
     defaults.load()
   }
-  init(error: String) { reverse = nil; fullscreen = NativeFullscreenState(); defaults = nil; history = nil; credentials = NativeAuthenticationCredentials(); trust = NativeCertificateTrust(); message = error }
+  init(error: String, alertOnFatalError: Bool = true) {
+    reverse = nil; startupAlertOnFatalError = alertOnFatalError
+    fullscreen = NativeFullscreenState(); defaults = nil; history = nil
+    credentials = NativeAuthenticationCredentials(); trust = NativeCertificateTrust()
+    reportFatalConnection(error)
+  }
+  // Errors that cannot offer a reconnect keep the existing alert when enabled.
+  // Silent failure joins just this owner; the app remains responsible for its
+  // windows and must never terminate another session on this one's behalf.
+  private func reportFatalConnection(_ text: String) {
+    guard !closing, !suppressConnectionProblem else { return }
+    if alertOnFatalError { message = text } else { closeAfterFailure() }
+  }
+  private func closeAfterFailure() {
+    guard !closing else { return }
+    message = nil
+    requestClose()
+    closesAfterFailure = true
+  }
   func beginDocumentExport() {
     guard canExportDocument, fullscreen.prepareForSettings({ [weak self] in self?.beginDocumentExport() }) else { return }
     displays?.refresh()
@@ -311,6 +334,7 @@ struct ConnectionProblem: Identifiable, Equatable {
     configuration.pointerEventIntervalMilliseconds = session.pointerEventIntervalMilliseconds
     configuration.pointerEventIntervalSource = session.pointerEventIntervalSource
     configuration.networkPolicy = session.networkPolicy; configuration.networkSources = session.networkSources
+    configuration.alertOnFatalError = session.alertOnFatalError
     configuration.shared = connection.shared; configuration.reconnectOnError = connection.reconnectOnError
     configuration.securityTypes = try security.preferences.selection().types
     configuration.tlsPriority = security.preferences.tlsPriority ?? ""
@@ -332,12 +356,13 @@ struct ConnectionProblem: Identifiable, Equatable {
     guard canConnect, let session else { return }
     let destination = destination, address = endpoint, reverse = reverse
     let attempt: ConnectionTunnelAttempt?
+    suppressConnectionProblem = false
     do {
       if reverse == nil, let gateway = destination.sshGateway {
         let request = try NativeSSHTunnelRequest(endpoint:address,gateway:gateway,network:session.networkPolicy)
         attempt = ConnectionTunnelAttempt(owner:tunnelFactory(request),session:session)
       } else { attempt = nil }
-    } catch { message = (error as? NativeTunnelError)?.description; return }
+    } catch { reportFatalConnection((error as? NativeTunnelError)?.description ?? NativeTunnelError.invalidRequest.description); return }
     tunnelAttempt = attempt
     busy = true; message = nil; connectionProblem = nil; retryProblem = nil
     if reverse != nil { reverseAttempted = true }
@@ -368,9 +393,9 @@ struct ConnectionProblem: Identifiable, Equatable {
       catch is CancellationError {}
       catch {
         if let failure = error as? NativeTunnelError {
-          if self?.closing == false, self?.suppressConnectionProblem == false { self?.message = failure.description }
+          self?.reportFatalConnection(failure.description)
         } else if reverse != nil, !(error is NativeCommandFailure) {
-          if self?.closing == false { self?.message = String(localized:"connection.recovery.this.incoming.connection.is.no.longer.available.ask.the.server.to.make", defaultValue:"This incoming connection is no longer available. Ask the server to make a new connection to the listener.") }
+          self?.reportFatalConnection(String(localized:"connection.recovery.this.incoming.connection.is.no.longer.available.ask.the.server.to.make", defaultValue:"This incoming connection is no longer available. Ask the server to make a new connection to the listener."))
         } else if let issue = NativeConnectionIssue(error:error) {
           self?.reportConnection(issue,generation:(error as? NativeCommandFailure)?.operation.generation ?? session.generation)
         }
@@ -384,6 +409,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   }
   private func tunnelExited(_ attempt: ConnectionTunnelAttempt) {
     guard !closing, tunnelAttempt === attempt, !attempt.stopping else { return }
+    if !alertOnFatalError { closeAfterFailure(); return }
     suppressConnectionProblem = true; connectionProblem = nil; retryProblem = nil
     message = String(localized:"connection.recovery.the.ssh.tunnel.closed.check.the.gateway.and.connect.again", defaultValue:"The SSH tunnel closed. Check the gateway and connect again.")
     trust.cancel(); credentials.clear()
@@ -446,6 +472,7 @@ struct ConnectionProblem: Identifiable, Equatable {
     reportedGeneration = generation
     message = nil
     let problem = ConnectionProblem(generation: generation, issue: issue)
+    if !alertOnFatalError && !offersRetryConnection(problem) { closeAfterFailure(); return }
     retryProblem = problem; connectionProblem = problem
   }
   // SwiftUI can dismiss an alert before invoking its selected button. Hiding

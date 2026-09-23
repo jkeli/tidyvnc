@@ -29,6 +29,7 @@ public final class NativeSession: ObservableObject {
     resizePolicyRevision = UUID(); resizePolicy = value
   }
 
+  public let alertOnFatalError: Bool
   public let initialShared: Bool, initialReconnectOnError: Bool
   public private(set) var reconnectOnErrorEnabled: Bool
   private var sharedSource: NativeOptionSource, reconnectSource: NativeOptionSource
@@ -149,6 +150,7 @@ public final class NativeSession: ObservableObject {
     initialFullscreenPolicy = configuration.fullscreenPolicy; initialFullscreenSources = configuration.fullscreenSources
     initialResizeSources = configuration.resizeSources; resizeSources = configuration.resizeSources
     initialResizePolicy = configuration.resizePolicy; resizePolicy = configuration.resizePolicy
+    alertOnFatalError = configuration.alertOnFatalError
     initialShared = configuration.shared; initialReconnectOnError = configuration.reconnectOnError
     reconnectOnErrorEnabled = configuration.reconnectOnError
     sharedSource = configuration.sharedSource; reconnectSource = configuration.reconnectSource

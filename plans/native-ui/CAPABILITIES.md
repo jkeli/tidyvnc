@@ -1,6 +1,6 @@
 # Native capability and parameter inventory
 
-Source checkpoint: `6d69ccb5`, inspected 2026-09-22. This records N0.2 for the
+Initial inventory checkpoint: `6d69ccb5`, inspected 2026-09-22. This records N0.2 for the
 current development configuration; it does not establish protocol, UI or release
 acceptance. [PARITY.md](PARITY.md) maps controls/actions and remaining acceptance.
 Repeat the compiled queries whenever a feature flag or dependency changes.
@@ -12,7 +12,8 @@ macOS 27 SDK, deployment declaration 14.0; GnuTLS/nettle enabled, audio/H.264/NL
 disabled. Native localization uses the Swift catalogs independently of gettext.
 Homebrew dependencies on this host require macOS 26/27; this is not minimum-OS
 proof. The successful full verification report is
-`build/native-ui-frontend/verification/run-yhdlyz2o/summary.json`.
+`build/native-ui-frontend/verification/run-bl32lpk7/summary.json` after the
+failure-alert adapter follow-up.
 
 A temporary C++ probe linked to the **existing built core libraries**, using the
 `encodingoptions` target's link dependencies, queried `encodingChoices()`,
@@ -20,12 +21,13 @@ A temporary C++ probe linked to the **existing built core libraries**, using the
 `invocationOptions(InvocationCapabilities::compiled())`. It returned 6 encoding
 choices, 15 available security methods and 47 canonical parameters. The actual
 app's `--help` independently lists the same 47 parameters and three aliases, marks
-four unavailable parameters and marks AlertOnFatalError as needing an adapter.
+four unavailable parameters. At that checkpoint AlertOnFatalError needed an adapter;
+the subsequent implementation below now admits it.
 The retained FLTK executable's `--help` was also read: its 46 available spellings
 match the 43 macOS-available canonical names plus three aliases. Help exits 1 by
 retained convention; this is not a failed probe. Neither probe
 starts a connection or accesses credentials. Temporary source/output:
-`/tmp/tidyvnc-parity-capabilities.{cxx,log}`. The results are recorded below so the
+`/tmp/tidyvnc-parity-capabilities.{cxx,log}`. The historical query results are recorded below so the
 inventory does not depend on temporary files surviving.
 
 | Capability | Compiled result | Native behavior and remaining proof |
@@ -174,7 +176,7 @@ Sources: [retained parameters](../../vncviewer/parameters.cxx),
 
 | Parameter | Retained / native built-in | Validation and effective meaning | Change |
 | --- | --- | --- | --- |
-| `AlertOnFatalError` | on / **missing adapter** | Recognized boolean, but native launch rejects either explicit value; do not count as parity | open implementation gap |
+| `AlertOnFatalError` | on / same | Boolean; outgoing Retry takes precedence; otherwise off closes only the failed connection/listener after drain; app remains open | launch/session snapshot; CLI only |
 | `ReconnectOnError` | on / same | Boolean; permits explicit Retry after an eligible error; never automatic reconnection | disconnected edit, next failure policy |
 | `PasswordFile` | empty / same | Path, alias passwd; regular file with at least 8 bytes, reads only first 8; password-only authentication; captured cwd; never exported/saved | launch credential owner |
 | `listen` | off / same | Boolean; positional decimal port 0–65535, default 5500, 0 ephemeral; explicit connection file is reviewed before binding | launch; manual listener also available |
@@ -197,8 +199,10 @@ They must not disappear inside a “same defaults” claim.
 For AlertOnFatalError, the retained `mainloop` shows an important precedence:
 an ordinary outgoing connection error still offers reconnect when ReconnectOnError
 is on, even if AlertOnFatalError is off. Fatal app errors and non-retry/reverse
-connection errors consult AlertOnFatalError. The native adapter must model these
-cases explicitly; simply suppressing all errors when the flag is off is incorrect.
+connection errors consult AlertOnFatalError. The native adapter now preserves this
+precedence and uses scoped window closure after cleanup. It does not suppress
+syntax diagnostics, required auth/trust decisions or ordinary editable guidance.
+See [CONNECTION.md](CONNECTION.md) for exact native lifetime semantics.
 
 ## Other launch inputs and compatibility boundaries
 
@@ -226,6 +230,6 @@ contracts; the preceding full report passes 756 core and 88 native tests. A gree
 catalog query proves availability/defaults, not negotiation with every server or
 physical input/display behavior. The 55-case protocol baseline, H.264-enabled
 configuration, minimum/current/Intel/Release CI, live UI and installed integration
-remain separate open gates. Implement AlertOnFatalError next, including its
-interaction with ReconnectOnError and isolated multi-window lifetime. Do not
-emulate the retained process exit by terminating unrelated native sessions.
+remain separate open gates. AlertOnFatalError now has native policy and regression coverage; finish actual
+window/keyboard acceptance and all remaining parity gates. Its compatibility-file
+omission is disclosed during export.

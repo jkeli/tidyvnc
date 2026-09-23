@@ -24,6 +24,10 @@ with tempfile.TemporaryDirectory(prefix='tidyvnc-terminal-') as temporary:
     sentinel.write_bytes(b'fixture input remains unchanged')
     cases = [
         ([b'--help'], 1, b'Usage:', True),
+        ([b'-AlertOnFatalError=off', b'--help'], 1, b'Usage:', True),
+        ([b'-AlertOnFatalError=private', b'-AlertOnFatalError=off'], 1, b'invalid value', False),
+        ([b'-AlertOnFatalError=off'], 1, b'launch credential exceeds', False),
+        ([b'-AlertOnFatalError=on'], 1, b'launch credential exceeds', False),
         ([b'--version'], 0, b'TidyVNC v' + version, False),
         ([b'-Shared=on', b'--version'], 0, b'TidyVNC v' + version, False),
         ([b'-Shared=private-value', b'--help'], 1, b'invalid value', False),
@@ -71,7 +75,7 @@ with tempfile.TemporaryDirectory(prefix='tidyvnc-terminal-') as temporary:
             assert b'  via <value>\n' in result.stderr, 'missing native SSH adapter'
             assert b'Supported ~/.ssh/config settings are captured before connecting; commands, proxy hops and VNC_VIA_CMD are unsupported.' in result.stderr
             assert b'File: /tmp/vncviewer.log, created on first output with one .bak; failures use stderr.' in result.stderr
-            for name in (b'UseIPv4', b'UseIPv6', b'Maximize', b'listen'):
+            for name in (b'UseIPv4', b'UseIPv6', b'Maximize', b'listen', b'AlertOnFatalError'):
                 assert b'  ' + name + b' [on|off]\n' in result.stderr, 'missing native network adapter'
     assert sorted(path.name for path in root.iterdir()) == ['untouched'], 'terminal path created state'
     assert sentinel.read_bytes() == b'fixture input remains unchanged', 'terminal path changed input'

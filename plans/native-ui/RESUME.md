@@ -4,6 +4,41 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Scoped failure alert policy
+
+`AlertOnFatalError` now has a native adapter, defaults on, and is captured in an
+immutable launch/session value. Eligible outgoing errors still offer Retry when
+ReconnectOnError is on. With alerts off, fatal/non-retry connection and listener
+failures request joined owner cleanup, then the app coordinator closes that
+window. Reverse failure preserves the accepting listener; unrelated sessions and
+the macOS application remain open, including after the last window closes. This
+native lifetime adaptation is documented in CLI help; actual window acceptance
+remains open. Cancellation, editable validation and credential/trust decisions
+retain their existing behavior. See [CONNECTION.md](CONNECTION.md).
+
+Every CLI occurrence is validated; the last valid value wins. Compatibility-file
+fields cannot override it and still require ignored-field review. Export review
+now explicitly acknowledges that failure-alert policy is omitted. Two localized
+messages bring coverage to **139 sources / 1353 call sites / 1052 UI keys**, plus
+**2 InfoPlist** entries. The new export-review fixture images were inspected.
+
+The all-target build and first full verification passed (`run-u2u4a5tm`). Review
+then added a missing-preferences listener startup case and an explicit initializer
+policy check; the final incremental build and full verification passed in
+`build/native-ui-frontend/verification/run-bl32lpk7/summary.json`: **3/3 viewer,
+756/756 unit (21.50 s), 88/88 native (117.29 s)**, graph checks **168/3**, **10**
+configure rejection cases, **1052 + 2** packaged values, strict development
+signature and **36** actual executable CLI cases. Real socket fixtures cover all
+four alert/retry combinations, healthy-session isolation, cancelled authentication,
+bind failure, pre-session failure and reverse-peer loss. The first focused run
+caught a fixture missing the required ignored-file-field acknowledgment; correcting
+that fixture preserved the production review gate. No sanitizer rerun is claimed.
+
+N4.11 implementation evidence is updated; actual window/keyboard/VoiceOver,
+physical/protocol/performance, installed services, minimum-OS/Intel, hosted CI and
+distribution gates remain open. The complete original goal remains active and
+FLTK remains the shipping default. All build/test handles completed.
+
 ## Latest follow-up (2026-09-22) — Parity and compiled capability inventory
 
 [PARITY.md](PARITY.md) now maps **162** control/action/launch rows to retained

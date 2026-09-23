@@ -127,7 +127,7 @@ struct ExportFixtureView: View {
     try await render("review-bottom")
     let reviewed = state.review!
     try check(window.attachedSheet === sheet && state.presentation?.id == presentation && dismissals == 0,"mapping to review keeps one sheet and no premature destination handoff")
-    try check(reviewed.monitorIndices == [left:7,absent:9] && reviewed.losses == [.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement,.displayIdentity,.ignoredInput],"exact numbering and all conversion losses reviewed")
+    try check(reviewed.monitorIndices == [left:7,absent:9] && reviewed.losses == [.failureAlerts,.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement,.displayIdentity,.ignoredInput],"exact numbering and all conversion losses reviewed")
     state.editMapping(reviewed.id)
     let edited = state.mapping!
     try check(edited.id != initial.id && edited.suggestedIndices == reviewed.monitorIndices,"edit uses fresh identity and retains choices")

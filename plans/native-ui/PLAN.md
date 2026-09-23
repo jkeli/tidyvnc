@@ -3,7 +3,7 @@
 For the current implementation checkpoint and restart instructions, see
 [RESUME.md](RESUME.md) (updated 2026-09-22). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
-review, native Help/About resources, and 1050 English-source UI entries plus 2 system-metadata entries
+review, native Help/About resources, and 1052 English-source UI entries plus 2 system-metadata entries
 are implemented. Actual Help/About interaction and expanded Settings/trust layouts
 now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
 input/display, installed-app and release gates are not yet accepted. Continue the remaining dynamic user-presentation audit and interactive
@@ -695,8 +695,9 @@ that the VNC protocol does not describe.
 The source/control inventory is now [PARITY.md](PARITY.md) (162 detailed rows),
 with [CAPABILITIES.md](CAPABILITIES.md) covering all 47 canonical parameters,
 aliases, compiled defaults/ranges and change lifetime. These complete the N0.1/N0.2
-inventory deliverables, not the acceptance gates. The current audit identifies
-AlertOnFatalError as a missing native adapter; the latest RESUME records evidence.
+inventory deliverables, not the acceptance gates. AlertOnFatalError now has a
+scoped native adapter and automated evidence; actual window acceptance remains
+open. The latest RESUME records the implementation and validation boundaries.
 
 Every row must map to implementation and acceptance evidence before cutover.
 Inventory individual parameters/menu actions during N0 so smaller controls are

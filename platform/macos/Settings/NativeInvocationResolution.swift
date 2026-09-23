@@ -12,6 +12,11 @@ public struct NativeInvocationRequest: Sendable {
     self.options = options; self.endpoint = endpoint; self.workingDirectory = workingDirectory
     self.monitorMapping = monitorMapping
   }
+  // Options have already passed per-occurrence shared boolean validation.
+  // Also available before a session exists, for fatal startup/listener failures.
+  public var alertOnFatalError: Bool {
+    options.assignments.last(where:{ $0.name == "AlertOnFatalError" })?.value != "off"
+  }
   // Routing is launch metadata, not an ordinary setting or compatibility file
   // field. Resolve it against the final reviewed target before session creation.
   public func gateway(inheriting inherited: NativeSSHGateway? = nil, endpoint: String = "") throws -> NativeSSHGateway? {
@@ -72,7 +77,7 @@ public struct NativeInvocationResolution: Sendable {
       "ViewOnly","EmulateMiddleButton","FullscreenSystemKeys","ShortcutModifiers","AlwaysCursor","CursorType",
       "DotWhenNoCursor","ScalingFactor","ScalingQuality","DesktopPixelUnits","SecurityTypes","X509CA","X509CRL",
       "FullScreen","FullScreenMode","FullScreenSelectedMonitors","FullScreenAllMonitors"])
-    let additional: Set<String> = ["DesktopSize","RemoteResize","GnuTLSPriority","UseIPv4","UseIPv6","PointerEventInterval","MaxCutText","geometry","Maximize","Log","PasswordFile","listen","via"]
+    let additional: Set<String> = ["AlertOnFatalError","DesktopSize","RemoteResize","GnuTLSPriority","UseIPv4","UseIPv6","PointerEventInterval","MaxCutText","geometry","Maximize","Log","PasswordFile","listen","via"]
     return common.union(additional)
   }
   init(prepared: NativeInvocationPreparation, endpoint: String, legacyDisplays: [NativeDisplayID],
@@ -150,6 +155,7 @@ struct NativeInvocationPreparation: Sendable {
         legacyDisplays:legacyDisplays,workingDirectory:workingDirectory,monitorMapping:monitorMapping,
         deferDisplayMapping:deferDisplayMapping)
       var value = overlay.configuration
+      if let alert = fields["AlertOnFatalError"] { value.alertOnFatalError = alert == "on" }
       if fields["geometry"] != nil {
         value.windowStartupPolicy.geometry = geometry; value.windowStartupSources[.geometry] = .commandLine
       }

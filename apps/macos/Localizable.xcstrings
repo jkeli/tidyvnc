@@ -12599,6 +12599,26 @@
           }
         }
       }
+    },
+    "document.failure.alerts.omitted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failure-alert settings are not supported by this connection-file format. The receiving viewer will use its own error-alert policy."
+          }
+        }
+      }
+    },
+    "invocation.help.failure.alerts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\n%@ closes the affected connection or failed listener when no Retry action is available.\n%@ still offers Retry for eligible outgoing connection errors. Other windows and the application remain open.\n"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

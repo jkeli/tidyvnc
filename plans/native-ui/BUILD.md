@@ -190,3 +190,14 @@ record timestamps; completed-build content receipts now establish freshness, wit
 and [TODO.md](TODO.md) for failed-run history and final evidence. This is Debug on
 arm64 macOS 27/SDK 27 with GnuTLS/nettle and without NLS/audio/H.264. It does not
 establish the unexecuted CI matrix, dependency portability or manual acceptance.
+
+## Failure-alert follow-up (2026-09-22)
+
+The all-target build and verification passed in `run-u2u4a5tm`. After the final
+listener startup regression was added, affected app/listener targets rebuilt and
+full verification passed in `run-bl32lpk7`: **3 viewer / 756 unit / 88 native**,
+**168/3** graph targets, **10** configure rejection cases, **1052 UI + 2 metadata**
+packaged values, strict development signature and **36** CLI cases. Compiler
+coverage is **139 sources / 1353 sites / 1052 keys**. Both reports remain under
+`build/native-ui-frontend/verification`. Platform/deployment and interactive,
+installed, distribution and hosted-CI limitations above still apply.

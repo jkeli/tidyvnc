@@ -127,8 +127,8 @@ session, and reject late results after close. Explicit files still require their
 existing review, and absent ServerName still clears the address. The executable
 constructs the request before entering SwiftUI. PasswordFile is now admitted through
 the scoped launch credential owner described in CREDENTIAL-INPUTS.md. Tunnel
-options now use the native adapters in TUNNELS.md; AlertOnFatalError remains the
-recognized but unimplemented native option. Catalog availability alone is insufficient.
+options now use the native adapters in TUNNELS.md. AlertOnFatalError now uses the
+scoped failure policy in CONNECTION.md; catalog availability alone is insufficient.
 
 ## Display resolution after explicit-file precedence
 
@@ -470,3 +470,16 @@ startup. Its contents are never copied, evaluated, logged or passed to SSH. An e
 `via` does not use SSH and does not consult that customization. Help documents the
 key/agent-only, existing-known-host-key behavior and missing interactive/configuration
 support. See TUNNELS.md for ownership, tests and remaining parity work.
+
+## AlertOnFatalError
+
+The native adapter accepts the shared boolean syntax and last validated occurrence,
+defaulting to on. It snapshots into the first connection (or listener and its
+accepted connections), never other new windows or saved stores. ReconnectOnError
+still permits an eligible outgoing Retry/Cancel prompt with alerting off. Other
+failures close only their owning window after joined cleanup; the app remains
+running. Fatal startup, SSH, reverse and listener-bind failures have no outgoing
+Retry action. Required credential/trust decisions, user cancellation, editable
+validation/review and terminal-only errors retain their existing behavior.
+Compatibility files cannot override this CLI-only field; export requires explicit
+acknowledgment of the lost policy. See CONNECTION.md and current RESUME evidence.

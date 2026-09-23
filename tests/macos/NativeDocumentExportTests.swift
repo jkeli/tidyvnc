@@ -24,7 +24,7 @@ func roundTrip() throws {
   config.fullscreenPolicy = try .init(startsFullscreen:true,mode:.selected,selectedDisplays:[displays[1]])
   config.resizePolicy = try .init(enabled:false,initialSize:"800x600")
   let export = try NativeDocumentExport(endpoint:"fixture.invalid:2",configuration:config,inactiveCursor:.system,legacyDisplays:displays,ignoredInput:true)
-  try check(export.losses == [.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement,.displayIdentity,.ignoredInput],"complete loss disclosure")
+  try check(export.losses == [.failureAlerts,.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement,.displayIdentity,.ignoredInput],"complete loss disclosure")
   try rejects(.reviewRequired) { _ = try export.serializedData() }
   try rejects(.reviewRequired) { _ = try export.serializedData(acknowledging:[.displayIdentity,.ignoredInput]) }
   let result = try resolve(export,displays:displays), value = try result.configuration()
@@ -46,11 +46,12 @@ func roundTrip() throws {
   config.shared = false; config.securityTypes = []
   try check(tryData(export) == data,"immutable snapshot after caller edits")
   let defaultsExport = try NativeDocumentExport(endpoint:"",configuration:.init())
-  try check(defaultsExport.losses == [.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement],"even built-in omitted resize needs review")
+  try check(defaultsExport.losses == [.failureAlerts,.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement],"even built-in omitted resize needs review")
   try rejects(.reviewRequired) { _ = try defaultsExport.serializedData() }
   var recipient = NativeSessionConfiguration(); recipient.resizePolicy = try .init(enabled:false)
-  let inherited = try NativeDocumentResolution(document:NativeConnectionDocument(data:defaultsExport.serializedData(acknowledging:[.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement])),base:recipient).configuration()
+  let inherited = try NativeDocumentResolution(document:NativeConnectionDocument(data:defaultsExport.serializedData(acknowledging:[.failureAlerts,.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement])),base:recipient).configuration()
   try check(!inherited.resizePolicy.enabled,"recipient resize preferences demonstrate default omission loss")
+  try rejects(.reviewRequired) { _ = try defaultsExport.serializedData(acknowledging:defaultsExport.losses.subtracting([.failureAlerts])) }
   let deny = try resolve(defaultsExport)
   try check(deny.endpoint.isEmpty,"settings-only export")
   var empty = NativeSessionConfiguration(); empty.securityTypes = []
@@ -168,7 +169,7 @@ final class Preferences: NativePreferencesBacking, Sendable {
   try check(encoding.value == "4","captures current encoding")
   try session.setResizePolicy(.init(enabled:false),expected:session.resizePolicyRevision)
   let resized = try model.documentExport(legacyDisplays:[])
-  try check(resized.losses == [.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement],"captures current unsupported resize policy")
+  try check(resized.losses == [.failureAlerts,.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement],"captures current unsupported resize policy")
   try check(model.documentSave.begin(resized),"begin export before close")
   model.requestClose()
   try check(model.documentSave.review == nil && !model.documentSave.hasPending,"model close stops review")
@@ -190,7 +191,7 @@ final class Preferences: NativePreferencesBacking, Sendable {
   guard model.session != nil else { throw Failure(message:"No accepted session") }
   let export = try model.documentExport(legacyDisplays:[]), result = try resolve(export)
   try check(result.cursorType == .system && model.input.inactiveCursor == .system,"opened dormant shape reaches live capture")
-  try check(export.losses == [.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement,.ignoredInput] && result.endpoint == "opened.invalid","review original ignored fields on export")
+  try check(export.losses == [.failureAlerts,.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement,.ignoredInput] && result.endpoint == "opened.invalid","review original ignored fields on export")
   let text = String(data:try export.serializedData(acknowledging:export.losses),encoding:.utf8)!
   try check(!text.contains("FutureOption") && !text.contains("private-fixture"),"ignored input cannot leak to output")
   await model.close(); await preferences.close(); try await runtime.shutdown()

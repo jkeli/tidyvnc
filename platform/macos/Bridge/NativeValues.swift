@@ -118,6 +118,8 @@ public struct NativeSessionConfiguration: Sendable {
   public var fullscreenSources: [NativeFullscreenOption:NativeOptionSource] = [:]
   public var resizePolicy: NativeRemoteResizePolicy = .builtIn
   public var resizeSources: [NativeResizeOption:NativeOptionSource] = [:]
+  // Presentation policy only; never a mutable process-global core parameter.
+  public var alertOnFatalError = true
   public var shared = false, reconnectOnError = true
   public var sharedSource: NativeOptionSource = .compiled, reconnectSource: NativeOptionSource = .compiled
   // nil preserves a desktop host's explicit initial rendering configuration.

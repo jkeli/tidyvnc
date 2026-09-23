@@ -2,9 +2,10 @@
 import Foundation
 
 public enum NativeDocumentExportLoss: String, CaseIterable, Hashable, Sendable {
-  case remoteResize, networkFamilies, pointerTiming, clipboardLimit, windowPlacement, displayIdentity, ignoredInput, sshGateway
+  case failureAlerts, remoteResize, networkFamilies, pointerTiming, clipboardLimit, windowPlacement, displayIdentity, ignoredInput, sshGateway
   public var description: String {
     switch self {
+    case .failureAlerts: String(localized:"document.failure.alerts.omitted", defaultValue:"Failure-alert settings are not supported by this connection-file format. The receiving viewer will use its own error-alert policy.")
     case .remoteResize: String(localized:"document.remote.resize.settings.are.not.supported.by.this.connection.file.format.the", defaultValue:"Remote-resize settings are not supported by this connection-file format. The receiving viewer will use its own settings.")
     case .networkFamilies: String(localized:"document.ipv4.and.ipv6.settings.are.not.supported.by.this.connection.file.format", defaultValue:"IPv4 and IPv6 settings are not supported by this connection-file format. The receiving viewer will use its own IP version settings.")
     case .pointerTiming: String(localized:"document.pointer.event.timing.is.not.supported.by.this.connection.file.format.the", defaultValue:"Pointer-event timing is not supported by this connection-file format. The receiving viewer will use its own pointer timing.")
@@ -91,7 +92,7 @@ public struct NativeDocumentExport: Sendable, Identifiable {
     add("FullScreenMode",fullscreen.mode == .selected ? "Selected" : fullscreen.mode == .all ? "All" : "Current")
     // Even built-in omitted values can differ from the receiving viewer’s
     // preferences, so omission requires review for every export.
-    var losses: Set<NativeDocumentExportLoss> = [.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement]
+    var losses: Set<NativeDocumentExportLoss> = [.failureAlerts,.remoteResize,.networkFamilies,.pointerTiming,.clipboardLimit,.windowPlacement]
     var indices: [Int] = []
     var mapping: [NativeDisplayID:Int] = [:]
     if let monitorIndices {

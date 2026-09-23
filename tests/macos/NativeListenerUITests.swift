@@ -336,6 +336,56 @@ func verifyListenDocumentPorts() throws {
     }
   }
 }
+@MainActor func silentListenerFailure() async throws {
+  let runtime = try NativeRuntime()
+  let existing = ListenerModel(runtime:runtime) { _ in false }
+  existing.port = "0"; existing.ipv6 = false; existing.start()
+  try await until("reserved listener port") { existing.phase == .listening && !existing.addresses.isEmpty }
+  let port = existing.addresses[0].port
+  for alert in [false,true] {
+    let launch = try NativeInvocationBootstrap.launch(.init(arguments:["-listen","-UseIPv6=off",
+      "-AlertOnFatalError=\(alert ? "on" : "off")",String(port)]),workingDirectory:"/tmp")
+    let model = ListenerModel(runtime:runtime,launch:launch) { _ in false }
+    model.startLaunchIfNeeded()
+    try await until("listener bind failure") { model.phase == .failed }
+    try check(model.closing == !alert && model.closesAfterFailure == !alert,"listener failure owns alert policy")
+    await model.close()
+    try check(existing.phase == .listening && !existing.closing,"failed listener leaves existing listener alive")
+  }
+  for alert in [false,true] {
+    let launch = try NativeInvocationBootstrap.launch(.init(arguments:["-listen","-AlertOnFatalError=\(alert ? "on" : "off")","./unread-file.tidyvnc"]),workingDirectory:"/tmp")
+    let model = ListenerModel(runtime:runtime,launch:launch) { _ in false }
+    try check(model.phase == .failed && model.closing == !alert && model.closesAfterFailure == !alert &&
+              (model.issue != nil) == alert,"pre-session listener service failure honors alert policy")
+    model.startLaunchIfNeeded()
+    try check(model.addresses.isEmpty,"missing preparation never binds")
+    await model.close()
+  }
+  await existing.close(); try await runtime.shutdown()
+}
+@MainActor func silentReverseFailure() async throws {
+  let runtime = try NativeRuntime(), store = NativePreferencesStore(backing:try Preferences())
+  let launch = try NativeInvocationBootstrap.launch(.init(arguments:["-listen","-UseIPv6=off","-AlertOnFatalError=off","0"]),workingDirectory:"/tmp")
+  var models: [ConnectionModel] = []
+  let listener = ListenerModel(runtime:runtime,launch:launch) { request in
+    models.append(ConnectionModel(runtime:runtime,preferences:store,reverse:request) { _,_ in }); return true
+  }
+  listener.startLaunchIfNeeded()
+  try await until("silent reverse listener") { listener.phase == .listening && !listener.addresses.isEmpty }
+  var peer = native_test_peer_create_reverse(UInt16(listener.addresses[0].port),0)
+  guard peer != nil else { throw Failure(message:"reverse peer creation failed") }
+  defer { if let peer { native_test_peer_destroy(peer) } }
+  try await until("silent reverse offer") { listener.incoming.count == 1 }
+  listener.accept(listener.incoming[0])
+  try await until("silent reverse connection") { models.first?.session?.snapshot.state == .connected && models.first?.busy == false }
+  native_test_peer_destroy(peer); peer = nil
+  try await until("silent reverse failure") { models.first?.closesAfterFailure == true }
+  let model = models[0]; await model.close()
+  try check(model.connectionProblem == nil && model.message == nil && model.session?.reconnectOnErrorEnabled == true,
+    "reverse failure has no outbound retry even when retry defaults on")
+  try check(listener.phase == .listening && !listener.closing,"reverse session failure preserves accepting listener")
+  await listener.close(); await store.close(); try await runtime.shutdown()
+}
 @main struct Main {
   @MainActor static func main() {
     let app = NSApplication.shared; app.setActivationPolicy(.regular)
@@ -382,7 +432,7 @@ func verifyListenDocumentPorts() throws {
       }
       await controller.shutdown(); try await runtime.shutdown(); return
     }
-    try verifyListenDocumentPorts(); try await verify(); try await verifyLaunch(); try await verifyFileLaunch()
+    try verifyListenDocumentPorts(); try await verify(); try await verifyLaunch(); try await verifyFileLaunch(); try await silentListenerFailure(); try await silentReverseFailure()
     print("PASS listener UI/model, reverse defaults, scoped windows and shutdown")
   }
 }
