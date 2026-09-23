@@ -1459,3 +1459,62 @@ TEST(SessionWorker, SimultaneousSessionsIsolatePromptSecretInputClipboardAndSett
   parked->closeAndDrain(); runtime.shutdown();
   ASSERT_EQ(runtime.drained().wait_for(seconds(3)), std::future_status::ready);
 }
+
+namespace {
+struct CountingWakeup : MailboxWakeup {
+  void wake() noexcept override { ++count; }
+  std::atomic<uint64_t> count{0};
+};
+}
+
+// N5.10: many reconnect cycles with a slow view consumer that keeps a few old
+// leases, a held key at every disconnect and a two-frame publication budget.
+TEST(SessionWorker, ReconnectCyclesWithSlowConsumerStayBoundedAndCurrent)
+{
+  SessionRuntime runtime;
+  auto wakeup = std::make_shared<CountingWakeup>();
+  SessionWorkerOptions options; options.buffers.publicationBytes = 32; options.mailboxWakeup = wakeup;
+  auto session = runtime.createSession(security(), options);
+  std::vector<FrameLease> retained;
+  uint64_t lastGeneration = 0;
+  for (int cycle = 0; cycle < 50; ++cycle) {
+    auto attempt = session->connect(connection(prepared(true)));
+    ASSERT_EQ(attempt.status, CommandAdmission::Accepted) << cycle;
+    SessionEvent event; ASSERT_TRUE(completion(session, attempt.operation, event)) << cycle;
+    EXPECT_GT(attempt.generation, lastGeneration); lastGeneration = attempt.generation;
+    ASSERT_TRUE(until([&] { return session->events()->snapshot().frames == 1; })) << cycle;
+    // Nothing from an earlier attempt is delivered once this one has connected.
+    while (session->events()->take(event)) EXPECT_GE(event.snapshot.generation, attempt.generation);
+    if (cycle % 3 == 0) {
+      ViewUpdate update;
+      ASSERT_TRUE(until([&] { return session->view()->take(update) && update.frame; })) << cycle;
+      EXPECT_EQ(update.generation, attempt.generation);
+      retained.push_back(update.frame);
+      if (retained.size() > 1) retained.erase(retained.begin()); // keep at most one old lease
+    }
+    ASSERT_EQ(session->input()->key(attempt.generation, 7, 'a', 0, true), InputResult::Accepted);
+    session->wake();
+    auto closed = session->disconnect(attempt.generation);
+    ASSERT_EQ(closed.status, CommandAdmission::Accepted) << cycle;
+    ASSERT_TRUE(completion(session, closed.operation, event)) << cycle;
+    EXPECT_NE(session->input()->key(attempt.generation, 7, 'a', 0, false), InputResult::Accepted);
+    EXPECT_EQ(session->input()->status().queued, 0u);
+  }
+  // Releasing the old leases returns their budget: a new attempt still publishes.
+  retained.clear();
+  auto last = session->connect(connection(prepared(true)));
+  SessionEvent event; ASSERT_TRUE(completion(session, last.operation, event));
+  ViewUpdate update;
+  ASSERT_TRUE(until([&] { return session->view()->take(update) && update.frame; }));
+  EXPECT_EQ(update.generation, last.generation);
+  EXPECT_FALSE(session->input()->status().releasePending);
+  update = {};
+  ASSERT_EQ(session->closeAndDrain().wait_for(seconds(3)), std::future_status::ready);
+  runtime.shutdown();
+  ASSERT_EQ(runtime.drained().wait_for(seconds(3)), std::future_status::ready);
+  // After joined drain no further mailbox wake-ups arrive.
+  const auto settled = wakeup->count.load();
+  std::this_thread::sleep_for(milliseconds(50));
+  EXPECT_EQ(wakeup->count.load(), settled);
+  EXPECT_GT(settled, 0u);
+}

@@ -797,7 +797,7 @@ unchecked parity rows hidden by a visually complete connection screen.
     monitor focus/topology/Spaces acceptance.
 - [ ] N5.8 Run physical 1×/2× and mixed-density/multi-display tests with recorded OS/hardware; simulation alone does not complete this item.
 - [ ] N5.9 Run matched FLTK/native benchmarks against N0 budgets; record latency/CPU/memory/copy/damage results and resolve or explicitly review regressions before cutover.
-- [ ] N5.10 Stress reconnect, resize, slow consumer and attach/detach cycles; check bounded memory, no stale callbacks and no retained input state.
+- [x] N5.10 Stress reconnect, resize, slow consumer and attach/detach cycles; check bounded memory, no stale callbacks and no retained input state. 2026-09-23: `SessionWorker.ReconnectCyclesWithSlowConsumerStayBoundedAndCurrent` runs 50 reconnect cycles with a slow view consumer holding an old lease, a held key at every disconnect and a two-frame (32-byte) publication budget. A fresh frame still publishes after the leases are released (no leaked budget); no event of an earlier generation follows a new connect; held input is not carried into the next attempt; no mailbox wake-ups follow joined drain. Passes on macOS and under Linux ASan+LSan and TSan. Resize and attach/detach cycles: `NativeDesktop.RenderingAndInput` (12 view removals with a server resize in flight), `ProtocolSession` independent-view detach and `FramePublisher.SkippedResizeAndReconnectCannotLoseInvalidation`; the 256-frame decode flood and shutdown under load are under N2.8.
 
 Exit: fidelity and measured responsiveness match the retained native feature
 contract. A GPU rewrite is not required unless justified by failed budgets.
