@@ -327,7 +327,12 @@ cancellation; not yet permission to replace the shipping frontend.
     session defaults and explicit failed-read fallback; model and render tests.
   - [x] Schema-2 typed encoding patch validated by the shared core, explicit v1
     upgrade on save, and pre-construction loading with late-session suppression.
-  - [ ] Extend remaining fields and verify interactive Settings/defaults controls.
+  - [x] Field coverage (reviewed 2026-09-23): `NativePreferences` stores clipboard,
+    shared, reconnect, fullscreen, remote resize (with DesktopSize), security, trust
+    files, scaling, input and all eight encoding fields. PointerEventInterval,
+    MaxCutText, UseIPv4/UseIPv6, Log, AlertOnFatalError, Maximize, geometry,
+    PasswordFile and listen are CLI/launch-only by design (CAPABILITIES.md).
+  - [ ] Verify interactive Settings/defaults controls.
 - [ ] N3.2 Implement versioned profile/history storage under native Application Support with private permissions, atomic writes, bounded history and safe future-schema/corruption handling.
   - [x] Actor-owned typed profile/history file store, private Application Support
     backend, revision/locked atomic replacement, bounded history and corruption/
@@ -337,8 +342,10 @@ cancellation; not yet permission to replace the shipping frontend.
   - [x] Saved-profile draft/list UI for names, addresses, inherited/explicit
     clipboard and encoding fields; revision-checked save/delete and fresh profile
     read before new-session construction, with missing-profile/failure handling.
-  - [ ] Remaining settings fields and complete migration/document flows;
-    interactive profile/history/keyboard/accessibility verification.
+  - [x] Profiles use the same typed patches as defaults plus endpoint and SSH gateway;
+    migrations (schemas 1–10 → 11) and document export/import flows are implemented
+    and tested (reviewed 2026-09-23).
+  - [ ] Interactive profile/history/keyboard/accessibility verification.
 - [ ] N3.3 Implement connection document codecs and native open/save/overwrite flows; retain both accepted headers and new `.tidyvnc` exports. Never export secrets.
   - [x] Native Save As review/picker, explicit overwrite, private atomic writer,
     conflict/failure/cancellation handling, close/quit joins and result feedback.
