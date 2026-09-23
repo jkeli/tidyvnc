@@ -12,6 +12,12 @@ add_library(native-test-peer STATIC support/peer.cxx support/resize-peer.cxx)
 target_link_libraries(native-test-peer PRIVATE tidyvnc_viewer_core)
 add_executable(native-loopback-peer support/peer-main.cxx)
 target_link_libraries(native-loopback-peer PRIVATE native-test-peer)
+# Manual presentation-latency probe driven by tests/perf/viewer-workloads.py --probe; not a CTest case.
+add_executable(native-presentation-probe PresentationProbe.swift)
+set_target_properties(native-presentation-probe PROPERTIES Swift_MODULE_NAME NativePresentationProbe)
+target_compile_options(native-presentation-probe PRIVATE -swift-version 6 -strict-concurrency=complete
+  -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+target_link_libraries(native-presentation-probe PRIVATE tidyvnc_macos_bridge)
 add_executable(native-bridge-tests NativeBridgeTests.swift)
 set_target_properties(native-bridge-tests PROPERTIES Swift_MODULE_NAME NativeBridgeTests)
 target_compile_options(native-bridge-tests PRIVATE

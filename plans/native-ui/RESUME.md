@@ -23,16 +23,21 @@ workload baseline (PERFORMANCE.md); the WinUI handoff (HANDOFF.md).
 Everything still open needs one of:
 
 1. **Interactive UI with the app frontmost** (N4.x, N4.17/N4.18, N3.15 visible
-   controls, N3.3 Command-Q with the Save panel, N5.4–N5.6 visible checks):
-   background control works for windows, menus, sheets and connect/disconnect
-   (UI-ACCEPTANCE.md) but cannot activate the app, so remote input, popovers and
-   VoiceOver need full-screen control from a regular desktop Space.
+   controls, N3.3 Command-Q with the Save panel, N5.4–N5.6 visible checks). A
+   full-screen pass on 2026-09-23 verified keyboard pairing, Ctrl-Alt-Delete,
+   Hold Control, view-only, info/statistics with live resize, the scaling filter,
+   encoding cancel, recent connections, handshake cancel, the refused alert and
+   Settings vs live sheets (UI-ACCEPTANCE.md). Remaining: VoiceOver/contrast,
+   keyboard-only traversal, clipboard traffic (the pasteboard is not isolated),
+   auth/trust sheets, fullscreen and physical displays.
 2. **Hardware/installation** (N0.4 baseline screenshots, N0.6 minimum OS/Intel,
    N0.8/N5.7/N5.8 mixed displays and Spaces, N6.8–N6.10 installed consent, signing
    identity, Keychain upgrade, sleep/wake, N3.9–N3.12/N3.14 real Keychain).
 3. **Hosted CI** (N6.4): blocked by the owner decision above.
-4. **Measurement still missing** (N0.5/N5.1/N5.9): presentation latency p50/p95,
-   copies and damage, multi-view.
+4. **Measurement still missing** (N0.5/N5.1/N5.9): FLTK presentation latency,
+   copies and damage, multi-view, sign-off budgets. Native presentation latency
+   is now measured (`viewer-workloads.py --probe`, PERFORMANCE.md): Release draw
+   p50 is about 15 ms and p95 under 18 ms at 30 updates/s.
 5. **Final review** (N6.6 remaining actual-app cases needing UI, N6.7/N6.11–N6.13):
    only after 1–4; FLTK remains the default.
 

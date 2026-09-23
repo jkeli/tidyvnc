@@ -51,6 +51,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
   private var presentedFilter: NativeScalingFilter = .nearest
   private var reportedRenderingFailure = false
   var rendererOverride: (any NativeTileRendering)? // Injection for deterministic presentation/lifetime tests.
+  var onDrawn: ((UInt64) -> Void)? // Injection for presentation-latency measurement; reports the drawn sequence.
   var cursorRendererOverride: (any NativeCursorRendering)?
   private var cursorScheduler: NativeCursorScheduler?
   private var cursorRequest: NativeCursorRequest?
@@ -485,6 +486,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
           y: geometry.rectangle.minY + Double(tile.rect.y)/q, width: Double(tile.rect.width)/q, height: Double(tile.rect.height)/q))
       }
     }
+    defer { onDrawn?(displayedSequence) }
     if let batch = cursorBatch, !batch.native, !batch.blank, !batch.tiles.isEmpty {
       context.saveGState(); defer { context.restoreGState() }
       context.clip(to: batch.request.clip)

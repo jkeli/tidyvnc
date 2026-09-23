@@ -48,6 +48,12 @@ This planning update adds no acceptance evidence and changes no completion boxes
     [PERFORMANCE.md](PERFORMANCE.md). Native keeps the offered 30/s at lower CPU;
     4K RSS within 3%. Presentation latency p50/p95, copies, damage and multi-view
     remain unmeasured.
+  - [x] Native presentation latency p50/p95 (update written → frame on main actor →
+    AppKit draw → next refresh target) with `native-presentation-probe` and
+    `viewer-workloads.py --probe`. Release draw p50 is about 15 ms and p95 under
+    18 ms for 1080p, 4K and scroll ([PERFORMANCE.md](PERFORMANCE.md)).
+  - [ ] FLTK presentation latency (no matching draw hook), copies/allocation rate,
+    damage size, multi-view and a second machine; sign-off budgets.
 - [ ] N0.6 Validate provisional macOS 14 deployment floor, Xcode/Swift/C++ versions, architecture matrix and dependency targets; record final supported configurations.
 - [x] N0.7 Confirm C ABI/module-map/Swift wrapper and CMake-to-Xcode build arrangement; decide CLI app-executable versus launcher behavior without relaying secrets in arguments. Decision (closed 2026-09-23): the app executable is the CLI (same-process bootstrap, no launcher/relaunch); secrets come only from captured `VNC_USERNAME`/`VNC_PASSWORD` or PasswordFile and never enter argv. All 47 parameters, listen and `via` have native adapters (CAPABILITIES.md), with 36 terminal cases on the development and packaged apps; one CMake core → Xcode path (BUILD.md) and the `TidyVNC` module map/Swift wrappers are in use.
   - [x] Shared stateless CLI syntax/catalog, retained lexer reuse, C ABI and Swift
@@ -783,7 +789,9 @@ unchecked parity rows hidden by a visually complete connection screen.
     publish frame availability and deduplicated control/statistics values only.
   - [x] Integrate shared cursor filtering with bounded native/software cursor
     presentation, stale suppression and session-owned joined cleanup.
-  - [ ] Measure complete source/output/upload/old-frame budgets and latency.
+  - [x] Measure presentation latency on the production view path (probe above;
+    draw p50 about 15 ms, p95 under 18 ms at 30 updates/s, Release).
+  - [ ] Measure complete source/output/upload/old-frame budgets.
 - [ ] N5.2 Preserve identity fast path, all scaling modes/filters, logical/device units, fractional pan/scale, scrolling and letterboxing; verify fixtures and displayed pixels.
   - [x] AppKit displayed-pixel fixtures for nearest, bilinear, area and identity,
     coherent asynchronous transforms, damage-only updates and hide/unhide.
@@ -839,7 +847,8 @@ unchecked parity rows hidden by a visually complete connection screen.
 - [ ] N5.8 Run physical 1×/2× and mixed-density/multi-display tests with recorded OS/hardware; simulation alone does not complete this item.
 - [ ] N5.9 Run matched FLTK/native benchmarks against N0 budgets; record latency/CPU/memory/copy/damage results and resolve or explicitly review regressions before cutover.
   - Partial (2026-09-23): matched CPU/RSS/throughput per PERFORMANCE.md shows no
-    regression on those metrics; latency/copy/damage and review remain.
+    regression on those metrics. Native presentation latency is measured; the FLTK
+    latency comparison, copy/damage measurement and review remain.
 - [x] N5.10 Stress reconnect, resize, slow consumer and attach/detach cycles; check bounded memory, no stale callbacks and no retained input state. 2026-09-23: `SessionWorker.ReconnectCyclesWithSlowConsumerStayBoundedAndCurrent` runs 50 reconnect cycles with a slow view consumer holding an old lease, a held key at every disconnect and a two-frame (32-byte) publication budget. A fresh frame still publishes after the leases are released (no leaked budget); no event of an earlier generation follows a new connect; held input is not carried into the next attempt; no mailbox wake-ups follow joined drain. Passes on macOS and under Linux ASan+LSan and TSan. Resize and attach/detach cycles: `NativeDesktop.RenderingAndInput` (12 view removals with a server resize in flight), `ProtocolSession` independent-view detach and `FramePublisher.SkippedResizeAndReconnectCannotLoseInvalidation`; the 256-frame decode flood and shutdown under load are under N2.8.
 
 Exit: fidelity and measured responsiveness match the retained native feature
