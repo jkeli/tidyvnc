@@ -446,7 +446,7 @@ cancellation; not yet permission to replace the shipping frontend.
   - AppKit/ColorSync adapter and injected contract tests cover snapshot validation,
     generation/selection and weak view delivery; real host capture passes. Physical
     hotplug, mixed-density and fullscreen/Spaces acceptance remain N5.7/N5.8.
-- [ ] N3.17 Implement window/presentation lifecycle, bell/URL/help and structured redacted diagnostics.
+- [x] N3.17 Implement window/presentation lifecycle, bell/URL/help and structured redacted diagnostics. Implementation complete 2026-09-23: window lifecycle through `AppCoordinator` (registration, failure closure, joined quit; production wiring under test), Help/About with bundled guide/acknowledgements/licence and project/issue links (actual-app observation in UI-ACCEPTANCE.md), structured redacted recovery and diagnostics (`NativePresentationIssue`, `NativeConnectionIssue`, `redactedDiagnostics`, redacted process logging), and the server bell (below). Interactive and installed acceptance is tracked under N4.15/N4.17 and N6.
   - [x] Remote server bell (2026-09-23): previously only counted, never played.
     `NativeSession.bellHandler` rings once per delivery turn when the current
     attempt's count advances; the app injects `NativeSystemBell` (`NSSound.beep()`).
