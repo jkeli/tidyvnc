@@ -41,6 +41,8 @@ add_library(tidyvnc_viewer_core STATIC
   core/RedactedLogger.cxx
   core/StartupLogging.cxx
   core/WindowGeometry.cxx
+  core/DesktopSize.cxx
+  core/SSHGateway.cxx
   core/ConnectionDocument.cxx
   core/DocumentOptions.cxx
   core/Endpoint.cxx

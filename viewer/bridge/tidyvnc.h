@@ -68,6 +68,7 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 #define TIDYVNC_FEATURE_LISTENER 8796093022208ULL
 #define TIDYVNC_FEATURE_ROUTED_CONNECT 17592186044416ULL
 #define TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS 35184372088832ULL
+#define TIDYVNC_FEATURE_PARAMETER_GRAMMARS 70368744177664ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -683,6 +684,20 @@ tidyvnc_status tidyvnc_endpoint_validate(tidyvnc_bytes endpoint, uint32_t allow_
 tidyvnc_status tidyvnc_endpoint_create(tidyvnc_bytes endpoint, tidyvnc_bytes route,
   uint32_t allow_unix_sockets, tidyvnc_handle*, tidyvnc_error*);
 tidyvnc_status tidyvnc_endpoint_get(tidyvnc_handle, tidyvnc_endpoint_info*, tidyvnc_error*);
+/* Strict decimal port 0..65535: digits only, no sign/whitespace/trailing text.
+ * Invalid text leaves *port unchanged. */
+tidyvnc_status tidyvnc_port_parse(tidyvnc_bytes, uint32_t* port, tidyvnc_error*);
+/* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most
+ * 4096 bytes. Pure validation and canonicalization; nothing is resolved or run.
+ * host/scope are the endpoint name and IPv6 zone; user is present only with
+ * TIDYVNC_SSH_GATEWAY_USER. Borrowed bytes remain valid while the handle lives. */
+enum { TIDYVNC_SSH_GATEWAY_USER = 1, TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT = 2 };
+typedef struct {
+  uint32_t size, version, port, flags;
+  tidyvnc_bytes host, scope, user, canonical_uri;
+} tidyvnc_ssh_gateway_info;
+tidyvnc_status tidyvnc_ssh_gateway_create(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_error*);
+tidyvnc_status tidyvnc_ssh_gateway_get(tidyvnc_handle, tidyvnc_ssh_gateway_info*, tidyvnc_error*);
 /* Toolkit-independent file syntax, no IO/runtime/session/global mutation. All
  * operations are synchronous and thread safe. Parse borrows at most 1 MiB of
  * opaque bytes and returns one owned immutable handle (retain/release normally).
@@ -767,6 +782,16 @@ tidyvnc_status tidyvnc_session_create_with_input_timing(tidyvnc_handle runtime, 
  * access; the host owns work-area clamping, coordinate conversion and placement.
  * Invalid text (including NUL/over 65536 bytes) leaves output unchanged. */
 tidyvnc_status tidyvnc_window_geometry_parse(tidyvnc_bytes, tidyvnc_window_geometry*, tidyvnc_error*);
+/* Initial remote desktop size (DesktopSize). LEGACY is the retained command-line
+ * "%dx%d" form (C whitespace/'+' before each number, trailing text ignored);
+ * STRICT is exactly decimal WxH of at most 32 bytes, for settings and profiles.
+ * Empty text yields width = height = 0. Dimensions are 1..65535. Invalid text,
+ * syntax or NUL leaves output unchanged. Pure and stateless. */
+enum { TIDYVNC_DESKTOP_SIZE_LEGACY = 1, TIDYVNC_DESKTOP_SIZE_STRICT = 2 };
+typedef struct {
+  uint32_t size, version, width, height;
+} tidyvnc_desktop_size;
+tidyvnc_status tidyvnc_desktop_size_parse(tidyvnc_bytes, uint32_t syntax, tidyvnc_desktop_size*, tidyvnc_error*);
 tidyvnc_status tidyvnc_message_limits_init(tidyvnc_message_limits*, tidyvnc_error*);
 tidyvnc_status tidyvnc_session_create_with_message_limits(tidyvnc_handle runtime, const tidyvnc_session_options*,
   tidyvnc_handle encoding, const tidyvnc_input_timing*, const tidyvnc_message_limits*, tidyvnc_handle*, tidyvnc_error*);

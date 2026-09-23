@@ -1117,6 +1117,24 @@ TEST(ViewerABI, MessageLimitsDefaultsValidationAndCreationAreTransactional)
   EXPECT_EQ(unchanged,UINT64_MAX);
 }
 
+TEST(ViewerABI, DesktopSizeGrammarsAreStatelessCheckedAndTransactional)
+{
+  auto bytes = [](const char* value) { return tidyvnc_bytes{reinterpret_cast<const uint8_t*>(value),std::strlen(value)}; };
+  auto value = init<tidyvnc_desktop_size>();
+  ASSERT_EQ(tidyvnc_desktop_size_parse(bytes(" +0800x+600trailing"),TIDYVNC_DESKTOP_SIZE_LEGACY,&value,nullptr),TIDYVNC_OK);
+  EXPECT_EQ(value.width,800u); EXPECT_EQ(value.height,600u); EXPECT_EQ(value.version,uint32_t(TIDYVNC_ABI_VERSION));
+  const auto saved = value;
+  EXPECT_EQ(tidyvnc_desktop_size_parse(bytes(" +0800x+600trailing"),TIDYVNC_DESKTOP_SIZE_STRICT,&value,nullptr),TIDYVNC_INVALID_ARGUMENT);
+  EXPECT_EQ(tidyvnc_desktop_size_parse(bytes("8x4"),3,&value,nullptr),TIDYVNC_INVALID_ARGUMENT);
+  EXPECT_EQ(std::memcmp(&saved,&value,sizeof(value)),0);
+  ASSERT_EQ(tidyvnc_desktop_size_parse(bytes("0008x0004"),TIDYVNC_DESKTOP_SIZE_STRICT,&value,nullptr),TIDYVNC_OK);
+  EXPECT_EQ(value.width,8u); EXPECT_EQ(value.height,4u);
+  ASSERT_EQ(tidyvnc_desktop_size_parse(bytes(""),TIDYVNC_DESKTOP_SIZE_STRICT,&value,nullptr),TIDYVNC_OK);
+  EXPECT_EQ(value.width,0u); EXPECT_EQ(value.height,0u);
+  const char nul[] = {'8','x','\0','4'};
+  EXPECT_EQ(tidyvnc_desktop_size_parse({reinterpret_cast<const uint8_t*>(nul),4},TIDYVNC_DESKTOP_SIZE_LEGACY,&value,nullptr),TIDYVNC_INVALID_ARGUMENT);
+  EXPECT_EQ(tidyvnc_desktop_size_parse(bytes("8x4"),TIDYVNC_DESKTOP_SIZE_LEGACY,nullptr,nullptr),TIDYVNC_INVALID_ARGUMENT);
+}
 TEST(ViewerABI, WindowGeometryIsStatelessCheckedAndTransactional)
 {
   auto bytes = [](const char* value) { return tidyvnc_bytes{reinterpret_cast<const uint8_t*>(value),std::strlen(value)}; };

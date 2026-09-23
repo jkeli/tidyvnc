@@ -720,3 +720,17 @@ No logging policy or session state changes. RedactedLogger admits only the exact
 numeric template. Native automatic-resize protocol tests use it to compare wire
 requests with measured viewport dimensions. See
 [PROTOCOL.md](../../plans/native-ui/PROTOCOL.md).
+
+### Portable parameter grammars
+
+`TIDYVNC_FEATURE_PARAMETER_GRAMMARS` (70368744177664) adds three stateless exports,
+bringing the C header to 117 status-returning exports. `tidyvnc_desktop_size_parse`
+implements both DesktopSize grammars: the retained command-line `%dx%d` form
+(`LEGACY`) and the strict native `WxH` form (`STRICT`), each 1..65535.
+`tidyvnc_port_parse` is the strict decimal 0..65535 port used for listen ports and
+SSH gateway ports. `tidyvnc_ssh_gateway_create/get` validates the `via` grammar and
+returns the endpoint host, zone, optional user, port intent and canonical
+`ssh://` URI. Frontends derive their own store-scoping digests from those fields;
+the macOS route/intent identities are pinned by a regression test and unchanged.
+PasswordFile and X509CA/CRL path resolution stays with each platform's file
+services, since absolute-path and base-directory rules are platform-specific.

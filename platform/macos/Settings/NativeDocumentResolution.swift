@@ -1,11 +1,14 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 import Foundation
+import TidyVNC
 
 public enum NativeDocumentEndpointUse: Sendable { case connection, listenPort }
+// Strict decimal 0..65535, shared with the portable core (parseDecimalPort).
 public enum NativeListenPort {
   public static func parse(_ value: String) -> UInt32? {
-    guard !value.isEmpty, value.utf8.allSatisfy({ (48...57).contains($0) }),
-          let port = UInt32(value), port <= 65535 else { return nil }
+    guard value.utf8.count <= 16 else { return nil }
+    var port: UInt32 = 0
+    guard (try? checked { error in withText(value) { tidyvnc_port_parse($0,&port,error) } }) != nil else { return nil }
     return port
   }
 }

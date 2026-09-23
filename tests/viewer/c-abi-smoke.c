@@ -556,6 +556,23 @@ int main(void)
     CHECK(memcmp(&geometry,&preserved,sizeof(geometry)) == 0);
   }
   CHECK(abi.features & TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS);
+  CHECK(abi.features & TIDYVNC_FEATURE_PARAMETER_GRAMMARS);
+  {
+    /* Portable parameter grammars from a pure C caller. */
+    static const char size_text[] = "800x600", gateway_text[] = "ssh://alice@gateway.invalid:2222";
+    tidyvnc_desktop_size size; memset(&size,0,sizeof(size)); size.size = sizeof(size); size.version = TIDYVNC_ABI_VERSION;
+    tidyvnc_bytes size_bytes = {(const uint8_t*)size_text,sizeof(size_text)-1};
+    CHECK(tidyvnc_desktop_size_parse(size_bytes,TIDYVNC_DESKTOP_SIZE_STRICT,&size,NULL) == TIDYVNC_OK && size.width == 800 && size.height == 600);
+    uint32_t port = 0; tidyvnc_bytes port_bytes = {(const uint8_t*)"5500",4};
+    CHECK(tidyvnc_port_parse(port_bytes,&port,NULL) == TIDYVNC_OK && port == 5500);
+    tidyvnc_handle gateway = 0; tidyvnc_bytes gateway_bytes = {(const uint8_t*)gateway_text,sizeof(gateway_text)-1};
+    CHECK(tidyvnc_ssh_gateway_create(gateway_bytes,&gateway,NULL) == TIDYVNC_OK);
+    tidyvnc_ssh_gateway_info info; memset(&info,0,sizeof(info)); info.size = sizeof(info); info.version = TIDYVNC_ABI_VERSION;
+    CHECK(tidyvnc_ssh_gateway_get(gateway,&info,NULL) == TIDYVNC_OK && info.port == 2222 &&
+          (info.flags & TIDYVNC_SSH_GATEWAY_USER) && (info.flags & TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT) &&
+          info.canonical_uri.length == sizeof(gateway_text)-1);
+    CHECK(tidyvnc_release(gateway,NULL) == TIDYVNC_OK);
+  }
   CHECK(tidyvnc_logging_viewport(640,480,1280,960,&error) == TIDYVNC_OK);
   CHECK(tidyvnc_logging_viewport(640,0,1280,960,&error) == TIDYVNC_INVALID_ARGUMENT);
   if (abi.features & TIDYVNC_FEATURE_PROCESS_LOGGING) {

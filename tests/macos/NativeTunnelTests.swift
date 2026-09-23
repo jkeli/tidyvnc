@@ -83,6 +83,17 @@ func requestChecks() async throws {
     do { _ = try JSONDecoder().decode(NativeSSHGateway.self,from:bytes); throw Failure(description:"unvalidated stored gateway accepted") }
     catch is DecodingError {}
   }
+  // Persisted identities scope saved credentials and trust; they must never drift.
+  for (text, route, intent) in [
+    ("alice@GATEWAY.invalid", "ssh-v1:4eb2d6e0c1149e1d8dad5e9033743240f6768c23e62f6d5bec1e76586c63d8f9",
+     "ssh-request-v2:32d232f6db07990e9f61e6c2ca6ee6871c5a8081239537b85dd2b47a87920256"),
+    ("ssh://alice@[fe80::1%en0]:2222", "ssh-v1:f50653df865e2eafbf6d9e5db558601595ac03f3a172e8cf14b1de3dc7defa2e",
+     "ssh-request-v2:a17423a9c7a2e22937cefe6920f5b53f12afcd1bf32e0cf2ab30db2504b299e7"),
+    ("gateway.invalid", "ssh-v1:3c3f9de791246bb0b9a836af04888729283ac853ccca8bcd55d8e8cf4b51f32e",
+     "ssh-request-v2:e3d69f812360ffce6e6953e965c2c393ceb7cba7494bac702905a808b3e091a9")] {
+    let gateway = try NativeSSHGateway(text)
+    try expect(gateway.routeIdentity == route && gateway.intentIdentity == intent, "pinned gateway identities for \(text)")
+  }
   let inherited = try NativeSSHGateway("gateway.invalid"), explicit = try NativeSSHGateway("ssh://gateway.invalid:22")
   try expect(!inherited.portIsExplicit && explicit.portIsExplicit && inherited != explicit,"requested port intent survives canonicalization")
   let legacy = try JSONDecoder().decode(NativeSSHGateway.self,from:Data("\"gateway.invalid\"".utf8))

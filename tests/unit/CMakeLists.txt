@@ -65,6 +65,14 @@ find_package(Threads REQUIRED)
 target_link_libraries(d3des rfb GTest::gtest_main Threads::Threads)
 gtest_discover_tests(d3des)
 
+add_executable(sshgateway sshgateway.cxx)
+target_link_libraries(sshgateway tidyvnc_viewer_core GTest::gtest_main)
+gtest_discover_tests(sshgateway)
+
+add_executable(desktopsize desktopsize.cxx)
+target_link_libraries(desktopsize tidyvnc_viewer_core GTest::gtest_main)
+gtest_discover_tests(desktopsize)
+
 add_executable(randomstream randomstream.cxx)
 target_link_libraries(randomstream rdr GTest::gtest_main Threads::Threads)
 gtest_discover_tests(randomstream)

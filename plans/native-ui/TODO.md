@@ -84,6 +84,16 @@ may disappear merely because it is absent from an initial mockup.
     the listen port operand and both-families-off rule; plus FullScreenSelectedMonitors
     ID/cap rules, the two deprecated migrations and layer order (`NativeOptionOverlay`),
     which also keep N1.3 open.
+  - [x] Moved to core (2026-09-23): `DesktopSize` (both grammars), the strict decimal
+    port (listen/gateway) and the `via` gateway grammar/limits/canonical URI, exported
+    as `tidyvnc_desktop_size_parse`, `tidyvnc_port_parse` and
+    `tidyvnc_ssh_gateway_create/get` (`TIDYVNC_FEATURE_PARAMETER_GRAMMARS`). Swift now
+    calls them; gateway route/intent identities are pinned and identical before and
+    after (checked against the committed Swift parser). Decided host-owned:
+    PasswordFile and X509CA/CRL path resolution (platform path semantics, part of the
+    N1.9 file services). Remaining for N1.2: FullScreenSelectedMonitors ID/cap rules,
+    deprecated migrations and layer order. `run-h996jb49` passes 3/768/90; Linux ASan
+    765/765 with zero warnings.
 - [ ] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs.
   - [x] Extract owned, bounded connection-document syntax and non-secret export
     serialization; retained FLTK load/save/import uses the shared codec. See

@@ -3,6 +3,8 @@
 #include <config.h>
 #endif
 #include <viewer/core/WindowGeometry.h>
+#include <viewer/core/DesktopSize.h>
+#include <viewer/core/SSHGateway.h>
 #include <viewer/core/StartupLogging.h>
 #include <core/Logger_file.h>
 #include "tidyvnc.h"
@@ -52,7 +54,7 @@ using namespace viewer;
 namespace {
 core::LogWriter viewportLog("NativeDesktop");
 constexpr size_t handleLimit = 4096, runtimeLimit = 8;
-constexpr uint64_t features = TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS | TIDYVNC_FEATURE_RUNTIME | TIDYVNC_FEATURE_EVENT_POLL |
+constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS | TIDYVNC_FEATURE_RUNTIME | TIDYVNC_FEATURE_EVENT_POLL |
   TIDYVNC_FEATURE_IMAGES | TIDYVNC_FEATURE_INPUT | TIDYVNC_FEATURE_PROMPTS | TIDYVNC_FEATURE_CALLBACKS | TIDYVNC_FEATURE_GEOMETRY | TIDYVNC_FEATURE_CLIPBOARD | TIDYVNC_FEATURE_ENCODING | TIDYVNC_FEATURE_ENDPOINT_VALIDATION | TIDYVNC_FEATURE_SCALING | TIDYVNC_FEATURE_TILE_RENDERER | TIDYVNC_FEATURE_DAMAGE_GEOMETRY | TIDYVNC_FEATURE_CURSOR_RENDERER | TIDYVNC_FEATURE_INPUT_POLICY | TIDYVNC_FEATURE_SHORTCUTS | TIDYVNC_FEATURE_INPUT_RELEASE
 #if defined(__APPLE__) || defined(__linux__)
   | TIDYVNC_FEATURE_TCP_UNIX_CONNECT | TIDYVNC_FEATURE_LISTENER | TIDYVNC_FEATURE_ROUTED_CONNECT
@@ -284,7 +286,7 @@ RemoteDesktopLayout desktopLayout(const tidyvnc_desktop_layout_request* input) {
   }
   return RemoteDesktopLayout(input->width,input->height,std::move(screens));
 }
-enum class Kind { Runtime, Session, Listener, Image, Prompt, Subscription, Clipboard, Encoding, Renderer, CursorSampler, Shortcut, Endpoint, CertificateKey, Document, Invocation };
+enum class Kind { Runtime, Session, Listener, Image, Prompt, Subscription, Clipboard, Encoding, Renderer, CursorSampler, Shortcut, Endpoint, CertificateKey, Document, Invocation, SSHGateway };
 struct Object { virtual ~Object() = default; virtual void released() noexcept {} };
 struct Registry {
   struct Entry { Kind kind; uint64_t references = 0; std::shared_ptr<Object> object; };
@@ -668,6 +670,10 @@ struct CertificateKeyIdentity : Object {
 struct EndpointIdentity : Object {
   explicit EndpointIdentity(Endpoint value_) : value(std::move(value_)) {}
   const Endpoint value;
+};
+struct SSHGatewayValue : Object {
+  explicit SSHGatewayValue(viewer::SSHGateway value_) : value(std::move(value_)) {}
+  const viewer::SSHGateway value;
 };
 struct Invocation : Object {
   explicit Invocation(InvocationSyntax input) : value(std::move(input)) {}
@@ -1180,6 +1186,31 @@ tidyvnc_status tidyvnc_endpoint_get(tidyvnc_handle id,tidyvnc_endpoint_info* out
     value.path = bytes(parsed.path()); value.route = bytes(parsed.route()); *out = value; return TIDYVNC_OK;
   });
 }
+tidyvnc_status tidyvnc_port_parse(tidyvnc_bytes input,uint32_t* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    require(out != nullptr && input.length <= 16);
+    uint32_t port; require(parseDecimalPort(text(input,16),port));
+    *out = port; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_ssh_gateway_create(tidyvnc_bytes input,tidyvnc_handle* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    require(out != nullptr && input.length <= 4096);
+    auto parsed = viewer::SSHGateway::parse(text(input,4096));
+    Reservation slot(Kind::SSHGateway);
+    *out = slot.commit(std::make_shared<SSHGatewayValue>(std::move(parsed))); return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_ssh_gateway_get(tidyvnc_handle id,tidyvnc_ssh_gateway_info* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<SSHGatewayValue>(id,Kind::SSHGateway); const auto& parsed = owner->value;
+    auto value = output<tidyvnc_ssh_gateway_info>();
+    value.port = parsed.port;
+    value.flags = (parsed.hasUser ? TIDYVNC_SSH_GATEWAY_USER : 0) | (parsed.portIsExplicit ? TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT : 0);
+    value.host = bytes(parsed.host); value.scope = bytes(parsed.scope); value.user = bytes(parsed.user);
+    value.canonical_uri = bytes(parsed.canonicalURI); *out = value; return TIDYVNC_OK;
+  });
+}
 tidyvnc_status tidyvnc_invocation_parse(const tidyvnc_bytes* args,uint32_t count,tidyvnc_handle* out,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t {
     require(out != nullptr && (args || !count));
@@ -1418,6 +1449,16 @@ tidyvnc_status tidyvnc_window_geometry_parse(tidyvnc_bytes input,tidyvnc_window_
     value.flags = (parsed.hasSize ? TIDYVNC_WINDOW_GEOMETRY_SIZE : 0) |
                   (parsed.hasPosition ? TIDYVNC_WINDOW_GEOMETRY_POSITION : 0);
     value.width = parsed.width; value.height = parsed.height; value.x = parsed.x; value.y = parsed.y;
+    *out = value; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_desktop_size_parse(tidyvnc_bytes input,uint32_t syntax,tidyvnc_desktop_size* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out);
+    require(syntax == TIDYVNC_DESKTOP_SIZE_LEGACY || syntax == TIDYVNC_DESKTOP_SIZE_STRICT);
+    const auto parsed = DesktopSize::parse(text(input,65536),static_cast<DesktopSizeSyntax>(syntax));
+    auto value = output<tidyvnc_desktop_size>();
+    value.width = parsed.width; value.height = parsed.height;
     *out = value; return TIDYVNC_OK;
   });
 }

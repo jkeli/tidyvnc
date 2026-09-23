@@ -1,6 +1,19 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 import Combine
 import Foundation
+import TidyVNC
+
+extension tidyvnc_desktop_size: ABIValue {}
+// The shared core DesktopSize grammars (legacy command line or strict native).
+enum NativeDesktopSize {
+  static func parse(_ text: String, legacy: Bool) throws -> (width: UInt32, height: UInt32)? {
+    var value = abi(tidyvnc_desktop_size.self)
+    try checked { error in withText(text) {
+      tidyvnc_desktop_size_parse($0, UInt32(legacy ? TIDYVNC_DESKTOP_SIZE_LEGACY : TIDYVNC_DESKTOP_SIZE_STRICT), &value, error)
+    } }
+    return value.width == 0 ? nil : (value.width, value.height)
+  }
+}
 
 public struct NativeRemoteResizePolicy: Equatable, Sendable {
   public let enabled: Bool
@@ -11,11 +24,10 @@ public struct NativeRemoteResizePolicy: Equatable, Sendable {
   public init(enabled: Bool = true, initialSize: String = "") throws {
     self.enabled = enabled
     if initialSize.isEmpty { self.initialSize = ""; initialWidth = nil; initialHeight = nil; return }
-    guard initialSize.utf8.count <= 32 else { throw NativeError(.invalidArgument,"Invalid initial desktop size") }
-    let parts = initialSize.split(separator:"x",omittingEmptySubsequences:false)
-    guard parts.count == 2, parts.allSatisfy({ !$0.isEmpty && $0.utf8.allSatisfy { $0 >= 48 && $0 <= 57 } }),
-          let width = UInt32(parts[0]), let height = UInt32(parts[1]) else { throw NativeError(.invalidArgument,"Use width x height in remote pixels") }
-    _ = try NativeRemoteLayout(width:width,height:height,screens:[.init(id:0,x:0,y:0,width:width,height:height)])
+    guard let size = try? NativeDesktopSize.parse(initialSize, legacy: false) else {
+      throw NativeError(.invalidArgument,"Use width x height in remote pixels")
+    }
+    let width = size.width, height = size.height
     initialWidth = width; initialHeight = height; self.initialSize = "\(width)x\(height)"
   }
 }

@@ -197,26 +197,8 @@ struct NativeInvocationPreparation: Sendable {
   }
   private static func initialSize(_ input: String) throws -> String {
     if input.isEmpty { return "" }
-    // Retained DesktopWindow uses sscanf("%dx%d"): decimal/sign/leading C
-    // whitespace, literal x, then a decimal height; trailing text is ignored.
-    // Parse with checked arithmetic instead of sscanf's overflowing int writes.
-    let bytes = Array(input.utf8); var index = 0
-    func number() throws -> UInt32 {
-      while index < bytes.count && [9,10,11,12,13,32].contains(bytes[index]) { index += 1 }
-      if index < bytes.count && bytes[index] == 43 { index += 1 }
-      let start = index; var value: UInt32 = 0
-      while index < bytes.count && (48...57).contains(bytes[index]) {
-        value = value * 10 + UInt32(bytes[index]-48)
-        guard value <= 65535 else { throw NativePreferencesError.invalidValue }
-        index += 1
-      }
-      guard index > start && value > 0 else { throw NativePreferencesError.invalidValue }
-      return value
-    }
-    let width = try number()
-    guard index < bytes.count, bytes[index] == 120 else { throw NativePreferencesError.invalidValue }
-    index += 1
-    let height = try number()
-    return "\(width)x\(height)"
+    // Retained DesktopWindow sscanf("%dx%d") leniency, implemented once in core.
+    guard let size = try? NativeDesktopSize.parse(input, legacy: true) else { throw NativePreferencesError.invalidValue }
+    return "\(size.width)x\(size.height)"
   }
 }

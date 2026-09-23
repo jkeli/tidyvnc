@@ -23,6 +23,7 @@ public enum NativeTunnelError: Error, Sendable, Equatable, CustomStringConvertib
   }
 }
 
+extension tidyvnc_ssh_gateway_info: ABIValue {}
 private struct TunnelEndpoint: Sendable {
   let host: String, scope: String
   let port: UInt32
@@ -61,47 +62,26 @@ public struct NativeSSHGateway: Sendable, Hashable, Codable {
   public var intentIdentity: String { "ssh-request-v2:" + SHA256.hash(data:Data(("tidyvnc-ssh-intent-v2\0" + canonicalURI).utf8)).map { String(format:"%02x",$0) }.joined() }
   public let portIsExplicit: Bool
   public init(_ gateway: String) throws {
-    guard gateway.utf8.count <= 4096, !gateway.isEmpty,
-          !gateway.utf8.contains(0) else { throw NativeTunnelError.invalidRequest }
-    let uri = gateway.hasPrefix("ssh://")
-    var destination = uri ? String(gateway.dropFirst(6)) : gateway
-    let userParts = destination.split(separator:"@",omittingEmptySubsequences:false)
-    guard userParts.count <= 2 else { throw NativeTunnelError.invalidRequest }
-    let user: String?
-    if userParts.count == 2 {
-      let candidate = String(userParts[0]), allowed = Set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-".utf8)
-      guard !candidate.isEmpty, candidate.utf8.count <= 255,
-            candidate.utf8.allSatisfy({ allowed.contains($0) }) else { throw NativeTunnelError.invalidRequest }
-      user = candidate; destination = String(userParts[1])
-    } else { user = nil }
-    var host = destination, port: UInt32 = 22
-    var explicitPort = false
-    if destination.hasPrefix("[") {
-      guard let end = destination.firstIndex(of:"]") else { throw NativeTunnelError.invalidRequest }
-      host = String(destination[...end]); let suffix = String(destination[destination.index(after:end)...])
-      if !suffix.isEmpty {
-        guard uri, suffix.hasPrefix(":"), let number = NativeListenPort.parse(String(suffix.dropFirst())), number > 0 else { throw NativeTunnelError.invalidRequest }
-        port = number; explicitPort = true
-      }
-    } else if destination.contains(":") {
-      guard uri, destination.filter({ $0 == ":" }).count == 1,
-            let delimiter = destination.firstIndex(of:":"),
-            let number = NativeListenPort.parse(String(destination[destination.index(after:delimiter)...])), number > 0 else { throw NativeTunnelError.invalidRequest }
-      host = String(destination[..<delimiter]); port = number; explicitPort = true
-    }
-    guard !host.isEmpty, !host.hasPrefix("-"), !host.contains("/"), !host.contains("\\") else { throw NativeTunnelError.invalidRequest }
-    let parsed: TunnelEndpoint
-    do { parsed = try TunnelEndpoint("\(host)::\(port)") } catch { throw NativeTunnelError.invalidRequest }
+    // Grammar, limits and canonical URI are the portable core's (SSHGateway).
+    var raw: UInt64 = 0
+    var value = abi(tidyvnc_ssh_gateway_info.self)
+    let owner: NativeHandle, host: String, scope: String, user: String?
+    do {
+      _ = try withText(gateway) { bytes in try checked { tidyvnc_ssh_gateway_create(bytes,&raw,$0) } }
+      owner = NativeHandle(adopting:raw)
+      try checked { tidyvnc_ssh_gateway_get(owner.raw,&value,$0) }
+      host = String(decoding:try copyBytes(value.host),as:UTF8.self)
+      scope = String(decoding:try copyBytes(value.scope),as:UTF8.self)
+      user = value.flags & UInt32(TIDYVNC_SSH_GATEWAY_USER) != 0 ? String(decoding:try copyBytes(value.user),as:UTF8.self) : nil
+      canonicalURI = String(decoding:try copyBytes(value.canonical_uri),as:UTF8.self)
+    } catch { throw NativeTunnelError.invalidRequest }
+    withExtendedLifetime(owner) {}
     // SSH destination is passed as one final argument; scope bytes are exact.
-    guard !parsed.host.hasPrefix("-") else { throw NativeTunnelError.invalidRequest }
-    self.host = parsed.host + (parsed.scope.isEmpty ? "" : "%" + parsed.scope)
-    self.port = port; self.user = user; portIsExplicit = explicitPort
-    canonicalURI = "ssh://" + (user.map { $0 + "@" } ?? "") + parsed.forwardingHost + (explicitPort ? ":" + String(port) : "")
-    // Every admitted value must remain admissible after encode/decode. Adding
-    // the URI scheme and default port can otherwise exceed the input bound.
-    guard canonicalURI.utf8.count <= 4096 else { throw NativeTunnelError.invalidRequest }
+    self.host = host + (scope.isEmpty ? "" : "%" + scope)
+    port = value.port; self.user = user
+    portIsExplicit = value.flags & UInt32(TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT) != 0
     var hash = SHA256()
-    for field in ["tidyvnc-ssh-v1",parsed.host,parsed.scope,String(port),user == nil ? "implicit-user" : "explicit-user",user ?? ""] {
+    for field in ["tidyvnc-ssh-v1",host,scope,String(port),user == nil ? "implicit-user" : "explicit-user",user ?? ""] {
       var length = UInt32(field.utf8.count).bigEndian
       withUnsafeBytes(of:&length) { hash.update(data:Data($0)) }; hash.update(data:Data(field.utf8))
     }
