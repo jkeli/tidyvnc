@@ -387,8 +387,8 @@ cancellation; not yet permission to replace the shipping frontend.
     Source discovery and read orchestration preserve current-XDG then legacy XDG /
     home precedence without modifying sources. Defaults now have separate UI
     choices; history now has its own explicit legacy consent and import action.
-- [ ] N3.6 Document/test native-store versus explicit XDG/CLI/file precedence, no dual writer and intentional export back to FLTK; malformed native data must not trigger fallback import.
-- [ ] N3.7 Test missing/read-only/inaccessible/corrupt/future-schema stores, interrupted commits and concurrent stale edits in isolated domains/temp roots.
+- [x] N3.6 Document/test native-store versus explicit XDG/CLI/file precedence, no dual writer and intentional export back to FLTK; malformed native data must not trigger fallback import. Reviewed 2026-09-23: precedence (compiled → app defaults → profile → CLI → explicit file) in CAPABILITIES.md/CLI.md with `NativeInvocation.ResolutionAndPrecedence` and `FileMonitorPrecedenceAndRecovery`. Native stores are the only writers; XDG/HOME legacy sources are read-only inputs to an explicit import transaction. Corrupt, future, unsupported or inaccessible native records fail and never trigger fallback import (IMPORTS.md "Commit and marker", `NativePreferencesTests` "no fallback" and import tests). Exports use the shared `.tidyvnc` codec the retained FLTK reader also uses. Rollback acceptance itself is N6.11.
+- [x] N3.7 Test missing/read-only/inaccessible/corrupt/future-schema stores, interrupted commits and concurrent stale edits in isolated domains/temp roots. Covered by the native suite in isolated domains/temp roots (reviewed 2026-09-23): `NativePreferencesTests` (disposable UserDefaults domain, corruption/future/unknown fields, typed failure and recovery, revision conflicts), `NativeProfileHistoryTests` (missing parent without side effects, future/corrupt preservation, interrupted writes and orphan cleanup, independent stale writers, real read-only/private permissions, hard/symbolic links and ACL refusal), plus trust-store and recent-history equivalents.
 
 ### Credentials and trust
 
