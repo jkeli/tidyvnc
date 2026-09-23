@@ -1,0 +1,52 @@
+{
+  "server-dialog": [
+    {
+      "file": "fltk-server-dialog.png",
+      "title": "TidyVNC",
+      "points": [
+        450,
+        178
+      ]
+    }
+  ],
+  "desktop": [
+    {
+      "file": "fltk-desktop.png",
+      "title": "security fixture - TidyVNC",
+      "points": [
+        64,
+        80
+      ]
+    }
+  ],
+  "password-dialog": [
+    {
+      "file": "fltk-password-dialog.png",
+      "title": "VNC authentication",
+      "points": [
+        410,
+        200
+      ]
+    }
+  ],
+  "certificate-dialog": [
+    {
+      "file": "fltk-certificate-dialog.png",
+      "title": "Unknown certificate issuer",
+      "points": [
+        564,
+        322
+      ]
+    }
+  ],
+  "connection-refused": [
+    {
+      "file": "fltk-connection-refused.png",
+      "title": "TidyVNC",
+      "points": [
+        420,
+        178
+      ]
+    }
+  ]
+}

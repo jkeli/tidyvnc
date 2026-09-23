@@ -42,6 +42,16 @@ This planning update adds no acceptance evidence and changes no completion boxes
 - [x] N0.2 Record actual security/encoding/audio/H.264 capabilities, compiled defaults, aliases, validation ranges and live-change versus reconnect semantics. See [CAPABILITIES.md](CAPABILITIES.md): all 47 parameters, three aliases, actual linked-library capability/default query and both executable help catalogs.
 - [x] N0.3 Audit reachable global configuration, static credentials, timer lists, logging and crypto initialization; identify per-session ownership and compatibility obligations to server/FLTK consumers. See [STATE-AUDIT.md](STATE-AUDIT.md).
 - [ ] N0.4 Capture baseline native FLTK screenshots and keyboard/focus behavior; record hardware, OS, SDK, dependency versions, build flags, test totals and protocol results.
+  - [x] [BASELINE.md](BASELINE.md) (2026-09-23, `dca759c1`) records the
+    hardware, OS, SDK and toolchain, FLTK and other dependency versions, and
+    build flags. Test totals: 796 unit and 3 viewer tests. Protocol: 55/55 cases
+    through the FLTK viewer. Five window-only screenshots
+    (`tests/macos/fltk-baseline.py`): the connection dialog, a connected desktop,
+    the password prompt, the untrusted-certificate dialog and connection
+    refused, with visible default actions and initial focus. Three parity
+    differences are listed for review.
+  - [ ] Options dialog tabs, menus/fullscreen and keyboard/focus traversal
+    (needs interactive input).
 - [ ] N0.5 Capture matched performance workloads and budgets: idle/scrolling/1080p/4K/multi-view, p50/p95 latency, CPU, memory, copies and damage. Record existing scaling budget requirements and provisional 10% regression threshold.
   - [x] Matched idle/scroll/1080p/4K workload harness and first local baseline
     (CPU, peak RSS, sustained update rate) for FLTK and native: see
