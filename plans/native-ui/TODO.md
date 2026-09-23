@@ -451,7 +451,7 @@ cancellation; not yet permission to replace the shipping frontend.
     `NativeSession.bellHandler` rings once per delivery turn when the current
     attempt's count advances; the app injects `NativeSystemBell` (`NSSound.beep()`).
     Loopback test covers bursts, later bells, reconnect reset and close.
-- [ ] N3.18 Implement explicit file access and existing supported tunnel invocation/cancellation without shell-string interpolation; report unsupported features honestly.
+- [x] N3.18 Implement explicit file access and existing supported tunnel invocation/cancellation without shell-string interpolation; report unsupported features honestly. All subitems below are complete (2026-09-23 review): explicit document/password-file readers and writers; owned SSH tunnel with argument vectors, askpass IPC and cancellation; the admitted ~/.ssh/config subset; `VNC_VIA_CMD`, arbitrary SSH commands and proxy hops are rejected with explicit messages. Installed-app acceptance remains N6.
   - [x] Prepared local tunnel socket boundary preserves the logical TCP target
     hostname for protocol/TLS, with explicit route identity and ordinary transport
     cancellation/drain. App/CLI ownership is implemented and tested below;
