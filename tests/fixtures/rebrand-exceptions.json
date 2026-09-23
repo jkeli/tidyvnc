@@ -18068,6 +18068,146 @@
       "action": "retain-interface",
       "reason": "Exact legacy defaults/history filenames for explicit read-only native import compatibility and isolated path-policy regression tests.",
       "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PACKAGING.md",
+      "text": "| Version resources | Company, product, description, copyright and original file name for each EXE and DLL, from the rebrand ledger. No TigerVNC strings except required upstream attribution |",
+      "action": "retain-interface",
+      "reason": "WinUI packaging plan: describes existing FLTK installer branding debt, legacy .tigervnc non-association, coexistence with upstream installs and legacy registry import source",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PACKAGING.md",
+      "text": "FLTK installer script is still TigerVNC-branded (rebrand R5); that is separate",
+      "action": "retain-interface",
+      "reason": "WinUI packaging plan: describes existing FLTK installer branding debt, legacy .tigervnc non-association, coexistence with upstream installs and legacy registry import source",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PACKAGING.md",
+      "text": "| File association | `.tidyvnc` registered for the user (`HKCU\\Software\\Classes`) with the ProgID and `OpenWithProgids`. Windows asks the user to choose the default app; the installer does not force it. `.tigervnc` is not registered |",
+      "action": "retain-interface",
+      "reason": "WinUI packaging plan: describes existing FLTK installer branding debt, legacy .tigervnc non-association, coexistence with upstream installs and legacy registry import source",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PACKAGING.md",
+      "text": "| Coexistence | Installs beside the FLTK TidyVNC installer (`%ProgramFiles%\\TigerVNC` today, per-machine) and upstream TigerVNC without conflict; distinct product names, directories, shortcuts and upgrade codes |",
+      "action": "retain-interface",
+      "reason": "WinUI packaging plan: describes existing FLTK installer branding debt, legacy .tigervnc non-association, coexistence with upstream installs and legacy registry import source",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PACKAGING.md",
+      "text": "   `HKCU\\Software\\TigerVNC\\vncviewer`; a second Windows user on the same machine",
+      "action": "retain-interface",
+      "reason": "WinUI packaging plan: describes existing FLTK installer branding debt, legacy .tigervnc non-association, coexistence with upstream installs and legacy registry import source",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PARITY.md",
+      "text": "| F09 | First-use defaults import offer | Offered when a TidyVNC or TigerVNC registry key exists |",
+      "action": "retain-interface",
+      "reason": "WinUI parity plan: explicit read-only import source naming for legacy TigerVNC registry settings",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PARITY.md",
+      "text": "| F10 | Defaults source choice | *Current TidyVNC settings* / *TigerVNC settings* |",
+      "action": "retain-interface",
+      "reason": "WinUI parity plan: explicit read-only import source naming for legacy TigerVNC registry settings",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PLAN.md",
+      "text": "- `.tidyvnc` and legacy `.tigervnc` files, option meanings, security checks,",
+      "action": "retain-interface",
+      "reason": "WinUI plan: legacy connection-file compatibility, legacy registry/AppData import and trust sources, and existing FLTK installer branding debt",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PLAN.md",
+      "text": "  settings and history in `HKCU\\Software\\TigerVNC\\vncviewer` (not yet rebranded),",
+      "action": "retain-interface",
+      "reason": "WinUI plan: legacy connection-file compatibility, legacy registry/AppData import and trust sources, and existing FLTK installer branding debt",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PLAN.md",
+      "text": "  TLS files in `%APPDATA%\\TidyVNC`, and a TigerVNC-branded Inno Setup installer",
+      "action": "retain-interface",
+      "reason": "WinUI plan: legacy connection-file compatibility, legacy registry/AppData import and trust sources, and existing FLTK installer branding debt",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PLAN.md",
+      "text": "  moves FLTK there) or `HKCU\\Software\\TigerVNC\\vncviewer` (the current FLTK and",
+      "action": "retain-interface",
+      "reason": "WinUI plan: legacy connection-file compatibility, legacy registry/AppData import and trust sources, and existing FLTK installer branding debt",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PLAN.md",
+      "text": "  upstream TigerVNC key). Passwords, CA/CRL paths, security types, trust records",
+      "action": "retain-interface",
+      "reason": "WinUI plan: legacy connection-file compatibility, legacy registry/AppData import and trust sources, and existing FLTK installer branding debt",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/PLAN.md",
+      "text": "  `%APPDATA%\\TigerVNC` are read-only inputs; new decisions go to the TidyVNC trust",
+      "action": "retain-interface",
+      "reason": "WinUI plan: legacy connection-file compatibility, legacy registry/AppData import and trust sources, and existing FLTK installer branding debt",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/SERVICES.md",
+      "text": "  file-type filters (TidyVNC connection `*.tidyvnc`; TigerVNC connection",
+      "action": "retain-interface",
+      "reason": "WinUI services plan: legacy .tigervnc open filter, read-only legacy registry and x509_known_hosts import sources, non-association of .tigervnc",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/SERVICES.md",
+      "text": "  `*.tigervnc`; all files) and plain paths instead of `StorageFile` objects.",
+      "action": "retain-interface",
+      "reason": "WinUI services plan: legacy .tigervnc open filter, read-only legacy registry and x509_known_hosts import sources, non-association of .tigervnc",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/SERVICES.md",
+      "text": "  and `%APPDATA%\\TigerVNC\\x509_known_hosts` (upstream), parsed by the core module",
+      "action": "retain-interface",
+      "reason": "WinUI services plan: legacy .tigervnc open filter, read-only legacy registry and x509_known_hosts import sources, non-association of .tigervnc",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/SERVICES.md",
+      "text": "| TigerVNC settings | `HKCU\\Software\\TigerVNC\\vncviewer` and `\u2026\\history` | Used by upstream TigerVNC and by the current, not yet rebranded, FLTK TidyVNC |",
+      "action": "retain-interface",
+      "reason": "WinUI services plan: legacy .tigervnc open filter, read-only legacy registry and x509_known_hosts import sources, non-association of .tigervnc",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/SERVICES.md",
+      "text": "  `.tigervnc` is not claimed.",
+      "action": "retain-interface",
+      "reason": "WinUI services plan: legacy .tigervnc open filter, read-only legacy registry and x509_known_hosts import sources, non-association of .tigervnc",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/UX.md",
+      "text": "  are named for Windows: *Current TidyVNC settings* and *TigerVNC settings*",
+      "action": "retain-interface",
+      "reason": "WinUI UX plan: legacy TigerVNC import source name and explicit legacy .tigervnc open path",
+      "count": 1
+    },
+    {
+      "path": "plans/native-ui-winui/UX.md",
+      "text": "  association (with consent). `.tigervnc` files are opened explicitly with",
+      "action": "retain-interface",
+      "reason": "WinUI UX plan: legacy TigerVNC import source name and explicit legacy .tigervnc open path",
+      "count": 1
     }
   ]
 }
