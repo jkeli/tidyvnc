@@ -272,6 +272,14 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
         dark: dark, size: NSSize(width: 520, height: 640)) {}
     }
   }
+  // The unassured warning wraps to two lines at the sheet width; none may be cut.
+  let unassured = NativePrompt(id: 1, generation: session.generation, kind: .credentials, secure: false, securityType: 2,
+    usernameRequired: false, certificateStatus: 0, serverName: "127.0.0.1", fingerprint: "", identity: Data())
+  let warningLines = try await presentedSheetLines(AuthenticationSheet(model: authModel, session: session, request: unassured),
+    name: "authentication-unassured", directory: directory) { color in
+      color.redComponent > 0.8 && color.greenComponent > 0.35 && color.greenComponent < 0.7 && color.blueComponent < 0.35
+    }
+  guard warningLines == 2 else { throw Failure(message: "presented authentication sheet shows \(warningLines) of 2 credential-warning lines") }
   for dark in [false, true] {
     for (name, kind, status, identity, compatibility) in [
       ("unknown-issuer", NativePrompt.Kind.certificate, UInt32(66), trustFixtureCertificate, ""),
@@ -322,6 +330,33 @@ struct TrustRenderLegacy: NativeLegacyTrustBacking { func read() throws -> Data?
 struct TrustRenderKey: NativeCertificateKeyMaterial {
   let spki: Data
   func digest(_ algorithm: UInt32) throws -> Data { throw NativeTrustStoreIssue.unsupportedDigest }
+}
+// A presented sheet takes its height from SwiftUI's sheet sizing, not from the
+// larger fixed windows used by capture(). Renders the presented sheet and returns
+// the number of separate text-line bands containing the given colour.
+@MainActor func presentedSheetLines<Content: View>(_ content: Content, name: String, directory: URL,
+                                                   matching: (NSColor) -> Bool) async throws -> Int {
+  let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 900), styleMask: [.titled], backing: .buffered, defer: false)
+  window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named: .aqua)
+  window.contentView = NSHostingView(rootView: Color.clear.sheet(isPresented: .constant(true)) { content })
+  window.orderFront(nil)
+  defer { window.contentView = nil; window.orderOut(nil); window.close() }
+  for _ in 0..<200 where window.attachedSheet == nil { try await Task.sleep(for: .milliseconds(10)) }
+  guard let sheet = window.attachedSheet, let presented = sheet.contentView else { throw Failure(message: "\(name) sheet was not presented") }
+  try await Task.sleep(for: .milliseconds(100)); presented.layoutSubtreeIfNeeded()
+  guard let bitmap = presented.bitmapImageRepForCachingDisplay(in: presented.bounds)?.converting(to: .sRGB, renderingIntent: .default) else {
+    throw Failure(message: "No \(name) sheet bitmap")
+  }
+  presented.cacheDisplay(in: presented.bounds, to: bitmap)
+  try bitmap.representation(using: .png, properties: [:])?.write(to: directory.appendingPathComponent("presented-" + name + ".png"))
+  var bands = 0, inside = false
+  for y in 0..<bitmap.pixelsHigh {
+    let hit = (0..<bitmap.pixelsWide).contains { x in bitmap.colorAt(x: x, y: y).map(matching) ?? false }
+    if hit && !inside { bands += 1 }
+    inside = hit
+  }
+  print("PASS presented \(name) sheet \(sheet.frame.size): \(bands) matching line(s)")
+  return bands
 }
 @MainActor func waitForTrust(_ ready: () -> Bool) async throws {
   for _ in 0..<1000 { if ready() { return }; try await Task.sleep(for: .milliseconds(3)) }

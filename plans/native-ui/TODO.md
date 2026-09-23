@@ -526,7 +526,10 @@ UI uses, with migration and credential behavior verified independently.
     connection encryption; long endpoint wrapping and light/dark render fixtures.
   - [x] Three retention choices, explicit replace/use/forget controls, asynchronous
     store status and cancellation; loopback lifecycle and eight render fixtures.
-  - [ ] Full security/trust context and interactive acceptance.
+  - [x] Actual-app VncAuth sheet structure and Cancel; fixed a truncated
+    credential-protection warning in the presented sheet, with a presented-sheet
+    line-count regression check ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 auth/trust pass).
+  - [ ] Full security/trust context and keyboard/VoiceOver acceptance.
 - [ ] N4.3 Trust sheets: reason/details/expected and received identity, safe default, scoped decision and reconnect generation handling.
   - [x] Native reasons/subject/destination/fingerprints, fatal and malformed
     approval gating, Cancel default, attempt-only scope and fourteen render fixtures.
@@ -535,7 +538,10 @@ UI uses, with migration and credential behavior verified independently.
     failure presentation and four additional light/dark detail renders.
   - [x] Confirmed scoped certificate save/replace, stale-revision errors and
     eight additional light/dark persistence and management renders.
-  - [ ] Physical keyboard/VoiceOver/TLS sheet acceptance.
+  - [x] Actual-app TLS trust sheet: fingerprint and saved SPKI verified against the
+    peer certificate; Connect Once saves nothing; confirmed Save Exception is
+    reused; Forget leaves the live session and re-prompts; Cancel stops at TLS ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 auth/trust pass).
+  - [ ] Physical keyboard/VoiceOver sheet acceptance.
 - [ ] N4.4 Encoding/color/compression settings: auto select, all supported encodings, full/reduced color, JPEG enable/quality and compression range.
   - [x] App-default controls for all shared encoding fields, schema-derived bounds
     and decoder availability, automatic/dependent enablement and source labels.

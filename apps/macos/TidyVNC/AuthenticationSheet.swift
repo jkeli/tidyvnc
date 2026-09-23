@@ -30,9 +30,11 @@ struct AuthenticationSheet: View {
       if request.kind == .credentials {
         Text(request.credentialProtectionMessage)
           .foregroundStyle(request.secure ? Color.secondary : Color.orange)
+          // Sheet sizing may round a line short; wrapped warnings must never truncate.
+          .fixedSize(horizontal: false, vertical: true)
           .accessibilityIdentifier("authentication.credentialProtection")
         Text(String(localized:"authentication.this.assessment.describes.credential.protection.not.encryption", defaultValue:"This assessment describes credential protection, not encryption of all desktop traffic."))
-          .font(.caption).foregroundStyle(.secondary)
+          .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         if request.usernameRequired { TextField(String(localized:"authentication.username", defaultValue:"Username"), text: $username).textFieldStyle(.roundedBorder) }
         SecureField(String(localized:"authentication.password", defaultValue:"Password"), text: $password).textFieldStyle(.roundedBorder)
           .focused($passwordFocused).accessibilityIdentifier("authentication.password").onSubmit { submit() }
@@ -94,7 +96,7 @@ struct AuthenticationSheet: View {
           Button(String(localized:"authentication.reload.saved.decisions", defaultValue:"Reload Saved Decisions")) { trustModel.reload() }.disabled(trustModel.isWorking)
         }
       }
-      if let problem { Text(problem).foregroundStyle(.red).accessibilityIdentifier("authentication.error") }
+      if let problem { Text(problem).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("authentication.error") }
       HStack {
         Spacer()
         Button(String(localized:"action.cancel", defaultValue:"Cancel"), role: .cancel) { password = ""; model.cancel() }.keyboardShortcut(request.kind == .credentials ? .cancelAction : .defaultAction)

@@ -239,3 +239,52 @@ Still not established: VoiceOver and high-contrast/reduced-motion passes, full
 keyboard-only traversal of every sheet, fullscreen and multi-display behavior,
 clipboard exchange (kept off because the pasteboard is not isolated), audible bell,
 authentication/trust sheets interactively, and physical 1×/2× displays.
+
+## 2026-09-23 — isolated copy: authentication and certificate-trust sheets
+
+Background control (no full-screen takeover) of a new isolated copy against a
+scratch loopback peer offering either VncAuth or VeNCrypt X509None with a fresh
+self-signed certificate. No password was typed: the sheet's structure and
+cancellation were exercised, and successful password authentication remains
+covered by `tests/integration/macos-auth-smoke.py` (VNC_PASSWORD).
+
+- **Authentication sheet** (VncAuth): shows "Authentication required", the host,
+  the orange credential-protection warning with the separate note that it
+  describes credential protection rather than traffic encryption, a secure
+  Password field, Password lifetime (Use once / session reconnect / Remember on
+  this Mac), Use Saved Password and Forget Saved Password, and Cancel /
+  Authenticate. Cancel returns to "Disconnected" with no alert and no retry; the
+  peer saw the connection close. Escape could not be sent in background mode, so
+  it was not exercised.
+- **Defect found and fixed:** the credential-protection warning was **truncated**
+  to "…may not adequately pro…". The presented sheet was one point shorter than
+  the text's wrapped height. Offscreen renders in a larger window had hidden this.
+  The warning, its caption and the error text now keep their full wrapped height
+  (`fixedSize(horizontal: false, vertical: true)`). A new
+  `NativeSettings.DraftRendering` check presents the real sheet on a window and
+  counts the rendered warning lines. It fails at 1 line without the fix and passes
+  at 2 with it.
+- **Trust sheet** (untrusted certificate): shows "Verify server identity", the
+  destination, "No active saved certificate exception matches this server",
+  "Certificate verification failed", issuer-not-trusted and name-mismatch reasons,
+  subject `localhost`, and a SHA-256 fingerprint that **matches** `openssl x509
+  -fingerprint -sha256` of the peer certificate. Also shown: scope notes, Save
+  Exception and Connect…, Cancel and Connect Once.
+- **Connect Once** completes the TLS session; the 64×48 desktop shows orange left
+  and blue right (correct channel order). After Disconnect and Connect, the trust
+  sheet appears again, so nothing was saved.
+- **Save Exception and Connect…** asks for confirmation. The prompt says the
+  decision applies to `127.0.0.1::52681`, can be forgotten in Saved Certificate
+  Decisions, and that the certificate problems are still present. Save and Connect
+  connects; the next reconnect goes straight to the desktop. The exception was
+  written only to the isolated `XDG_STATE_HOME/tidyvnc/native-trust`.
+- **File › Saved Certificate Decisions…** lists the destination with a saved SPKI
+  SHA-256 that **matches** the peer key (`openssl pkey … | dgst -sha256`).
+  Forget for This Destination asks for confirmation (destructive Forget Saved Key
+  / Cancel). The window then reports that existing connections are unchanged, and
+  the live session did stay connected. The next connect shows the trust sheet
+  again, now noting that the saved key was forgotten.
+- **Cancel** on the trust sheet leaves "Disconnected"; the viewer never continued
+  past TLS.
+- File › Save Connection File As… and the Connection menu require the key window,
+  so they were unavailable in background mode (Save-panel Command-Q remains open).
