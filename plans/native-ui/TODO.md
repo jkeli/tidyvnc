@@ -284,9 +284,18 @@ are proven before substantial SwiftUI screen work begins.
     the broader responsiveness matrix remains N2.8.
 - [x] N2.6 Create SwiftUI app shell with AppKit lifecycle coordinator and `NSViewRepresentable` desktop view; link the C++ core without FLTK.
 - [x] N2.7 Connect to a controlled loopback server, show/cancel authentication, display updates, send keyboard/pointer and disconnect/reconnect using the native path.
-- [ ] N2.8 Verify UI responsiveness during slow DNS/connect/auth/decoding and quit; test active frame resize while view/session is removed.
+- [x] N2.8 Verify UI responsiveness during slow DNS/connect/auth/decoding and quit; test active frame resize while view/session is removed.
   - Native auth cancellation/quit and 12 view removals with resize in flight pass.
-    Slow DNS/connect, sustained heavy decode and measured UI responsiveness remain.
+  - 2026-09-23 `NativeBridge.OwnershipAndLoopback` adds a measured MainActor heartbeat
+    (5 ms ticks) across a pending connect to a bound, non-listening loopback socket
+    (still pending at 400 ms, cancelled in under 1 s), 256 full-frame raw 1024×768
+    updates (768 MiB decoded in about 0.3 s with ~50 ticks during the window) and
+    close/runtime shutdown while a second 256-frame flood is in flight (drained in
+    3–7 ms). Worst tick gap 8–11 ms over three runs (limit 250 ms); slow
+    authentication is covered by the parked-prompt heartbeat test. Slow DNS: macOS
+    DNS-SD work runs on the session worker with cancellable readiness (core tests);
+    a stalled mDNSResponder cannot be simulated without changing system settings.
+    The glibc resolver's stalled-lookup cancellation is verified on Linux.
 - [x] N2.9 Compile/exercise a mock non-Apple consumer of the same interface, checking no Foundation/Objective-C/Swift/POSIX/widget types leak into public contracts. No WinUI frontend is required.
   - C99 smoke consumer and generated dependency audit cover the initial C ABI on
     macOS without GUI dependencies.

@@ -31,6 +31,8 @@ uint32_t native_test_peer_has_input(void* peer, uint32_t kind, uint32_t value, u
 void native_test_peer_clipboard(void* peer);
 /* Sends 1..64 RFB Bell messages in one write. */
 void native_test_peer_bell(void* peer, uint32_t count);
+/* Resizes to 1024x768, then sends 1..256 full-frame raw updates (~3 MiB each). */
+void native_test_peer_flood(void* peer, uint32_t frames);
 /* Copies one bounded plain clipboard message followed by a framebuffer marker.
  * Returns zero for invalid/oversized input or an occupied fixture queue. */
 uint32_t native_test_peer_clipboard_bytes(void* peer, const uint8_t* text, uint32_t length);

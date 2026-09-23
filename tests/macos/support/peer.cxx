@@ -68,6 +68,7 @@ public:
   std::atomic<uint32_t> cursor{0};
   std::atomic<bool> clipboardRequested{false};
   std::atomic<uint32_t> bells{0};
+  std::atomic<uint32_t> flood{0};
   std::vector<uint8_t> clipboardWire; // protected by mutex, including marker
   uint8_t clipboardMarker = 0;
   bool queueClipboard(const uint8_t* text,uint32_t length) {
@@ -182,6 +183,21 @@ private:
         std::vector<uint8_t> clipboardMessage;
         { std::lock_guard<std::mutex> lock(mutex); clipboardMessage.swap(clipboardWire); }
         if (!clipboardMessage.empty()) send(fd,clipboardMessage.data(),clipboardMessage.size());
+        if (const auto floodFrames = flood.exchange(0)) {
+          // Resize to 1024x768 (DesktopSize), then full-frame raw updates: a
+          // sustained decode/publication load, about 3 MiB per frame.
+          rdr::MemOutStream desktopSize;
+          desktopSize.writeU8(0); desktopSize.pad(1); desktopSize.writeU16(1);
+          desktopSize.writeU16(0); desktopSize.writeU16(0); desktopSize.writeU16(1024); desktopSize.writeU16(768); desktopSize.writeS32(-223);
+          send(fd,desktopSize.data(),desktopSize.length());
+          std::vector<uint8_t> update(16 + 1024*768*4);
+          const uint8_t header[16] = {0,0,0,1, 0,0,0,0, 4,0,3,0, 0,0,0,0};
+          std::copy(header,header+16,update.begin());
+          for (uint32_t i = 0; i < floodFrames && !stopping; ++i) {
+            std::fill(update.begin()+16,update.end(),uint8_t(i));
+            send(fd,update.data(),update.size());
+          }
+        }
         if (const auto count = bells.exchange(0)) {
           // One write, so a burst arrives in a single delivery (RFB Bell is type 2).
           const std::vector<uint8_t> burst(count, 2);
@@ -257,6 +273,7 @@ uint32_t native_test_peer_clipboard_bytes(void* peer,const uint8_t* text,uint32_
   try { return static_cast<Peer*>(peer)->queueClipboard(text,length); } catch (...) { return 0; }
 }
 void native_test_peer_clipboard(void* peer) { static_cast<Peer*>(peer)->clipboardRequested = true; }
+void native_test_peer_flood(void* peer, uint32_t frames) { static_cast<Peer*>(peer)->flood = frames > 256 ? 256 : frames; }
 void native_test_peer_bell(void* peer, uint32_t count) { static_cast<Peer*>(peer)->bells = count > 64 ? 64 : count; }
 uint32_t native_test_peer_has_clipboard(void* peer) { return static_cast<Peer*>(peer)->hasClipboard(); }
 uint32_t native_test_peer_count_clipboard(void* peer,const uint8_t* text,uint32_t length) { return static_cast<Peer*>(peer)->clipboardCount(text,length); }

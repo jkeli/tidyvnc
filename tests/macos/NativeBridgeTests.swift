@@ -301,6 +301,71 @@ func ignoreReady(_ context: UnsafeMutableRawPointer?, _ subscription: UInt64, _ 
   try expect(try retained.value(for: .quality).value == "5", "encoding snapshot survives runtime close")
 }
 
+// Worst gap between 5 ms MainActor ticks: native IO, decode and drain must never
+// block the UI thread, whatever the workers are doing.
+@MainActor final class Heartbeat {
+  private(set) var worst: Duration = .zero
+  private(set) var beats = 0
+  private var task: Task<Void,Never>?
+  func start() {
+    let clock = ContinuousClock()
+    task = Task { @MainActor [weak self] in
+      var last = clock.now
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .milliseconds(5))
+        let now = clock.now
+        guard let self else { return }
+        self.worst = max(self.worst, now - last); self.beats += 1; last = now
+      }
+    }
+  }
+  func stop() async { task?.cancel(); await task?.value }
+}
+// A bound, non-listening loopback socket: macOS leaves connects to it pending.
+final class ReservedPort {
+  let fd: Int32, port: UInt16
+  init() throws {
+    let socketFD = socket(AF_INET, SOCK_STREAM, 0)
+    var address = sockaddr_in(); address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+    address.sin_family = sa_family_t(AF_INET); address.sin_addr.s_addr = inet_addr("127.0.0.1")
+    var length = socklen_t(MemoryLayout<sockaddr_in>.size)
+    let bound = socketFD >= 0 && withUnsafeMutablePointer(to: &address) {
+      $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(socketFD, $0, length) == 0 && getsockname(socketFD, $0, &length) == 0 }
+    }
+    guard bound else { if socketFD >= 0 { close(socketFD) }; throw TestFailure(description: "reserved port") }
+    fd = socketFD; port = UInt16(bigEndian: address.sin_port)
+  }
+  deinit { close(fd) }
+}
+@MainActor func mainActorStaysResponsiveDuringPendingConnectDecodeAndShutdown() async throws {
+  let runtime = try NativeRuntime(); let session = try runtime.makeSession(configuration: configuration(1))
+  let beat = Heartbeat(); beat.start()
+  let reserved = try ReservedPort()
+  let pending = Task { try await session.connect(endpoint: "127.0.0.1::\(reserved.port)") }
+  try await Task.sleep(for: .milliseconds(400))
+  try expect([.resolving, .connecting].contains(session.snapshot.state), "connect is still pending")
+  let clock = ContinuousClock()
+  var started = clock.now; pending.cancel()
+  do { _ = try await pending.value; throw TestFailure(description: "cancelled pending connect succeeded") } catch is CancellationError {}
+  try expect(clock.now - started < .seconds(1), "a pending connect cancels promptly")
+  let peer = try Peer(); _ = try await session.connect(endpoint: peer.endpoint); _ = await serverFrame(session)
+  let before = session.snapshot.frames, beatsBefore = beat.beats, decodeStart = clock.now
+  native_test_peer_flood(peer.raw, 256)
+  try await waitFor { session.snapshot.frames >= before + 256 }
+  let decodeTime = clock.now - decodeStart, decodeBeats = beat.beats - beatsBefore
+  try expect(session.snapshot.frames >= before + 256 && session.snapshot.width == 1024, "sustained 1024x768 raw updates decode")
+  print("INFO 256 raw 1024x768 updates (768 MiB) in \(decodeTime) with \(decodeBeats) MainActor ticks")
+  try expect(decodeBeats >= 5, "MainActor ticks continue throughout the decode window")
+  native_test_peer_flood(peer.raw, 256)
+  try await Task.sleep(for: .milliseconds(30))
+  started = clock.now
+  try await session.close(); try await runtime.shutdown()
+  let drained = clock.now - started
+  await beat.stop()
+  print("INFO MainActor worst tick gap \(beat.worst) over \(beat.beats) ticks; shutdown during decode drained in \(drained)")
+  try expect(drained < .seconds(5), "shutdown during sustained decode drains in bounded time")
+  try expect(beat.worst < .milliseconds(250), "MainActor never stalls for 250 ms (worst \(beat.worst))")
+}
 @MainActor final class BellCounter: NativeBellSounding { var rings = 0; func ring() { rings += 1 } }
 @MainActor func waitFor(_ condition: @MainActor () -> Bool) async throws {
   for _ in 0..<1000 where !condition() { try await Task.sleep(for: .milliseconds(2)) }
@@ -341,6 +406,7 @@ func ignoreReady(_ context: UnsafeMutableRawPointer?, _ subscription: UInt64, _ 
       try await encodingSchemaOwnershipAndCommands(); print("PASS encoding schema, ownership, typed validation, independent sessions and async commands")
       try await typedValidationAndRejectedAdmission(); print("PASS typed errors, capacity rejection and cancellation before admission")
       try await serverBellRingsForCurrentAttemptOnly(); print("PASS server bell rings per attempt, coalesced per delivery")
+      try await mainActorStaysResponsiveDuringPendingConnectDecodeAndShutdown(); print("PASS MainActor responsive during pending connect, sustained decode and shutdown")
     } catch {
       FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1)
     }
