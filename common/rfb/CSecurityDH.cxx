@@ -38,6 +38,8 @@
 
 #include <core/i18n.h>
 
+#include <core/wipe.h>
+
 #include <rfb/CSecurityDH.h>
 #include <rfb/CConnection.h>
 #include <rdr/InStream.h>
@@ -113,10 +115,19 @@ void CSecurityDH::writeCredentials()
   std::string username;
   std::string password;
   rdr::RandomStream rs(rdr::RandomStream::RequireSystem);
+  // Credentials, the private exponent, the shared secret, derived keys, cipher
+  // state and the plaintext block are cleared on every exit. GMP limbs are not.
+  std::vector<uint8_t> bBytes(keyLength), sharedSecret(keyLength);
+  uint8_t key[MD5_DIGEST_SIZE];
+  struct md5_ctx md5Ctx;
+  struct aes128_ctx aesCtx;
+  uint8_t buf[128];
+  core::ScopedWipe secrets;
+  secrets.add(username).add(password).add(bBytes).add(sharedSecret)
+    .add(key, sizeof(key)).add(&md5Ctx, sizeof(md5Ctx)).add(&aesCtx, sizeof(aesCtx)).add(buf, sizeof(buf));
 
   cc->getUserPasswd(isSecure(), &username, &password);
 
-  std::vector<uint8_t> bBytes(keyLength);
   if (!rs.hasData(keyLength))
     throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(bBytes.data(), bBytes.size());
@@ -124,12 +135,9 @@ void CSecurityDH::writeCredentials()
   mpz_powm(k, A, b, p);
   mpz_powm(B, g, b, p);
 
-  std::vector<uint8_t> sharedSecret(keyLength);
   std::vector<uint8_t> BBytes(keyLength);
   nettle_mpz_get_str_256(sharedSecret.size(), sharedSecret.data(), k);
   nettle_mpz_get_str_256(BBytes.size(), BBytes.data(), B);
-  uint8_t key[MD5_DIGEST_SIZE];
-  struct md5_ctx md5Ctx;
   md5_init(&md5Ctx);
   md5_update(&md5Ctx, sharedSecret.size(), sharedSecret.data());
 #if NETTLE_VERSION_MAJOR >= 4
@@ -137,10 +145,8 @@ void CSecurityDH::writeCredentials()
 #else
   md5_digest(&md5Ctx, MD5_DIGEST_SIZE, key);
 #endif
-  struct aes128_ctx aesCtx;
   aes128_set_encrypt_key(&aesCtx, key);
 
-  uint8_t buf[128];
   if (!rs.hasData(128))
     throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(buf, 128);

@@ -82,7 +82,8 @@ final class NativeSSHPreparedGateway: Sendable {
     let snapshot = try await NativeSSHConfigurationSnapshot.capture(root:root,includeBase:includeBase,home:home,allowMissingRoot:allowMissingRoot,checkpoint:checkpoint)
     do {
       var environment = ["PATH":"/usr/bin:/bin","LC_ALL":"C"]
-      if let socket = ProcessInfo.processInfo.environment["SSH_AUTH_SOCK"], socket.hasPrefix("/"), socket.utf8.count <= 4096, !socket.utf8.contains(0) {
+      // Read only this variable; the full environment may hold VNC_PASSWORD.
+      if let socket = NativePathEnvironment.value("SSH_AUTH_SOCK", maximumBytes: 4096), socket.hasPrefix("/") {
         environment["SSH_AUTH_SOCK"] = socket
       }
       let resolved = try await NativeSSHConfigurationProbe.resolve(requested,snapshot:snapshot,environment:environment,network:network)

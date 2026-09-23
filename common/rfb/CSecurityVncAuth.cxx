@@ -25,6 +25,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <core/wipe.h>
+
 #include <rfb/CConnection.h>
 #include <rfb/CSecurityVncAuth.h>
 #include <rfb/Security.h>
@@ -58,6 +60,9 @@ bool CSecurityVncAuth::processMsg()
   for (size_t i=0; i<8; i++)
     key[i] = i<passwd.size() ? passwd[i] : 0;
   d3des_ctx context;
+  // The password, DES key and key schedule never outlive this call.
+  core::ScopedWipe secrets;
+  secrets.add(passwd).add(key, sizeof(key)).add(&context, sizeof(context));
   d3des_set_key(&context, key, EN0);
   for (int j = 0; j < vncAuthChallengeSize; j += 8)
     d3des_transform(&context, challenge+j, challenge+j);

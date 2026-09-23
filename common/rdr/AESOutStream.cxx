@@ -26,6 +26,8 @@
 
 #include <core/i18n.h>
 
+#include <core/wipe.h>
+
 #include <rdr/AESOutStream.h>
 
 #ifdef HAVE_NETTLE
@@ -51,7 +53,11 @@ AESOutStream::AESOutStream(OutStream* _out, const uint8_t* key,
 
 AESOutStream::~AESOutStream()
 {
-    delete[] msg;
+  // Clear session keys (both contexts share storage) and the message buffer.
+  core::wipe(&eaxCtx256, sizeof(eaxCtx256));
+  core::wipe(&eaxCtx128, sizeof(eaxCtx128));
+  core::wipe(msg, MaxMessageSize + 16 + 2);
+  delete[] msg;
 }
 
 void AESOutStream::flush()

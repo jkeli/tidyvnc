@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include <core/wipe.h>
+
 #include <rfb/CConnection.h>
 #include <rfb/CSecurityPlain.h>
 
@@ -34,6 +36,8 @@ bool CSecurityPlain::processMsg()
 
   std::string username;
   std::string password;
+  core::ScopedWipe secrets;
+  secrets.add(username).add(password);
 
   cc->getUserPasswd(cc->isSecure(), &username, &password);
 

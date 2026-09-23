@@ -194,3 +194,45 @@ a peer under its new VncAuth-only policy, restores its initial selection and rec
 another stays connected throughout. Draft cancellation, revision conflicts, source
 restoration, full 4096-byte text copies, controller lifecycle and sheet renders are
 covered. Physical menus, scrolling, picker focus and VoiceOver remain acceptance gates.
+
+## Secret lifetime audit (N3.13, 2026-09-23)
+
+Every flow was traced from its origin (password sheet, `VNC_USERNAME`/
+`VNC_PASSWORD`, PasswordFile, Keychain, SSH prompt) to the wire. No secret reaches
+logs, snapshots, diagnostics, exports or error text: secret-holding types print
+redacted placeholders, error enums use fixed text, and `RedactedLogger` strips
+string arguments.
+
+Wiped after use (owned by this project):
+
+- Swift byte arrays and `NativeCredentialSecret` storage (`memset_s` on clear and
+  deinit), including launch inputs, password-file blocks and SSH responses.
+- C ABI spans and bridge `Secret` strings. `tidyvnc_session_reply_credentials`
+  now validates in place and copies straight into the wiped strings, so no
+  unwiped temporary (short strings are stored inline) remains.
+- The prompt rendezvous buffers in `PromptAuthentication`.
+- **New:** every client security handler (`CSecurityVncAuth`, `Plain`, `RSAAES`,
+  `DH`, `MSLogonII`) uses `core::ScopedWipe` for the password/username strings,
+  DES/AES/MD5 keys and contexts, the DH private exponent and shared secret, and
+  plaintext credential blocks, on every exit including exceptions.
+- **New:** `rdr::BufferedOutStream` wipes its buffer before every free (destroy,
+  shrink, grow), and the AES streams wipe their EAX key contexts.
+- **New:** the Keychain save path zeroes the one `NSMutableData` payload the
+  attribute dictionary and its CF bridge share. The earlier `Data` was copied
+  into the dictionary, so the old wipe cleared only a copy.
+- **New:** SSH preparation reads `SSH_AUTH_SOCK` alone with `getenv`, instead of
+  materializing the whole environment (including `VNC_PASSWORD`) as Strings.
+
+Runtime limits (not wiped, by design or necessity):
+
+- SwiftUI/AppKit text-field storage and every Swift `String` (password and SSH
+  response fields, usernames), which Swift cannot overwrite; fields are cleared
+  when the sheet submits, cancels or disappears.
+- The process environment (captured once at launch and never re-read for secrets),
+  the Keychain service's own copies and the `CFData` returned by a lookup.
+- Kernel socket and pipe buffers, OpenSSH and askpass IPC in flight, GnuTLS and
+  nettle internal state, GMP limbs (`mpz_clear` does not zero), and stack
+  temporaries inside `d3des`.
+- Bytes already sent stay in a live stream buffer until later output overwrites
+  them; the buffer is wiped when freed. Pages are not `mlock`ed; macOS encrypts swap.
+- Compiler copies in registers or spills cannot be controlled.

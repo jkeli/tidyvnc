@@ -5,6 +5,14 @@ import Foundation
 // Snapshot only storage-path variables. Copying the whole process environment
 // would also materialize launch passwords as immutable Foundation strings.
 public enum NativePathEnvironment {
+  // One named variable, bounded and UTF-8, without touching the rest of the
+  // environment (which may hold launch credentials).
+  public static func value(_ key: String, maximumBytes: Int) -> String? {
+    guard let pointer = getenv(key) else { return nil }
+    let count = strnlen(pointer, maximumBytes + 1)
+    guard count <= maximumBytes else { return nil }
+    return String(bytes:UnsafeBufferPointer(start:UnsafeRawPointer(pointer).assumingMemoryBound(to:UInt8.self),count:count),encoding:.utf8)
+  }
   public static func capture() -> [String:String] {
     var result: [String:String] = [:]
     for key in ["HOME","XDG_CONFIG_HOME","XDG_DATA_HOME","XDG_STATE_HOME"] {

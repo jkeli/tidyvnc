@@ -25,6 +25,8 @@
 #include <core/i18n.h>
 #include <core/string.h>
 
+#include <core/wipe.h>
+
 #include <rdr/BufferedOutStream.h>
 
 using namespace rdr;
@@ -44,6 +46,8 @@ BufferedOutStream::BufferedOutStream(bool emulateCork_)
 BufferedOutStream::~BufferedOutStream()
 {
   // FIXME: Complain about non-flushed buffer?
+  // Streams carry credentials (VeNCrypt Plain, RSA-AES): never free them intact.
+  core::wipe(start, bufSize);
   delete [] start;
 }
 
@@ -88,6 +92,7 @@ void BufferedOutStream::flush()
         newSize *= 2;
 
       // We know the buffer is empty, so just reset everything
+      core::wipe(start, bufSize);
       delete [] start;
       ptr = start = sentUpTo = new uint8_t[newSize];
       end = start + newSize;
@@ -149,6 +154,7 @@ void BufferedOutStream::overrun(size_t needed)
 
   newBuffer = new uint8_t[newSize];
   memcpy(newBuffer, sentUpTo, ptr - sentUpTo);
+  core::wipe(start, bufSize);
   delete [] start;
   bufSize = newSize;
 

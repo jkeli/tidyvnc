@@ -252,12 +252,18 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
     return TIDYVNC_FAILED;
   } catch (...) { if (writable) errorValue(error,Fault(TIDYVNC_INTERNAL)); return TIDYVNC_INTERNAL; }
 }
-std::string text(tidyvnc_bytes bytes, uint64_t maximum = 4096) {
+// Bounded UTF-8 without NUL. Separate from text() so secrets can be validated
+// and then copied straight into wiped storage, with no temporary string.
+void validateText(tidyvnc_bytes bytes, uint64_t maximum = 4096) {
   require(bytes.length <= maximum && (bytes.data || !bytes.length));
-  if (!bytes.length) return {};
+  if (!bytes.length) return;
   const auto count = static_cast<size_t>(bytes.length);
   require(std::memchr(bytes.data,0,count) == nullptr && core::isValidUTF8(reinterpret_cast<const char*>(bytes.data),count));
-  return std::string(reinterpret_cast<const char*>(bytes.data),count);
+}
+std::string text(tidyvnc_bytes bytes, uint64_t maximum = 4096) {
+  validateText(bytes,maximum);
+  if (!bytes.length) return {};
+  return std::string(reinterpret_cast<const char*>(bytes.data),static_cast<size_t>(bytes.length));
 }
 LoggingPolicy loggingPolicy(tidyvnc_bytes input) {
   if (input.length > LoggingPolicy::maximumBytes) throw LoggingError(LoggingProblem::TooLarge,0);
@@ -1806,7 +1812,9 @@ tidyvnc_status tidyvnc_session_reply_credentials(tidyvnc_handle id,uint64_t requ
   tidyvnc_mutable_bytes username,tidyvnc_mutable_bytes password,tidyvnc_error* error) {
   WipeInput wipeUser{username}, wipePassword{password};
   return call(error,[&]() -> uint32_t { Secret user, secret;
-    user.value = text({username.data,username.length}); secret.value = text({password.data,password.length});
+    validateText({username.data,username.length}); validateText({password.data,password.length});
+    if (username.length) user.value.assign(reinterpret_cast<const char*>(username.data),static_cast<size_t>(username.length));
+    if (password.length) secret.value.assign(reinterpret_cast<const char*>(password.data),static_cast<size_t>(password.length));
     promptResult(session(id)->authentication()->replyCredentials(request,generation,user.value,secret.value)); return TIDYVNC_OK; });
 }
 tidyvnc_status tidyvnc_session_reply_credential_bytes(tidyvnc_handle id,uint64_t request,uint64_t generation,

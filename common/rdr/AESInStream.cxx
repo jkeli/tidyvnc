@@ -26,6 +26,8 @@
 
 #include <core/i18n.h>
 
+#include <core/wipe.h>
+
 #include <rdr/AESInStream.h>
 
 #ifdef HAVE_NETTLE
@@ -46,7 +48,12 @@ AESInStream::AESInStream(InStream* _in, const uint8_t* key,
     throw std::out_of_range("Invalid key size");
 }
 
-AESInStream::~AESInStream() {}
+AESInStream::~AESInStream()
+{
+  // Clear session keys; decrypted data lives in the base buffer.
+  core::wipe(&eaxCtx256, sizeof(eaxCtx256));
+  core::wipe(&eaxCtx128, sizeof(eaxCtx128));
+}
 
 bool AESInStream::fillBuffer()
 {

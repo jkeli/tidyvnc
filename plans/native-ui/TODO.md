@@ -424,10 +424,15 @@ cancellation; not yet permission to replace the shipping frontend.
   - [x] Explicit CA/CRL defaults/profile paths and file pickers, field inheritance,
     immutable session capture and required-file TLS loading; see [TRUST.md](TRUST.md).
   - [ ] Interactive file-picker/keyboard/VoiceOver and full native security acceptance.
-- [ ] N3.13 Limit secret buffer lifetime/copies, redact logs/snapshots/exports and clear owned mutable buffers; document runtime zeroization limits.
+- [x] N3.13 Limit secret buffer lifetime/copies, redact logs/snapshots/exports and clear owned mutable buffers; document runtime zeroization limits.
   - [x] Owned locked secret allocation, consumed-input/clear/deinit wiping,
     redacted descriptions and bounded storage API; runtime-copy limits documented.
-  - [ ] Integrate all authentication/retention flows and audit their full lifetime.
+  - [x] Integrate all authentication/retention flows and audit their full lifetime
+    (2026-09-23; see SECURITY.md "Secret lifetime audit"). Fixed: RFB client
+    security handlers now wipe credentials, keys and contexts (`core::ScopedWipe`);
+    stream buffers and AES key contexts are wiped before free; no unwiped temporary
+    in the C credential reply; the Keychain save wipes the shared payload object
+    (test-checked); SSH setup no longer materializes the environment. Limits documented.
 - [ ] N3.14 Test real Keychain operations using disposable scoped entries and packaged app identity, including upgrade/access-policy behavior; remove only test entries.
 
 ### Remaining native services

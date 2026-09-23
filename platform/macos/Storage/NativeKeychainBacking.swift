@@ -75,7 +75,12 @@ public final class NativeKeychainBacking: NativeCredentialBacking, Sendable {
     let context = context(interaction); defer { context.invalidate() }
     var bytes = try secret.copyBytes()
     defer { bytes.withUnsafeMutableBytes { if let base = $0.baseAddress { _ = memset_s(base, $0.count, 0, $0.count) } } }
-    var data = Data(bytes); defer { data.resetBytes(in: 0..<data.count) }
+    // One mutable object is shared by the attribute dictionary and its CF bridge,
+    // so zeroing it after the call clears the only app-owned payload copy. (A
+    // Swift Data value would be copied into the dictionary and survive a wipe.)
+    // The Keychain service keeps its own copies.
+    let data = bytes.withUnsafeBytes { NSMutableData(bytes: $0.baseAddress, length: $0.count) }
+    defer { _ = memset_s(data.mutableBytes, data.length, 0, data.length) }
     var attributes: [String: Any] = [
       kSecValueData as String: data,
       kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly

@@ -40,6 +40,8 @@
 #include <core/i18n.h>
 #include <core/string.h>
 
+#include <core/wipe.h>
+
 #include <rfb/CSecurityRSAAES.h>
 #include <rfb/RSAAESKey.h>
 #include <rfb/CConnection.h>
@@ -512,6 +514,8 @@ void CSecurityRSAAES::writeCredentials()
 {
   std::string username;
   std::string password;
+  core::ScopedWipe secrets;
+  secrets.add(username).add(password);
 
   if (subtype == secTypeRA2UserPass)
     cc->getUserPasswd(isSecure(), &username, &password);

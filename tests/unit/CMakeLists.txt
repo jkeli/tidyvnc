@@ -65,6 +65,10 @@ find_package(Threads REQUIRED)
 target_link_libraries(d3des rfb GTest::gtest_main Threads::Threads)
 gtest_discover_tests(d3des)
 
+add_executable(wipe wipe.cxx)
+target_link_libraries(wipe core GTest::gtest_main)
+gtest_discover_tests(wipe)
+
 add_executable(encodingroundtrip encodingroundtrip.cxx)
 target_link_libraries(encodingroundtrip rfbclient rfbserver rfb rdr core GTest::gtest_main Threads::Threads)
 gtest_discover_tests(encodingroundtrip)

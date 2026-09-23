@@ -37,6 +37,8 @@
 
 #include <core/i18n.h>
 
+#include <core/wipe.h>
+
 #include <rfb/CSecurityMSLogonII.h>
 #include <rfb/CConnection.h>
 #include <rfb/Exception.h>
@@ -101,10 +103,20 @@ void CSecurityMSLogonII::writeCredentials()
   std::string username;
   std::string password;
   rdr::RandomStream rs(rdr::RandomStream::RequireSystem);
+  // Credentials, the private exponent, keys, plaintext blocks and cipher state
+  // are cleared on every exit. GMP limbs are not.
+  std::vector<uint8_t> bBytes(8);
+  uint8_t key[8];
+  uint8_t reversedKey[8];
+  uint8_t user[256];
+  uint8_t pass[64];
+  struct CBC_CTX(struct des_ctx, DES_BLOCK_SIZE) ctx;
+  core::ScopedWipe secrets;
+  secrets.add(username).add(password).add(bBytes).add(key, sizeof(key))
+    .add(reversedKey, sizeof(reversedKey)).add(user, sizeof(user)).add(pass, sizeof(pass)).add(&ctx, sizeof(ctx));
 
   cc->getUserPasswd(isSecure(), &username, &password);
 
-  std::vector<uint8_t> bBytes(8);
   if (!rs.hasData(8))
     throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(bBytes.data(), bBytes.size());
@@ -112,11 +124,7 @@ void CSecurityMSLogonII::writeCredentials()
   mpz_powm(k, A, b, p);
   mpz_powm(B, g, b, p);
 
-  uint8_t key[8];
-  uint8_t reversedKey[8];
   uint8_t BBytes[8];
-  uint8_t user[256];
-  uint8_t pass[64];
   nettle_mpz_get_str_256(8, key, k);
   nettle_mpz_get_str_256(8, BBytes, B);
   for (int i = 0; i < 8; ++i) {
@@ -139,7 +147,6 @@ void CSecurityMSLogonII::writeCredentials()
   memcpy(pass, password.c_str(), password.size() + 1);
 
   // DES-CBC with the original key as IV, and the reversed one as the DES key
-  struct CBC_CTX(struct des_ctx, DES_BLOCK_SIZE) ctx;
   des_fix_parity(8, reversedKey, reversedKey);
   des_set_key(&ctx.ctx, reversedKey);
   CBC_SET_IV(&ctx, key);
