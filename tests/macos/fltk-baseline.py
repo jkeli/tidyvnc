@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
-"""Baseline screenshots of the retained FLTK viewer (N0.4 evidence).
+"""Baseline screenshots of the retained FLTK viewer (N0.4) and, with --native,
+the matching native app states (N4.18 parity evidence).
 
 Runs the FLTK viewer with fresh HOME/XDG roots (tests/macos/isolated-app.py
 environment) against native-security-peer fixtures and captures only the
@@ -12,6 +13,10 @@ viewer's own windows (found through CGWindowList by process id, captured with
   password-dialog      VncAuth: the password prompt
   certificate-dialog   X509None with an untrusted certificate: the trust dialog
   connection-refused   a refused port: the error dialog
+
+With --native the viewer argument is TidyVNC.app, launched as an isolated copy
+(tests/macos/isolated-app.py); attached sheets and alerts are captured as their
+own windows and files are prefixed "native-" instead of "fltk-".
 
 No input is sent to the viewer; each process is terminated after capture.
 Requires WindowServer and a process allowed to record the screen.
@@ -61,7 +66,7 @@ def windows(lister, pid):
     return [window for window in json.loads(output) if window['width'] > 40 and window['height'] > 40]
 
 
-def capture(lister, process, name, directory, minimum=1, timeout=20):
+def capture(lister, process, name, directory, prefix='fltk', minimum=1, timeout=20):
     deadline = time.monotonic() + timeout
     found = []
     while time.monotonic() < deadline:
@@ -72,8 +77,10 @@ def capture(lister, process, name, directory, minimum=1, timeout=20):
     time.sleep(1.0)                                      # let the window finish drawing
     found = windows(lister, process.pid)
     paths = []
+    # A native window capture already composites its attached sheet or alert.
+    if prefix == 'native': found = sorted(found, key=lambda w: w['id'])[:1]
     for index, window in enumerate(sorted(found, key=lambda w: w['id'])):
-        path = directory / (f'fltk-{name}.png' if index == 0 else f'fltk-{name}-{index + 1}.png')
+        path = directory / (f'{prefix}-{name}.png' if index == 0 else f'{prefix}-{name}-{index + 1}.png')
         subprocess.run(['/usr/sbin/screencapture', '-x', '-o', f'-l{window["id"]}', str(path)], check=True)
         paths.append({'file': path.name, 'title': window['name'], 'points': [window['width'], window['height']]})
     return paths
@@ -81,7 +88,8 @@ def capture(lister, process, name, directory, minimum=1, timeout=20):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('fltk', type=Path, help='retained FLTK vncviewer executable')
+    parser.add_argument('fltk', type=Path, help='retained FLTK vncviewer executable (or TidyVNC.app with --native)')
+    parser.add_argument('--native', action='store_true', help='capture an isolated copy of the native app instead')
     parser.add_argument('output', type=Path, help='directory for PNGs and baseline.json')
     parser.add_argument('--peer', type=Path, default=ROOT / 'build/native-ui-frontend/core/tests/macos/native-security-peer')
     args = parser.parse_args()
@@ -105,22 +113,28 @@ def main():
         for name, peer_spec, options, endpoint in scenarios:
             peer = security.Peer(args.peer.resolve(), *peer_spec) if peer_spec else None
             state = work / name
-            state.mkdir()
-            env = isolated.environment(state)
             target = [peer.endpoint] if peer else endpoint
-            process = subprocess.Popen([str(args.fltk.resolve()), '-SendClipboard=0', '-AcceptClipboard=0', *options, *target],
-                                       env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            arguments = ['-SendClipboard=0', '-AcceptClipboard=0', *options, *target]
+            if args.native:
+                process = isolated.launch(args.fltk.resolve(), state, arguments)['process']
+            else:
+                state.mkdir()
+                process = subprocess.Popen([str(args.fltk.resolve()), *arguments], env=isolated.environment(state),
+                                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             try:
                 if name == 'desktop':
                     peer.expect(lambda line: line == 'request', 20); time.sleep(0.5)
-                results[name] = capture(lister, process, name, args.output)
+                # Native sheets and alerts attach shortly after the window appears.
+                if args.native and name != 'desktop' and name != 'server-dialog': time.sleep(2)
+                results[name] = capture(lister, process, name, args.output, 'native' if args.native else 'fltk')
                 print(f'PASS {name}: ' + ', '.join(f"{shot['file']} ({shot['title'] or 'untitled'})" for shot in results[name]))
             finally:
                 process.send_signal(signal.SIGTERM)
                 try: process.wait(10)
                 except subprocess.TimeoutExpired: process.kill(); process.wait()
                 if peer: peer.stop()
-    (args.output / 'baseline.json').write_text(json.dumps(results, indent=2) + '\n')
+                if args.native and (state / 'fixture.json').exists(): isolated.cleanup(state)
+    (args.output / ('native-baseline.json' if args.native else 'baseline.json')).write_text(json.dumps(results, indent=2) + '\n')
 
 
 if __name__ == '__main__':

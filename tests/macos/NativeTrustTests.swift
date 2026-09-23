@@ -36,11 +36,20 @@ func presentation() throws {
   let ordinary = NativeTrustPresentation(request(.certificate,status: 66))
   try check(ordinary.mayConnectOnce && ordinary.subject == "loopback-trust-fixture.invalid", "real DER subject and permitted exception")
   try check(ordinary.sha256Fingerprint?.count == 95 && ordinary.compatibilityFingerprint == nil, "certificate SHA-256 only")
+  // Details the retained viewer's dialog shows, checked against `openssl x509 -text` of the fixture.
+  let fields = ordinary.certificate
+  try check(fields?.issuer == "CN=loopback-trust-fixture.invalid", "certificate issuer (\(fields?.issuer ?? "nil"))")
+  try check(fields?.serialNumber == "3C:E9:86:55:C1:B4:75:B4:9A:07:9B:0D:0A:D7:8F:93:13:4A:97:B7", "certificate serial (\(fields?.serialNumber ?? "nil"))")
+  try check(fields?.validFrom == Date(timeIntervalSince1970: 1789877331) && fields?.validUntil == Date(timeIntervalSince1970: 2105237331),
+            "certificate validity (\(String(describing: fields?.validFrom)) - \(String(describing: fields?.validUntil)))")
+  try check(fields?.keyAlgorithm == "EC" && fields?.keyBits == 256, "certificate public key")
+  try check(fields?.signatureAlgorithm == "ECDSA-SHA256", "certificate signature algorithm (\(fields?.signatureAlgorithm ?? "nil"))")
   for status: UInt32 in [0,32,2048,1 << 31,66 | 32] {
     let value = NativeTrustPresentation(request(.certificate,status: status))
     try check(!value.mayConnectOnce && !value.problems.isEmpty, "fatal trust UI cannot enable approval")
   }
   let broken = NativeTrustPresentation(request(.certificate,status: 66,identity: Data([1,2,3])))
+  try check(broken.certificate == nil, "undecodable certificates show no details")
   try check(!broken.mayConnectOnce && broken.subject == nil && broken.problems.contains("The server certificate could not be decoded."), "malformed identity fails closed")
   let key = NativeTrustPresentation(request(.hostKey,identity: hostKeyFixture,compatibility: "untrusted display value"))
   try check(key.mayConnectOnce && key.sha256Fingerprint == hostKeyFixtureSHA256, "independent SHA-256 golden over raw key identity")

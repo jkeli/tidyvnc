@@ -554,6 +554,10 @@ UI uses, with migration and credential behavior verified independently.
   - [x] Actual-app TLS trust sheet: fingerprint and saved SPKI verified against the
     peer certificate; Connect Once saves nothing; confirmed Save Exception is
     reused; Forget leaves the live session and re-prompts; Cancel stops at TLS ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 auth/trust pass).
+  - [x] Certificate details parity with the retained dialog (2026-09-23): issuer,
+    serial, validity, public key and signature algorithm (`NativeCertificateDetails`,
+    `NativeTrust.PolicyAndPresentation` against the fixture's openssl values),
+    placed after the fingerprint guidance ([BASELINE.md](BASELINE.md)).
   - [ ] Physical keyboard/VoiceOver sheet acceptance.
 - [ ] N4.4 Encoding/color/compression settings: auto select, all supported encodings, full/reduced color, JPEG enable/quality and compression range.
   - [x] App-default controls for all shared encoding fields, schema-derived bounds

@@ -79,6 +79,30 @@ struct TrustDetailsView: View {
         Text(String(localized:"trust.this.identity.cannot.be.accepted.cancel.and.contact.the.server.administrator", defaultValue:"This identity cannot be accepted. Cancel and contact the server administrator."))
           .foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("trust.cannotOverride")
       }
+      // Secondary details follow the fingerprint and its guidance, which must stay in view.
+      if let certificate = details.certificate {
+        if let issuer = certificate.issuer {
+          LabeledContent(String(localized:"trust.certificate.issuer", defaultValue:"Issuer"), value: issuer).textSelection(.enabled)
+        }
+        if let serial = certificate.serialNumber {
+          LabeledContent(String(localized:"trust.certificate.serial", defaultValue:"Serial number")) {
+            Text(serial).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+          }
+        }
+        if let from = certificate.validFrom {
+          LabeledContent(String(localized:"trust.certificate.valid.from", defaultValue:"Valid from")) { Text(from, format: .dateTime) }
+        }
+        if let until = certificate.validUntil {
+          LabeledContent(String(localized:"trust.certificate.valid.until", defaultValue:"Valid until")) { Text(until, format: .dateTime) }
+        }
+        if let algorithm = certificate.keyAlgorithm, let bits = certificate.keyBits {
+          LabeledContent(String(localized:"trust.certificate.public.key", defaultValue:"Public key"),
+                         value: String(localized:"trust.certificate.public.key.value", defaultValue:"\(algorithm), \(bits) bits"))
+        }
+        if let signature = certificate.signatureAlgorithm {
+          LabeledContent(String(localized:"trust.certificate.signature", defaultValue:"Signature algorithm"), value: signature)
+        }
+      }
     }
   }
 }

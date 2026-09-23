@@ -1093,6 +1093,90 @@
         }
       }
     },
+    "trust.certificate.issuer": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issuer"
+          }
+        }
+      }
+    },
+    "trust.certificate.serial": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serial number"
+          }
+        }
+      }
+    },
+    "trust.certificate.valid.from": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid from"
+          }
+        }
+      }
+    },
+    "trust.certificate.valid.until": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid until"
+          }
+        }
+      }
+    },
+    "trust.certificate.public.key": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public key"
+          }
+        }
+      }
+    },
+    "trust.certificate.public.key.value": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %lld bits"
+          }
+        }
+      }
+    },
+    "trust.certificate.signature": {
+      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signature algorithm"
+          }
+        }
+      }
+    },
     "trust.certificate.sha.256.fingerprint": {
       "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
       "extractionState": "manual",

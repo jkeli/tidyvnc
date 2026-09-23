@@ -40,6 +40,23 @@ Window metadata is in [baseline/baseline.json](baseline/baseline.json).
 | Untrusted certificate (X509None) | [fltk-certificate-dialog.png](baseline/fltk-certificate-dialog.png) | Unknown certificate issuer | **Cancel** is the default; subject, issuer, serial, key, validity and pin-sha256 shown; "Add exception" |
 | Connection refused | [fltk-connection-refused.png](baseline/fltk-connection-refused.png) | TidyVNC | **Yes** (reconnect) is the default of "Attempt to reconnect?" |
 
+## Matching native app states (N4.18)
+
+`tests/macos/fltk-baseline.py <TidyVNC.app> <dir> --native` captures an isolated
+copy of the native app (Debug build, dark appearance; recaptured after the certificate-details change) in the
+same five states. A window capture includes its attached sheet or alert.
+Metadata: [baseline/native-baseline.json](baseline/native-baseline.json). The
+app was never active, so default-button tint is not shown; default actions are
+verified by the keyboard tests instead (`NativeSettings.DraftRendering`).
+
+| State | FLTK | Native |
+| --- | --- | --- |
+| Connection | [fltk-server-dialog.png](baseline/fltk-server-dialog.png) | [native-server-dialog.png](baseline/native-server-dialog.png) |
+| Connected desktop | [fltk-desktop.png](baseline/fltk-desktop.png) | [native-desktop.png](baseline/native-desktop.png) |
+| Password prompt | [fltk-password-dialog.png](baseline/fltk-password-dialog.png) | [native-password-dialog.png](baseline/native-password-dialog.png) |
+| Untrusted certificate | [fltk-certificate-dialog.png](baseline/fltk-certificate-dialog.png) | [native-certificate-dialog.png](baseline/native-certificate-dialog.png) |
+| Connection refused | [fltk-connection-refused.png](baseline/fltk-connection-refused.png) | [native-connection-refused.png](baseline/native-connection-refused.png) |
+
 ## Observed differences to review for parity
 
 - **Refused connection.** FLTK defaults to reconnecting ("Yes"). The native
@@ -50,6 +67,20 @@ Window metadata is in [baseline/baseline.json](baseline/baseline.json).
 - **Password prompt.** FLTK offers a single "Keep password for reconnect"
   toggle. The native sheet has three retention choices (use once, this
   session's reconnect, remember on this Mac).
+
+- **Certificate details (resolved 2026-09-23).** FLTK shows the subject,
+  issuer, serial, key type and size, signature algorithm, validity dates and
+  pin-sha256. The native sheet at first lacked the issuer, serial, key,
+  signature algorithm and validity dates. It now shows them
+  (`NativeCertificateDetails`, tested against `openssl x509 -text` of the
+  fixture). They are placed after the SHA-256 fingerprint and its "verify with
+  the administrator" guidance, so those stay in view. Native shows a
+  certificate SHA-256 where FLTK shows an SPKI pin; the saved-decision library
+  lists the SPKI SHA-256.
+- **Insecure-connection wording.** FLTK shows a red "This connection is not
+  secure" banner. Native uses an accessible warning colour and says the method
+  may not protect credentials, with a note that this is not a statement about
+  traffic encryption.
 
 These are listed for the N4.18/N6.13 review; each needs to be recorded as an
 intentional difference or resolved.

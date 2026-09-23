@@ -70,6 +70,8 @@ public struct NativeTrustPresentation: Sendable, CustomStringConvertible, Custom
   public let subject: String?
   public let sha256Fingerprint: String?
   public let compatibilityFingerprint: String?
+  // Certificate details shown by the retained viewer's trust dialog.
+  public let certificate: NativeCertificateDetails?
   public var description: String { "NativeTrustPresentation(<redacted>)" }
   public var debugDescription: String { description }
   public init(_ request: NativePrompt) {
@@ -81,21 +83,68 @@ public struct NativeTrustPresentation: Sendable, CustomStringConvertible, Custom
       var problems = policy?.reasons.map(\.message) ?? [String(localized:"trust.presentation.policyUnavailable", defaultValue:"Certificate verification policy is unavailable.")]
       if let certificate = validIdentity ? SecCertificateCreateWithData(nil, request.identity as CFData) : nil {
         subject = SecCertificateCopySubjectSummary(certificate) as String?
+        self.certificate = NativeCertificateDetails(certificate)
         mayConnectOnce = policy?.mayOverride == true
       } else {
-        subject = nil; mayConnectOnce = false
+        subject = nil; mayConnectOnce = false; self.certificate = nil
         problems.append(String(localized:"trust.presentation.certificateDecode", defaultValue:"The server certificate could not be decoded."))
       }
       self.problems = problems
     } else if request.kind == .hostKey {
-      subject = nil; mayConnectOnce = (try? NativeHostKey(request.identity)) != nil
+      subject = nil; certificate = nil; mayConnectOnce = (try? NativeHostKey(request.identity)) != nil
       problems = mayConnectOnce ? [String(localized:"trust.presentation.keyUnverified", defaultValue:"This server key has not been verified. Compare its fingerprint with the server administrator before continuing.")] : [String(localized:"trust.presentation.keyUnavailable", defaultValue:"The server did not provide a usable key identity.")]
       // RSA-AES supplies RealVNC's truncated SHA-1 display format. Never label it
       // SHA-256; the SHA-256 above is independently calculated over the raw key.
       compatibilityFingerprint = mayConnectOnce ? Insecure.SHA1.hash(data: request.identity).prefix(8).map { String(format: "%02x", $0) }.joined(separator: "-") : nil
     } else {
-      subject = nil; mayConnectOnce = false; compatibilityFingerprint = nil
+      subject = nil; certificate = nil; mayConnectOnce = false; compatibilityFingerprint = nil
       problems = [String(localized:"trust.presentation.invalidRequest", defaultValue:"This request is not a server identity decision.")]
     }
+  }
+}
+
+// Issuer, serial, validity, public key and signature algorithm of a decoded
+// certificate, read with the Security framework. Every field is optional; an
+// unreadable field is omitted rather than guessed.
+public struct NativeCertificateDetails: Sendable, Equatable {
+  public let issuer: String?
+  public let serialNumber: String?
+  public let validFrom: Date?, validUntil: Date?
+  public let keyAlgorithm: String?, keyBits: Int?
+  public let signatureAlgorithm: String?
+  private static let nameOIDs: [(String, String)] = [("2.5.4.3", "CN"), ("2.5.4.11", "OU"), ("2.5.4.10", "O"),
+    ("2.5.4.7", "L"), ("2.5.4.8", "ST"), ("2.5.4.6", "C")]
+  private static let signatures: [String: String] = [
+    "1.2.840.113549.1.1.5": "RSA-SHA1", "1.2.840.113549.1.1.11": "RSA-SHA256", "1.2.840.113549.1.1.12": "RSA-SHA384",
+    "1.2.840.113549.1.1.13": "RSA-SHA512", "1.2.840.113549.1.1.10": "RSA-PSS", "1.2.840.10045.4.3.2": "ECDSA-SHA256",
+    "1.2.840.10045.4.3.3": "ECDSA-SHA384", "1.2.840.10045.4.3.4": "ECDSA-SHA512", "1.3.101.112": "Ed25519", "1.3.101.113": "Ed448"]
+  init(_ certificate: SecCertificate) {
+    let keys = [kSecOIDX509V1IssuerName, kSecOIDX509V1ValidityNotBefore, kSecOIDX509V1ValidityNotAfter,
+                kSecOIDX509V1SignatureAlgorithm] as CFArray
+    let values = SecCertificateCopyValues(certificate, keys, nil) as? [String: [String: Any]] ?? [:]
+    func value(_ key: CFString) -> Any? { values[key as String]?[kSecPropertyKeyValue as String] }
+    if let parts = value(kSecOIDX509V1IssuerName) as? [[String: Any]] {
+      let fields = parts.compactMap { part -> (String, String)? in
+        guard let label = part[kSecPropertyKeyLabel as String] as? String,
+              let text = part[kSecPropertyKeyValue as String] as? String else { return nil }
+        return (label, text)
+      }
+      let named = Self.nameOIDs.flatMap { oid, name in fields.filter { $0.0 == oid }.map { "\(name)=\($0.1)" } }
+      issuer = named.isEmpty ? nil : named.joined(separator: ", ")
+    } else { issuer = nil }
+    func date(_ key: CFString) -> Date? { (value(key) as? NSNumber).map { Date(timeIntervalSinceReferenceDate: $0.doubleValue) } }
+    validFrom = date(kSecOIDX509V1ValidityNotBefore); validUntil = date(kSecOIDX509V1ValidityNotAfter)
+    if let parts = value(kSecOIDX509V1SignatureAlgorithm) as? [[String: Any]],
+       let oid = parts.first(where: { ($0[kSecPropertyKeyLabel as String] as? String) == "Algorithm" })?[kSecPropertyKeyValue as String] as? String {
+      signatureAlgorithm = Self.signatures[oid] ?? oid
+    } else { signatureAlgorithm = nil }
+    serialNumber = (SecCertificateCopySerialNumberData(certificate, nil) as Data?).map {
+      $0.map { String(format: "%02X", $0) }.joined(separator: ":")
+    }
+    if let key = SecCertificateCopyKey(certificate), let attributes = SecKeyCopyAttributes(key) as? [String: Any] {
+      let type = attributes[kSecAttrKeyType as String] as? String
+      keyAlgorithm = type == (kSecAttrKeyTypeRSA as String) ? "RSA" : type == (kSecAttrKeyTypeECSECPrimeRandom as String) ? "EC" : nil
+      keyBits = (attributes[kSecAttrKeySizeInBits as String] as? NSNumber)?.intValue
+    } else { keyAlgorithm = nil; keyBits = nil }
   }
 }

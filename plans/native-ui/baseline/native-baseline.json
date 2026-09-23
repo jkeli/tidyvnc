@@ -1,0 +1,52 @@
+{
+  "server-dialog": [
+    {
+      "file": "native-server-dialog.png",
+      "title": "TidyVNC",
+      "points": [
+        960,
+        700
+      ]
+    }
+  ],
+  "desktop": [
+    {
+      "file": "native-desktop.png",
+      "title": "TidyVNC",
+      "points": [
+        960,
+        700
+      ]
+    }
+  ],
+  "password-dialog": [
+    {
+      "file": "native-password-dialog.png",
+      "title": "TidyVNC",
+      "points": [
+        960,
+        700
+      ]
+    }
+  ],
+  "certificate-dialog": [
+    {
+      "file": "native-certificate-dialog.png",
+      "title": "TidyVNC",
+      "points": [
+        960,
+        700
+      ]
+    }
+  ],
+  "connection-refused": [
+    {
+      "file": "native-connection-refused.png",
+      "title": "TidyVNC",
+      "points": [
+        960,
+        700
+      ]
+    }
+  ]
+}
