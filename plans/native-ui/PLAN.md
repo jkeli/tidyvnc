@@ -692,6 +692,12 @@ that the VNC protocol does not describe.
 
 ## 9. SwiftUI replacement inventory
 
+The source/control inventory is now [PARITY.md](PARITY.md) (162 detailed rows),
+with [CAPABILITIES.md](CAPABILITIES.md) covering all 47 canonical parameters,
+aliases, compiled defaults/ranges and change lifetime. These complete the N0.1/N0.2
+inventory deliverables, not the acceptance gates. The current audit identifies
+AlertOnFatalError as a missing native adapter; the latest RESUME records evidence.
+
 Every row must map to implementation and acceptance evidence before cutover.
 Inventory individual parameters/menu actions during N0 so smaller controls are
 not lost inside a large screen rewrite.

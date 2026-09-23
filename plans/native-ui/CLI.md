@@ -127,8 +127,8 @@ session, and reject late results after close. Explicit files still require their
 existing review, and absent ServerName still clears the address. The executable
 constructs the request before entering SwiftUI. PasswordFile is now admitted through
 the scoped launch credential owner described in CREDENTIAL-INPUTS.md. Tunnel
-options still fail native resolution until their adapters exist; catalog
-availability alone is insufficient.
+options now use the native adapters in TUNNELS.md; AlertOnFatalError remains the
+recognized but unimplemented native option. Catalog availability alone is insufficient.
 
 ## Display resolution after explicit-file precedence
 

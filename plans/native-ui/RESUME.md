@@ -4,6 +4,39 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Parity and compiled capability inventory
+
+[PARITY.md](PARITY.md) now maps **162** control/action/launch rows to retained
+sources, native replacements, registered fixture evidence and concrete remaining
+acceptance actions. It covers all 16 rows of PLAN §9, including eight scaling
+modes, settings inheritance, prompts, menus/shortcuts, files/imports and native
+additions. [CAPABILITIES.md](CAPABILITIES.md) records all **47** canonical parameters,
+three aliases, built-in defaults, validation bounds and live/next-attempt policy.
+N0.1/N0.2 inventory deliverables are complete; parity acceptance remains open.
+
+A temporary probe linked to the current built libraries confirms 5 available
+encodings (H.264 unavailable), 15 available security methods and their exact
+default allow-list. Native help agrees with all 47 catalog names; retained FLTK
+help accounts for 43 available canonical names plus three aliases. Actual native
+launches with AlertOnFatalError=on and =off both reject the missing adapter before
+UI startup. This is the next concrete implementation gap. Retained code proves
+ReconnectOnError can still prompt with AlertOnFatalError off; preserve that
+precedence while keeping native multi-window failures scoped.
+
+Inventory review records native empty CA/CRL and stable-display selection defaults,
+SSH customization restrictions and explicit own-store imports; documentation alone
+does not accept these differences. It also corrects stale CLI prose claiming the
+tunnel adapter was absent. All document links, test references, 162 unique IDs,
+coverage ranges, 47 parameter rows and both help catalogs were checked; branding
+baseline **1650** and diff checks pass. No production code changed or full suite
+rerun. The prior **3/756/88** result remains the latest full build evidence.
+
+Next: implement AlertOnFatalError with retry/fatal/reverse/startup distinctions and
+multi-window tests, then continue remaining service/lifecycle, native interaction,
+protocol/physical/performance, CI, distribution and installed acceptance gates.
+The complete original goal remains active. FLTK remains the shipping default.
+All probe processes ended; no actual user-app UI/credential/store action occurred.
+
 ## Latest follow-up (2026-09-22) — Automated native verification and SSH exit recovery
 
 `apps/macos/build.py --test --parallel 2` now builds every target and requires

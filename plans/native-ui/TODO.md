@@ -2,7 +2,10 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The native `--test` build now passes
+implementation, validation and next steps. N0.1/N0.2 now have a **162-row**
+[parity map](PARITY.md) and a complete **47-parameter** [capability inventory](CAPABILITIES.md),
+checked against the built catalog and both executable help outputs. The inventory
+identifies AlertOnFatalError as the next missing native adapter. The native `--test` build passes
 **3/3 viewer, 756/756 core and 88/88 native tests**, plus graph/configuration,
 localization, signature and 32 CLI checks. Native CI is defined but hosted execution
 is unverified. A real SSH exit race is fixed with deterministic/repeated/sanitized
@@ -11,7 +14,7 @@ The app has **1050 UI + 2 InfoPlist entries**, compiler coverage of **139 source
 1351 call sites**, and FLTK remains the default. See [BUILD.md](BUILD.md) and the
 latest evidence below. The complete migration, including interactive/physical/
 installed/deployment/CI/release gates, remains open.
-**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues, N2.3–N2.7 native ownership/app vertical slice, and N6.1/N6.3 frontend selection/test separation. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
+**Completed: N0.1/N0.2 inventories, N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues, N2.3–N2.7 native ownership/app vertical slice, and N6.1/N6.3 frontend selection/test separation. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -22,8 +25,8 @@ Windows/Linux FLTK builds. The Java client remains removed.
 
 ## N0 — Inventory, baseline and decisions
 
-- [ ] N0.1 Create an exhaustive parity inventory mapping each dialog/control/menu/shortcut/launch path to source, option, native replacement and acceptance test; include every row of PLAN §9.
-- [ ] N0.2 Record actual security/encoding/audio/H.264 capabilities, compiled defaults, aliases, validation ranges and live-change versus reconnect semantics.
+- [x] N0.1 Create an exhaustive parity inventory mapping each dialog/control/menu/shortcut/launch path to source, option, native replacement and acceptance test; include every row of PLAN §9. See [PARITY.md](PARITY.md): 162 rows, registered fixture references and explicit remaining manual actions; acceptance is still N4/N5/N6.
+- [x] N0.2 Record actual security/encoding/audio/H.264 capabilities, compiled defaults, aliases, validation ranges and live-change versus reconnect semantics. See [CAPABILITIES.md](CAPABILITIES.md): all 47 parameters, three aliases, actual linked-library capability/default query and both executable help catalogs.
 - [x] N0.3 Audit reachable global configuration, static credentials, timer lists, logging and crypto initialization; identify per-session ownership and compatibility obligations to server/FLTK consumers. See [STATE-AUDIT.md](STATE-AUDIT.md).
 - [ ] N0.4 Capture baseline native FLTK screenshots and keyboard/focus behavior; record hardware, OS, SDK, dependency versions, build flags, test totals and protocol results.
 - [ ] N0.5 Capture matched performance workloads and budgets: idle/scrolling/1080p/4K/multi-view, p50/p95 latency, CPU, memory, copies and damage. Record existing scaling budget requirements and provisional 10% regression threshold.
@@ -477,6 +480,11 @@ UI uses, with migration and credential behavior verified independently.
     copied from bounded core observations, with redacted diagnostic copying.
   - [ ] Physical fullscreen/minimize and multi-display transitions and interactive acceptance.
 - [ ] N4.11 Native app menus/Dock/new connection/open document/quit; Finder, CLI, explicit file, reverse/listen and supported tunnel entry paths work without secret-bearing relaunch arguments.
+  - [ ] Implement AlertOnFatalError: recognized but currently rejects both explicit
+    values at native startup. Preserve retained ReconnectOnError precedence and
+    fatal/non-retry/reverse distinctions without terminating unrelated windows.
+    See PARITY E06 and CAPABILITIES; verify startup, cancellation and multi-window
+    behavior before claiming complete CLI parity.
   - [x] Noninteractive CLI `via`, per-occurrence gateway validation, final reviewed
     file target resolution, route-scoped launch passwords, listen/Unix rejection
     and explicit VNC_VIA_CMD rejection before startup. Help states limitations;
@@ -9463,3 +9471,43 @@ No actual-user-app action, hosted CI, minimum-OS/Intel/Release execution, full
 sanitizer/protocol feature matrix, physical/VoiceOver, installed privacy/Keychain
 or distribution acceptance is inferred. N6.2 packaging, N6.4 execution and the
 remaining original plan stay open. FLTK remains the default.
+
+### N0.1/N0.2 — source parity and compiled capabilities — 2026-09-22
+
+Commit: `docs(native-ui): map parity controls and compiled capabilities`.
+
+Created PARITY.md with **162** control/action/launch rows covering every PLAN §9
+row, all eight scaling modes, settings/credential/trust/profile/document/import
+flows, active-session menus, shortcuts, listeners/tunnels and global UI acceptance.
+Rows map retained source, native replacement, registered evidence and concrete
+remaining acceptance actions. CAPABILITIES.md records **47 canonical parameters**,
+**three aliases**, defaults/ranges, compiled feature gates and change lifetime.
+Intentional default/compatibility differences remain visible and require final
+acceptance; inventory completion does not complete any UI/physical/release gate.
+
+Source checkpoint is `6d69ccb5`; no production code changed. A temporary C++ probe
+linked with the existing encodingoptions target dependencies queried actual built
+encoding/security/invocation catalogs. Result: Tight/JPEG/ZRLE/Hextile/Raw available,
+H.264 unavailable, all 15 security leaf methods available and exact default order
+recorded. Current native config is Debug arm64/macOS SDK 27, GnuTLS/nettle on and
+NLS/audio/H.264 off. Native help has all 47 catalog parameters; retained FLTK help
+has the 43 macOS-available canonical names plus three aliases (46 spellings).
+Help's exit 1 is expected. No connection/credential/store access occurs.
+
+Both actual `-AlertOnFatalError=off` and `=on` launches exit 1 with the native
+unsupported-adapter diagnostic. The retained mainloop demonstrates reconnect
+prompts take precedence for ordinary outgoing failures even with alerting off;
+fatal/non-retry/reverse failures consult alerting. This determines the next
+implementation work and is an explicit unchecked N4.11 subitem. Corrected CLI.md's
+stale statement that the now-implemented tunnel adapter was absent.
+
+Checks pass: all relative document links, registered test references, unique row
+IDs and every §9 coverage range; complete parameter/canonical/alias comparison;
+branding baseline **1650** and `git diff --check`. Logs:
+`/tmp/tidyvnc-parity-capabilities.log`, `/tmp/tidyvnc-parity-{native,fltk}-help.log`,
+`/tmp/tidyvnc-parity-inventory-check.log`; temporary probe source is
+`/tmp/tidyvnc-parity-capabilities.cxx`. All handles completed. No new tests or full
+build/suite rerun was needed for this documentation-only change. Latest full
+pipeline remains **3 viewer / 756 core / 88 native** from the preceding checkpoint.
+No actual UI, physical/VoiceOver, protocol-matrix, CI or installed/distribution
+acceptance is inferred. Full original goal remains active with FLTK default.
