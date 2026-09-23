@@ -876,6 +876,11 @@ tidyvnc_status tidyvnc_shortcut_key(tidyvnc_handle, int32_t physical_id, uint32_
                                   uint32_t down, uint32_t* action, tidyvnc_error*);
 tidyvnc_status tidyvnc_shortcut_reset(tidyvnc_handle, tidyvnc_error*);
 
+/* Any thread. Takes the session's next pending credential/trust request as a new
+ * immutable prompt handle owned by the caller (release with tidyvnc_release);
+ * NO_CHANGE when none is pending. Taking does not answer the request: reply with
+ * its id/generation. prompt_get copies the fields; server_name, identity and
+ * fingerprint are borrowed from the prompt handle until it is released. */
 tidyvnc_status tidyvnc_session_take_prompt(tidyvnc_handle, tidyvnc_handle* prompt, tidyvnc_error*);
 tidyvnc_status tidyvnc_prompt_get(tidyvnc_handle, tidyvnc_prompt_info*, tidyvnc_error*);
 /* Immutable negotiated credential subtype; zero for trust/legacy prompts.

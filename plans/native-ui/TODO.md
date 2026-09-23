@@ -239,7 +239,7 @@ are proven before substantial SwiftUI screen work begins.
 
 ## N2 — C ABI, Swift bridge and working native slice
 
-- [ ] N2.1 Define versioned `tidyvnc_` C exports, opaque handles, size-tagged structs, explicit enum values, spans and release functions; document each call's thread/ownership contract.
+- [x] N2.1 Define versioned `tidyvnc_` C exports, opaque handles, size-tagged structs, explicit enum values, spans and release functions; document each call's thread/ownership contract. Closed 2026-09-23: 117 status-returning exports cover the PLAN §4.2 catalog (map under N1.5) plus settings/parameter grammars; a scripted check found every export under a contract comment after documenting the prompt take/get pair. Future exports must keep these guarantees (N2.2).
   - [x] Initial runtime/session/event/image/input/prompt surface with explicit
     capability negotiation, checked non-reused IDs and ownership documentation.
     Clipboard, encoding and remote-layout exports/Swift ownership are now included.
@@ -263,7 +263,7 @@ are proven before substantial SwiftUI screen work begins.
   - [x] Owned coherent remote-layout snapshots, shared geometry validation and
     async server-completed resize commands, including typed rejection/timeout,
     bounded 255-screen copies and Swift cancellation/drain.
-- [ ] N2.2 Catch all exceptions at the boundary; validate lengths/overflow/versions/handles and return structured errors. Test failure paths from a pure C caller.
+- [x] N2.2 Catch all exceptions at the boundary; validate lengths/overflow/versions/handles and return structured errors. Test failure paths from a pure C caller. Closed 2026-09-23: the single `call` boundary maps every exception to a status; new exports have version-mismatch, wrong-kind, stale-handle, invalid-input no-write and per-position allocation-failure tests (`ViewerABI.SSHGatewayHandlesAreOwnedTypedAndAllocationSafe`, `DesktopSizeGrammars…`), and the pure-C smoke calls them on macOS and Linux (Release/ASan/TSan).
   - [x] Initial surface catches exceptions, validates arguments and rejects stale/
     wrong-type handles; pure C tests inject 48 allocation-failure positions.
     Continue these guarantees as remaining exports are added.

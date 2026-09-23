@@ -1135,6 +1135,59 @@ TEST(ViewerABI, DesktopSizeGrammarsAreStatelessCheckedAndTransactional)
   EXPECT_EQ(tidyvnc_desktop_size_parse({reinterpret_cast<const uint8_t*>(nul),4},TIDYVNC_DESKTOP_SIZE_LEGACY,&value,nullptr),TIDYVNC_INVALID_ARGUMENT);
   EXPECT_EQ(tidyvnc_desktop_size_parse(bytes("8x4"),TIDYVNC_DESKTOP_SIZE_LEGACY,nullptr,nullptr),TIDYVNC_INVALID_ARGUMENT);
 }
+TEST(ViewerABI, SSHGatewayHandlesAreOwnedTypedAndAllocationSafe)
+{
+  auto bytes = [](const std::string& value) { return tidyvnc_bytes{reinterpret_cast<const uint8_t*>(value.data()),value.size()}; };
+  const std::string text = "ssh://alice@[fe80::1%en0]:2222";
+  tidyvnc_handle gateway = 0;
+  ASSERT_EQ(tidyvnc_ssh_gateway_create(bytes(text),&gateway,nullptr),TIDYVNC_OK);
+  auto info = init<tidyvnc_ssh_gateway_info>();
+  ASSERT_EQ(tidyvnc_ssh_gateway_get(gateway,&info,nullptr),TIDYVNC_OK);
+  EXPECT_EQ(std::string(reinterpret_cast<const char*>(info.host.data),info.host.length),"fe80::1");
+  EXPECT_EQ(std::string(reinterpret_cast<const char*>(info.scope.data),info.scope.length),"en0");
+  EXPECT_EQ(std::string(reinterpret_cast<const char*>(info.user.data),info.user.length),"alice");
+  EXPECT_EQ(std::string(reinterpret_cast<const char*>(info.canonical_uri.data),info.canonical_uri.length),text);
+  EXPECT_EQ(info.port,2222u); EXPECT_EQ(info.flags,3u);
+  // Concurrent readers of one immutable handle see identical borrowed values.
+  std::atomic<unsigned> failures{0};
+  std::vector<std::thread> readers;
+  for (int i = 0; i < 4; ++i) readers.emplace_back([&] {
+    for (int j = 0; j < 200; ++j) {
+      auto copy = init<tidyvnc_ssh_gateway_info>();
+      if (tidyvnc_ssh_gateway_get(gateway,&copy,nullptr) != TIDYVNC_OK || copy.port != 2222 ||
+          copy.canonical_uri.data != info.canonical_uri.data) ++failures;
+    }
+  });
+  for (auto& reader : readers) reader.join();
+  EXPECT_EQ(failures,0u);
+  // Wrong kind, version mismatch and stale handles never write output.
+  tidyvnc_handle endpoint = 0;
+  ASSERT_EQ(tidyvnc_endpoint_create(bytes("host::1"),{nullptr,0},0,&endpoint,nullptr),TIDYVNC_OK);
+  const auto saved = info;
+  EXPECT_EQ(tidyvnc_ssh_gateway_get(endpoint,&info,nullptr),TIDYVNC_WRONG_HANDLE_TYPE);
+  info.version = 2; const auto mismatched = info;
+  EXPECT_EQ(tidyvnc_ssh_gateway_get(gateway,&info,nullptr),TIDYVNC_ABI_MISMATCH);
+  EXPECT_EQ(std::memcmp(&mismatched,&info,sizeof(info)),0);
+  info = saved;
+  ASSERT_EQ(tidyvnc_release(gateway,nullptr),TIDYVNC_OK);
+  EXPECT_EQ(tidyvnc_ssh_gateway_get(gateway,&info,nullptr),TIDYVNC_INVALID_HANDLE);
+  EXPECT_EQ(tidyvnc_release(endpoint,nullptr),TIDYVNC_OK);
+  // Invalid grammar and every allocation failure leave no published handle.
+  tidyvnc_handle untouched = 77;
+  for (const auto* bad : {"", "a@b@host", "ssh://host:0", "-oProxy"})
+    EXPECT_EQ(tidyvnc_ssh_gateway_create(bytes(bad),&untouched,nullptr),TIDYVNC_INVALID_ARGUMENT);
+  EXPECT_EQ(untouched,77u);
+  bool succeeded = false;
+  for (unsigned allocation = 1; allocation < 64 && !succeeded; ++allocation) {
+    untouched = 77;
+    abi_test_fail_after(allocation);
+    const auto status = tidyvnc_ssh_gateway_create(bytes(text),&untouched,nullptr);
+    abi_test_fail_after(0);
+    if (status == TIDYVNC_OK) { succeeded = true; EXPECT_EQ(tidyvnc_release(untouched,nullptr),TIDYVNC_OK); }
+    else { EXPECT_EQ(status,TIDYVNC_OUT_OF_MEMORY); EXPECT_EQ(untouched,77u); }
+  }
+  EXPECT_TRUE(succeeded);
+}
 TEST(ViewerABI, WindowGeometryIsStatelessCheckedAndTransactional)
 {
   auto bytes = [](const char* value) { return tidyvnc_bytes{reinterpret_cast<const uint8_t*>(value),std::strlen(value)}; };
