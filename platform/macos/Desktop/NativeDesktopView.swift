@@ -886,10 +886,14 @@ extension NativeDesktopView: NativeDesktopCommandHost {
   }
   func captureKeyboardForCommand() throws {
     guard captureEligible else { throw NativeDesktopCommandIssue.unavailable }
-    guard capture.start() else {
-      let message = String(localized:"desktop.keyboard.capture.is.unavailable.allow.tidyvnc.in.macos.accessibility.settings.and.try", defaultValue:"Keyboard capture is unavailable. Allow TidyVNC in macOS Accessibility settings and try again.")
-      commandState?.captureChanged(false, message: message,from:self)
+    switch capture.start() {
+    case .active: break
+    case .accessibilityRequired:
+      commandState?.captureChanged(false, message: NativePresentationIssue.keyboardCaptureUnavailable.message,from:self)
       throw NativeDesktopCommandIssue.keyboardCaptureUnavailable
+    case .failed:
+      commandState?.captureChanged(false, message: NativePresentationIssue.keyboardCaptureFailed.message,from:self)
+      throw NativeDesktopCommandIssue.keyboardCaptureFailed
     }
     captureWasActive = true; captureSuppressed = false; commandState?.captureChanged(true,from:self)
   }

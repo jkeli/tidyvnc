@@ -14,6 +14,7 @@ static CGEventRef redirect(CGEventTapProxy proxy, CGEventType type, CGEventRef e
   CGEventPostToPid(getpid(),event);
   return NULL;
 }
+uint32_t native_macos_keyboard_capture_trusted(void) { return AXIsProcessTrusted() ? 1 : 0; }
 void* native_macos_keyboard_capture_create(void) {
   if (!AXIsProcessTrusted()) return NULL;
   NativeCapture* capture = calloc(1,sizeof(*capture));

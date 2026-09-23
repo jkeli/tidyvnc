@@ -12619,6 +12619,18 @@
           }
         }
       }
+    },
+    "presentation.issue.keyboardCaptureFailed": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard capture could not start even though TidyVNC is allowed in Accessibility settings. Try again, or quit and reopen TidyVNC if it keeps failing."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

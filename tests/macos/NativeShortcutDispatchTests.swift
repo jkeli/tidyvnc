@@ -11,8 +11,11 @@ func check(_ value: @autoclosure () throws -> Bool, _ message: String) throws { 
   throw Failure(message: "Timed out")
 }
 @MainActor final class Capture: NativeKeyboardCapturing {
-  var isActive = false, allowed = true, starts = 0, stops = 0
-  func start() -> Bool { starts += 1; isActive = allowed; return isActive }
+  var isActive = false, allowed = true, failing = false, starts = 0, stops = 0
+  func start() -> NativeKeyboardCaptureStart {
+    starts += 1; isActive = allowed && !failing
+    return isActive ? .active : allowed ? .failed : .accessibilityRequired
+  }
   func stop() { if isActive { stops += 1 }; isActive = false }
 }
 @MainActor final class Window: NSWindow {
@@ -120,7 +123,12 @@ func check(_ value: @autoclosure () throws -> Bool, _ message: String) throws { 
   do { try view.captureKeyboardForCommand(); throw Failure(message:"capture denial accepted") }
   catch NativeDesktopCommandIssue.keyboardCaptureUnavailable {}
   try check(commands.captureMessage == NativePresentationIssue.keyboardCaptureUnavailable.message,"capture denial is typed and retains actionable localized guidance")
-  capture.allowed = true; try view.captureKeyboardForCommand()
+  capture.allowed = true; capture.failing = true
+  do { try view.captureKeyboardForCommand(); throw Failure(message:"failed tap accepted") }
+  catch NativeDesktopCommandIssue.keyboardCaptureFailed {}
+  try check(commands.captureMessage == NativePresentationIssue.keyboardCaptureFailed.message && commands.captureMessage?.contains("allowed in Accessibility") == true,
+    "a trusted but failed tap is distinguished from missing Accessibility permission")
+  capture.failing = false; try view.captureKeyboardForCommand()
   try check(capture.isActive && commands.captureMessage == nil, "explicit retry")
   try session.setFocused(false)
   try check(!capture.isActive && !commands.keyboardCaptured, "external session focus loss releases capture synchronously")

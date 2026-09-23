@@ -6,7 +6,7 @@ import Foundation
 // or remote payloads. Callers retain their existing cancellation/lifetime guards.
 public enum NativePresentationIssue: Sendable, Equatable, CaseIterable {
   public enum Context: Sendable, Equatable, CaseIterable { case startup, desktop, cursor, layout, input, shortcut, fullscreen, command }
-  case startupUnavailable, startupIncompatible, startupResources, preferencesUnavailable, desktopUnavailable, desktopResources, cursorUnavailable, layoutUnavailable, layoutResources, displaysUnavailable, inputUnavailable, inputBusy, inputFailed, shortcutUnavailable, keyboardCaptureUnavailable, fullscreenUnavailable, commandUnavailable
+  case startupUnavailable, startupIncompatible, startupResources, preferencesUnavailable, desktopUnavailable, desktopResources, cursorUnavailable, layoutUnavailable, layoutResources, displaysUnavailable, inputUnavailable, inputBusy, inputFailed, shortcutUnavailable, keyboardCaptureUnavailable, keyboardCaptureFailed, fullscreenUnavailable, commandUnavailable
   public init(error: any Error, context: Context) {
     let status = (error as? NativeError)?.status
     let limited = status == .resourceLimit || status == .outOfMemory
@@ -18,6 +18,9 @@ public enum NativePresentationIssue: Sendable, Equatable, CaseIterable {
     }
     if (error as? NativeDesktopCommandIssue) == .keyboardCaptureUnavailable {
       self = .keyboardCaptureUnavailable; return
+    }
+    if (error as? NativeDesktopCommandIssue) == .keyboardCaptureFailed {
+      self = .keyboardCaptureFailed; return
     }
     if let display = error as? NativeDisplayError {
       self = display == .tooManyDisplays ? .layoutResources : .displaysUnavailable; return
@@ -58,6 +61,7 @@ public enum NativePresentationIssue: Sendable, Equatable, CaseIterable {
     case .inputFailed: return String(localized:"presentation.issue.inputFailed", defaultValue:"Keyboard or pointer input could not be sent. Release pressed keys, focus the desktop and try again. Reconnect if input remains unavailable.")
     case .shortcutUnavailable: return String(localized:"presentation.issue.shortcutUnavailable", defaultValue:"This keyboard shortcut could not be completed. Release pressed keys and try again. Review Input Settings if it keeps failing.")
     case .keyboardCaptureUnavailable: return String(localized:"desktop.keyboard.capture.is.unavailable.allow.tidyvnc.in.macos.accessibility.settings.and.try", defaultValue:"Keyboard capture is unavailable. Allow TidyVNC in macOS Accessibility settings and try again.")
+    case .keyboardCaptureFailed: return String(localized:"presentation.issue.keyboardCaptureFailed", defaultValue:"Keyboard capture could not start even though TidyVNC is allowed in Accessibility settings. Try again, or quit and reopen TidyVNC if it keeps failing.")
     case .fullscreenUnavailable: return String(localized:"desktop.fullscreen.full.screen.could.not.be.opened.review.fullscreen.displays.or.use.enter", defaultValue:"Full screen could not be opened. Review Fullscreen Displays or use Enter Full Screen to try again.")
     case .commandUnavailable: return String(localized:"connection.recovery.this.desktop.command.is.unavailable.focus.the.connected.desktop.and.try.again", defaultValue:"This desktop command is unavailable. Focus the connected desktop and try again.")
     }

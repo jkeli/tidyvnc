@@ -14,7 +14,7 @@ func check(_ value: @autoclosure () throws -> Bool, _ message: String) throws {
 }
 @MainActor final class Capture: NativeKeyboardCapturing {
   var isActive = false
-  func start() -> Bool { isActive = true; return true }
+  func start() -> NativeKeyboardCaptureStart { isActive = true; return .active }
   func stop() { isActive = false }
 }
 @MainActor final class Window: NSWindow {

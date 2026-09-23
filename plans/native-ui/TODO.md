@@ -165,8 +165,10 @@ may disappear merely because it is absent from an initial mockup.
     errors collapse to `.unavailable`), document/file (no writer fake, inline
     open/save panels, save issue as `String`; the reader's `CancellationError` is
     deliberate Swift task cancellation, mapped to `.cancelled` by its callers), display/window/input (direct `NSScreen`/`NSApp.isActive`/
-    `NSWorkspace` reads in fullscreen, startup and desktop code; keyboard capture
-    returns only `Bool`). **Missing:** an access/permission service (Local Network,
+    `NSWorkspace` reads in fullscreen, startup and desktop code). Keyboard capture
+    now reports `.active`/`.accessibilityRequired`/`.failed` (2026-09-23): a trusted
+    tap failure gets its own recovery text instead of misleading Accessibility
+    advice (catalog 1053 keys; `run-ayzryxkl` passes 3/762/89). **Missing:** an access/permission service (Local Network,
     Accessibility, security-scoped file access repeated inline) and app services
     (static launch hand-off, static process logging, direct `NSApp` quit/About,
     `Bundle.main` help resources, `String` startup failures). The production

@@ -12,7 +12,8 @@ sanitizers`), on top of `c2a6057e`. See the two 2026-09-23 TODO evidence section
 N1.5, N1.6, N1.13, N1.14 and N1.15 are now checked; N1.2, N1.3, N1.4, N1.9 and
 N1.16 remain open.
 
-1. N1.9 service contracts, from the recorded audit: add an access/permission
+1. N1.9 service contracts, from the recorded audit (keyboard capture is now typed,
+   `c078a2dc` onward): add an access/permission
    service (Local Network guidance, Accessibility, security-scoped file access)
    with typed states and a fake; an app-services contract (lifecycle/quit, logging,
    help/URL resources) replacing the static launch hand-off; route remaining

@@ -8,6 +8,8 @@ uint32_t native_macos_modifier_down(uint16_t hardware, uint64_t flags);
 uint32_t native_macos_shortcut_candidates(uint16_t hardware, uint32_t* symbols, uint32_t capacity);
 /* Main-thread create/active/destroy. Create never requests system permission.
  * Callback has no owner context, so invalidation cannot retain a host object. */
+/* Nonzero when the process is trusted for Accessibility (required for the tap). */
+uint32_t native_macos_keyboard_capture_trusted(void);
 void* native_macos_keyboard_capture_create(void);
 uint32_t native_macos_keyboard_capture_active(void* capture);
 void native_macos_keyboard_capture_destroy(void* capture);

@@ -45,6 +45,7 @@ func mapping() throws {
   }
   for context in [NativePresentationIssue.Context.shortcut,.command] {
     try check(NativePresentationIssue(error:NativeDesktopCommandIssue.keyboardCaptureUnavailable,context:context) == .keyboardCaptureUnavailable,"capture denial keeps Accessibility recovery")
+    try check(NativePresentationIssue(error:NativeDesktopCommandIssue.keyboardCaptureFailed,context:context) == .keyboardCaptureFailed,"trusted tap failure has its own recovery")
   }
   print("PASS typed recovery mapping and no arbitrary diagnostic evaluation")
 }
