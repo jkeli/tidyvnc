@@ -47,6 +47,43 @@ Everything still open needs one of:
 5. **Final review** (N6.6 remaining actual-app cases needing UI, N6.7/N6.11–N6.13):
    only after 1–4; FLTK remains the default.
 
+## Latest follow-up (2026-09-23) — actual-app, accessibility and performance evidence
+
+New opt-in tools, all listed in BUILD-MACOS.md "Opt-in actual-app checks":
+- `native-security-peer`: an `rfb::SConnection` server using the project's real
+  server-side security handlers.
+- `macos-security-smoke.py`: VncAuth, TLS, CA-trusted X509, all RSA-AES variants
+  and Retry reconnect.
+- `macos-tunnel-smoke.py`: `-via` through a loopback sshd.
+- `macos-rollback-smoke.py`: closes N6.11.
+- `accessibility-audit.py`: 27 screens, driven only through the AX API; the tool
+  can also type through AXSelectedText.
+- `persistence-acceptance.py`: Settings default, history and profile survive a
+  relaunch.
+- `fltk-baseline.py`: window-only FLTK and native screenshots (BASELINE.md).
+- `viewer-workloads.py --probe`, `--fltk-trace` and `--alloc-trace`: matched
+  presentation latency, copies, damage, multi-view and allocation rate
+  (PERFORMANCE.md).
+
+Product fixes:
+- The credential warning in the presented password sheet was truncated.
+- Six SwiftUI pickers and steppers had no VoiceOver label.
+- Warning and error text moved from system orange/red (1.79:1 on light) to
+  accessible `NativeStatusColors`.
+- The trust sheet now shows certificate issuer, serial, validity, key and
+  signature, matching the FLTK dialog.
+
+Keyboard tests cover sheet default/cancel actions (Return on the trust sheet
+cancels; a mutation check proves the test) and the connection-window Tab order.
+A keyboard pass through computer-use was declined by the owner; ask before
+re-requesting.
+
+Still open: a VoiceOver listening pass, sheet Tab order, Save-panel Command-Q,
+an on-device Increase Contrast look, clipboard traffic (the pasteboard is not
+isolated), listen (opens a socket), physical displays/hardware/installed
+checks, hosted CI (disabled by owner) and the final N6.13 review. The proposed
+intentional differences in PARITY.md need owner review.
+
 ## Latest follow-up (2026-09-23) — Apple sanitizers, server bell, pasteboard routing
 
 The crypto-enabled core suite passes **762/762** under macOS ASan+UBSan and TSan
