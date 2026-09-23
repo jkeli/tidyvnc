@@ -477,7 +477,7 @@ cancellation; not yet permission to replace the shipping frontend.
     authentication, reconnect, unsupported config and preparation cancellation.
     Installed/native interaction and remaining OpenSSH parity are still open.
 - [ ] N3.19 Implement platform capability/permission guidance and retry flow. Preserve Local Network metadata; do not require global input monitoring for ordinary view input or modify privacy settings.
-- [ ] N3.20 Run shared service contract tests against fake adapters and macOS implementations; document unsupported future-Windows semantics without implementing its backend.
+- [x] N3.20 Run shared service contract tests against fake adapters and macOS implementations; document unsupported future-Windows semantics without implementing its backend. 2026-09-23: each service runs against fakes and against its macOS implementation in the native suite: an isolated `UserDefaultsPreferencesBacking` domain, `NativePrivateFile` temp roots (profiles/history/trust), `NativeLegacyTrustFile`, the real document reader/writer and password-file reader on temp files, a private named `NSPasteboard`, `AppKitDisplaySource`, and a real `ssh` for the tunnel. Exception: the Keychain backing runs with a faked SecItem client, because real Keychain access with the packaged identity is N3.14. The production wiring is `NativeApp.ProductionWiring`. Windows semantics to decide are listed in [HANDOFF.md](HANDOFF.md).
 
 Exit: platform integration is exercised through the same interfaces the native
 UI uses, with migration and credential behavior verified independently.

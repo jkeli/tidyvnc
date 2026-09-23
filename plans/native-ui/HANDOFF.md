@@ -163,6 +163,33 @@ geometry/logging, DesktopSize, ports and the SSH `via` grammar
 Each has typed errors. The N1.9 audit in TODO.md records what is intentionally
 process-wide.
 
+### Semantics a Windows backend must decide (not implemented)
+
+These are open design notes, not requirements met by this repository:
+
+- **Credentials:** Keychain semantics (distinct not-found/locked/denied/
+  cancelled/interaction-required results, local-only items, no plaintext
+  fallback) must map onto Credential Manager/DPAPI. Windows has no equivalent of
+  the per-call "interaction not allowed" policy, so the adapter must say how it
+  avoids surprise UI.
+- **Preferences and stores:** macOS uses a UserDefaults domain for defaults and
+  owner-only files under Application Support for profiles/history/trust.
+  Windows needs per-user AppData files with equivalent atomic replace, conflict
+  detection and ACLs; the registry is not a drop-in for the revisioned record.
+- **Paths:** PasswordFile/X509 resolution must adopt drive/UNC and
+  relative-to-working-directory rules; the POSIX "leading slash" policy does not
+  apply.
+- **Network privacy:** macOS Local Network consent has no Windows counterpart;
+  firewall prompts for listening sockets are the nearest analog and need their
+  own guidance text.
+- **Input capture:** the macOS Accessibility-gated event tap maps to low-level
+  keyboard hooks; typed "permission required" versus "failed" results should be kept.
+- **Clipboard:** remote-provenance marking uses a private pasteboard type on
+  macOS; Windows needs a registered clipboard format with the same echo
+  suppression.
+- **Tunnel:** the SSH helper and askpass flow assume OpenSSH on POSIX; Windows
+  OpenSSH differs in helper invocation and socket paths.
+
 ## Reusable tests
 
 - `tests/unit` (768 on macOS, 765 on Linux): core, protocol, prompts, frames,
