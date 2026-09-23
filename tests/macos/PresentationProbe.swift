@@ -4,7 +4,10 @@
 // production NativeSession and NativeDesktopView in an on-screen window and, on
 // SIGTERM, writes JSON with CLOCK_UPTIME_RAW nanoseconds:
 //   arrived  [sequence, t]  core frame update observed on the main actor
-//   drawn    [sequence, t]  first AppKit draw of that sequence finished
+//   drawn    [view, sequence, t, renderedBytes, presentationBytes, damagePixels, reusedTiles]
+//            first AppKit draw of that sequence in that view finished; bytes are
+//            resampled output written for the frame and resident output tiles,
+//            damage is the invalidated area in device pixels
 //   vsync    [t]            display-link target timestamps (next refresh)
 import AppKit
 import Combine
@@ -15,32 +18,44 @@ func uptime() -> UInt64 { clock_gettime_nsec_np(CLOCK_UPTIME_RAW) }
 @MainActor final class Probe: NSObject {
   private let endpoint: String, output: URL
   private let runtime: NativeRuntime, session: NativeSession
-  private let window: NSWindow, view: NativeDesktopView
+  private let windows: [NSWindow], views: [NativeDesktopView]
   private var arrived: [[UInt64]] = [], drawn: [[UInt64]] = [], vsync: [UInt64] = []
-  private var lastArrived: UInt64 = 0, lastDrawn: UInt64 = 0
+  private var lastArrived: UInt64 = 0, lastDrawn: [UInt64]
   private var subscriptions = Set<AnyCancellable>()
   private var link: CADisplayLink?, signalSource: (any DispatchSourceSignal)?
-  init(endpoint: String, output: URL, size: CGSize, scaling: String) throws {
+  init(endpoint: String, output: URL, size: CGSize, scaling: String, views count: Int) throws {
     self.endpoint = endpoint; self.output = output
     runtime = try NativeRuntime()
     var config = NativeSessionConfiguration(); config.securityTypes = [1]; config.reconnectOnError = false
     config.alertOnFatalError = false
     session = try runtime.makeSession(configuration: config)
-    window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: [.titled], backing: .buffered, defer: false)
-    window.isReleasedWhenClosed = false; window.title = "TidyVNC presentation probe"
-    view = NativeDesktopView(frame: NSRect(origin: .zero, size: size))
-    view.scaling = scaling
-    super.init()
-    window.contentView = view; window.center(); window.orderFrontRegardless()
-    view.onDrawn = { [weak self] sequence in
-      guard let self, sequence != self.lastDrawn else { return }
-      self.lastDrawn = sequence; self.drawn.append([sequence, uptime()])
+    // Several views of one session share its frame stream, like fullscreen canvases.
+    views = (0..<count).map { _ in NativeDesktopView(frame: NSRect(origin: .zero, size: size)) }
+    windows = views.indices.map { index in
+      let window = NSWindow(contentRect: NSRect(x: 40 + 60 * index, y: 80 + 60 * index, width: Int(size.width), height: Int(size.height)),
+                            styleMask: [.titled], backing: .buffered, defer: false)
+      window.isReleasedWhenClosed = false; window.title = "TidyVNC presentation probe \(index + 1)"
+      return window
     }
+    lastDrawn = Array(repeating: 0, count: count)
+    super.init()
+    for (index, view) in views.enumerated() {
+      view.scaling = scaling
+      windows[index].contentView = view; windows[index].orderFrontRegardless()
+      view.onDrawn = { [weak self, weak view] sequence in
+        guard let self, let view, sequence != self.lastDrawn[index] else { return }
+        self.lastDrawn[index] = sequence
+        let scale = view.window?.backingScaleFactor ?? 1, damage = view.lastInvalidatedRectangle
+        self.drawn.append([UInt64(index), sequence, uptime(), UInt64(view.renderedBytes), UInt64(view.presentationBytes),
+                           UInt64((damage.width * scale * damage.height * scale).rounded()), UInt64(view.reusedTiles)])
+      }
+    }
+    let view = views[0]
     session.frameUpdates.sink { [weak self] image in MainActor.assumeIsolated {
       guard let self, let image, image.sequence != self.lastArrived else { return }
       self.lastArrived = image.sequence; self.arrived.append([image.sequence, uptime()])
     } }.store(in: &subscriptions)
-    view.bind(session)
+    for view in views { view.bind(session) }
     let link = view.displayLink(target: self, selector: #selector(refresh(_:)))
     link.add(to: .main, forMode: .common); self.link = link
     signal(SIGTERM, SIG_IGN)
@@ -58,8 +73,9 @@ func uptime() -> UInt64 { clock_gettime_nsec_np(CLOCK_UPTIME_RAW) }
   private func finish() {
     link?.invalidate(); link = nil
     let report: [String: Any] = ["arrived": arrived, "drawn": drawn, "vsync": vsync,
-      "view": [view.bounds.width, view.bounds.height], "backingScale": window.backingScaleFactor,
-      "desktopRectangle": [view.desktopRectangle.width, view.desktopRectangle.height], "scaling": view.scaling]
+      "view": [views[0].bounds.width, views[0].bounds.height], "views": views.count,
+      "backingScale": windows[0].backingScaleFactor,
+      "desktopRectangle": [views[0].desktopRectangle.width, views[0].desktopRectangle.height], "scaling": views[0].scaling]
     do {
       try JSONSerialization.data(withJSONObject: report).write(to: output)
       exit(0)
@@ -70,18 +86,21 @@ func uptime() -> UInt64 { clock_gettime_nsec_np(CLOCK_UPTIME_RAW) }
 @main struct Main {
   static func main() {
     let arguments = CommandLine.arguments
-    guard arguments.count >= 3 else {
-      FileHandle.standardError.write(Data("usage: native-presentation-probe <host::port> <report.json> [width height [scaling]]\n".utf8)); exit(2)
+    func option(_ name: String) -> String? {
+      arguments.firstIndex(of: name).flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
     }
-    let width = arguments.count > 4 ? Double(arguments[3]) ?? 1280 : 1280
-    let height = arguments.count > 4 ? Double(arguments[4]) ?? 720 : 720
-    let scaling = arguments.count > 5 ? arguments[5] : "FixedRatio"
+    let count = Int(option("--views") ?? "1") ?? 0, width = Double(option("--width") ?? "1280") ?? 0
+    let height = Double(option("--height") ?? "720") ?? 0, scaling = option("--scaling") ?? "FixedRatio"
+    guard arguments.count >= 3, (1...4).contains(count), width >= 64, height >= 64 else {
+      FileHandle.standardError.write(Data(("usage: native-presentation-probe <host::port> <report.json> " +
+        "[--views 1-4] [--width W] [--height H] [--scaling S]\n").utf8)); exit(2)
+    }
     let app = NSApplication.shared
     app.setActivationPolicy(.accessory)
     MainActor.assumeIsolated {
       do {
         let probe = try Probe(endpoint: arguments[1], output: URL(fileURLWithPath: arguments[2]),
-                              size: CGSize(width: width, height: height), scaling: scaling)
+                              size: CGSize(width: width, height: height), scaling: scaling, views: count)
         probe.start()
         withExtendedLifetime(probe) { app.run() }
       } catch { FileHandle.standardError.write(Data("probe setup failed: \(error)\n".utf8)); exit(1) }

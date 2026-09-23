@@ -10,6 +10,7 @@ paced by the viewer's own read/decode/request loop:
   full1080  1920x1080 full-frame Raw update per request
   full4k    3840x2160 full-frame Raw update per request
   scroll    1920x1080 CopyRect shift by 16 rows plus a 16-row Raw strip
+  patch     1920x1080 with one moving 64x64 Raw patch per request (small damage)
 
 Updates are offered at a fixed rate (--rate, default 30/s; 0 answers every
 request immediately), so both frontends receive the same load. Reported per workload: updates consumed per second; the protocol round trip from
@@ -26,14 +27,17 @@ clipboard. Results are a local baseline for matched comparison on one machine.
 
 --probe runs build/.../tests/macos/native-presentation-probe instead: the
 production NativeSession and NativeDesktopView in an on-screen 1280x720 window
-(fit scaling, bilinear). The peer records when it finished writing each update
+(fit scaling, bilinear); --probe-views N binds N such views to one session. The peer records when it finished writing each update
 (CLOCK_UPTIME_RAW) and the probe records when the frame reached the main actor,
 when AppKit finished drawing it and the display-link refresh targets. Each
 arrival is paired with the latest update sent before it, so reported latencies
 are: decode (update sent -> frame on the main actor), draw (-> AppKit draw
 finished) and display (-> next refresh target after the draw; an estimate of the
 earliest time the frame can be on screen, not a photon measurement). Updates
-never drawn, because presentation coalesced them, are counted separately.
+never drawn, because presentation coalesced them, are counted separately. With
+several views, a frame's draw time is when its last view finished. Per drawn
+frame the probe also reports resampled output bytes written (copies), resident
+output bytes and invalidated device pixels (damage).
 """
 import argparse
 import bisect
@@ -57,7 +61,8 @@ spec = importlib.util.spec_from_file_location('isolated_app', ROOT / 'tests/maco
 isolated = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(isolated)
 
-WORKLOADS = {'idle': (1920, 1080), 'full1080': (1920, 1080), 'full4k': (3840, 2160), 'scroll': (1920, 1080)}
+WORKLOADS = {'idle': (1920, 1080), 'full1080': (1920, 1080), 'full4k': (3840, 2160), 'scroll': (1920, 1080),
+             'patch': (1920, 1080)}
 
 
 def cpu_seconds(pid):
@@ -176,6 +181,9 @@ def serve(peer, workload, width, height, seconds, pid, rate):
             if wait > 0: time.sleep(wait)
         if workload in ('full1080', 'full4k'):
             peer.update([peer.raw(0, 0, width, height, colour[frames % 2])])
+        elif workload == 'patch':                      # 64x64 patch walking a 16x8 grid
+            cell = frames % 128
+            peer.update([peer.raw(64 + (cell % 16) * 100, 64 + (cell // 16) * 100, 64, 64, colour[frames % 2])])
         else:                                          # scroll: shift up 16 rows, new strip
             peer.update([peer.copyrect(0, 0, width, height - 16, 0, 16),
                          peer.raw(0, height - 16, width, 16, colour[frames % 2])])
@@ -211,15 +219,30 @@ def analyse_probe(sends, probe, rate):
         decode.append(at - sends[index])
         if rate and at - sends[index] > 1e9 / rate:
             late += 1                                  # pairing is ambiguous beyond one interval
-    draw, display = [], []
-    for sequence, at in probe['drawn']:
+    views = probe.get('views', 1)
+    finished, rendered, resident, damage = {}, [], [], []
+    for _, sequence, at, written, output, invalidated, _ in probe['drawn']:
         if sequence not in arrivals:
             continue
+        finished.setdefault(sequence, []).append(at)
+        rendered.append(written); resident.append(output); damage.append(invalidated)
+    draw, display = [], []
+    for sequence, times in finished.items():
+        if len(times) < views:
+            continue                                   # not drawn by every view
+        at = max(times)
         draw.append(at - arrivals[sequence])
         index = bisect.bisect_left(vsync, at)
         if index < len(vsync):
             display.append(vsync[index] - arrivals[sequence])
-    return {'updatesSent': len(sends), 'framesArrived': len(decode), 'framesDrawn': len(draw),
+    view_pixels = probe['view'][0] * probe['view'][1] * probe['backingScale'] ** 2
+    mib = lambda value: None if value is None else round(value / 2**20, 2)
+    return {'updatesSent': len(sends), 'framesArrived': len(decode), 'framesDrawn': len(draw), 'views': views,
+            'renderedMiBPerViewFrameP50': mib(percentile(rendered, .5)),
+            'renderedMiBPerViewFrameP95': mib(percentile(rendered, .95)),
+            'residentOutputMiBP50': mib(percentile(resident, .5)),
+            'damageFractionP50': None if not damage else round(percentile(damage, .5) / view_pixels, 4),
+            'damageFractionP95': None if not damage else round(percentile(damage, .95) / view_pixels, 4),
             'arrivalsLaterThanOneInterval': late,
             'decodeP50ms': milliseconds(decode, .5), 'decodeP95ms': milliseconds(decode, .95),
             'drawP50ms': milliseconds(draw, .5), 'drawP95ms': milliseconds(draw, .95),
@@ -229,7 +252,7 @@ def analyse_probe(sends, probe, rate):
             'probeScaling': probe.get('scaling')}
 
 
-def run(frontend, target, workload, seconds, work, rate):
+def run(frontend, target, workload, seconds, work, rate, probe_views=1):
     width, height = WORKLOADS[workload]
     listener = socket.socket(); listener.bind(('127.0.0.1', 0)); listener.listen(1)
     port = listener.getsockname()[1]
@@ -241,7 +264,7 @@ def run(frontend, target, workload, seconds, work, rate):
         process = isolated.launch(target, state, args)['process']
     elif frontend == 'probe':
         state.mkdir(parents=True)
-        process = subprocess.Popen([str(target), f'127.0.0.1::{port}', str(probe_report)],
+        process = subprocess.Popen([str(target), f'127.0.0.1::{port}', str(probe_report), '--views', str(probe_views)],
                                    env=isolated.environment(state), stdout=subprocess.DEVNULL)
     else:
         state.mkdir(parents=True)
@@ -272,6 +295,7 @@ def main():
     parser.add_argument('--native', type=Path, help='TidyVNC.app from build/native-ui-frontend')
     parser.add_argument('--fltk', type=Path, help='retained FLTK vncviewer executable')
     parser.add_argument('--probe', type=Path, help='native-presentation-probe from the core build (tests/macos)')
+    parser.add_argument('--probe-views', type=int, default=1, choices=range(1, 5), help='views bound to the probe session')
     parser.add_argument('--workload', action='append', choices=sorted(WORKLOADS))
     parser.add_argument('--seconds', type=float, default=8)
     parser.add_argument('--rate', type=float, default=30, help='offered updates per second (0: unpaced)')
@@ -281,13 +305,13 @@ def main():
                (('fltk', args.fltk), ('native', args.native), ('probe', args.probe)) if path]
     if not targets:
         parser.error('give --native, --fltk and/or --probe')
-    workloads = args.workload or ['idle', 'full1080', 'full4k', 'scroll']
+    workloads = args.workload or ['idle', 'full1080', 'full4k', 'scroll', 'patch']
     report = {'macOS': platform.mac_ver()[0], 'architecture': platform.machine(), 'results': [],
               'note': 'roundTrip is update-sent to next-request, a protocol proxy that excludes display time'}
     with tempfile.TemporaryDirectory(prefix='tidyvnc-workloads-') as temporary:
         for workload in workloads:
             for frontend, target in targets:
-                result = run(frontend, target, workload, args.seconds, Path(temporary), args.rate)
+                result = run(frontend, target, workload, args.seconds, Path(temporary), args.rate, args.probe_views)
                 result['frontend'] = frontend
                 result.pop('_sends', None)
                 report['results'].append(result)
