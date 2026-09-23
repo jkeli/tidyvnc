@@ -2,13 +2,13 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The native app has **1050 UI entries**
-and **2 InfoPlist entries**. Standard builds now audit **139 Swift sources / 1350
-localization call sites** against the catalog. The latest affected suite passes
-**4/4 (38.59 s)**, including the checker's 13 failure tests. There are now 87
-registered native tests; the preceding full 86/86 result predates this follow-up.
-Dynamic text provenance and actual app/accessibility/physical/installed/deployment/
-CI/performance/release gates remain. See the latest evidence below.
+implementation, validation and next steps. Encoding reset names/help now use
+localized visible labels rather than raw schema tokens. The native app has **1050
+UI + 2 InfoPlist entries**; its compiler audit passes **139 sources / 1351 call sites**.
+Latest affected tests pass **3/3 (35.78 s)**. The 87-test full suite was not rerun.
+An isolated SwiftUI AX experiment returned no children and supplies no acceptance;
+actual keyboard/VoiceOver and all other unchecked plan requirements remain open.
+See the latest evidence below.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -9326,3 +9326,37 @@ requirements and the entire unchecked plan. All recorded process handles complet
 Post-test visual check: fullscreen-settings-render/selected.png and
 /tmp/tidyvnc-listen-ui-images/idle-minimum.png were inspected. Display numbers and
 the listener port/IP labels fit; this is fixture evidence, not user-app acceptance.
+
+
+### 2026-09-22 — Dynamic encoding reset names and accessibility limitation
+
+EncodingSettingsFields previously inserted core schema tokens into reset names,
+including NoJPEG for the visible Allow JPEG control. All eight reset controls now
+receive the same localized label as their visible field; help and accessibility
+names use the complete existing inheritance template. Each has a stable ID based
+on the typed option's raw value. Callback identity, inversion, enablement, inherited
+source and persistence semantics are unchanged. No catalog entries were added.
+
+An experimental isolated NSHostingView fixture could not observe SwiftUI children
+through accessibilityChildren(), including after presenting an off-desktop window
+and checking a non-prohibited application policy. It never reached activation.
+Initial compile errors came from using NSAccessibility instead of Swift's imported
+NSAccessibilityProtocol. The exploratory test and CMake target were removed rather
+than counted as coverage. This does not prove that the user app lacks accessible
+controls. No user-app action, saved preference, credential or trust operation was
+performed. Actual VoiceOver naming/activation remains required.
+
+Validation: existing profile editor/inheritance, encoding draft/session isolation
+and settings rendering pass **3/3 (35.78 s)**. Expanded settings/profile rendering
+also passes. Standard app build checks **139 sources / 1351 call sites / 1050 UI
+keys**, and packaged checks pass **1050 + 2** entries with fallback/interpolation.
+Strict signature, **32/32** terminal cases, branding baseline **1650** and diff
+checks pass. No fresh full-suite or sanitizer run; 87 tests remain registered.
+Deployment dependency warnings and all unaccepted plan requirements remain.
+
+Evidence: `/tmp/tidyvnc-encoding-accessibility-{app,render-build,model-build,
+tests,expanded,bundle,terminal,branding}.log`. Unsupported AX experiment:
+`/tmp/tidyvnc-encoding-accessibility-unavailable-fixture.swift` and
+`/tmp/tidyvnc-encoding-accessibility-probe{,2,3}.log` (no passing AX evidence).
+All recorded process handles completed. Continue dynamic provenance, actual
+keyboard/VoiceOver acceptance and the entire unchecked plan.

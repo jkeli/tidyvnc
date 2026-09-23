@@ -31,7 +31,7 @@ Native metadata now has a separate compiled InfoPlist catalog. Trust identity
 messages use complete localized sentences over typed values; affected tests pass
 5/5 after the prior full-suite checkpoint. System Finder/privacy acceptance is open.
 The standard app build now verifies compiler localization records for all 139 Swift
-sources (1350 call sites) against the UI catalog. Dynamic text provenance and
+sources (1351 call sites) against the UI catalog. Dynamic text provenance and
 interactive accessibility still need acceptance; see the latest RESUME evidence.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,

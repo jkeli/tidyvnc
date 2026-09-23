@@ -393,3 +393,15 @@ literal scan. It does not identify arbitrary dynamic Strings passed to Text,
 prove visible layout or OS localization, or replace keyboard/VoiceOver acceptance.
 Continue the dynamic provenance review and interactive requirements before marking
 N4.16 or N4.17 complete. No new shipping translations or gettext edits were made.
+
+
+A subsequent dynamic-label audit found reset actions inserting raw encoding schema
+names into otherwise localized messages. EncodingSettingsFields now passes the
+localized visible label to its reset helper; help and accessibility names agree
+with controls such as Allow JPEG and Reduced colors. Reset IDs use typed option
+values, while callbacks continue to pass those typed options. The compiler audit
+now reports **1351 call sites**, with **139 sources / 1050 UI keys** unchanged.
+Profile inheritance/isolation and expanded rendering pass. An isolated SwiftUI
+accessibility-tree experiment returned no children and could not verify activation;
+that unsupported fixture is not part of the shipped suite. Actual VoiceOver and
+keyboard acceptance remain open and are not inferred from source labels or renders.

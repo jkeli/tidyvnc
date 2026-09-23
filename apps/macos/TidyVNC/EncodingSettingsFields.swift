@@ -21,7 +21,7 @@ struct EncodingSettingsFields: View {
             Text(choice.available ? choice.name : String(localized:"settings.encoding.choice.unavailable", defaultValue:"\(choice.name) (unavailable)")).tag(choice.name).disabled(!choice.available)
           }
         }.disabled(automatic || isReadOnly(.preferred)).accessibilityIdentifier("preferences.encoding.preferred")
-        source(.preferred)
+        source(.preferred,label:String(localized:"settings.encoding.preferred.encoding", defaultValue:"Preferred encoding"))
       }
       flag(String(localized:"settings.encoding.full.color", defaultValue:"Full color"), .fullColor, values).disabled(automatic)
       HStack {
@@ -30,7 +30,7 @@ struct EncodingSettingsFields: View {
             Text(colorLabel(value)).tag(String(value))
           }
         }.disabled(automatic || values[.fullColor] == "on" || isReadOnly(.lowColorLevel))
-        source(.lowColorLevel)
+        source(.lowColorLevel,label:String(localized:"settings.encoding.reduced.colors", defaultValue:"Reduced colors"))
       }
       flag(String(localized:"settings.encoding.use.custom.compression", defaultValue:"Use custom compression"), .customCompression, values)
       number(String(localized:"settings.encoding.compression", defaultValue:"Compression"), .compression, values).disabled(values[.customCompression] != "on")
@@ -43,13 +43,14 @@ struct EncodingSettingsFields: View {
   private func text(_ option: NativeEncodingOption, _ values: [NativeEncodingOption: String]) -> Binding<String> {
     Binding(get: { values[option] ?? "" }, set: { setValue(option, $0) })
   }
-  private func source(_ option: NativeEncodingOption) -> some View {
+  private func source(_ option: NativeEncodingOption, label: String) -> some View {
     HStack(spacing: 4) {
       Text(sourceLabel(values[option]?.source)).font(.caption).foregroundStyle(.secondary)
       if let inheritValue, values[option]?.source == .profile {
         Button { inheritValue(option) } label: { Image(systemName: "arrow.uturn.backward") }
-          .buttonStyle(.borderless).help(String(localized:"settings.encoding.use.app.default", defaultValue:"Use app default"))
-          .accessibilityLabel(String(localized:"settings.encoding.inherit.option", defaultValue:"Use app default for \(schema.first(where: { $0.id == option })?.name ?? String(localized:"settings.section.encoding", defaultValue:"Encoding"))"))
+          .buttonStyle(.borderless).help(String(localized:"settings.encoding.inherit.option", defaultValue:"Use app default for \(label)"))
+          .accessibilityLabel(String(localized:"settings.encoding.inherit.option", defaultValue:"Use app default for \(label)"))
+          .accessibilityIdentifier("preferences.encoding.inherit.\(option.rawValue)")
       }
     }.frame(width: 100, alignment: .trailing)
   }
@@ -68,7 +69,7 @@ struct EncodingSettingsFields: View {
     HStack {
       Toggle(label, isOn: Binding(get: { (values[option] == "on") != inverted },
         set: { setValue(option, $0 != inverted ? "on" : "off") }))
-      Spacer(); source(option)
+      Spacer(); source(option,label:label)
     }.disabled(isReadOnly(option))
   }
   private func isReadOnly(_ option: NativeEncodingOption) -> Bool {
@@ -82,7 +83,7 @@ struct EncodingSettingsFields: View {
     HStack {
       Stepper(String(localized:"settings.encoding.option.value", defaultValue:"\(label): \(values[option] ?? "")"), value: Binding(get: { Int(values[option] ?? "") ?? bounds(option).lowerBound },
         set: { setValue(option, String($0)) }), in: bounds(option))
-      Spacer(); source(option)
+      Spacer(); source(option,label:label)
     }.disabled(isReadOnly(option))
   }
   private func colorLabel(_ value: Int) -> String {

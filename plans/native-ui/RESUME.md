@@ -4,6 +4,31 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Encoding reset names
+
+Dynamic label tracing found that encoding reset buttons exposed raw schema tokens
+such as NoJPEG and LowColorLevel in their accessibility names. Reset help and
+accessibility names now reuse the corresponding localized visible control label
+(e.g. Allow JPEG and Reduced colors), with stable per-option accessibility IDs.
+The reset callback still receives the same typed option; no schema/policy change.
+
+App build and compiler audit pass **139 sources / 1351 call sites / 1050 UI keys**.
+The separate **2 InfoPlist entries**, packaged fallback/interpolation checks, strict
+signature, **32** terminal cases, branding baseline **1650** and diff checks pass.
+Existing profile inheritance, encoding isolation and settings rendering regressions
+pass **3/3 (35.78 s)**. Expanded settings/profile rendering passes. No full-suite
+or sanitizer rerun; the native suite still contains **87** registered tests.
+
+An experimental in-process SwiftUI accessibility fixture returned no children from
+NSHostingView, with a hidden or presented off-desktop test window. Its first build
+also needed NSAccessibilityProtocol (the Swift protocol name). The experiment did
+not verify labels or press actions and was removed from the shipped test suite;
+source/logs remain in /tmp for diagnosis. This is a fixture limitation, not evidence
+that the actual app's accessibility tree is empty. No CUA/user-app action occurred.
+Next: continue dynamic presentation provenance and actual keyboard/VoiceOver/menu/
+panel acceptance, plus every unchecked parity/core/services/physical/installed/
+deployment/CI/performance/release gate. N4.16/N4.17 stay open. All handles completed.
+
 ## Latest follow-up (2026-09-22) — Compiler-checked localization coverage
 
 The standard native app build now emits Swift localization records for the core
