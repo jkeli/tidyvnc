@@ -113,7 +113,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
       changingScaling = true; filter = oldValue; changingScaling = false; reportManagedScaling()
     } else { updateGeometry() }
   } }
-  private func reportManagedScaling() { onError?("Change Scaling Settings for the shared desktop canvas.") }
+  private func reportManagedScaling() { onError?(String(localized:"desktop.change.scaling.settings.for.the.shared.desktop.canvas", defaultValue:"Change Scaling Settings for the shared desktop canvas.")) }
   public var pan = CGPoint.zero { didSet {
     guard !changingScaling else { return }
     if let canvasCoordinator {
@@ -134,9 +134,9 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
     NotificationCenter.default.addObserver(self, selector: #selector(updateFocus), name: NSApplication.didResignActiveNotification, object: nil)
     NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(suspendInput), name: NSWorkspace.willSleepNotification, object: nil)
     setAccessibilityElement(true); setAccessibilityRole(.image)
-    setAccessibilityLabel("Remote desktop")
-    setAccessibilityHelp("Click to focus. Keyboard and pointer input control the connected computer.")
-    setAccessibilityCustomActions([NSAccessibilityCustomAction(name: "Focus remote desktop", target: self, selector: #selector(focusDesktop))])
+    setAccessibilityLabel(String(localized:"ssh.remote.desktop", defaultValue:"Remote desktop"))
+    setAccessibilityHelp(String(localized:"desktop.click.to.focus.keyboard.and.pointer.input.control.the.connected.computer", defaultValue:"Click to focus. Keyboard and pointer input control the connected computer."))
+    setAccessibilityCustomActions([NSAccessibilityCustomAction(name: String(localized:"desktop.focus.remote.desktop", defaultValue:"Focus remote desktop"), target: self, selector: #selector(focusDesktop))])
   }
   required init?(coder: NSCoder) { super.init(coder: coder) }
   deinit {
@@ -417,7 +417,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
       next = fit
       if !reportedScalingFailure {
         reportedScalingFailure = true
-        onError?("The selected scaling exceeds the display limits. The desktop is temporarily fitted to the window. Choose a smaller scale in Scaling Settings.")
+        onError?(String(localized:"desktop.the.selected.scaling.exceeds.the.display.limits.the.desktop.is.temporarily.fitted", defaultValue:"The selected scaling exceeds the display limits. The desktop is temporarily fitted to the window. Choose a smaller scale in Scaling Settings."))
       }
     }
     desiredGeometry = next
@@ -616,7 +616,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
     availablePan = enabled
     let selectors: [NativeDesktopPan: Selector] = [.left: #selector(panLeft), .right: #selector(panRight),
       .up: #selector(panUp), .down: #selector(panDown), .origin: #selector(panOrigin)]
-    var actions = [NSAccessibilityCustomAction(name: "Focus remote desktop", target: self, selector: #selector(focusDesktop))]
+    var actions = [NSAccessibilityCustomAction(name: String(localized:"desktop.focus.remote.desktop", defaultValue:"Focus remote desktop"), target: self, selector: #selector(focusDesktop))]
     actions += enabled.map { NSAccessibilityCustomAction(name: $0.title, target: self, selector: selectors[$0]!) }
     setAccessibilityCustomActions(actions)
     NSAccessibility.post(element: self, notification: .layoutChanged)
@@ -674,7 +674,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
     if captureWasActive && !capture.isActive {
       capture.stop(); captureWasActive = false; captureSuppressed = true
       _ = send { try $0.releaseInput() }; commandState?.inputReleasedForShortcut(from:self); clearInput()
-      commandState?.captureChanged(false, message: "Keyboard capture ended. Use Capture Keyboard to try again.",from:self)
+      commandState?.captureChanged(false, message: String(localized:"desktop.keyboard.capture.ended.use.capture.keyboard.to.try.again", defaultValue:"Keyboard capture ended. Use Capture Keyboard to try again."),from:self)
     }
     if fullscreenSystemKeys && fullscreen && !captureSuppressed && !automaticCaptureAttempted && !capture.isActive {
       automaticCaptureAttempted = true
@@ -887,7 +887,7 @@ extension NativeDesktopView: NativeDesktopCommandHost {
   func captureKeyboardForCommand() throws {
     guard captureEligible else { throw NativeDesktopCommandIssue.unavailable }
     guard capture.start() else {
-      let message = "Keyboard capture is unavailable. Allow TidyVNC in macOS Accessibility settings and try again."
+      let message = String(localized:"desktop.keyboard.capture.is.unavailable.allow.tidyvnc.in.macos.accessibility.settings.and.try", defaultValue:"Keyboard capture is unavailable. Allow TidyVNC in macOS Accessibility settings and try again.")
       commandState?.captureChanged(false, message: message,from:self)
       throw NativeError(.internalFailure, message)
     }

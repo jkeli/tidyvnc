@@ -79,13 +79,13 @@ func geometry() throws {
   try await until { !view.isRendering }
   try check(view.pan == .zero && commands.canPerform(.pan(.right)) && commands.canPerform(.pan(.down)) && !commands.canPerform(.pan(.left)), "origin availability")
   let names = view.accessibilityCustomActions()?.map(\.name) ?? []
-  try check(names == ["Focus remote desktop", "Pan Right", "Pan Down"], "available accessibility actions have descriptive names")
+  try check(names == [String(localized:"desktop.focus.remote.desktop", defaultValue:"Focus remote desktop"), String(localized:"desktop.pan.right", defaultValue:"Pan Right"), String(localized:"desktop.pan.down", defaultValue:"Pan Down")], "available accessibility actions have descriptive names")
 
   // Dispatch the actual native menu, leaving the user's foreground app alone.
   let popup = DesktopContextMenu(model: model), menu = popup.makeMenu()
-  let panMenu = menu.items.first { $0.title == "Pan Desktop" }!.submenu!
-  let right = panMenu.items.first { $0.title == "Pan Right" }!
-  try check(right.isEnabled && !panMenu.items.first { $0.title == "Pan Left" }!.isEnabled, "native submenu edge gating")
+  let panMenu = menu.items.first { $0.title == String(localized:"desktop.pan.desktop", defaultValue:"Pan Desktop") }!.submenu!
+  let right = panMenu.items.first { $0.title == String(localized:"desktop.pan.right", defaultValue:"Pan Right") }!
+  try check(right.isEnabled && !panMenu.items.first { $0.title == String(localized:"desktop.pan.left", defaultValue:"Pan Left") }!.isEnabled, "native submenu edge gating")
   try check(NSApp.sendAction(right.action!, to: right.target, from: right), "native pan menu dispatch")
   try await until { !view.isRendering }
   try check(view.pan == CGPoint(x: 240, y: 0) && view.desktopRectangle.minX == -240, "menu pans eighty percent of viewport")
@@ -103,7 +103,7 @@ func geometry() throws {
 
   // Accessibility dispatch works in view-only mode and does not acquire remote focus.
   try session.setViewOnly(true); try session.setFocused(false)
-  let origin = view.accessibilityCustomActions()!.first { $0.name == "Return to Top Left" }!
+  let origin = view.accessibilityCustomActions()!.first { $0.name == String(localized:"desktop.return.to.top.left", defaultValue:"Return to Top Left") }!
   try check(NSApp.sendAction(origin.selector!, to: origin.target, from: nil), "accessibility action dispatch")
   try await until { !view.isRendering }
   try check(view.pan == .zero && !session.isFocused && commands.canPerform(.pan(.right)), "local pan permits view-only without stealing focus")

@@ -11675,6 +11675,438 @@
           }
         }
       }
+    },
+    "clipboard.recovery.clipboard.transfer.failed.copy.the.text.again.to.retry": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard transfer failed. Copy the text again to retry."
+          }
+        }
+      }
+    },
+    "clipboard.recovery.the.local.clipboard.could.not.be.sent.copy.plain.text.of.at": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local clipboard could not be sent. Copy plain text of at most 256 KiB and try again."
+          }
+        }
+      }
+    },
+    "clipboard.recovery.the.remote.clipboard.could.not.be.written.on.this.mac.copy.it": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote clipboard could not be written on this Mac. Copy it again to retry."
+          }
+        }
+      }
+    },
+    "clipboard.recovery.the.remote.clipboard.text.could.not.be.accepted": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote clipboard text could not be accepted."
+          }
+        }
+      }
+    },
+    "connection.recovery.security.settings.are.unavailable.for.this.connection": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security settings are unavailable for this connection."
+          }
+        }
+      }
+    },
+    "connection.recovery.the.connection.settings.cannot.be.exported.review.them.and.try.again": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection settings cannot be exported. Review them and try again."
+          }
+        }
+      }
+    },
+    "connection.recovery.the.ssh.tunnel.closed.check.the.gateway.and.connect.again": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The SSH tunnel closed. Check the gateway and connect again."
+          }
+        }
+      }
+    },
+    "connection.recovery.this.desktop.command.is.unavailable.focus.the.connected.desktop.and.try.again": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This desktop command is unavailable. Focus the connected desktop and try again."
+          }
+        }
+      }
+    },
+    "connection.recovery.this.incoming.connection.is.no.longer.available.ask.the.server.to.make": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This incoming connection is no longer available. Ask the server to make a new connection to the listener."
+          }
+        }
+      }
+    },
+    "desktop.change.scaling.settings.for.the.shared.desktop.canvas": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change Scaling Settings for the shared desktop canvas."
+          }
+        }
+      }
+    },
+    "desktop.click.to.focus.keyboard.and.pointer.input.control.the.connected.computer": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click to focus. Keyboard and pointer input control the connected computer."
+          }
+        }
+      }
+    },
+    "desktop.focus.remote.desktop": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus remote desktop"
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.displays.changed.full.screen.was.closed.choose.displays.again": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Displays changed. Full screen was closed; choose displays again."
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.full.screen.could.not.be.opened.review.fullscreen.displays.or.use.enter": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full screen could not be opened. Review Fullscreen Displays or use Enter Full Screen to try again."
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.full.screen.could.not.be.opened.try.again": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full screen could not be opened. Try again."
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.full.screen.could.not.exit.normally.the.windowed.desktop.was.restored": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full screen could not exit normally. The windowed desktop was restored."
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.open.failure.detail": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full screen could not be opened: %@"
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.select.at.least.one.display": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select at least one display"
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.some.selected.displays.are.unavailable.full.screen.uses.the.available.displays": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some selected displays are unavailable. Full screen uses the available displays."
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.the.full.screen.transition.did.not.finish.try.again": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The full-screen transition did not finish. Try again."
+          }
+        }
+      }
+    },
+    "desktop.keyboard.capture.ended.use.capture.keyboard.to.try.again": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard capture ended. Use Capture Keyboard to try again."
+          }
+        }
+      }
+    },
+    "desktop.keyboard.capture.is.unavailable.allow.tidyvnc.in.macos.accessibility.settings.and.try": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard capture is unavailable. Allow TidyVNC in macOS Accessibility settings and try again."
+          }
+        }
+      }
+    },
+    "desktop.resize.the.automatic.desktop.resize.did.not.complete.you.can.request.a.size": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The automatic desktop resize did not complete. You can request a size with Resize Remote Desktop."
+          }
+        }
+      }
+    },
+    "desktop.resize.the.remote.desktop.layout.is.unavailable.for.automatic.resizing": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote desktop layout is unavailable for automatic resizing."
+          }
+        }
+      }
+    },
+    "desktop.the.selected.scaling.exceeds.the.display.limits.the.desktop.is.temporarily.fitted": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected scaling exceeds the display limits. The desktop is temporarily fitted to the window. Choose a smaller scale in Scaling Settings."
+          }
+        }
+      }
+    },
+    "tunnel.error.a.private.tunnel.socket.could.not.be.prepared": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A private tunnel socket could not be prepared."
+          }
+        }
+      }
+    },
+    "tunnel.error.ssh.configuration.contains.unsupported.settings.command.execution.proxy.hops.and.network.dependent": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH configuration contains unsupported settings. Command execution, proxy hops and network-dependent Match rules are not supported."
+          }
+        }
+      }
+    },
+    "tunnel.error.ssh.configuration.could.not.be.prepared.check.file.access.and.host.match": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH configuration could not be prepared. Check file access and Host/Match settings."
+          }
+        }
+      }
+    },
+    "tunnel.error.ssh.could.not.save.the.gateway.key.check.known.hosts.file.access": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH could not save the gateway key. Check known-hosts file access and try again. The VNC connection was not started."
+          }
+        }
+      }
+    },
+    "tunnel.error.ssh.did.not.establish.the.tunnel.check.the.gateway.host.key.verification": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH did not establish the tunnel. Check the gateway, host-key verification and SSH authentication."
+          }
+        }
+      }
+    },
+    "tunnel.error.ssh.forwarding.requires.a.tcp.server.address": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH forwarding requires a TCP server address."
+          }
+        }
+      }
+    },
+    "tunnel.error.ssh.tunnel.startup.is.already.in.progress": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH tunnel startup is already in progress."
+          }
+        }
+      }
+    },
+    "tunnel.error.ssh.tunnel.startup.timed.out": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH tunnel startup timed out."
+          }
+        }
+      }
+    },
+    "tunnel.error.the.ssh.gateway.or.forwarding.request.is.invalid": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The SSH gateway or forwarding request is invalid."
+          }
+        }
+      }
+    },
+    "tunnel.error.the.ssh.process.could.not.be.started": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The SSH process could not be started."
+          }
+        }
+      }
+    },
+    "tunnel.error.the.ssh.tunnel.is.closed": {
+      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The SSH tunnel is closed."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

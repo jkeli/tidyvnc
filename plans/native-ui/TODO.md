@@ -2,13 +2,12 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **973** entries;
-app menus/panels, connection controls/status and information/statistics join the
-migrated settings/import/document/profile/history/listener groups. Expanded and
-mirrored fixtures now exercise the actual connection content at 640×420. Compact
-idle guidance remains readable against the black desktop. Next: controlled
-controller/gateway/status errors and actual window/menu/file-panel accessibility.
-Interactive/physical/installed and release gates stay open.
+implementation, validation and next steps. The catalog now has **1009** entries;
+controller/tunnel/clipboard/fullscreen/desktop recovery and accessibility text join
+the migrated native UI. Focused normal and expanded behavior checks pass. Remaining
+localization audit: launch/CLI text, Keychain access reasons and generic diagnostic
+presentation. Classify protocol/persisted/internal literals before changing them.
+Actual window/menu/file-panel accessibility and all other unchecked gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
 file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
@@ -9102,3 +9101,41 @@ PNG also shows the final production layout. Ordinary captures are in settings-re
 
 All recorded process handles completed. Continue remaining controller/gateway/status
 localization and every unchecked item.
+
+
+### 2026-09-22 — Localized controller/service recovery and desktop accessibility
+
+Added 36 catalog entries (**1009** total) for fixed connection-controller, tunnel,
+clipboard, fullscreen transition/automatic resize and desktop keyboard/scaling
+recovery. Desktop label/help and focus accessibility actions use catalog values.
+The fullscreen failure sentence preserves its diagnostic as a literal argument.
+No typed error, SSH parsing/argv, clipboard route, selector, input policy, stored
+identity, protocol value or secret-handling behavior changed. Existing catalog
+ordering is preserved; only new keys are appended.
+
+Validation:
+
+- **11/11 normal (60.41 s)**: panning/AX dispatch, clipboard wire/routing, full settings
+  rendering, shortcut capture lifetime, connection errors/retry, automatic resizing,
+  fullscreen ownership/presentation/remote-layout and tunnel service/controller
+  lifetime. Existing private-process, wire, redaction and teardown assertions pass.
+- Expanded native panning/menu/AX dispatch, clipboard recovery and fullscreen
+  transition tests pass. They now use localized expected presentation values,
+  retaining actual selector invocation, edge gating, wire/focus isolation, recovery
+  and cleanup checks. These are fixtures, not user-operated VoiceOver acceptance.
+- App build and strict deep signature pass. **1009** packaged values/fallback/
+  interpolation checks pass, including literal percent/Unicode diagnostics.
+  **32/32** executable terminal cases, branding **1650** and diff checks pass.
+- No full-suite/sanitizer or actual installed/user-app check. Dependency deployment
+  warnings remain. The temporary expansion bundle's sandbox-extension diagnostic
+  is followed by successful assertions and exit. All process handles completed.
+
+Evidence: `/tmp/tidyvnc-service-localization-{build,app,tests,panning-expanded,
+clipboard-expanded,fullscreen-expanded,bundle,terminal,branding}.log`.
+No new view layout is introduced in this checkpoint.
+
+Source audit next: native launch/CLI guidance and initialization failures, Keychain
+localized access reasons, and remaining generic diagnostic presentation paths.
+Several other raw strings are caught internal diagnostics or protocol/persisted
+metadata (configuration header, trust commitment, credential labels); classify
+those by use before translating. N4.16 and all other unchecked requirements remain.

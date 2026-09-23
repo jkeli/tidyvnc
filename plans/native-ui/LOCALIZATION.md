@@ -211,7 +211,7 @@ native stores. Inspect their PNGs in addition to fitting assertions; allow nativ
 control appearance/size transitions to settle before judging captures.
 
 
-The source catalog now has **973** entries. App/window/file-panel titles and actions,
+The app/connection checkpoint brought the source catalog to **973** entries. App/window/file-panel titles and actions,
 connection controls/state/provenance, native and SwiftUI desktop menus, information
 and statistics have stable IDs. Dimensions, speeds and counts use formatted display
 numbers. Protocol versions/names, remote values, redacted diagnostics, stored IDs,
@@ -233,3 +233,24 @@ The fixtures use in-memory stores and loopback peers. They do not establish real
 menu/panel interaction, VoiceOver, translated-language, installed-app or release
 acceptance. Source English is still the only supplied translation. Existing gettext
 catalogs and translator attribution remain intact.
+
+
+The source catalog now has **1009** entries. Fixed controller/tunnel/clipboard,
+fullscreen/automatic-resize and desktop keyboard/scaling recovery messages are
+localized, along with the desktop accessibility label, help and focus action.
+OpenSSH grammar/diagnostic classification remains literal and error selection uses
+typed cases. A complete fullscreen-failure template accepts a literal diagnostic;
+the bundle test verifies percent/Unicode arguments without recursive formatting.
+
+The expansion runner now includes `connection.recovery.`, `clipboard.recovery.`
+and `tunnel.error.`. It can run the panning, clipboard and fullscreen executables
+with its existing positional interface (those fixtures ignore the output argument).
+Localized expected labels replace English-only lookups in these tests; native
+selector dispatch, wire routing, focus/lifetime and recovery checks remain active.
+These checks establish fixture behavior, not actual VoiceOver or OS prompt use.
+
+Remaining audit includes native launch/CLI strings, the Keychain access reason and
+generic diagnostic presentation. Do not translate a raw literal just because it
+resembles prose: protocol headers, saved trust commitments and internal errors
+caught before presentation have different compatibility obligations. N4.16 remains
+open, and English remains the only supplied language.

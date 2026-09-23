@@ -161,13 +161,13 @@ struct NativeResizeViewport: Equatable {
             if let error = error as? NativeError, error.status == .busy {
               self.lastAttempt = nil; if target.initial { self.initialAttempted = false; self.initialViewport = nil }
             } else if !(error is CancellationError) {
-              self.message = "The automatic desktop resize did not complete. You can request a size with Resize Remote Desktop."
+              self.message = String(localized:"desktop.resize.the.automatic.desktop.resize.did.not.complete.you.can.request.a.size", defaultValue:"The automatic desktop resize did not complete. You can request a size with Resize Remote Desktop.")
             }
           }
         }
         guard let self else { return }; self.operation = nil; self.schedule()
       }
-    } catch { message = "The remote desktop layout is unavailable for automatic resizing." }
+    } catch { message = String(localized:"desktop.resize.the.remote.desktop.layout.is.unavailable.for.automatic.resizing", defaultValue:"The remote desktop layout is unavailable for automatic resizing.") }
   }
   public func stop() {
     stopped = true; observations.removeAll(); delay?.cancel(); delay = nil; wake?.cancel(); wake = nil

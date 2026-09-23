@@ -4,6 +4,31 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Controller and service recovery localization
+
+The catalog now has **1009** English source entries. Fixed connection-controller,
+SSH tunnel, clipboard, fullscreen/automatic-resize and desktop keyboard/scaling
+recovery text now uses stable IDs. Desktop accessibility label/help/focus actions
+are localized too. The fullscreen failure sentence has a literal diagnostic
+argument. Typed errors, OpenSSH parsing/argv, credentials, clipboard routing, focus,
+selectors and persisted/protocol values are unchanged.
+
+Focused normal checks pass **11/11 (60.41 s)**. Expanded native menu/accessibility
+routing, clipboard recovery and fullscreen transition fixtures pass after replacing
+English-only test lookups with localized expected labels. Existing wire, redaction,
+input isolation, lifetime and cleanup assertions remain. App build/signature,
+**1009** packaged values/fallback/interpolation, **32** terminal cases, branding
+baseline **1650** and diff checks pass. No full-suite/sanitizer or actual-user-app/
+VoiceOver/physical/installed-app/deployment/release acceptance is inferred.
+
+The remaining source audit identifies native launch/CLI text and Keychain access
+reason text. Classify other raw literals before migration: protocol file headers,
+persisted trust commitments, identity labels and caught internal diagnostics are
+not interchangeable with UI text. Also audit generic diagnostic presentation paths
+and finish actual window/menu/file-panel accessibility. N4.16 remains open, as do
+all unchecked parity, physical, CI, performance, deployment and release gates.
+All process handles completed; no CUA/user-app action was attempted. See TODO logs.
+
 ## Latest follow-up (2026-09-22) — App and connection localization
 
 The catalog now has **973** English source entries. App menus, native context menus,

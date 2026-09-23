@@ -282,7 +282,7 @@ struct ConnectionProblem: Identifiable, Equatable {
       _ = try documentSave.begin(documentExportCapture(legacyDisplays:order,displayNames:names))
     } catch {
       message = (error as? NativeDocumentExportError)?.description ??
-        (error as? NativeDocumentFailure)?.description ?? "The connection settings cannot be exported. Review them and try again."
+        (error as? NativeDocumentFailure)?.description ?? String(localized:"connection.recovery.the.connection.settings.cannot.be.exported.review.them.and.try.again", defaultValue:"The connection settings cannot be exported. Review them and try again.")
     }
   }
   var canExportDocument: Bool {
@@ -370,7 +370,7 @@ struct ConnectionProblem: Identifiable, Equatable {
         if let failure = error as? NativeTunnelError {
           if self?.closing == false, self?.suppressConnectionProblem == false { self?.message = failure.description }
         } else if reverse != nil, !(error is NativeCommandFailure) {
-          if self?.closing == false { self?.message = "This incoming connection is no longer available. Ask the server to make a new connection to the listener." }
+          if self?.closing == false { self?.message = String(localized:"connection.recovery.this.incoming.connection.is.no.longer.available.ask.the.server.to.make", defaultValue:"This incoming connection is no longer available. Ask the server to make a new connection to the listener.") }
         } else if let issue = NativeConnectionIssue(error:error) {
           self?.reportConnection(issue,generation:(error as? NativeCommandFailure)?.operation.generation ?? session.generation)
         }
@@ -385,7 +385,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   private func tunnelExited(_ attempt: ConnectionTunnelAttempt) {
     guard !closing, tunnelAttempt === attempt, !attempt.stopping else { return }
     suppressConnectionProblem = true; connectionProblem = nil; retryProblem = nil
-    message = "The SSH tunnel closed. Check the gateway and connect again."
+    message = String(localized:"connection.recovery.the.ssh.tunnel.closed.check.the.gateway.and.connect.again", defaultValue:"The SSH tunnel closed. Check the gateway and connect again.")
     trust.cancel(); credentials.clear()
     if let operation { operation.cancel() }
     else { finishTunnel(attempt) }
@@ -488,7 +488,7 @@ struct ConnectionProblem: Identifiable, Equatable {
         self?.connectionProblem = nil; self?.retryProblem = nil
       })
       draft.reload(); securityDraft = draft
-    } catch { message = "Security settings are unavailable for this connection." }
+    } catch { message = String(localized:"connection.recovery.security.settings.are.unavailable.for.this.connection", defaultValue:"Security settings are unavailable for this connection.") }
   }
   func closeSecurity() {
     guard let draft = securityDraft else { return }
@@ -578,7 +578,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   func performDesktop(_ command: NativeDesktopCommand) {
     guard !closing && !busy else { return }
     do { try desktopCommands.perform(command) }
-    catch { message = "This desktop command is unavailable. Focus the connected desktop and try again." }
+    catch { message = String(localized:"connection.recovery.this.desktop.command.is.unavailable.focus.the.connected.desktop.and.try.again", defaultValue:"This desktop command is unavailable. Focus the connected desktop and try again.") }
   }
   func requestClose() {
     guard cleanup == nil else { return }

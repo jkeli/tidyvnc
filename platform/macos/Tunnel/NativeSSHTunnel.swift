@@ -8,17 +8,17 @@ public enum NativeTunnelError: Error, Sendable, Equatable, CustomStringConvertib
   case invalidRequest, unsupportedTarget, privateSocketUnavailable, launchFailed, startupFailed, timedOut, closed, busy, configurationUnavailable, unsupportedConfiguration, hostKeySaveFailed
   public var description: String {
     switch self {
-    case .hostKeySaveFailed: "SSH could not save the gateway key. Check known-hosts file access and try again. The VNC connection was not started."
-    case .configurationUnavailable: "SSH configuration could not be prepared. Check file access and Host/Match settings."
-    case .unsupportedConfiguration: "SSH configuration contains unsupported settings. Command execution, proxy hops and network-dependent Match rules are not supported."
-    case .invalidRequest: "The SSH gateway or forwarding request is invalid."
-    case .unsupportedTarget: "SSH forwarding requires a TCP server address."
-    case .privateSocketUnavailable: "A private tunnel socket could not be prepared."
-    case .launchFailed: "The SSH process could not be started."
-    case .startupFailed: "SSH did not establish the tunnel. Check the gateway, host-key verification and SSH authentication."
-    case .timedOut: "SSH tunnel startup timed out."
-    case .closed: "The SSH tunnel is closed."
-    case .busy: "SSH tunnel startup is already in progress."
+    case .hostKeySaveFailed: String(localized:"tunnel.error.ssh.could.not.save.the.gateway.key.check.known.hosts.file.access", defaultValue:"SSH could not save the gateway key. Check known-hosts file access and try again. The VNC connection was not started.")
+    case .configurationUnavailable: String(localized:"tunnel.error.ssh.configuration.could.not.be.prepared.check.file.access.and.host.match", defaultValue:"SSH configuration could not be prepared. Check file access and Host/Match settings.")
+    case .unsupportedConfiguration: String(localized:"tunnel.error.ssh.configuration.contains.unsupported.settings.command.execution.proxy.hops.and.network.dependent", defaultValue:"SSH configuration contains unsupported settings. Command execution, proxy hops and network-dependent Match rules are not supported.")
+    case .invalidRequest: String(localized:"tunnel.error.the.ssh.gateway.or.forwarding.request.is.invalid", defaultValue:"The SSH gateway or forwarding request is invalid.")
+    case .unsupportedTarget: String(localized:"tunnel.error.ssh.forwarding.requires.a.tcp.server.address", defaultValue:"SSH forwarding requires a TCP server address.")
+    case .privateSocketUnavailable: String(localized:"tunnel.error.a.private.tunnel.socket.could.not.be.prepared", defaultValue:"A private tunnel socket could not be prepared.")
+    case .launchFailed: String(localized:"tunnel.error.the.ssh.process.could.not.be.started", defaultValue:"The SSH process could not be started.")
+    case .startupFailed: String(localized:"tunnel.error.ssh.did.not.establish.the.tunnel.check.the.gateway.host.key.verification", defaultValue:"SSH did not establish the tunnel. Check the gateway, host-key verification and SSH authentication.")
+    case .timedOut: String(localized:"tunnel.error.ssh.tunnel.startup.timed.out", defaultValue:"SSH tunnel startup timed out.")
+    case .closed: String(localized:"tunnel.error.the.ssh.tunnel.is.closed", defaultValue:"The SSH tunnel is closed.")
+    case .busy: String(localized:"tunnel.error.ssh.tunnel.startup.is.already.in.progress", defaultValue:"SSH tunnel startup is already in progress.")
     }
   }
 }

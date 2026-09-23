@@ -198,7 +198,7 @@ import Combine
           automaticEntryEligibility?() ?? (NSApp?.isActive == true && window.isKeyWindow) else { return }
     cancelAutomaticEntry() // One attempt; notifications cannot retry a failed Space.
     do { try controller.enter(selection,strategy:.nativeSpace) }
-    catch { wantsFullscreen = false; message = "Full screen could not be opened. Review Fullscreen Displays or use Enter Full Screen to try again." }
+    catch { wantsFullscreen = false; message = String(localized:"desktop.fullscreen.full.screen.could.not.be.opened.review.fullscreen.displays.or.use.enter", defaultValue:"Full screen could not be opened. Review Fullscreen Displays or use Enter Full Screen to try again.") }
   }
   public func stop() {
     guard !stopped else { return }; stopped = true; windowStartup.stop()

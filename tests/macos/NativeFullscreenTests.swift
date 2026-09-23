@@ -152,7 +152,7 @@ func display(_ id: String, x: Double, primary: Bool = false) -> NativeDisplay {
   try check(owner.canvasLayout?.regions.map(\.id) == [.init("a")],"surviving explicit selection takes priority over fallback")
   provider.values = [display("a",x:0,primary:true)]
   displays.refresh()
-  try check(owner.phase == .windowed && owner.message?.contains("Displays changed") == true && !source.isHidden,"topology change rolls back instead of keeping stale screen geometry")
+  try check(owner.phase == .windowed && owner.message == String(localized:"desktop.fullscreen.displays.changed.full.screen.was.closed.choose.displays.again", defaultValue:"Displays changed. Full screen was closed; choose displays again.") && !source.isHidden,"topology change rolls back instead of keeping stale screen geometry")
   provider.values = [display("a",x:0,primary:true),display("b",x:100)]; displays.refresh()
   try owner.enter(.current,strategy:.nativeSpace)
   owner.windowDidFailToEnterFullScreen(owner.ownedWindows[0])
@@ -164,7 +164,7 @@ func display(_ id: String, x: Double, primary: Bool = false) -> NativeDisplay {
   owner.transitionTimeout = .milliseconds(20)
   try owner.enter(.current,strategy:.nativeSpace)
   try await until { owner.phase == .windowed }
-  try check(owner.message?.contains("did not finish") == true && !source.isHidden,"bounded native transition timeout restores")
+  try check(owner.message == String(localized:"desktop.fullscreen.the.full.screen.transition.did.not.finish.try.again", defaultValue:"The full-screen transition did not finish. Try again.") && !source.isHidden,"bounded native transition timeout restores")
   owner.transitionTimeout = .seconds(15)
   try owner.enter(.all,strategy:.borderless)
   owner.windowWillClose(.init(name:NSWindow.willCloseNotification,object:owner.ownedWindows[0]))

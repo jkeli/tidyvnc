@@ -173,7 +173,7 @@ final class Peer {
   try check(peer.count("never sent") == 0 && !messages.joined().contains("never sent"), "read failure redacts payload")
   board.readError = nil; board.writeError = .writeFailed
   native_test_peer_clipboard(peer.raw)
-  try await until("write error status") { messages.contains { $0.contains("written") } }
+  try await until("write error status") { messages.contains(String(localized:"clipboard.recovery.the.remote.clipboard.could.not.be.written.on.this.mac.copy.it", defaultValue:"The remote clipboard could not be written on this Mac. Copy it again to retry.")) }
   try check(session.snapshot.state == .connected, "pasteboard failure preserves live connection")
   board.writeError = nil; board.racingWrite = "external-copy"
   let failures = messages.count, priorWrites = board.writes

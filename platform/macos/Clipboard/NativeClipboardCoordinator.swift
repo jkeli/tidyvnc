@@ -171,10 +171,10 @@ import Foundation
             current(session, generation: generation, epoch: epoch) else { return }
       observedChange = change
       if error is NativePasteboardError {
-        report(session, "The local clipboard could not be sent. Copy plain text of at most 256 KiB and try again.")
+        report(session, String(localized:"clipboard.recovery.the.local.clipboard.could.not.be.sent.copy.plain.text.of.at", defaultValue:"The local clipboard could not be sent. Copy plain text of at most 256 KiB and try again."))
         _ = try? await session.clearClipboard(expectedGeneration: generation)
       } else {
-        report(session, "Clipboard transfer failed. Copy the text again to retry.")
+        report(session, String(localized:"clipboard.recovery.clipboard.transfer.failed.copy.the.text.again.to.retry", defaultValue:"Clipboard transfer failed. Copy the text again to retry."))
       }
     }
   }
@@ -182,7 +182,7 @@ import Foundation
     guard !stopped else { return }
     let candidates = registrations.values.compactMap(\.session).filter { eligible($0) }
     guard candidates.count == 1, candidates.first === session else { return }
-    if update.kind == .rejected { report(session, "The remote clipboard text could not be accepted."); return }
+    if update.kind == .rejected { report(session, String(localized:"clipboard.recovery.the.remote.clipboard.text.could.not.be.accepted", defaultValue:"The remote clipboard text could not be accepted.")); return }
     guard update.kind == .text, update.text != nil else { return }
     do { try session.validateClipboard(update.route, sending: false) } catch { return }
     epoch &+= 1
@@ -207,7 +207,7 @@ import Foundation
     catch let error as NativeError where [.stale, .notConnected, .closing, .unfocused, .viewOnly, .disabled].contains(error.status) {}
     catch {
       if !stopped, !Task.isCancelled, epoch == job.epoch, eligible(session) {
-        report(session, "The remote clipboard could not be written on this Mac. Copy it again to retry.")
+        report(session, String(localized:"clipboard.recovery.the.remote.clipboard.could.not.be.written.on.this.mac.copy.it", defaultValue:"The remote clipboard could not be written on this Mac. Copy it again to retry."))
       }
     }
   }

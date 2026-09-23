@@ -123,7 +123,7 @@ enum NativeFullscreenEndReason { case windowed, disconnected }
       // Entering/leaving a Space changes visibleFrame as the Dock/menu bar move.
       // Fullscreen uses full display bounds, not that windowed work area.
       guard snapshot.error != nil || !Self.sameTopology(snapshot.displays,self.topology) else { return }
-      self.finish(message:"Displays changed. Full screen was closed; choose displays again.")
+      self.finish(message:String(localized:"desktop.fullscreen.displays.changed.full.screen.was.closed.choose.displays.again", defaultValue:"Displays changed. Full screen was closed; choose displays again."))
     } }.store(in:&subscriptions)
     session.$isClosing.sink { [weak self] closing in MainActor.assumeIsolated {
       if closing { self?.stop() }
@@ -174,14 +174,14 @@ enum NativeFullscreenEndReason { case windowed, disconnected }
       let resolved = snapshot.resolve([],current:current); chosen = resolved.displays; missing = []
     case .all: chosen = snapshot.displays; missing = []
     case .selected(let ids):
-      guard !ids.isEmpty else { throw NativeError(.invalidArgument,"Select at least one display") }
+      guard !ids.isEmpty else { throw NativeError(.invalidArgument,String(localized:"desktop.fullscreen.select.at.least.one.display", defaultValue:"Select at least one display")) }
       let resolved = snapshot.resolve(ids,current:current); chosen = resolved.displays; missing = resolved.missing
     }
     let layout = try NativeDisplayLayout(displays:chosen,devicePixels:!scaling.value.mode.fits && scaling.value.devicePixels)
     let mainID = chosen.first(where:{ $0.id == current })?.id ?? chosen.first(where:\.isPrimary)?.id ?? chosen[0].id
     self.original = original; sourceWasHidden = source.isHidden; originalWasVisible = original.isVisible; sourceChanged = false
     self.selection = selection; self.strategy = strategy; missingDisplays = missing
-    message = missing.isEmpty ? nil : "Some selected displays are unavailable. Full screen uses the available displays."
+    message = missing.isEmpty ? nil : String(localized:"desktop.fullscreen.some.selected.displays.are.unavailable.full.screen.uses.the.available.displays", defaultValue:"Some selected displays are unavailable. Full screen uses the available displays.")
     topology = snapshot.displays; owner = UUID(); source.fullscreenOwnerID = owner
     phase = .entering
     commands.beginFullscreen(self,id:owner)
@@ -210,7 +210,7 @@ enum NativeFullscreenEndReason { case windowed, disconnected }
       if strategy == .nativeSpace {
         armDeadline(); windows.show(primary.window,focus:true); windows.toggleNative(primary.window)
       } else { activate() }
-    } catch { finish(message:"Full screen could not be opened: \(error)"); throw error }
+    } catch { finish(message:String(localized:"desktop.fullscreen.open.failure.detail", defaultValue:"Full screen could not be opened: \(String(describing:error))")); throw error }
   }
   public func exit() {
     guard phase != .windowed else { return }
@@ -243,7 +243,7 @@ enum NativeFullscreenEndReason { case windowed, disconnected }
     deadline = Task { @MainActor [weak self] in
       do { try await Task.sleep(for:timeout) } catch { return }
       guard let self, self.ticket == id else { return }
-      self.finish(message:"The full-screen transition did not finish. Try again.")
+      self.finish(message:String(localized:"desktop.fullscreen.the.full.screen.transition.did.not.finish.try.again", defaultValue:"The full-screen transition did not finish. Try again."))
     }
   }
   private func finish(message: String? = nil, restore: Bool = true, completedExit: Bool = false, disconnected: Bool = false) {
@@ -272,7 +272,7 @@ enum NativeFullscreenEndReason { case windowed, disconnected }
     // Its existing minimize operation handles completion, timeout and input gates.
     if minimize {
       do { try commands?.perform(.minimize) }
-      catch { self.message = "The window could not be minimized. Try Minimize again." }
+      catch { self.message = String(localized:"desktop.the.window.could.not.be.minimized.try.minimize.again", defaultValue:"The window could not be minimized. Try Minimize again.") }
     }
     if restoresSource { source?.restoreAutomaticResize() }
   }
@@ -294,10 +294,10 @@ enum NativeFullscreenEndReason { case windowed, disconnected }
     finish(completedExit:true)
   }
   public func windowDidFailToEnterFullScreen(_ window: NSWindow) {
-    if window === primary?.window { finish(message:"Full screen could not be opened. Try again.") }
+    if window === primary?.window { finish(message:String(localized:"desktop.fullscreen.full.screen.could.not.be.opened.try.again", defaultValue:"Full screen could not be opened. Try again.")) }
   }
   public func windowDidFailToExitFullScreen(_ window: NSWindow) {
-    if window === primary?.window { finish(message:"Full screen could not exit normally. The windowed desktop was restored.") }
+    if window === primary?.window { finish(message:String(localized:"desktop.fullscreen.full.screen.could.not.exit.normally.the.windowed.desktop.was.restored", defaultValue:"Full screen could not exit normally. The windowed desktop was restored.")) }
   }
   public func windowWillClose(_ notification: Notification) {
     if let window = notification.object as? NSWindow, surfaces.contains(where:{ $0.window === window }) { finish() }
