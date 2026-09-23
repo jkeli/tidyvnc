@@ -9,6 +9,10 @@
 namespace {
 bool systemSourceAvailable()
 {
+#ifdef _WIN32
+  // CryptoAPI is the system source on every supported Windows release.
+  return true;
+#endif
   for (const char* path : {"/dev/urandom", "/dev/random"})
     if (FILE* file = std::fopen(path, "r")) { std::fclose(file); return true; }
   return false;

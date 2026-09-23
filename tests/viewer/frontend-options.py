@@ -96,7 +96,40 @@ set(APPLE ON)
 set(BUILD_VIEWER OFF)
 set(TIDYVNC_UI "{frontend}")
 include("@MODULE@")
-""", "TIDYVNC_UI must be FLTK or SWIFTUI")
+""", "TIDYVNC_UI must be FLTK, SWIFTUI or WINUI")
+
+    def test_winui_requires_windows_and_msvc(self):
+        self.evaluate("""
+set(APPLE ON)
+set(WIN32 OFF)
+set(BUILD_VIEWER ON)
+set(TIDYVNC_UI WINUI)
+include("@MODULE@")
+""", "TIDYVNC_UI=WINUI requires Windows")
+        self.evaluate("""
+set(WIN32 ON)
+set(MSVC OFF)
+set(BUILD_VIEWER ON)
+set(TIDYVNC_UI WINUI)
+include("@MODULE@")
+""", "TIDYVNC_UI=WINUI requires MSVC")
+
+    def test_winui_selection_never_enables_fltk(self):
+        for viewer in ("ON", "AUTO", "OFF"):
+            with self.subTest(viewer=viewer):
+                self.evaluate(f"""
+set(WIN32 ON)
+set(MSVC ON)
+set(BUILD_VIEWER {viewer})
+set(TIDYVNC_UI WINUI)
+include("@MODULE@")
+if(BUILD_FLTK_VIEWER OR BUILD_SWIFTUI_VIEWER OR BUILD_MACOS_NATIVE)
+  message(FATAL_ERROR "WinUI selection enabled another frontend")
+endif()
+if(BUILD_VIEWER AND NOT BUILD_WINUI_VIEWER OR NOT BUILD_VIEWER AND BUILD_WINUI_VIEWER)
+  message(FATAL_ERROR "WinUI enablement does not follow BUILD_VIEWER")
+endif()
+""")
 
 
 if __name__ == "__main__":

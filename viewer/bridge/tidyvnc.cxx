@@ -28,7 +28,7 @@
 #include <rfb/obfuscate.h>
 #include <rfb/encodings.h>
 #include <cmath>
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
 #include <viewer/platform/SocketConnector.h>
 #include <viewer/platform/SocketListener.h>
 #include <viewer/platform/PrivateFileLogger.h>
@@ -49,6 +49,8 @@
 #if defined(__APPLE__) || defined(__linux__)
 #include <fcntl.h>
 #include <unistd.h>
+#elif defined(_WIN32)
+#include <io.h>
 #endif
 using namespace viewer;
 namespace {
@@ -56,14 +58,14 @@ core::LogWriter viewportLog("NativeDesktop");
 constexpr size_t handleLimit = 4096, runtimeLimit = 8;
 constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS | TIDYVNC_FEATURE_RUNTIME | TIDYVNC_FEATURE_EVENT_POLL |
   TIDYVNC_FEATURE_IMAGES | TIDYVNC_FEATURE_INPUT | TIDYVNC_FEATURE_PROMPTS | TIDYVNC_FEATURE_CALLBACKS | TIDYVNC_FEATURE_GEOMETRY | TIDYVNC_FEATURE_CLIPBOARD | TIDYVNC_FEATURE_ENCODING | TIDYVNC_FEATURE_ENDPOINT_VALIDATION | TIDYVNC_FEATURE_SCALING | TIDYVNC_FEATURE_TILE_RENDERER | TIDYVNC_FEATURE_DAMAGE_GEOMETRY | TIDYVNC_FEATURE_CURSOR_RENDERER | TIDYVNC_FEATURE_INPUT_POLICY | TIDYVNC_FEATURE_SHORTCUTS | TIDYVNC_FEATURE_INPUT_RELEASE
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_TCP_UNIX_CONNECT | TIDYVNC_FEATURE_LISTENER | TIDYVNC_FEATURE_ROUTED_CONNECT
 #endif
 #ifdef HAVE_GNUTLS
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
 #endif
   | TIDYVNC_FEATURE_CREDENTIAL_BYTES | TIDYVNC_FEATURE_PASSWORD_FILE_REPLY | TIDYVNC_FEATURE_CONNECTION_INFO | TIDYVNC_FEATURE_ENDPOINT_IDENTITY | TIDYVNC_FEATURE_PROMPT_SECURITY | TIDYVNC_FEATURE_CERTIFICATE_POLICY | TIDYVNC_FEATURE_HOST_KEY_ENCODING | TIDYVNC_FEATURE_REQUIRED_TLS_FILES | TIDYVNC_FEATURE_SECURITY_SELECTION | TIDYVNC_FEATURE_TLS_PRIORITY_VALIDATION | TIDYVNC_FEATURE_SECURITY_RECONFIGURATION | TIDYVNC_FEATURE_SHARED_SESSION | TIDYVNC_FEATURE_DESKTOP_LAYOUT | TIDYVNC_FEATURE_DISPLAY_LAYOUT | TIDYVNC_FEATURE_CANVAS_GEOMETRY | TIDYVNC_FEATURE_CONNECTION_DOCUMENT | TIDYVNC_FEATURE_DOCUMENT_OPTIONS | TIDYVNC_FEATURE_INVOCATION_SYNTAX | TIDYVNC_FEATURE_INVOCATION_VALUES | TIDYVNC_FEATURE_INPUT_TIMING | TIDYVNC_FEATURE_MESSAGE_LIMITS | TIDYVNC_FEATURE_WINDOW_GEOMETRY
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_PROCESS_LOGGING | TIDYVNC_FEATURE_FILE_LOGGING
 #endif
   ;
@@ -224,7 +226,7 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
       (static_cast<uint32_t>(problem.entry) << 8) | (static_cast<uint32_t>(problem.problem)+1));
     if (writable) errorValue(error,fault);
     return fault.status;
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
   } catch (const LogFilePathError&) {
     const auto fault = Fault(TIDYVNC_INVALID_ARGUMENT,TIDYVNC_DOMAIN_LOGGING,TIDYVNC_LOGGING_INVALID_FILE_PATH);
     if (writable) errorValue(error,fault);
@@ -380,6 +382,21 @@ std::unique_ptr<core::Logger> loggingDestination(const std::string& name, const 
   std::unique_ptr<FILE,CloseStream> owned(stream);
   std::unique_ptr<core::Logger_File> sink(new core::Logger_File("native-stdio"));
   sink->setFile(owned.get()); owned.release();
+  return std::unique_ptr<core::Logger>(sink.release());
+#elif defined(TIDYVNC_PLATFORM_SOCKETS) && defined(_WIN32)
+  if (name == "file") return std::unique_ptr<core::Logger>(new PrivateFileLogger(path));
+  require(name == "stderr" || name == "stdout",TIDYVNC_UNSUPPORTED);
+  // A GUI-subsystem process usually has no console: the route then discards
+  // output (a sink with no file and no file name writes nothing). The CLI
+  // launcher forwards a console when there is one (plans/native-ui-winui D9).
+  std::unique_ptr<core::Logger_File> sink(new core::Logger_File("native-stdio"));
+  const int source = _fileno(name == "stderr" ? stderr : stdout);
+  const int fd = source >= 0 ? _dup(source) : -1;
+  if (fd >= 0) {
+    FILE* stream = _fdopen(fd,"w");
+    if (!stream) { _close(fd); throw std::system_error(errno,std::generic_category()); }
+    sink->setFile(stream);
+  }
   return std::unique_ptr<core::Logger>(sink.release());
 #else
   (void)name; (void)path; throw Fault(TIDYVNC_UNSUPPORTED);
@@ -1046,29 +1063,30 @@ tidyvnc_status tidyvnc_logging_viewport(uint32_t width,uint32_t height,uint32_t 
 }
 tidyvnc_status tidyvnc_logging_validate(tidyvnc_bytes policy,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t {
-    require(features & TIDYVNC_FEATURE_PROCESS_LOGGING,TIDYVNC_UNSUPPORTED);
+    require((features & TIDYVNC_FEATURE_PROCESS_LOGGING) != 0,TIDYVNC_UNSUPPORTED);
     const auto parsed = loggingPolicy(policy);
     auto& state = processLogging(); std::lock_guard<std::mutex> lock(state.mutex);
     state.get().validate(parsed); return TIDYVNC_OK;
   });
 }
 tidyvnc_status tidyvnc_logging_configure(tidyvnc_bytes policy,tidyvnc_error* error) {
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
   const char* path = PrivateFileLogger::defaultPath();
   return tidyvnc_logging_configure_with_file(policy,
     {reinterpret_cast<const uint8_t*>(path),std::strlen(path)},error);
 #else
+  (void)policy;
   return call(error,[]() -> uint32_t { throw Fault(TIDYVNC_UNSUPPORTED); });
 #endif
 }
 tidyvnc_status tidyvnc_logging_configure_with_file(tidyvnc_bytes policy,tidyvnc_bytes file_path,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t {
-    require(features & TIDYVNC_FEATURE_PROCESS_LOGGING,TIDYVNC_UNSUPPORTED);
+    require((features & TIDYVNC_FEATURE_PROCESS_LOGGING) != 0,TIDYVNC_UNSUPPORTED);
     auto& state = processLogging(); std::lock_guard<std::mutex> lock(state.mutex);
     if (state.closed) throw LoggingFrozen();
     const auto parsed = loggingPolicy(policy);
     const auto path = text(file_path,4096);
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
     PrivateFileLogger::validatePath(path);
 #endif
     state.get().configure(parsed,[&path](const std::string& name) { return loggingDestination(name,path); });
@@ -1118,7 +1136,7 @@ tidyvnc_status tidyvnc_listener_create(tidyvnc_handle id,const tidyvnc_listener_
     require(options->pending_capacity >= 1 && options->pending_capacity <= 64 &&
       options->event_capacity >= 4 && options->event_capacity <= 4096 &&
       options->pending_timeout_ms >= 1 && options->pending_timeout_ms <= 60000);
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
     SocketListenOptions sockets; sockets.address = text(options->address,255);
     sockets.port = static_cast<uint16_t>(options->port); sockets.ipv4 = options->ipv4; sockets.ipv6 = options->ipv6; sockets.backlog = options->backlog;
     auto source = prepareSocketListener(sockets);
@@ -1509,7 +1527,7 @@ tidyvnc_status tidyvnc_session_create_with_message_limits(tidyvnc_handle runtime
 tidyvnc_status tidyvnc_session_connect(tidyvnc_handle id,const tidyvnc_connect_options* options,tidyvnc_operation* out,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t { header(options); header(out); require(!options->reserved); boolean(options->ipv4); boolean(options->ipv6);
     auto live = session(id); auto address = endpointValue(options->endpoint);
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
     SocketConnectOptions settings; settings.ipv4 = options->ipv4; settings.ipv6 = options->ipv6;
     settings.resolveTimeout = std::chrono::milliseconds(options->resolve_timeout_ms);
     settings.connectTimeout = std::chrono::milliseconds(options->connect_timeout_ms);
@@ -1525,7 +1543,7 @@ tidyvnc_status tidyvnc_session_connect_routed(tidyvnc_handle id,tidyvnc_handle t
   return call(error,[&]() -> uint32_t { header(options); header(out); require(!options->reserved); boolean(options->ipv4); boolean(options->ipv6);
     auto live = session(id); auto identity = get<EndpointIdentity>(target,Kind::Endpoint);
     auto local = endpointValue(options->endpoint);
-#if defined(__APPLE__) || defined(__linux__)
+#ifdef TIDYVNC_PLATFORM_SOCKETS
     SocketConnectOptions settings; settings.ipv4 = options->ipv4; settings.ipv6 = options->ipv6;
     settings.resolveTimeout = std::chrono::milliseconds(options->resolve_timeout_ms);
     settings.connectTimeout = std::chrono::milliseconds(options->connect_timeout_ms);

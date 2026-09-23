@@ -10,8 +10,9 @@ class LogFilePathError : public std::invalid_argument {
 public:
   LogFilePathError() : std::invalid_argument("Invalid logging file path") {}
 };
-// POSIX raw destination, always wrapped in RedactedLogger by native startup.
-// Construction validates/copies an absolute path without filesystem access.
+// Raw destination, always wrapped in RedactedLogger by native startup.
+// Construction validates/copies an absolute path without filesystem access
+// (POSIX: starts with '/'; Windows: drive-letter or UNC, windows/ adapter).
 // First output creates a private file and rotates one owned regular predecessor
 // to .bak. A private .lock sidecar serializes cooperating native processes.
 // Existing symlinks, hard links, foreign-owned entries and unsafe directories
@@ -31,7 +32,11 @@ private:
   void initialize();
   void useStandardError();
   const std::string directory, filename, backup, lockname;
+#ifdef _WIN32
+  void* lockHandle = nullptr; // HANDLE of the .lock sidecar while held.
+#else
   int lockDescriptor = -1;
+#endif
   bool initialized = false, fallback = false;
 };
 }

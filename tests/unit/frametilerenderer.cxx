@@ -89,6 +89,9 @@ TEST(FrameTileRenderer, InvalidArgumentsPreserveOutputAndCache) {
 
 extern "C" void abi_test_fail_after(unsigned);
 TEST(FrameTileRenderer, CacheAllocationFailureReturnsPixelsAndDropsCache) {
+#if defined(_MSC_VER) && defined(_ITERATOR_DEBUG_LEVEL) && _ITERATOR_DEBUG_LEVEL > 0
+  GTEST_SKIP() << "Allocation injection needs _ITERATOR_DEBUG_LEVEL=0 (MSVC Release)";
+#endif
   Source source; auto frame=source.publish(); FrameTileRenderer renderer(4096);
   std::array<uint8_t,4096> output{};
   for (unsigned allocation=1;allocation<=2;++allocation) {

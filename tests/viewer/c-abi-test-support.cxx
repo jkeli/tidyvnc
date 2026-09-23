@@ -4,7 +4,14 @@
 #include <new>
 #include <thread>
 namespace { thread_local unsigned remaining = 0; }
+#if defined(_MSC_VER) && defined(_ITERATOR_DEBUG_LEVEL) && _ITERATOR_DEBUG_LEVEL > 0
+// MSVC debug iterators allocate container proxies inside noexcept moves, where
+// an injected failure terminates the process. Injection is off in those builds;
+// MSVC Release (and every other toolchain) runs it.
+extern "C" void abi_test_fail_after(unsigned) {}
+#else
 extern "C" void abi_test_fail_after(unsigned count) { remaining = count; }
+#endif
 extern "C" void abi_test_sleep() { std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
 void* operator new(std::size_t size) {
   if (remaining && !--remaining) throw std::bad_alloc();

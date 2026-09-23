@@ -145,7 +145,12 @@ int main(void)
     tidyvnc_operation operation;
     tidyvnc_handle untouched = 99;
     INIT(options); INIT(snapshot); INIT(event); INIT(operation);
-    CHECK((abi.features & TIDYVNC_FEATURE_LISTENER) != 0);
+    /* The listener needs a platform socket adapter; a build without one
+       reports the capability as unavailable instead of failing later. */
+    if ((abi.features & TIDYVNC_FEATURE_LISTENER) == 0) {
+      CHECK(tidyvnc_listener_create(0,&options,&untouched,&error) != TIDYVNC_OK && untouched == 99);
+      goto listener_done;
+    }
     CHECK(tidyvnc_listener_options_init(&options,&error) == TIDYVNC_OK);
     CHECK(options.port == 5500 && options.ipv4 && options.ipv6 && options.pending_capacity == 8);
     CHECK(tidyvnc_listener_create(0,&options,&untouched,&error) == TIDYVNC_INVALID_HANDLE && untouched == 99);
@@ -155,6 +160,7 @@ int main(void)
     CHECK(tidyvnc_listener_reject(0,1,&error) == TIDYVNC_INVALID_HANDLE);
     CHECK(tidyvnc_listener_stop(0,&error) == TIDYVNC_INVALID_HANDLE);
     CHECK(tidyvnc_listener_poll_drained(0,&error) == TIDYVNC_INVALID_HANDLE);
+  listener_done:;
   }
   {
     tidyvnc_certificate_policy policy = {0}, previous;

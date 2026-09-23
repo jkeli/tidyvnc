@@ -9,8 +9,10 @@ include(GoogleTest)
 get_target_property(TIDYVNC_GTEST_INCLUDE_DIRS GTest::gtest INTERFACE_INCLUDE_DIRECTORIES)
 include_directories(BEFORE SYSTEM ${TIDYVNC_GTEST_INCLUDE_DIRS})
 
-# Google Test requires a new C++ standard
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17")
+# Google Test requires a new C++ standard (MSVC builds already use C++17)
+if(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17")
+endif()
 
 enable_testing()
 
@@ -163,9 +165,13 @@ add_executable(convertlf convertlf.cxx)
 target_link_libraries(convertlf core GTest::gtest_main)
 gtest_discover_tests(convertlf)
 
-add_executable(gesturehandler gesturehandler.cxx ../../vncviewer/GestureHandler.cxx)
-target_link_libraries(gesturehandler core GTest::gtest_main)
-gtest_discover_tests(gesturehandler)
+# Retained FLTK viewer sources: built with the MinGW/GCC/Clang toolchains
+# only (the MSVC build serves the WinUI app).
+if(NOT MSVC)
+  add_executable(gesturehandler gesturehandler.cxx ../../vncviewer/GestureHandler.cxx)
+  target_link_libraries(gesturehandler core GTest::gtest_main)
+  gtest_discover_tests(gesturehandler)
+endif()
 
 add_executable(hostport hostport.cxx)
 target_link_libraries(hostport network GTest::gtest_main)
@@ -243,17 +249,25 @@ add_executable(pixelformat pixelformat.cxx)
 target_link_libraries(pixelformat rfb GTest::gtest_main)
 gtest_discover_tests(pixelformat)
 
-add_executable(shortcuthandler shortcuthandler.cxx ../../vncviewer/ShortcutHandler.cxx)
-target_link_libraries(shortcuthandler tidyvnc_viewer_core ${Intl_LIBRARIES} GTest::gtest_main)
-gtest_discover_tests(shortcuthandler)
+# Retained FLTK viewer sources: built with the MinGW/GCC/Clang toolchains
+# only (the MSVC build serves the WinUI app).
+if(NOT MSVC)
+  add_executable(shortcuthandler shortcuthandler.cxx ../../vncviewer/ShortcutHandler.cxx)
+  target_link_libraries(shortcuthandler tidyvnc_viewer_core ${Intl_LIBRARIES} GTest::gtest_main)
+  gtest_discover_tests(shortcuthandler)
+endif()
 
 add_executable(unicode unicode.cxx)
 target_link_libraries(unicode core GTest::gtest_main)
 gtest_discover_tests(unicode)
 
-add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
-target_link_libraries(emulatemb tidyvnc_viewer_core GTest::gtest_main)
-gtest_discover_tests(emulatemb)
+# Retained FLTK viewer sources: built with the MinGW/GCC/Clang toolchains
+# only (the MSVC build serves the WinUI app).
+if(NOT MSVC)
+  add_executable(emulatemb emulatemb.cxx ../../vncviewer/EmulateMB.cxx)
+  target_link_libraries(emulatemb tidyvnc_viewer_core GTest::gtest_main)
+  gtest_discover_tests(emulatemb)
+endif()
 
 add_executable(desktoptransform desktoptransform.cxx)
 target_link_libraries(desktoptransform tidyvnc_viewer_core GTest::gtest_main)

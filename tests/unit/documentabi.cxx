@@ -103,6 +103,11 @@ TEST(DocumentABI, SerializationQueryCapacityCanariesAndSafeCatalog) {
 }
 
 TEST(DocumentABI, AllocationFailuresAreContainedAndTransactional) {
+#if defined(_MSC_VER) && defined(_ITERATOR_DEBUG_LEVEL) && _ITERATOR_DEBUG_LEVEL > 0
+  // MSVC debug iterators allocate container proxies inside noexcept moves, so
+  // injected allocation failures terminate there; Release builds run this.
+  GTEST_SKIP() << "Allocation injection needs _ITERATOR_DEBUG_LEVEL=0 (MSVC Release)";
+#endif
   const auto input = fixture(); unsigned failures = 0, successes = 0;
   const std::string name = "ServerName", value(120,'x');
   tidyvnc_document_assignment field{bytes(name),bytes(value)};

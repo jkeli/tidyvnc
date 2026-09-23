@@ -99,6 +99,11 @@ TEST(InvocationABI, OpaqueTextAndCatalogMetadata) {
   EXPECT_TRUE(password); EXPECT_GT(count,40u);
 }
 TEST(InvocationABI, AllocationFailuresNeverPublishPartialOwners) {
+#if defined(_MSC_VER) && defined(_ITERATOR_DEBUG_LEVEL) && _ITERATOR_DEBUG_LEVEL > 0
+  // MSVC debug iterators allocate container proxies inside noexcept moves, so
+  // injected allocation failures terminate there; Release builds run this.
+  GTEST_SKIP() << "Allocation injection needs _ITERATOR_DEBUG_LEVEL=0 (MSVC Release)";
+#endif
   const std::string text = "-PasswordFile="+std::string(512,'x'); const auto arg = bytes(text);
   unsigned failures = 0, successes = 0;
   for (unsigned n = 1; n <= 128; ++n) {
@@ -147,6 +152,9 @@ TEST(InvocationABI, ValidationCreatesIndependentCanonicalOwnerAndPreservesFailur
   EXPECT_EQ(output,777u); EXPECT_EQ(error.domain,TIDYVNC_DOMAIN_INVOCATION);
   EXPECT_EQ(error.detail,(1u<<8)|TIDYVNC_INVOCATION_INVALID_VALUE);
   EXPECT_EQ(std::strstr(error.message,"private"),nullptr);
+#if defined(_MSC_VER) && defined(_ITERATOR_DEBUG_LEVEL) && _ITERATOR_DEBUG_LEVEL > 0
+  return;  // Allocation injection needs _ITERATOR_DEBUG_LEVEL=0 (see above).
+#endif
   unsigned failures = 0, successes = 0;
   for (unsigned n = 1; n <= 128; ++n) {
     output = 777; abi_test_fail_after(n);

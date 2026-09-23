@@ -4,6 +4,16 @@ target_include_directories(tidyvnc_viewer_platform PUBLIC ${CMAKE_SOURCE_DIR})
 if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(tidyvnc_viewer_platform PRIVATE platform/SocketTransport.cxx platform/SocketConnector.cxx platform/SocketListener.cxx platform/PrivateFileLogger.cxx)
   target_link_libraries(tidyvnc_viewer_platform PUBLIC network)
+  target_compile_definitions(tidyvnc_viewer_platform PUBLIC TIDYVNC_PLATFORM_SOCKETS)
+elseif(WIN32 AND MSVC)
+  # Winsock/Win32 adapters for the WinUI app (plans/native-ui-winui/CORE.md
+  # section 5). The MinGW FLTK build keeps its own networking and does not
+  # compile them.
+  target_sources(tidyvnc_viewer_platform PRIVATE
+    platform/windows/SocketTransport.cxx platform/windows/SocketConnector.cxx
+    platform/windows/SocketListener.cxx platform/windows/PrivateFileLogger.cxx)
+  target_link_libraries(tidyvnc_viewer_platform PUBLIC network PRIVATE ws2_32 iphlpapi advapi32)
+  target_compile_definitions(tidyvnc_viewer_platform PUBLIC TIDYVNC_PLATFORM_SOCKETS)
 endif()
 if(APPLE)
   # DNS-SD is re-exported by libSystem on macOS, not a separate libdns_sd.

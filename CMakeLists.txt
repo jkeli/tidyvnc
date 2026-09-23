@@ -35,9 +35,6 @@ endif()
 
 option(INSTALL_SYSTEMD_UNITS "Install TigerVNC systemd units" ON)
 
-if(MSVC)
-  message(FATAL_ERROR "TidyVNC cannot be built with Visual Studio.  Please use MinGW")
-endif()
 
 if(NOT BUILD_TIMESTAMP)
   STRING(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M" UTC)
@@ -54,44 +51,86 @@ message(STATUS "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
 message(STATUS "VERSION = ${VERSION}")
 message(STATUS "BUILD_TIMESTAMP = ${BUILD_TIMESTAMP}")
 
-# We want to keep our asserts even in release builds so remove NDEBUG
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -UNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -UNDEBUG")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -UNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -UNDEBUG")
-set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -UNDEBUG")
-set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -UNDEBUG")
+if(MSVC)
+  # MSVC (and clang-cl) builds only the portable core, the C ABI DLL and the
+  # WinUI frontend's native parts; see plans/native-ui-winui/CORE.md section 2. MSVC
+  # has no C++11 mode, so the code is compiled as C++17 here while GCC and
+  # Clang keep checking C++11.
+  foreach(flags CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO
+                CMAKE_C_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_MINSIZEREL)
+    string(REPLACE "/DNDEBUG" "" ${flags} "${${flags}}")
+    set(${flags} "${${flags}} /UNDEBUG")
+  endforeach()
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /D_DEBUG")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /D_DEBUG")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c11 /utf-8 /W4")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /utf-8 /W4 /EHsc /permissive- /Zc:__cplusplus")
+  include(cmake/MSVCWarnings.cmake)
+  # POSIX spellings for the shared sources (common/compat/msvc).
+  include_directories(BEFORE SYSTEM ${CMAKE_SOURCE_DIR}/common/compat/msvc)
+  add_compile_options("/FI${CMAKE_SOURCE_DIR}/common/compat/msvc/tidyvnc_msvc_compat.h")
+  add_compile_options(/guard:cf)
+  add_link_options(/guard:cf)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|x86_64|x64" AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_link_options(/CETCOMPAT)
+  endif()
+  # The shared sources call the ANSI Win32 entry points as the MinGW build
+  # does, so UNICODE/_UNICODE are set only on the Windows-only targets
+  # (viewer/platform/windows, platform/windows), which use W APIs explicitly.
+  add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN _USE_MATH_DEFINES
+                          _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_WARNINGS
+                          _WINSOCK_DEPRECATED_NO_WARNINGS)
+  option(TIDYVNC_MSVC_WERROR "Treat MSVC warnings as errors in Debug builds" ON)
+  if(TIDYVNC_MSVC_WERROR)
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /WX")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /WX")
+  endif()
+else()
+  # We want to keep our asserts even in release builds so remove NDEBUG
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -UNDEBUG")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -UNDEBUG")
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -UNDEBUG")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -UNDEBUG")
+  set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -UNDEBUG")
+  set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -UNDEBUG")
 
-# But extra debug checks are still gated by this custom define
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+  # But extra debug checks are still gated by this custom define
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
-# Enable debug friendly optimizations for debug builds
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
+  # Enable debug friendly optimizations for debug builds
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
 
-# Make sure we get a sane C and C++ version
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+  # Make sure we get a sane C and C++ version
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
-# Tell the compiler to be stringent
-add_compile_definitions(_FORTIFY_SOURCE=2)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat=2 -Wvla")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wformat=2 -Wvla")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wzero-as-null-pointer-constant")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
-# Make sure we catch these issues whilst developing
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Werror")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror")
-# clang doesn't support format_arg, which breaks this warning
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-nonliteral -Wno-format-security")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-nonliteral -Wno-format-security")
+  # Tell the compiler to be stringent
+  add_compile_definitions(_FORTIFY_SOURCE=2)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wformat=2 -Wvla")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wformat=2 -Wvla")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wzero-as-null-pointer-constant")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
+  # Make sure we catch these issues whilst developing
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Werror")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror")
+  # clang doesn't support format_arg, which breaks this warning
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format-nonliteral -Wno-format-security")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-nonliteral -Wno-format-security")
+  endif()
 endif()
 
 option(ENABLE_ASAN "Enable address sanitizer support" OFF)
-if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
+if(ENABLE_ASAN AND MSVC)
+  # /fsanitize=address is incompatible with /guard:cf's runtime checks in
+  # the same image only for incremental linking; keep both, link fully.
+  add_compile_options(/fsanitize=address /Zi)
+  add_link_options(/INCREMENTAL:NO /DEBUG)
+elseif(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 endif()
@@ -102,17 +141,16 @@ if(ENABLE_TSAN AND NOT WIN32 AND NOT APPLE AND CMAKE_SIZEOF_VOID_P MATCHES 8)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread")
 endif()
 
-if(MSVC)
-  # undef min and max macro
-  target_compile_definitions(rfb PRIVATE NOMINMAX)
-endif()
-
 if(NOT DEFINED BUILD_WINVNC)
   set(BUILD_WINVNC 1)
 endif()
 
-# Minimum version is Windows 7
-if(WIN32)
+# Minimum version is Windows 7 for the MinGW (FLTK and server) builds. MSVC
+# builds serve the WinUI app, which supports Windows 11 only (D6); 0x0A00 is
+# the value that covers Windows 10 and 11.
+if(MSVC)
+  add_definitions(-D_WIN32_WINNT=0x0A00)
+elseif(WIN32)
   add_definitions(-D_WIN32_WINNT=0x0601)
 endif()
 
@@ -132,6 +170,16 @@ trioption(BUILD_VIEWER "Build TidyVNC viewer")
 option(BUILD_PLATFORM_APPS "Build platform servers and configuration tools" ON)
 option(BUILD_MACOS_NATIVE "Build the experimental macOS Swift bridge and its tests" OFF)
 include(cmake/ViewerFrontend.cmake)
+if(MSVC)
+  # The FLTK viewer and the Windows server still require MinGW; MSVC builds
+  # the headless core and the WinUI frontend's native parts only.
+  if(BUILD_FLTK_VIEWER)
+    message(FATAL_ERROR "The FLTK viewer must be built with MinGW; use -DTIDYVNC_UI=WINUI or -DBUILD_VIEWER=OFF with MSVC")
+  endif()
+  if(BUILD_PLATFORM_APPS)
+    message(FATAL_ERROR "The Windows server must be built with MinGW; use -DBUILD_PLATFORM_APPS=OFF with MSVC")
+  endif()
+endif()
 if(BUILD_SWIFTUI_VIEWER)
   include(cmake/NativeAppPrerequisites.cmake)
 endif()
@@ -465,6 +513,9 @@ add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})
 
 include(cmake/StaticBuild.cmake)
+if(MSVC)
+  include(cmake/WindowsRuntime.cmake)
+endif()
 
 add_subdirectory(common)
 add_subdirectory(viewer)
