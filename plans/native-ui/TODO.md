@@ -864,10 +864,12 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     response with openssl. Correct `VNC_PASSWORD` connects and requests updates;
     a wrong one is rejected once with no automatic retry and the app stays up; with
     no credentials the app parks at its prompt while the peer vanishes and survives
-    without reconnecting. 3/3 cases pass in three runs; added to the native CI job.
-    Remaining actual-app gaps: clipboard traffic (the system pasteboard cannot be
-    isolated), listen/reverse accept and Retry/reconnect (both need a UI action),
-    tunnel, and TLS/RSA-AES trust (no TLS peer fixture).
+    without reconnecting. An `untrusted` case negotiates VeNCrypt X509None with a
+    throwaway self-signed certificate: TLS completes but the app never continues
+    the RFB handshake, survives the peer leaving and does not reconnect. 4/4 pass
+    in two runs; added to the native CI job. Remaining actual-app gaps: clipboard
+    traffic (the system pasteboard cannot be isolated), listen/reverse accept and
+    Retry/reconnect (both need a UI action), tunnel, and RSA-AES host keys.
 - [ ] N6.7 Validate final bundle identity, document associations, localization, credits, Local Network description, signing/resource seal and dependency paths; verify no FLTK linkage/symbols.
   - [x] Local ad hoc package identity/resources/notices/signature, full dylib
     closure, relocated CLI and read-only mounted-DMG inspection; see PACKAGING.md.
