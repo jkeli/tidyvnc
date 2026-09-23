@@ -117,6 +117,9 @@ func check(_ value: @autoclosure () throws -> Bool, _ message: String) throws { 
   view.updateKeyboardCapture(); let attempts = capture.starts
   view.updateKeyboardCapture(); view.updateKeyboardCapture()
   try check(capture.starts == attempts && commands.captureMessage?.contains("Accessibility") == true, "permission failure does not retry every frame")
+  do { try view.captureKeyboardForCommand(); throw Failure(message:"capture denial accepted") }
+  catch NativeDesktopCommandIssue.keyboardCaptureUnavailable {}
+  try check(commands.captureMessage == NativePresentationIssue.keyboardCaptureUnavailable.message,"capture denial is typed and retains actionable localized guidance")
   capture.allowed = true; try view.captureKeyboardForCommand()
   try check(capture.isActive && commands.captureMessage == nil, "explicit retry")
   try session.setFocused(false)

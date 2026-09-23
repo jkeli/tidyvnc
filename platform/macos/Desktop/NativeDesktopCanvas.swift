@@ -33,7 +33,7 @@ import Combine
       do {
         let reset = self.current.canonical != value.canonical || self.current.devicePixels != value.devicePixels
         try self.update(value,pan:reset ? .zero : self.pan)
-      } catch { self.onError?(String(describing:error)) }
+      } catch { self.onError?(NativePresentationIssue(error:error,context:.layout).message) }
     } }.store(in:&subscriptions)
     // Images are delivered before individual views necessarily install them. The
     // authoritative dimensions here keep every member's pan bound identical.
@@ -43,7 +43,7 @@ import Combine
         let point = try self.clamped(image == nil ? .zero : self.pan,layout:self.layout,scaling:self.current,image:image)
         self.pan = point
         for member in self.members { member.view?.setSharedPan(point) }
-      } catch { self.onError?(String(describing:error)) }
+      } catch { self.onError?(NativePresentationIssue(error:error,context:.layout).message) }
     } }.store(in:&subscriptions)
     session.$isClosing.sink { [weak self] closing in MainActor.assumeIsolated {
       if closing { self?.stop() }

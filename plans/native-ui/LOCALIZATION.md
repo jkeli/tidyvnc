@@ -256,7 +256,7 @@ caught before presentation have different compatibility obligations. N4.16 remai
 open, and English remains the only supplied language.
 
 
-The source catalog now has **1037** entries. CLI syntax failures, initialization and
+The CLI/Keychain checkpoint brought the source catalog to **1037** entries. CLI syntax failures, initialization and
 launch-credential errors, version/help prose and option annotations are localized.
 Help templates receive command syntax, paths, environment names and shared-schema
 aliases/defaults as literal arguments; translators can reorder prose without
@@ -280,3 +280,33 @@ through structured mappings, while classifying protocol headers, trust commitmen
 identities and caught internal exceptions according to their actual uses. N4.16
 remains open; only English is supplied and no actual translated-language acceptance
 is inferred from synthetic expansion.
+
+
+The source catalog now has **1050** entries. NativePresentationIssue maps typed
+startup/desktop failures and operation context to fixed localized recovery. Raw
+error descriptions, NSError userInfo and remote/path/credential text are not
+formatted. The previous fullscreen arbitrary-diagnostic template was removed;
+14 recovery messages were added. Existing cancellation/lifetime guards remain at
+the call sites, and fullscreen preserves the original thrown error for its caller.
+Keyboard capture denial has a typed case, preserving Accessibility guidance through
+shortcut and command catches without inspecting localized text.
+
+The expansion runner includes `presentation.issue.`. Injected renderer, cursor,
+canvas and foreign-window failures verify redaction, fallback/recovery, rollback
+and teardown with ordinary and expanded text. A hostile error whose description
+traps proves that mapping does not stringify unknown errors. This establishes
+fixture behavior, not interactive OS/VoiceOver or installed-app acceptance.
+
+The full regression exposed an SSH identity-sheet overflow. Details now scroll in
+one bounded 460×570 sheet, retaining visible title and adaptive action rows. The
+fixture checks proposed and actual bounds with host auto-sizing disabled, plus
+scroll reachability for long untrusted requests. Expanded SSH text and mirrored
+layouts pass; representative light/dark top/end images were inspected. Run the
+expansion helper with the native-ssh-askpass-tests executable, `--prefix ssh.` and
+`--prefix action.`, and `--renderer-arg=--render-only`; add `--rtl` for mirroring.
+This does not establish interactive prompt focus, default-button or VoiceOver proof.
+
+Next: native bundle privacy and document-type descriptions from release/Info.plist.in,
+then finish the use-based presentation audit and actual window/sheet/menu/focus
+acceptance. Protocol headers, stored commitments and caught internal diagnostics
+retain their separate compatibility obligations. N4.16 remains open.

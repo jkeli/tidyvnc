@@ -4,6 +4,36 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Structured presentation recovery
+
+Startup, renderer/cursor, canvas/layout, input/shortcuts and fullscreen failures now
+select fixed localized recovery from typed errors and operation context. Arbitrary
+error descriptions, NSError userInfo and remote/path/credential text are never
+formatted by this mapping. Keyboard-capture denial is a typed Swift error that
+retains Accessibility guidance. Existing cancellation/lifetime guards and the C ABI
+are unchanged. The old fullscreen diagnostic-interpolation template was removed;
+14 new recovery entries bring the source catalog to **1050**.
+
+The new fixture injects private renderer/cursor errors and invalid canvas intent,
+checks UI redaction, alert coalescing, later-frame recovery, pointer fallback,
+geometry preservation and joined teardown. Existing fullscreen tests now inject a
+foreign window error and prove redacted rollback while rethrowing the original
+error. A manual capture-denial check verifies its typed failure and guidance.
+Focused checks pass **9/9 (5.13 s)**; expanded recovery/fullscreen fixtures pass.
+The full run found an SSH identity-sheet overflow; details now scroll inside a
+460×570 sheet with fixed title/actions. Expanded/mirrored light/dark fixtures check
+actual bounds and scroll reachability, with representative images inspected.
+All native executables were rebuilt and the corrected full suite passes **86/86 (116.31 s)**.
+App build/signature, **1050** packaged values/fallback/interpolation, **32** terminal
+cases, branding **1650** and diff checks pass. Sanitizers were not rerun.
+
+A fresh CUA selection of the repository app still reports “native pipe closed before
+response”; no subsequent UI action was sent and no crash/version/draft conclusion
+follows. See UI-ACCEPTANCE.md. Actual app/VoiceOver/installed/physical/deployment/CI/
+performance/release gates remain open. Next: native bundle privacy/document-type
+localization review, remaining user-presentation audit and the entire unchecked
+plan. Internal errors and compatibility data are not blanket-translated.
+
 ## Latest follow-up (2026-09-22) — CLI and Keychain presentation localization
 
 The catalog now has **1037** English source entries. Native command-line syntax

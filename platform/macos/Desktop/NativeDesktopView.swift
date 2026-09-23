@@ -119,7 +119,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
     if let canvasCoordinator {
       let candidate = pan
       changingScaling = true; pan = oldValue; changingScaling = false
-      do { try canvasCoordinator.setPan(candidate) } catch { onError?(String(describing:error)) }
+      do { try canvasCoordinator.setPan(candidate) } catch { onError?(NativePresentationIssue(error:error,context:.layout).message) }
     } else { updateGeometry() }
   } }
   public var desktopRectangle: CGRect { geometry?.rectangle ?? .zero }
@@ -174,7 +174,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
         guard let self, self.presentationID == id, self.session?.isClosing == false else { return }
         self.invalidateCursorPresentation(); self.remoteCursor = .arrow
         self.window?.invalidateCursorRects(for: self)
-        if !self.reportedCursorFailure { self.reportedCursorFailure = true; self.onError?(String(describing: error)) }
+        if !self.reportedCursorFailure { self.reportedCursorFailure = true; self.onError?(NativePresentationIssue(error:error,context:.cursor).message) }
       }
       renderer.onFrame = { [weak self] batch in
         guard let self, self.presentationID == id, self.session?.isClosing == false,
@@ -187,7 +187,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
         guard let self, self.presentationID == id, self.session?.isClosing == false else { return }
         self.renderingFailed(error)
       }
-    } catch { self.session = nil; onError?(String(describing: error)); return }
+    } catch { self.session = nil; onError?(NativePresentationIssue(error:error,context:.desktop).message); return }
     resizeCoordinator = session.remoteResize
     if window != nil && canvasViewport == nil { resizeCoordinator?.attach(owner:resizeOwner) }
     session.frameUpdates.sink { [weak self] value in MainActor.assumeIsolated { self?.install(value) } }.store(in: &subscriptions)
@@ -263,7 +263,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
         _ = self.send { try $0.releaseInput() }
         self.commandState?.inputReleasedForShortcut(from:self); self.clearInput()
         do { try self.shortcutRouter?.setModifiers(value.shortcutModifiers); self.shortcutModifiers = value.shortcutModifiers }
-        catch { self.onError?(String(describing: error)) }
+        catch { self.onError?(NativePresentationIssue(error:error,context:.shortcut).message) }
       }
       if self.fullscreenSystemKeys != value.fullscreenSystemKeys {
         self.fullscreenSystemKeys = value.fullscreenSystemKeys
@@ -458,7 +458,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
   }
   private func renderingFailed(_ error: any Error) {
     guard !reportedRenderingFailure else { return }
-    reportedRenderingFailure = true; onError?(String(describing: error))
+    reportedRenderingFailure = true; onError?(NativePresentationIssue(error:error,context:.desktop).message)
   }
   public override func layout() { super.layout(); updateGeometry() }
   public override func viewDidChangeBackingProperties() { super.viewDidChangeBackingProperties(); updateGeometry() }
@@ -708,7 +708,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
       }
     } catch {
       _ = send { try $0.releaseInput() }; commandState?.inputReleasedForShortcut(from:self); clearInput()
-      onError?(String(describing: error))
+      onError?(NativePresentationIssue(error:error,context:.shortcut).message)
     }
     return false
   }
@@ -729,7 +729,7 @@ public final class NativeDesktopView: NSView, @preconcurrency NSTextInputClient 
     guard ownsInputRoute, let session, !session.isClosing else { return false }
     do { try operation(session); return true }
     catch let error as NativeError where [.notConnected, .viewOnly, .unfocused, .closing, .stale].contains(error.status) { return false }
-    catch { onError?(String(describing: error)); return false }
+    catch { onError?(NativePresentationIssue(error:error,context:.input).message); return false }
   }
   private func pointer(_ event: NSEvent, changing button: UInt32 = 0, down: Bool? = nil) {
     guard commandState?.isMinimizing != true, let geometry else { return }
@@ -874,7 +874,7 @@ extension NativeDesktopView: NativeDesktopCommandHost {
     guard canPan(direction), let desiredGeometry else { return false }
     if let canvasCoordinator {
       do { try canvasCoordinator.setPan(desiredGeometry.panned(direction)) }
-      catch { onError?(String(describing:error)); return false }
+      catch { onError?(NativePresentationIssue(error:error,context:.layout).message); return false }
     } else { pan = desiredGeometry.panned(direction) }
     return true
   }
@@ -889,7 +889,7 @@ extension NativeDesktopView: NativeDesktopCommandHost {
     guard capture.start() else {
       let message = String(localized:"desktop.keyboard.capture.is.unavailable.allow.tidyvnc.in.macos.accessibility.settings.and.try", defaultValue:"Keyboard capture is unavailable. Allow TidyVNC in macOS Accessibility settings and try again.")
       commandState?.captureChanged(false, message: message,from:self)
-      throw NativeError(.internalFailure, message)
+      throw NativeDesktopCommandIssue.keyboardCaptureUnavailable
     }
     captureWasActive = true; captureSuppressed = false; commandState?.captureChanged(true,from:self)
   }

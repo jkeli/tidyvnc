@@ -38,6 +38,7 @@ add_library(tidyvnc_macos_bridge STATIC
   Bridge/NativeValues.swift
   Bridge/NativeTrust.swift
   Bridge/NativeConnectionIssue.swift
+  Presentation/NativePresentationIssue.swift
   Bridge/NativeDelivery.swift
   Bridge/NativeRuntime.swift
   Tunnel/NativeTunnelProcess.swift

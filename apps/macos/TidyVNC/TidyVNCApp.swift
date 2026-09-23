@@ -109,7 +109,7 @@ struct TidyVNCApp: App {
         defaultsImportService = NativeDefaultsImportService(paths:paths,store:store)
       }
       profileLibrary = NativeProfileLibrary(store: profiles, preferences: store)
-    } catch { startupError = String(describing: error) }
+    } catch { startupError = NativePresentationIssue(error:error,context:.startup).message }
   }
   func takeInvocation() -> NativeInvocationLaunch? { invocationStartup.take() }
   func makeConnection(profileID: UUID? = nil, document: NativeDocumentOpenRequest? = nil, launch: NativeInvocationLaunch? = nil) -> ConnectionModel {

@@ -30,9 +30,10 @@ func display(_ id: String, x: Double, primary: Bool = false) -> NativeDisplay {
   var current = NativeDisplayID("b")
   var made: [NSWindow] = [], disposed: [NSWindow] = [], shown: [NSWindow] = [], hidden: [NSWindow] = [], toggled: [NSWindow] = []
   var failAt = Int.max
+  var failure: any Error = NativeDisplayError.unavailable
   func currentDisplay(_ window: NSWindow) -> NativeDisplayID? { current }
   func makeWindow(display: NativeDisplay, primary: Bool, strategy: NativeFullscreenStrategy) throws -> NSWindow {
-    if made.count == failAt { throw NativeDisplayError.unavailable }
+    if made.count == failAt { throw failure }
     let window = Window(contentRect:.init(x:display.bounds.x,y:0,width:100,height:100),styleMask:[.titled,.resizable],backing:.buffered,defer:false)
     window.isReleasedWhenClosed = false; made.append(window); return window
   }
@@ -144,7 +145,13 @@ func display(_ id: String, x: Double, primary: Bool = false) -> NativeDisplay {
   do { try owner.enter(.all,strategy:.nativeSpace); throw Failure(message:"factory failure accepted") }
   catch is NativeDisplayError {}
   try check(owner.phase == .windowed && backend.disposed.count == oldDisposed+1 && !source.isHidden && owner.ownedViews.isEmpty,"partial factory failure rolls back all owned resources")
-  backend.failAt = Int.max
+  try check(owner.message == NativePresentationIssue.displaysUnavailable.message,"display failure uses structured recovery")
+  backend.failAt = backend.made.count
+  backend.failure = NSError(domain:"private fullscreen path",code:7,userInfo:[NSLocalizedDescriptionKey:"private window details"])
+  do { try owner.enter(.all,strategy:.nativeSpace); throw Failure(message:"foreign window error accepted") }
+  catch let error as NSError { try check(error.domain == "private fullscreen path","original typed failure is still thrown") }
+  try check(owner.phase == .windowed && owner.ownedViews.isEmpty && !source.isHidden && owner.message == NativePresentationIssue.fullscreenUnavailable.message,"foreign window failure is redacted after rollback")
+  backend.failure = NativeDisplayError.unavailable; backend.failAt = Int.max
   try owner.enter(.selected([.init("missing")]),strategy:.borderless)
   try check(owner.phase == .active && owner.ownedViews.count == 1 && owner.canvasLayout?.regions.first?.id == backend.current && owner.missingDisplays == [.init("missing")] && owner.selection == .selected([.init("missing")]),"missing saved identities retain intent and fall back to current display")
   try commands.perform(.fullscreen); try check(owner.phase == .windowed && !source.isHidden,"borderless command exit restores immediately")

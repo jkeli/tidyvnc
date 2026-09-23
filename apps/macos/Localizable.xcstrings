@@ -11868,18 +11868,6 @@
         }
       }
     },
-    "desktop.fullscreen.open.failure.detail": {
-      "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Full screen could not be opened: %@"
-          }
-        }
-      }
-    },
     "desktop.fullscreen.select.at.least.one.display": {
       "comment": "Fixed native recovery or accessibility text. Preserve protocol names and literal diagnostic arguments.",
       "extractionState": "manual",
@@ -12440,6 +12428,174 @@
           "stringUnit": {
             "state": "translated",
             "value": "SSH %@ accepts %@ or %@. It uses SSH host-key verification, default-key/agent authentication and native password/passphrase prompts.\nNew Ed25519/RSA/ECDSA gateway keys require explicit %@; changed keys are rejected.\nSupported %@ settings are captured before connecting; commands, proxy hops and %@ are unsupported.\nSSH forwarding cannot be used with %@ or Unix socket targets. An empty %@ value selects a direct connection.\n"
+          }
+        }
+      }
+    },
+    "presentation.issue.startupUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC could not start the native viewer. Reopen the app. If the problem persists, install a compatible build of TidyVNC."
+          }
+        }
+      }
+    },
+    "presentation.issue.startupIncompatible": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The native viewer components are incompatible or lack a required feature. Install a matching build of TidyVNC."
+          }
+        }
+      }
+    },
+    "presentation.issue.startupResources": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC could not allocate resources to start. Close unused applications and reopen TidyVNC."
+          }
+        }
+      }
+    },
+    "presentation.issue.preferencesUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC could not open its settings store. Reopen the app and check that your macOS account can access its preferences."
+          }
+        }
+      }
+    },
+    "presentation.issue.desktopUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote desktop could not be drawn. Try Refresh Desktop. If it still does not update, reconnect."
+          }
+        }
+      }
+    },
+    "presentation.issue.desktopResources": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The desktop exceeds available rendering resources. Reduce the window size or scale in Scaling Settings, or close unused connections."
+          }
+        }
+      }
+    },
+    "presentation.issue.cursorUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The remote cursor could not be drawn. The local pointer is being used. Reconnect if the cursor remains unavailable."
+          }
+        }
+      }
+    },
+    "presentation.issue.layoutUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The desktop layout could not be changed. Review Scaling Settings and Fullscreen Displays, then try again."
+          }
+        }
+      }
+    },
+    "presentation.issue.layoutResources": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The display layout exceeds available resources. Select fewer displays, reduce the scale or close unused connections, then try again."
+          }
+        }
+      }
+    },
+    "presentation.issue.displaysUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The display arrangement is unavailable. Reconnect any missing displays and review Fullscreen Displays."
+          }
+        }
+      }
+    },
+    "presentation.issue.inputUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus the desktop and check view-only and input settings before trying again."
+          }
+        }
+      }
+    },
+    "presentation.issue.inputBusy": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard or pointer input is busy. Release pressed keys, wait for the current operation to finish and try again."
+          }
+        }
+      }
+    },
+    "presentation.issue.inputFailed": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard or pointer input could not be sent. Release pressed keys, focus the desktop and try again. Reconnect if input remains unavailable."
+          }
+        }
+      }
+    },
+    "presentation.issue.shortcutUnavailable": {
+      "comment": "Structured native presentation recovery. Do not insert arbitrary error descriptions, paths or remote payloads.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This keyboard shortcut could not be completed. Release pressed keys and try again. Review Input Settings if it keeps failing."
           }
         }
       }

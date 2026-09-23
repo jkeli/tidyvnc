@@ -741,3 +741,12 @@ if(Python3_Interpreter_FOUND)
     set_tests_properties(NativeTunnel.HostKey-${algorithm} PROPERTIES TIMEOUT 45 SKIP_RETURN_CODE 77)
   endforeach()
 endif()
+
+add_executable(native-presentation-issue-tests NativePresentationIssueTests.swift)
+set_target_properties(native-presentation-issue-tests PROPERTIES Swift_MODULE_NAME NativePresentationIssueTests)
+target_compile_options(native-presentation-issue-tests PRIVATE -swift-version 6 -strict-concurrency=complete
+  -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+target_include_directories(native-presentation-issue-tests PRIVATE support)
+target_link_libraries(native-presentation-issue-tests PRIVATE tidyvnc_macos_bridge native-test-peer)
+add_test(NAME NativePresentation.StructuredRecoveryAndRedaction COMMAND native-presentation-issue-tests)
+set_tests_properties(NativePresentation.StructuredRecoveryAndRedaction PROPERTIES TIMEOUT 40)

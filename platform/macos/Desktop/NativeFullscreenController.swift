@@ -210,7 +210,7 @@ enum NativeFullscreenEndReason { case windowed, disconnected }
       if strategy == .nativeSpace {
         armDeadline(); windows.show(primary.window,focus:true); windows.toggleNative(primary.window)
       } else { activate() }
-    } catch { finish(message:String(localized:"desktop.fullscreen.open.failure.detail", defaultValue:"Full screen could not be opened: \(String(describing:error))")); throw error }
+    } catch { finish(message:NativePresentationIssue(error:error,context:.fullscreen).message); throw error }
   }
   public func exit() {
     guard phase != .windowed else { return }

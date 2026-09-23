@@ -1,5 +1,14 @@
 # Native UI acceptance observations
 
+## 2026-09-22 — structured recovery follow-up access check
+
+After reloading CUA documentation, selecting the repository app bundle by its full
+path again returned “Sky Computer Use native pipe closed before response.” No
+follow-up UI action was sent. Selection may launch an app in the background; the
+response did not establish which version was running or expose its windows. No
+new crash, profile-draft, keyboard or actual-app acceptance conclusion follows.
+The structured recovery evidence remains isolated fixtures and build/package tests.
+
 ## 2026-09-22 — fullscreen/resize follow-up access check
 
 A fresh CUA `getApp("TidyVNC")` again reports “native pipe closed before response.”

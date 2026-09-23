@@ -313,9 +313,9 @@ func keyValidation() throws {
   try check(!key!.matchesConfirmation(prompt.replacingOccurrences(of:"gateway.invalid",with:"other.invalid")),"confirmation hostname bound")
   try check(!key!.matchesConfirmation(prompt.replacingOccurrences(of:key!.fingerprint,with:"SHA256:unrelated")),"confirmation fingerprint bound")
 }
-@MainActor func renderPrompts() async throws {
+@MainActor func renderPrompts(directory: URL? = nil) async throws {
   _ = NSApplication.shared; NSApp.setActivationPolicy(.prohibited)
-  let directory = URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent("ssh-render")
+  let directory = directory ?? URL(fileURLWithPath:FileManager.default.currentDirectoryPath).appendingPathComponent("ssh-render")
   try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true)
   for dark in [false,true] {
     for kind in [NativeSSHQuestion.Kind.response,.permission,.notification,.hostKey] {
@@ -324,18 +324,38 @@ func keyValidation() throws {
       let gateway = try NativeSSHGateway("alice@" + String(repeating:"long-gateway-name",count:200) + ".invalid")
       let key = NativeSSHHostKey(record:gateway.host + "\nssh-ed25519\n" + fixtureKey(),gateway:gateway)
       let request = NativeSSHQuestion(gateway:gateway,endpoint:"remote-desktop.invalid:3",kind:kind,text:text,hostKey:kind == .hostKey ? key : nil)
-      let view = NSHostingView(rootView:SSHAuthenticationSheet(interaction:model,request:request,cancel:{})
+      let host = NSHostingController(rootView:SSHAuthenticationSheet(interaction:model,request:request,cancel:{})
+        .environment(\.layoutDirection,CommandLine.arguments.contains("--rtl") ? .rightToLeft : .leftToRight)
         .environment(\.colorScheme,dark ? .dark : .light).background(Color(nsColor:.windowBackgroundColor)))
-      let size = NSSize(width:508,height:570)
+      host.sizingOptions = []
+      let size = NSSize(width:460,height:570)
       let window = NSWindow(contentRect:NSRect(origin:.zero,size:size),styleMask:[.titled],backing:.buffered,defer:false)
-      window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua); window.contentView = view
-      defer { window.contentView = nil; window.close() }
-      view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(50)); view.layoutSubtreeIfNeeded()
-      try check(view.fittingSize.width <= size.width && view.fittingSize.height <= size.height,"SSH prompt fits bounded window: \(view.fittingSize)")
-      guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"SSH bitmap") }
-      view.cacheDisplay(in:view.bounds,to:bitmap)
-      guard let data = bitmap.representation(using:.png,properties:[:]) else { throw Failure(message:"SSH PNG") }
-      try data.write(to:directory.appendingPathComponent("ssh-\(kind.rawValue)\(dark ? "-dark" : "").png"))
+      window.isReleasedWhenClosed = false; window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua)
+      window.contentViewController = host; window.setContentSize(size)
+      defer { window.contentViewController = nil; window.close() }
+      let view = host.view
+      view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(100)); view.layoutSubtreeIfNeeded()
+      let fitting = host.sizeThatFits(in:size)
+      try check(view.bounds.size == size && fitting.width <= size.width && fitting.height <= size.height,
+        "SSH prompt fits bounded window: \(fitting), actual \(view.bounds.size)")
+      func scrollViews(_ view: NSView) -> [NSScrollView] {
+        (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap { scrollViews($0) }
+      }
+      let scrolls = scrollViews(view)
+      try check(scrolls.count == 1,"SSH details have one scroll area")
+      guard let scroll = scrolls.first, let document = scroll.documentView else { throw Failure(message:"SSH details missing") }
+      for bottom in [false,true] {
+        document.scroll(NSPoint(x:0,y:bottom ? document.bounds.maxY : 0)); scroll.reflectScrolledClipView(scroll.contentView)
+        if bottom && kind != .response {
+          try check(document.bounds.height > scroll.contentView.bounds.height && scroll.contentView.bounds.origin.y > 0,
+            "Complete long SSH request reachable without growing the sheet")
+        }
+        view.layoutSubtreeIfNeeded(); view.displayIfNeeded()
+        guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"SSH bitmap") }
+        view.effectiveAppearance.performAsCurrentDrawingAppearance { view.cacheDisplay(in:view.bounds,to:bitmap) }
+        guard let data = bitmap.representation(using:.png,properties:[:]) else { throw Failure(message:"SSH PNG") }
+        try data.write(to:directory.appendingPathComponent("ssh-\(kind.rawValue)\(bottom ? "-end" : "")\(dark ? "-dark" : "").png"))
+      }
     }
   }
 }
@@ -345,6 +365,9 @@ func keyValidation() throws {
       if CommandLine.arguments.count == 6, CommandLine.arguments[1] == "--ssh" {
         try await realSSH(gateway:CommandLine.arguments[2],key:CommandLine.arguments[3],known:CommandLine.arguments[4],helper:CommandLine.arguments[5])
         try await hostKeyReview(gateway:CommandLine.arguments[2],key:CommandLine.arguments[3],known:CommandLine.arguments[4],helper:CommandLine.arguments[5]); return
+      }
+      if CommandLine.arguments.contains("--render-only") {
+        try await renderPrompts(directory:URL(fileURLWithPath:CommandLine.arguments[1])); return
       }
       try keyValidation()
       let executable = CommandLine.arguments[1]

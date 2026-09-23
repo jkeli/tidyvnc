@@ -21,7 +21,7 @@ parser.add_argument("--rtl", action="store_true", help="Mirror the fixture layou
 parser.add_argument("--named-output", action="store_true", help="Run app-style fixture arguments: --verify --output DIRECTORY.")
 parser.add_argument("--renderer-arg", action="append", default=[], help="Additional fixture argument (repeatable; use --renderer-arg=--flag).")
 args = parser.parse_args()
-prefixes = tuple(args.prefix or ["authentication.", "credentials.", "trust.", "action.", "settings.", "profiles.", "history.", "listener.", "document.", "import.defaults.", "app.", "desktop.", "information.", "endpoint.issue.", "import.source.", "connection.recovery.", "clipboard.recovery.", "tunnel.error.", "invocation."])
+prefixes = tuple(args.prefix or ["authentication.", "credentials.", "trust.", "action.", "settings.", "profiles.", "history.", "listener.", "document.", "import.defaults.", "app.", "desktop.", "information.", "endpoint.issue.", "import.source.", "connection.recovery.", "clipboard.recovery.", "tunnel.error.", "invocation.", "presentation.issue."])
 catalog = json.loads(args.catalog.read_text())
 assert catalog["sourceLanguage"] == "en"
 with tempfile.TemporaryDirectory(prefix="tidyvnc-localization-") as directory:

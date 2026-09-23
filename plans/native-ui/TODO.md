@@ -2,15 +2,13 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **1037** entries;
-CLI help/errors and Keychain presentation join the migrated native UI. English
-terminal output is byte-identical; expanded grammar/policy checks pass. Remaining
-localization audit: raw startup/desktop diagnostic presentation and native bundle
-privacy/document-type descriptions, with use-based classification of internal and
-compatibility literals. All interactive/physical/installed/release gates stay open.
-The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
-Latest presentation-only checks and their limits are recorded at the end of this
-file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
+implementation, validation and next steps. The catalog now has **1050** entries.
+Startup/desktop/cursor/canvas/input/fullscreen presentation maps typed failures to
+fixed, redacted recovery. The latest rebuilt full native suite passes **86/86
+(116.31 s)**. Native bundle privacy/document-type localization review and actual
+app/accessibility/physical/installed/deployment/CI/performance/release gates remain.
+CUA selection still fails at the native pipe; no app-crash conclusion follows.
+Latest evidence and limits are recorded at the end of this file.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -9179,3 +9177,57 @@ failure detail interpolates one. Map these safely and retain actionable recovery
 Native Info.plist privacy/document-type descriptions need review too. Do not
 translate compatibility file headers, persisted trust commitments or internal
 exceptions blindly. N4.16/N4.17 and every other unchecked requirement remain open.
+
+
+### 2026-09-22 — Structured, redacted startup and desktop recovery
+
+Added NativePresentationIssue, selected only by typed error/status and operation
+context. Startup distinguishes preferences, incompatible components and resources;
+desktop drawing, cursor fallback, layout, input admission, shortcuts, capture,
+fullscreen and commands have appropriate fixed recovery. Unknown errors receive
+operation-specific text without evaluating descriptions or NSError userInfo.
+All raw String(describing:) error callbacks in the app/desktop paths found by the
+audit now use this mapping. Existing suppression, focus and lifetime guards remain.
+
+Keyboard capture denial now throws NativeDesktopCommandIssue.keyboardCaptureUnavailable
+so both shortcut and menu paths preserve Accessibility guidance without parsing
+message text. No C ABI, protocol, persistence or input/cancellation policy changed.
+The obsolete arbitrary-fullscreen-diagnostic template was removed; 14 new entries
+bring the catalog from 1037 to **1050**. No arbitrary diagnostic argument is added
+to these UI messages, while fullscreen still rethrows its original failure.
+
+Validation:
+
+- New injected-failure fixture verifies operation/status mapping, a hostile Error
+  whose description must never be evaluated, private NSError/native details,
+  renderer alert coalescing and later-frame recovery, local cursor fallback,
+  unchanged geometry after invalid canvas intent and renderer drain on close.
+- Fullscreen failure injection verifies foreign-error redaction and resource/window
+  rollback. Shortcut fixture verifies explicit typed capture denial and localized
+  recovery, alongside the existing no-per-frame-retry and focus-release checks.
+- A fixture-only ambiguous infinity literal was fixed to CGFloat.infinity. Final
+  affected rendering/cursor/input/canvas/fullscreen/connection tests pass **9/9
+  (5.13 s)**. Expanded recovery and fullscreen behavior fixtures also pass.
+- After rebuilding all native targets, the complete native suite passes **86/86
+  (116.31 s)**, including isolated SSH fixtures. The first full run passed 85/86
+  and found the SSH identity sheet exceeded its 570-point fixture by 0.5 point.
+  The sheet now has one bounded details scroll area with title/actions outside;
+  action rows adapt vertically if needed. The fixture disables automatic host
+  sizing, checks actual 460×570 bounds and complete scroll reachability. Expanded
+  and mirrored renders pass; representative light/dark images were inspected. No skipped tests are claimed as
+  acceptance. ASan/TSan were not rerun for this presentation-only change.
+- App build, strict deep signature, **1050** packaged values/fallback/interpolation,
+  **32/32** executable terminal cases, branding baseline **1650** and diff checks pass.
+  Newer dependency deployment warnings remain; this does not prove the macOS 14 floor.
+- Fresh CUA app selection fails with the native-pipe error. No follow-up action or
+  actual app/VoiceOver acceptance; no app crash or old-draft state is inferred.
+
+Evidence: `/tmp/tidyvnc-presentation-issues-{fixed-build,tests,expanded,
+fullscreen-expanded,full-build,full-tests,app,bundle,terminal,branding}.log`.
+Final follow-up evidence: `/tmp/tidyvnc-presentation-issues-ssh-{build,expanded,rtl}.log`
+and `/tmp/tidyvnc-presentation-issues-{full-tests,app,bundle,terminal,branding}-final.log`.
+Expanded SSH images: `/tmp/tidyvnc-ssh-presentation-{expanded,rtl}/`.
+The earlier full-tests log retains the 85/86 failure; use the final log for acceptance.
+All recorded build/test handles completed. Next: native bundle privacy/document-type
+localization review, use-based classification of remaining literals and all unchecked
+interactive, parity, physical, installed, CI, performance and release requirements.

@@ -14,6 +14,20 @@ struct SSHAuthenticationSheet: View {
   var body: some View {
     VStack(alignment:.leading,spacing:16) {
       Text(request.kind == .hostKey ? String(localized:"ssh.verify.ssh.gateway.identity", defaultValue:"Verify SSH gateway identity") : String(localized:"ssh.ssh.gateway.authentication", defaultValue:"SSH gateway authentication")).font(.title2.bold())
+      ScrollView {
+        details.frame(maxWidth:.infinity,alignment:.leading)
+      }.accessibilityIdentifier("ssh.details")
+      ViewThatFits(in:.horizontal) {
+        HStack { Spacer(); actions.fixedSize() }
+        VStack(alignment:.trailing,spacing:8) { actions.fixedSize() }.frame(maxWidth:.infinity,alignment:.trailing)
+      }
+    }.padding(24).frame(width:460,height:570)
+      .onAppear { focused = request.kind == .response }
+      .onDisappear { response = "" }
+      .onExitCommand { response = ""; cancel() }
+  }
+  private var details: some View {
+    VStack(alignment:.leading,spacing:16) {
       LabeledContent(String(localized:"ssh.gateway", defaultValue:"Gateway")) {
         Text(verbatim:request.gateway.canonicalURI).lineLimit(3).truncationMode(.middle)
           .textSelection(.enabled).help(request.gateway.canonicalURI)
@@ -30,8 +44,8 @@ struct SSHAuthenticationSheet: View {
           .font(.caption).foregroundStyle(.secondary)
       }
       Text(String(localized:"ssh.request.from.ssh", defaultValue:"Request from SSH")).font(.headline)
-      ScrollView { Text(verbatim:request.text).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading) }
-        .frame(maxHeight:180).accessibilityIdentifier("ssh.prompt")
+      Text(verbatim:request.text).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading)
+        .fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("ssh.prompt")
       if request.kind == .response {
         SecureField(String(localized:"ssh.response", defaultValue:"Response"),text:$response).textFieldStyle(.roundedBorder).focused($focused)
           .onSubmit { submit(response) }.accessibilityIdentifier("ssh.response")
@@ -39,8 +53,9 @@ struct SSHAuthenticationSheet: View {
           .font(.caption).foregroundStyle(.secondary)
       }
       if let problem { Text(problem).foregroundStyle(.red).accessibilityIdentifier("ssh.error") }
-      HStack {
-        Spacer()
+    }
+  }
+  @ViewBuilder private var actions: some View {
         Button(String(localized:"action.cancel", defaultValue:"Cancel"),role:.cancel) { response = ""; cancel() }
           .keyboardShortcut(request.kind == .response ? .cancelAction : .defaultAction)
           .accessibilityIdentifier("ssh.cancel")
@@ -53,11 +68,6 @@ struct SSHAuthenticationSheet: View {
             submit(request.kind == .permission ? "yes" : "")
           }.accessibilityIdentifier("ssh.allow")
         }
-      }
-    }.padding(24).frame(width:460)
-      .onAppear { focused = request.kind == .response }
-      .onDisappear { response = "" }
-      .onExitCommand { response = ""; cancel() }
   }
   private func submit(_ value: String) {
     var bytes = Array(value.utf8); response = ""

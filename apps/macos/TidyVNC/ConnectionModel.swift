@@ -578,7 +578,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   func performDesktop(_ command: NativeDesktopCommand) {
     guard !closing && !busy else { return }
     do { try desktopCommands.perform(command) }
-    catch { message = String(localized:"connection.recovery.this.desktop.command.is.unavailable.focus.the.connected.desktop.and.try.again", defaultValue:"This desktop command is unavailable. Focus the connected desktop and try again.") }
+    catch { message = NativePresentationIssue(error:error,context:.command).message }
   }
   func requestClose() {
     guard cleanup == nil else { return }

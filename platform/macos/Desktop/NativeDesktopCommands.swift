@@ -27,7 +27,7 @@ public enum NativeDesktopPan: CaseIterable, Sendable {
   }
 }
 public enum NativeDesktopCommand: Sendable { case fullscreen, minimize, fitWindow, control, alt, controlAltDelete, captureKeyboard, releaseKeyboard, pan(NativeDesktopPan) }
-public enum NativeDesktopCommandIssue: Error { case unavailable }
+public enum NativeDesktopCommandIssue: Error, Sendable, Equatable { case unavailable, keyboardCaptureUnavailable }
 
 @MainActor public final class NativeDesktopCommands: ObservableObject {
   // A frontend may choose a display policy for entry. Active owned fullscreen
