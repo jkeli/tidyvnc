@@ -74,6 +74,33 @@ privacy/Keychain behavior, minimum-OS and architecture coverage, production sign
 notarization, interactive parity and cutover remain open.
 See [native build validation](plans/native-ui/BUILD.md) for reproducible checks.
 
+### Opt-in actual-app checks
+
+These run a built app, or isolated copies of it (`tests/macos/isolated-app.py`,
+which uses a UUID bundle identifier and fresh HOME/XDG roots), against loopback
+fixtures. They need WindowServer and are not part of `--test`. Replace `APP` with
+`build/native-ui-frontend/app/Debug/TidyVNC.app`.
+
+| Command | Checks |
+| --- | --- |
+| `python3 tests/integration/macos-scaling-smoke.py APP/Contents/MacOS/vncviewer --frontend swiftui` | 55 protocol/lifecycle cases |
+| `python3 tests/integration/macos-auth-smoke.py APP` | VncAuth accepted, rejected and vanished; untrusted TLS |
+| `python3 tests/integration/macos-security-smoke.py APP [--accept-prompts]` | VncAuth, TLS and CA-trusted X509 against the project's server-side handlers; with `--accept-prompts`, also all RSA-AES variants and Retry reconnect |
+| `python3 tests/integration/macos-tunnel-smoke.py APP` | `-via` through a loopback `sshd` |
+| `python3 tests/integration/macos-rollback-smoke.py APP FLTK-vncviewer` | FLTK and native data stay separate; FLTK opens a native export |
+| `python3 tests/macos/accessibility-audit.py APP` | VoiceOver labels on 26 screens |
+| `python3 tests/macos/fltk-baseline.py (FLTK-vncviewer \| APP --native) DIR` | Window-only baseline screenshots |
+| `python3 tests/perf/viewer-workloads.py --native APP --fltk FLTK-vncviewer [--alloc-trace]` | Matched CPU, memory, throughput and allocation rate |
+| `python3 tests/perf/viewer-workloads.py --probe <core>/tests/macos/native-presentation-probe` | Native presentation latency, copies and damage |
+
+`--accept-prompts` and the accessibility audit drive the app only through the
+accessibility API, so the caller must be an accessibility client. The draw and
+allocation traces use `DYLD_INSERT_LIBRARIES` and work only with local,
+non-hardened builds. See [UI-ACCEPTANCE.md](plans/native-ui/UI-ACCEPTANCE.md),
+[PERFORMANCE.md](plans/native-ui/PERFORMANCE.md) and
+[BASELINE.md](plans/native-ui/BASELINE.md) for the recorded results. The user
+guide is [doc/macos-native-viewer.md](doc/macos-native-viewer.md).
+
 ### Native package and DMG
 
 Add `--package` to the convenience build to assemble and verify a self-contained

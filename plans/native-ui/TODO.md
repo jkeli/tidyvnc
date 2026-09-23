@@ -1027,6 +1027,16 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
   3. The FLTK viewer opens a reviewed compatibility export written by the production `NativeDocumentExport` codec (`native-export-fixture`: Hextile, clipboard off) and connects with Hextile first.
   Nothing is imported or migrated automatically. No credentials exist in either store: native launch credentials are use-once, and FLTK does not read the Keychain. Re-run with the final packaged artifacts during the N6.13 review.
 - [ ] N6.12 Update BUILD-MACOS, migration/user docs, CLI help, package inspection tests, screenshots and other affected plans; distinguish local packaging from distribution portability/notarization.
+  - [x] (2026-09-23) BUILD-MACOS lists the opt-in actual-app, accessibility,
+    baseline and performance checks. The new user guide
+    [doc/macos-native-viewer.md](../../doc/macos-native-viewer.md) covers storage
+    locations, explicit imports (nothing automatic), password lifetimes, server
+    identity decisions, connection files, CLI differences, going back to the FLTK
+    viewer and accessibility limits. Local packaging versus
+    distribution/notarization is already distinguished in BUILD-MACOS and
+    PACKAGING.md.
+  - [ ] Refresh CLI help text, package inspection and screenshots against the
+    final cutover build and default-frontend change (N6.13).
 - [ ] N6.13 Review every parity row and acceptance gate; only then make SwiftUI the default/shipping macOS frontend and remove FLTK from that app's dependency path.
 - [x] N6.14 Publish interface handoff documentation with types, state diagrams, thread/lifetime/error contracts and reusable tests for a future separate WinUI plan. Do not claim Windows implementation complete. See [HANDOFF.md](HANDOFF.md) (2026-09-23): layers, ABI conventions, session/listener lifecycle diagram, threading and delivery, data/input/prompt/clipboard contracts, core- versus frontend-owned settings, required services with macOS references, and the reusable suites that already pass on Linux. It states that no Windows frontend or Windows execution exists.
 
