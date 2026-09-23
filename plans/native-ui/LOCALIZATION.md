@@ -310,3 +310,46 @@ Next: native bundle privacy and document-type descriptions from release/Info.pli
 then finish the use-based presentation audit and actual window/sheet/menu/focus
 acceptance. Protocol headers, stored commitments and caught internal diagnostics
 retain their separate compatibility obligations. N4.16 remains open.
+
+
+Current coverage is **1051 Localizable entries plus 2 InfoPlist entries**. The native
+app compiles InfoPlist.xcstrings to its own table for NSLocalNetworkUsageDescription
+and the exact document type value `TidyVNC connection`. Apple documents the
+[InfoPlist.strings lookup and base-value fallback](https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/AboutInformationPropertyListFiles.html)
+and the [document-type display-name lookup](https://developer.apple.com/documentation/appkit/nsdocumentcontroller/displayname%28fortype%3A%29).
+The existing release Info.plist template retains the shared English fallback,
+identity, copyright and document extension/role/rank. Brand names and version
+identifiers remain literal. No other language is claimed as translated.
+
+`localization-bundle.swift` now also loads the sibling InfoPlist catalog and checks
+both compiled tables, localized info dictionary, system privacy lookup, fallback
+and equality with release metadata. Finder rendering/registration and the actual
+OS privacy prompt still require installed-app acceptance; no permissions changed.
+
+The trust audit found two English-fragment paths. Legacy expectations now use
+NativeLegacyTrustIdentity (SPKI or commitment with typed algorithm/digest), so
+matching and duplicate suppression cannot depend on translated text. UI messages
+are complete sentences. Saved certificate/server-key labels likewise select a
+complete sentence by kind. Three new entries replace two old templates; serialized
+records, raw algorithms/fingerprints and trust policy remain unchanged. Expanded
+policy fixtures verify mixed duplicates and identity decisions, and expanded
+screenshots of both identity forms and libraries were inspected.
+
+Raw-literal classification from the source audit:
+
+| Source/use | Treatment and evidence |
+| --- | --- |
+| NativeDefaultsImport, NativeDocumentExport/Resolution, NativeOptionOverlay and invocation adapters | Option names, aliases, canonical values and file headers are compatibility syntax. Keep literal; translate the surrounding complete UI messages. |
+| NativeLegacyTrustCodec and NativeTrustStore | Record delimiters, digests, scope keys and algorithms are data. Typed identities now defer user-facing prose to complete localized messages. |
+| NativeRemoteResizePolicy, NativeConnectionDraft, NativeSessionSecurityDraft | Internal validation throws are caught or suppressed; published issue/validation messages select fixed localized recovery. Do not expose raw descriptions. |
+| NativeSSHConfiguration/Snapshot | Internal redacted descriptions and literal OpenSSH parsing/arguments remain stable. Production catches convert failures to typed NativeTunnelError messages. |
+| NativeValues.redactedDiagnostics | The explicit Copy Diagnostics action exports the existing redacted English support report. It is separate from localized information labels; remote names/endpoints/credentials remain excluded. |
+| Bridge/rendering/input guard errors | Raw diagnostics remain internal. NativeConnectionIssue/NativePresentationIssue and operation-specific catches provide fixed UI recovery. The new presentation fixture verifies no arbitrary error description is evaluated. |
+| IPv4/IPv6, RFB versions, digest/security/encoding identifiers, product names, resources, accessibility IDs and domains | Literal technical or identity values, distinct from translatable surrounding prose. |
+
+This use-based review is not an exhaustive automated proof. The candidate scan
+looked for uppercase/space-bearing literals outside explicit localized defaults;
+it cannot prove dynamic string provenance or every Swift interpolation/multiline
+case. Finish dynamic presentation/call-site coverage and interactive window/menu/
+file-panel/focus acceptance. N4.16 remains open, with N4.17 and all other unchecked
+gates. No current real OS, VoiceOver or installed-app acceptance is inferred.

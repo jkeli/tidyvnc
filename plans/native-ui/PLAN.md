@@ -3,11 +3,11 @@
 For the current implementation checkpoint and restart instructions, see
 [RESUME.md](RESUME.md) (updated 2026-09-22). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
-review, native Help/About resources, and 1050 English-source localization entries
+review, native Help/About resources, and 1051 English-source UI entries plus 2 system-metadata entries
 are implemented. Actual Help/About interaction and expanded Settings/trust layouts
 now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
-input/display, installed-app and release gates are not yet accepted. Continue native bundle localization review and the remaining user-presentation
-audit, plus interactive window/menu/file-panel acceptance. Profile/history/import text
+input/display, installed-app and release gates are not yet accepted. Continue the remaining dynamic user-presentation audit and interactive
+window/menu/file-panel acceptance. Profile/history/import text
 and minimum-window fixes now have focused evidence. Defaults-import and listener
 hosts now also preserve their content minimums after AppKit layout; reverse hosts
 use the same policy, with actual-app acceptance still open. Fullscreen/remote-resize fields now also have localized
@@ -27,6 +27,9 @@ CLI and Keychain presentation now have catalog coverage, protected syntax argume
 and byte-identical English terminal output; real OS prompt acceptance remains open.
 Startup/desktop errors now use structured, redacted recovery and injected-failure
 checks. The latest full rebuilt native suite passes 86/86; see RESUME/TODO for scope.
+Native metadata now has a separate compiled InfoPlist catalog. Trust identity
+messages use complete localized sentences over typed values; affected tests pass
+5/5 after the prior full-suite checkpoint. System Finder/privacy acceptance is open.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,

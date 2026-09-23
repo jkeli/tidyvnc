@@ -1,5 +1,14 @@
 # Native UI acceptance observations
 
+## 2026-09-22 — bundle/trust localization follow-up access check
+
+After the final bundle build and reloading CUA documentation, selecting the app
+by `/Users/kyle/Projects/tigervnc/build/native-app/app/Debug/TidyVNC.app` again
+returned “Sky Computer Use native pipe closed before response.” No follow-up UI
+action was sent. Selection may launch an app, but this response does not establish
+which version is running, a crash, the old draft state or any interactive acceptance.
+Metadata lookup and trust rendering/policy evidence are isolated tests only.
+
 ## 2026-09-22 — structured recovery follow-up access check
 
 After reloading CUA documentation, selecting the repository app bundle by its full

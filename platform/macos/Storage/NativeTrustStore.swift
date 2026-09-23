@@ -7,7 +7,12 @@ import TidyVNC
 public enum NativeTrustKind: String, Sendable {
   case certificate = "x509-spki", hostKey = "rsa-aes"
   var domain: String { "io.github.jkeli.tidyvnc.trust." + rawValue + ".v1" }
-  public var fingerprintLabel: String { self == .certificate ? "SPKI SHA-256" : "Server-key SHA-256" }
+  public func savedFingerprintMessage(_ fingerprint: String) -> String {
+    switch self {
+    case .certificate: String(localized:"trust.library.saved.spki", defaultValue:"Saved SPKI SHA-256: \(fingerprint)")
+    case .hostKey: String(localized:"trust.library.saved.serverKey", defaultValue:"Saved Server-key SHA-256: \(fingerprint)")
+    }
+  }
 }
 // Domain-separated canonical endpoint identity. Original labels are retained only
 // for management UI; stored scopes are rederived on load, never trusted as labels.

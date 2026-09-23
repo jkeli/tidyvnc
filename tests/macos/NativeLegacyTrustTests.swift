@@ -37,10 +37,22 @@ func codec() throws {
   try check(try lookup(row(expiration: 99)).state == .missing, "expired ignored")
   let different = row("fixture.invalid", Data([4,5,6]))
   let changed = try lookup(different)
-  try check(changed.state == .changed && changed.expectedIdentities.count == 1 && !changed.expectedIdentities[0].contains(changed.receivedSPKIFingerprint), "changed key expected and received")
+  let expectedFingerprint = NativeLegacyTrustCodec.fingerprint(Data([4,5,6]))
+  try check(changed.state == .changed && changed.expectedIdentities == [.spkiFingerprint(expectedFingerprint)] && expectedFingerprint != changed.receivedSPKIFingerprint, "changed key expected and received")
+  try check(changed.expectedIdentities[0].expectedMessage == String(localized:"trust.expected.spki", defaultValue:"Expected SPKI SHA-256: \(expectedFingerprint)"),"complete localized SPKI expectation")
   try check(try lookup(different + row() + different).state == .match, "any matching active record wins")
   let digest = try Key().digest(6).map { String(format: "%02x", $0) }.joined()
-  try check(try lookup("|c0|fixture.invalid|*|0|6|\(digest)\n").state == .match, "legacy commitment")
+  let committed = try lookup("|c0|fixture.invalid|*|0|6|\(digest)\n")
+  try check(committed.state == .match && committed.expectedIdentities == [.commitment(algorithm:6,digest:digest)], "legacy commitment retains algorithm and digest independently of presentation")
+  let identifier = "6"
+  try check(committed.expectedIdentities[0].expectedMessage == String(localized:"trust.expected.legacyCommitment", defaultValue:"Expected Legacy commitment \(identifier): \(digest)"),"complete localized commitment expectation")
+  let duplicates = try lookup(different + different + "|c0|fixture.invalid|*|0|6|\(digest)\n|c0|fixture.invalid|*|0|6|\(digest)\n")
+  try check(duplicates.state == .match && duplicates.expectedIdentities == [.spkiFingerprint(expectedFingerprint),.commitment(algorithm:6,digest:digest)],"deduplication and matching use typed identities")
+  let literalFingerprint = "AB:%@:开发"
+  for kind in [NativeTrustKind.certificate,.hostKey] {
+    let expected = kind == .certificate ? String(localized:"trust.library.saved.spki", defaultValue:"Saved SPKI SHA-256: \(literalFingerprint)") : String(localized:"trust.library.saved.serverKey", defaultValue:"Saved Server-key SHA-256: \(literalFingerprint)")
+    try check(kind.savedFingerprintMessage(literalFingerprint) == expected,"saved identity kind selects a complete localized sentence with literal fingerprint")
+  }
   try check(try lookup("|c0|fixture.invalid|*|0|6|00\n").state == .changed, "commitment mismatch")
   try expect(.unsupportedDigest) { _ = try lookup("|c0|fixture.invalid|*|0|9999|00\n") }
   try expect(.unsupportedFormat) { _ = try lookup(row() + "|g1|other|*|0|AQID\n") }

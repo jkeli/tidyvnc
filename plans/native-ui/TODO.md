@@ -2,13 +2,13 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **1050** entries.
-Startup/desktop/cursor/canvas/input/fullscreen presentation maps typed failures to
-fixed, redacted recovery. The latest rebuilt full native suite passes **86/86
-(116.31 s)**. Native bundle privacy/document-type localization review and actual
-app/accessibility/physical/installed/deployment/CI/performance/release gates remain.
-CUA selection still fails at the native pipe; no app-crash conclusion follows.
-Latest evidence and limits are recorded at the end of this file.
+implementation, validation and next steps. The native app has **1051 UI entries**
+and **2 InfoPlist entries**. Bundle metadata and complete trust identity messages
+now have packaging, policy and expanded-layout evidence. The latest affected suite
+passes **5/5 (33.92 s)**; the preceding full suite passed **86/86 (116.31 s)** before
+this follow-up. Full call-site coverage and actual app/accessibility/physical/
+installed/deployment/CI/performance/release gates remain. CUA selection still fails
+at the native pipe; no app-crash conclusion follows. See the latest evidence below.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -560,16 +560,15 @@ UI uses, with migration and credential behavior verified independently.
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
-  - Latest follow-ups bring the catalog to 851 source entries. Defaults-import and
-    first-use/source/recovery presentation, connection-file
-    review/export, display mapping and shared file/invocation diagnostics join
-    listener, profile/history/import, endpoint, settings and structured connection
-    errors. Bounded scrolling and expanded fixtures expose controls and details at
-    minimum sizes; physical display maps keep their actual order under RTL in the
-    settings fixtures. Document/listener fixtures do not implement RTL. Remaining
-    app menus/connection/status, file panels and other controller/
-    gateway errors plus interactive acceptance remain open. See LOCALIZATION.md
-    and the latest evidence log.
+  - Current source coverage: 1051 Localizable and 2 InfoPlist entries. App menus,
+    connection/status, file panels, controller/gateway recovery, CLI/Keychain and
+    typed startup/desktop recovery now join the earlier settings/import/trust work.
+    System privacy/document-type strings have compiled metadata lookup evidence;
+    expected/saved trust identities use complete messages over typed values.
+    Long-text fixtures, fallback and literal interpolation checks pass. Finish the
+    dynamic presentation/call-site audit and actual window/menu/panel acceptance;
+    fixture coverage is not proof of complete localization or VoiceOver operation.
+    See LOCALIZATION.md and the latest evidence log.
   - Credential/password-file status, saved-trust storage notices and the trust
     library now add 60 catalog entries (228 total). Complete localized status
     sentences take literal diagnostic arguments; saved fingerprint text has
@@ -9231,3 +9230,48 @@ The earlier full-tests log retains the 85/86 failure; use the final log for acce
 All recorded build/test handles completed. Next: native bundle privacy/document-type
 localization review, use-based classification of remaining literals and all unchecked
 interactive, parity, physical, installed, CI, performance and release requirements.
+
+
+### 2026-09-22 — Bundle metadata and complete trust identity messages
+
+Added a native-only InfoPlist.xcstrings resource with **2** entries. Local Network
+purpose uses its system key; document display name uses the exact CFBundleTypeName
+value as its lookup key. Identity, extension/role/rank registration, copyright and
+the shared release template are preserved. The existing packaging test now checks
+compiled InfoPlist values, localizedInfoDictionary, object(forInfoDictionaryKey:),
+untranslated-language fallback and equality with authoritative release metadata.
+This proves bundle lookup, not actual Finder or Local Network prompt acceptance.
+
+The remaining literal audit identified trust UI assembled from English fragments.
+NativeLegacyTrustIdentity now stores typed SPKI fingerprints or algorithm/digest
+commitments. Matching, duplicate elimination, maximum returned identities and record
+parsing use these values independently of localization. Expected identity and saved
+certificate/server-key labels use complete messages. Three catalog entries replace
+two fragment entries: **1051 UI entries**, plus the separate **2 metadata entries**.
+No C ABI, persisted schema, scope, fingerprint algorithm or trust decision changed.
+
+Validation:
+
+- Affected trust policy, legacy decisions, scoped persistence/recovery, host-key
+  policy and native settings rendering: **5/5 (33.92 s)**.
+- Expanded legacy-policy executable passes mixed/duplicate commitment/SPKI matching,
+  literal fingerprint presentation, strict codec/file limits and stale/cancel/drain
+  behavior. Expanded trust/settings rendering passes. Representative changed-key
+  (SPKI plus commitment), certificate-library and dark server-key-library images
+  were inspected; complete messages and fingerprints wrap inside their content.
+- Final app build and strict deep signature pass. Packaged tests verify **1051 + 2**
+  values, fallback, unchanged metadata and literal percent/Unicode fingerprints
+  and a UInt32.max algorithm identifier. **32/32** terminal cases, branding baseline
+  **1650** and whitespace checks pass. No fresh full suite or ASan/TSan run: the
+  preceding 86/86 result is from the previous structured-recovery checkpoint.
+- Newer Homebrew deployment warnings remain; no macOS 14 compatibility is inferred.
+- Fresh CUA full-path app selection fails at the native pipe. No follow-up UI action
+  was sent and no app/version/draft state inferred. Actual Finder/privacy/keyboard/
+  VoiceOver and installed behavior remain open.
+
+Evidence: `/tmp/tidyvnc-bundle-localization-{trust-build,render-build,app-final,
+check-final,tests,trust-expanded,expanded-renders,terminal,branding}.log`.
+Images: `/tmp/tidyvnc-bundle-trust-renders/`. All recorded process handles completed.
+Next: finish use-based dynamic presentation coverage and interactive acceptance;
+all unchecked parity/core/services/physical/deployment/CI/performance/release items
+remain in scope. N4.16 and N4.17 are not complete.

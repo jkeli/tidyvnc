@@ -29,7 +29,7 @@ struct TrustLibraryView: View {
               Text(verbatim: entry.scope.endpoint).font(.headline).textSelection(.enabled)
               if !entry.scope.routeIdentity.isEmpty { Text(String(localized:"trust.library.route", defaultValue:"Route: \(entry.scope.routeIdentity)")).textSelection(.enabled) }
               if let fingerprint = entry.fingerprint {
-                Text(String(localized:"trust.library.fingerprint", defaultValue:"Saved \(entry.scope.kind.fingerprintLabel): \(fingerprint)")).font(.system(.caption,design: .monospaced))
+                Text(entry.scope.kind.savedFingerprintMessage(fingerprint)).font(.system(.caption,design: .monospaced))
                   .textSelection(.enabled).fixedSize(horizontal: false,vertical: true)
                 Button(String(localized:"trust.library.ui.forget.for.this.destination", defaultValue:"Forget for This Destination"),role: .destructive) { selection.pending = entry.id }
                   .disabled(model.isWorking || model.needsReload).accessibilityIdentifier("trustLibrary.forget")

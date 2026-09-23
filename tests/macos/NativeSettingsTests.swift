@@ -295,9 +295,12 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
     usernameRequired: false, certificateStatus: 66, serverName: "fixture.invalid", fingerprint: "", identity: trustFixtureCertificate)
   struct RenderKey: NativeCertificateKeyMaterial {
     let spki = Data([1,2,3])
-    func digest(_ algorithm: UInt32) throws -> Data { throw NativeTrustStoreIssue.unsupportedDigest }
+    func digest(_ algorithm: UInt32) throws -> Data {
+      guard algorithm == 6 else { throw NativeTrustStoreIssue.unsupportedDigest }
+      return Data([1])
+    }
   }
-  let changed = try NativeLegacyTrustCodec.lookup(data: Data("|g0|fixture.invalid|*|0|BAUG\n".utf8),
+  let changed = try NativeLegacyTrustCodec.lookup(data: Data("|g0|fixture.invalid|*|0|BAUG\n|c0|fixture.invalid|*|0|6|00\n".utf8),
     host: "fixture.invalid", key: RenderKey(), now: 100)
   for dark in [false, true] {
     for (name, issue) in [("changed-key", Optional<String>.none), ("store-error", "Saved certificate exceptions could not be read because access was denied.")] {

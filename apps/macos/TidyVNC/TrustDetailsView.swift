@@ -37,7 +37,7 @@ struct TrustDetailsView: View {
           Text(String(localized:"trust.the.server.public.key.differs.from.the.saved.certificate.exception", defaultValue:"The server public key differs from the saved certificate exception."))
             .foregroundStyle(.red).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("trust.changedKey")
           ForEach(inspection.expectedIdentities, id: \.self) { identity in
-            Text(String(localized:"trust.expected.identity", defaultValue:"Expected \(identity)")).font(.system(.caption, design: .monospaced))
+            Text(identity.expectedMessage).font(.system(.caption, design: .monospaced))
               .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
           }
           Text(String(localized:"trust.received.spki", defaultValue:"Received SPKI SHA-256: \(inspection.receivedSPKIFingerprint)"))

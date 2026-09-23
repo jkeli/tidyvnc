@@ -21,6 +21,7 @@ execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/native
 set(resources ${TIDYVNC_SOURCE_DIR}/media/icons/tidyvnc.icns
   ${TIDYVNC_SOURCE_DIR}/README.rst ${TIDYVNC_SOURCE_DIR}/LICENCE.TXT
   ${CMAKE_CURRENT_SOURCE_DIR}/Credits.rtf
+  ${CMAKE_CURRENT_SOURCE_DIR}/InfoPlist.xcstrings
   ${CMAKE_CURRENT_SOURCE_DIR}/Localizable.xcstrings)
 set_source_files_properties(${resources} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 set(askpass_helper ${NATIVE_CORE_BUILD}/platform/macos/tidyvnc-ssh-askpass)

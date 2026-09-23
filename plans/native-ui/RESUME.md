@@ -4,6 +4,34 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Bundle and trust identity localization
+
+The native app now compiles **2 InfoPlist entries** for Local Network purpose and
+its document-type display name, separately from **1051 Localizable entries**.
+The release template remains authoritative for bundle identity, registration and
+English metadata. Packaging checks verify both tables, system privacy lookup,
+English fallback, literal interpolation and unchanged identity/attribution/document
+registration. Actual Finder and Local Network permission presentation remain open.
+
+Legacy trust identities now retain typed SPKI/commitment values; matching and
+deduplication are independent of translated text. Their expected-identity messages
+and saved certificate/server-key messages use complete localized sentences. Three
+entries replace two fragment templates; serialized trust bytes and scope do not
+change. Expanded legacy-policy tests pass, including mixed/duplicate identities.
+Five affected trust/store/rendering tests pass **5/5 (33.92 s)**. Expanded settings/
+trust renders pass; SPKI/commitment and both library screenshots were inspected.
+App build/signature, **1051 + 2** packaged values, **32** terminal cases, branding
+baseline **1650** and diff checks pass. No fresh full suite or sanitizers were run;
+the preceding full suite remains **86/86 (116.31 s)** at the prior checkpoint.
+
+A fresh full-path CUA app selection again fails with “native pipe closed before
+response.” No follow-up UI action was sent; no app/version/draft conclusion follows.
+See UI-ACCEPTANCE.md. Next: finish the dynamic presentation/call-site coverage audit
+and keyboard/VoiceOver/window/menu/panel acceptance when available, plus every
+unchecked core/parity/physical/installed/deployment/CI/performance/release gate.
+N4.16 is still open. See LOCALIZATION.md for the raw-literal classification and
+remaining audit limits. All recorded process handles completed.
+
 ## Latest follow-up (2026-09-22) — Structured presentation recovery
 
 Startup, renderer/cursor, canvas/layout, input/shortcuts and fullscreen failures now

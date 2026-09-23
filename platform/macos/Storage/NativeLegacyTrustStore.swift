@@ -37,13 +37,27 @@ public final class NativeCertificateKey: NativeCertificateKeyMaterial, Sendable,
     return withUnsafeBytes(of: result.bytes) { Data($0.prefix(Int(result.length))) }
   }
 }
+// Keep identity and deduplication independent of localized presentation.
+public enum NativeLegacyTrustIdentity: Sendable, Hashable {
+  case spkiFingerprint(String)
+  case commitment(algorithm: UInt32, digest: String)
+  public var expectedMessage: String {
+    switch self {
+    case .spkiFingerprint(let fingerprint):
+      return String(localized:"trust.expected.spki", defaultValue:"Expected SPKI SHA-256: \(fingerprint)")
+    case .commitment(let algorithm, let digest):
+      let identifier = String(algorithm)
+      return String(localized:"trust.expected.legacyCommitment", defaultValue:"Expected Legacy commitment \(identifier): \(digest)")
+    }
+  }
+}
 public struct NativeLegacyTrustMatch: Sendable, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
   public var description: String { "NativeLegacyTrustMatch(<redacted>)" }
   public var debugDescription: String { description }
   public enum State: Sendable { case missing, match, changed }
   public let state: State
   // SHA-256 fingerprints of stored DER SPKI, or the explicit legacy commitment.
-  public let expectedIdentities: [String]
+  public let expectedIdentities: [NativeLegacyTrustIdentity]
   public let receivedSPKIFingerprint: String
   public let hasMoreIdentities: Bool
   public let includesWildcardHost: Bool
@@ -69,21 +83,21 @@ public enum NativeLegacyTrustCodec {
           !hostBytes.contains(124), !hostBytes.contains(10), !hostBytes.contains(13),
           !key.spki.isEmpty, key.spki.count <= 65536 else { throw NativeTrustStoreIssue.corrupt }
     let records = try decode(data ?? Data())
-    var expected: [String] = [], hasMore = false, matched = false, found = false, wildcard = false
+    var expected: [NativeLegacyTrustIdentity] = [], hasMore = false, matched = false, found = false, wildcard = false
     var digests: [UInt32: String] = [:]
     for record in records {
       guard record.host.first == 42 || record.host == hostBytes,
             record.expiration == 0 || now <= record.expiration else { continue }
       found = true; wildcard = wildcard || record.host.first == 42
-      let identity: String
+      let identity: NativeLegacyTrustIdentity
       if let stored = record.key {
-        identity = "SPKI SHA-256: " + fingerprint(stored)
+        identity = .spkiFingerprint(fingerprint(stored))
         matched = matched || stored == key.spki
       } else if let algorithm = record.algorithm, let commitment = record.commitment {
         if digests[algorithm] == nil {
           digests[algorithm] = try key.digest(algorithm).map { String(format: "%02x", $0) }.joined()
         }
-        identity = "Legacy commitment \(algorithm): " + commitment
+        identity = .commitment(algorithm:algorithm,digest:commitment)
         matched = matched || digests[algorithm] == commitment
       } else { throw NativeTrustStoreIssue.corrupt }
       if !expected.contains(identity) {

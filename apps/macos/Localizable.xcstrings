@@ -937,18 +937,6 @@
         }
       }
     },
-    "trust.expected.identity": {
-      "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expected %@"
-          }
-        }
-      }
-    },
     "trust.rsa.bits": {
       "comment": "Native authentication/trust presentation. Preserve security distinctions and fingerprint algorithm names. Never translate server-supplied values.",
       "extractionState": "manual",
@@ -2529,18 +2517,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Route: %@"
-          }
-        }
-      }
-    },
-    "trust.library.fingerprint": {
-      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved %@: %@"
           }
         }
       }
@@ -12596,6 +12572,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "This keyboard shortcut could not be completed. Release pressed keys and try again. Review Input Settings if it keeps failing."
+          }
+        }
+      }
+    },
+    "trust.expected.legacyCommitment": {
+      "comment": "Complete trust identity presentation. Keep protocol/digest names and literal algorithm identifiers/fingerprints intact; do not join translated fragments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expected Legacy commitment %@: %@"
+          }
+        }
+      }
+    },
+    "trust.library.saved.spki": {
+      "comment": "Complete trust identity presentation. Keep protocol/digest names and literal algorithm identifiers/fingerprints intact; do not join translated fragments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved SPKI SHA-256: %@"
+          }
+        }
+      }
+    },
+    "trust.library.saved.serverKey": {
+      "comment": "Complete trust identity presentation. Keep protocol/digest names and literal algorithm identifiers/fingerprints intact; do not join translated fragments.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Server-key SHA-256: %@"
           }
         }
       }

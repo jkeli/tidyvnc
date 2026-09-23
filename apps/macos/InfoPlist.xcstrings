@@ -1,0 +1,30 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSLocalNetworkUsageDescription": {
+      "comment": "macOS Local Network permission explanation. TidyVNC is the product name; VNC is the protocol name. Keep the purpose of accessing local servers clear.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC connects to VNC servers on your local network so you can view and control their desktops."
+          }
+        }
+      }
+    },
+    "TidyVNC connection": {
+      "comment": "Document type display name. This key is the exact CFBundleTypeName value in Info.plist, not the literal key CFBundleTypeName. Preserve the product name TidyVNC.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC connection"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

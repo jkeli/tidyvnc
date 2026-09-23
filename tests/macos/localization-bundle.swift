@@ -20,6 +20,40 @@ precondition(fallback == "Safe English fallback")
 let french = String(localized:"connection.issue.refused.title",defaultValue:"WRONG FALLBACK",bundle:bundle,locale:Locale(identifier:"fr"))
 precondition(french == "Connection Refused")
 precondition(bundle.developmentLocalization == "en")
+// InfoPlist is a separate system-consumed table. Checking Localizable alone
+// cannot prove privacy or document-type localization was packaged.
+let catalogURL = URL(fileURLWithPath:CommandLine.arguments[2])
+let metadataURL = catalogURL.deletingLastPathComponent().appendingPathComponent("InfoPlist.xcstrings")
+let metadata = try JSONSerialization.jsonObject(with:Data(contentsOf:metadataURL)) as! [String:Any]
+let metadataStrings = metadata["strings"] as! [String:[String:Any]]
+precondition(metadata["sourceLanguage"] as? String == "en")
+for (key,entry) in metadataStrings {
+ let locales = entry["localizations"] as! [String:[String:Any]]
+ let expected = (locales["en"]!["stringUnit"] as! [String:String])["value"]!
+ precondition(bundle.localizedString(forKey:key,value:"MISSING METADATA",table:"InfoPlist") == expected,
+              "Uncompiled or absent metadata catalog key: \(key)")
+ precondition(bundle.localizedInfoDictionary?[key] as? String == expected,
+              "Metadata missing from the localized info dictionary: \(key)")
+ precondition(String(localized:String.LocalizationValue(key),table:"InfoPlist",bundle:bundle,locale:Locale(identifier:"fr")) == expected,
+              "Metadata development-language fallback: \(key)")
+}
+let templateURL = catalogURL.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+ .appendingPathComponent("release/Info.plist.in")
+let template = try PropertyListSerialization.propertyList(from:Data(contentsOf:templateURL),format:nil) as! [String:Any]
+for key in ["CFBundleIdentifier", "CFBundleExecutable", "CFBundleName", "CFBundleDisplayName", "NSHumanReadableCopyright"] {
+ precondition(bundle.infoDictionary?[key] as? String == template[key] as? String,"Bundle identity/attribution changed: \(key)")
+}
+let privacyKey = "NSLocalNetworkUsageDescription"
+precondition(bundle.object(forInfoDictionaryKey:privacyKey) as? String == template[privacyKey] as? String,
+             "Localized system privacy lookup must preserve the English purpose")
+let documentTypes = bundle.infoDictionary?["CFBundleDocumentTypes"] as! [[String:Any]]
+precondition(NSArray(array:documentTypes).isEqual(to:template["CFBundleDocumentTypes"] as! [Any]),
+             "Localization must preserve document registration")
+for documentType in documentTypes {
+ let typeName = documentType["CFBundleTypeName"] as! String
+ precondition(metadataStrings[typeName] != nil,"Missing document type display-name localization")
+}
+print("PASS \(metadataStrings.count) InfoPlist values, system privacy lookup, fallback and preserved identity/document registration")
 // Values are arguments, never format strings; keep percent signs and Unicode
 // literal when a server identity is inserted into a localized sentence.
 let destination = "lab-%@-开发::5901"
@@ -31,9 +65,13 @@ precondition(received == "Received SPKI SHA-256: AB:%@:CD")
 let bits: UInt32 = 2048
 let keySize = String(localized:"trust.rsa.bits",defaultValue:"RSA server key: \(bits) bits",bundle:bundle)
 precondition(keySize == "RSA server key: \(bits.formatted()) bits")
-let algorithm = "SPKI SHA-256"
-let saved = String(localized:"trust.library.fingerprint",defaultValue:"Saved \(algorithm): \(fingerprint)",bundle:bundle)
-precondition(saved == "Saved SPKI SHA-256: AB:%@:CD")
+let saved = String(localized:"trust.library.saved.spki",defaultValue:"Saved SPKI SHA-256: \(fingerprint)",bundle:bundle)
+precondition(saved == "Saved SPKI SHA-256: " + fingerprint)
+let savedHost = String(localized:"trust.library.saved.serverKey",defaultValue:"Saved Server-key SHA-256: \(fingerprint)",bundle:bundle)
+precondition(savedHost == "Saved Server-key SHA-256: " + fingerprint)
+let algorithmID = String(UInt32.max)
+let commitment = String(localized:"trust.expected.legacyCommitment",defaultValue:"Expected Legacy commitment \(algorithmID): \(fingerprint)",bundle:bundle)
+precondition(commitment == "Expected Legacy commitment " + algorithmID + ": " + fingerprint)
 let reason = "A fixed diagnostic containing % and 开发."
 let launchFailure = String(localized:"credentials.launch.failure",defaultValue:"\(reason) Enter a password or cancel this attempt.",bundle:bundle)
 precondition(launchFailure == reason + " Enter a password or cancel this attempt.")
