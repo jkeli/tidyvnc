@@ -66,6 +66,8 @@ open in [TODO.md](TODO.md).
   modifier being handled by the system first. How system-key capture in full
   screen interacts with VoiceOver has **not** been verified; it belongs to the
   open VoiceOver pass.
-- The accessibility API cannot set the address field's text through AXValue:
-  SwiftUI does not propagate it to the binding. Keyboard typing, including
-  typing with VoiceOver running, uses normal text input rather than AXValue.
+- Setting a text field's AXValue does not reach its SwiftUI binding.
+  Replacing the selected text (AXSelectedText) does, because it goes through the
+  text system. So does keyboard typing, including with VoiceOver running. The
+  accessibility tests type through AXSelectedText (`type` in
+  `tests/macos/AccessibilityAudit.swift`).

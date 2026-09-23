@@ -127,6 +127,7 @@ def main_steps():
         'menu', 'File', 'Saved Server Keys…', 'wait', 'Saved Server Keys', 'sleep', '500', 'audit', 'saved-server-keys',
         'close', 'Saved Server Keys',
         'menu', 'File', 'Saved Profiles…', 'wait', 'Saved Profiles', 'sleep', '500', 'audit', 'saved-profiles',
+        'press', 'profiles.new', 'sleep', '600', 'audit', 'profile-editor', 'press', 'Cancel Edits',
         'close', 'Saved Profiles',
         'menu', 'File', 'Import Connection Defaults…', 'sleep', '800', 'audit', 'import-defaults', 'close-others', 'TidyVNC',
         'menu', 'File', 'Import Recent Connections…', 'sleep', '800', 'audit', 'import-history', 'close-others', 'TidyVNC',

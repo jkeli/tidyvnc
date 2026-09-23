@@ -5,7 +5,11 @@
 // keyboard input, and the app is never activated. Commands run in order:
 //   wait ID                 until an element with that identifier/title exists
 //   press ID                AXPress the first matching element
-//   set ID VALUE            set AXValue (text fields)
+//   press-enabled ID        AXPress the first enabled match across windows
+//   set ID VALUE            set AXValue (text fields; SwiftUI bindings ignore it)
+//   type ID TEXT            focus a field and replace its text through AXSelectedText
+//   tree TITLE              print one window's element hierarchy (debugging)
+//   select TEXT             select the list row containing that text
 //   menu TOP ITEM           press a menu-bar item
 //   choose POPUP PREFIX     for each item of a pop-up or segmented picker: choose it, then audit
 //   confirm ID              AXConfirm (the accessibility equivalent of Return)
@@ -178,11 +182,76 @@ do {
     switch command {
     case "wait": _ = try auditor.waitFor(try take())
     case "press": let key = try take(); try auditor.press(try auditor.waitFor(key), key)
+    case "press-enabled":
+      // With several windows, press the first enabled element with this key.
+      let key = try take(), deadline = Date().addingTimeInterval(10)
+      var target: AXUIElement?
+      while target == nil && Date() < deadline {
+        for window in auditor.windows where target == nil {
+          _ = auditor.walk(window) { element in
+            let hit = string(element, kAXIdentifierAttribute) == key || string(element, kAXTitleAttribute) == key
+            if hit && (attribute(element, kAXEnabledAttribute) as? Bool) != false { target = element }
+            return target != nil
+          }
+        }
+        if target == nil { usleep(100_000) }
+      }
+      guard let target else { throw Failure(description: "no enabled element \(key)") }
+      try auditor.press(target, key)
     case "set":
       let key = try take(), value = try take(), element = try auditor.waitFor(key)
       let result = AXUIElementSetAttributeValue(element, kAXValueAttribute as CFString, value as CFString)
       guard result == .success else { throw Failure(description: "set \(key) failed: \(result.rawValue)") }
       usleep(200_000)
+    case "type":
+      // Focus the field, select its text and replace it through AXSelectedText,
+      // which goes through the text system (unlike AXValue writes).
+      let key = try take(), text = try take(), element = try auditor.waitFor(key)
+      _ = AXUIElementSetAttributeValue(element, kAXFocusedAttribute as CFString, kCFBooleanTrue)
+      usleep(200_000)
+      let length = ((attribute(element, kAXValueAttribute) as? String) ?? "").utf16.count
+      var range = CFRange(location: 0, length: length)
+      if let all = AXValueCreate(.cfRange, &range) {
+        _ = AXUIElementSetAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, all)
+      }
+      let result = AXUIElementSetAttributeValue(element, kAXSelectedTextAttribute as CFString, text as CFString)
+      guard result == .success else { throw Failure(description: "type \(key) failed: \(result.rawValue)") }
+      usleep(300_000)
+    case "select":
+      // Select the list/table row whose text (or a descendant's) matches.
+      let text = try take()
+      var row: AXUIElement?
+      for window in auditor.windows where row == nil {
+        _ = auditor.walk(window) { element in
+          guard ["AXRow", "AXCell", "AXOutlineRow"].contains(string(element, kAXRoleAttribute) ?? "") else { return false }
+          var hit = false
+          _ = auditor.walk(element) { inner in
+            hit = hit || string(inner, kAXValueAttribute) == text || string(inner, kAXTitleAttribute) == text
+              || string(inner, kAXDescriptionAttribute) == text
+            return hit
+          }
+          if hit { row = element }
+          return hit
+        }
+      }
+      guard let row else { throw Failure(description: "no row \(text)") }
+      let result = AXUIElementSetAttributeValue(row, kAXSelectedAttribute as CFString, kCFBooleanTrue)
+      guard result == .success else { throw Failure(description: "select \(text) failed: \(result.rawValue)") }
+      usleep(300_000)
+    case "tree":
+      // Print one window's element hierarchy (role, subrole, identifier, text) for debugging.
+      let title = try take()
+      guard let window = auditor.windows.first(where: { string($0, kAXTitleAttribute) == title }) else {
+        throw Failure(description: "no window \(title)")
+      }
+      func show(_ element: AXUIElement, _ depth: Int) {
+        guard depth < 40 else { return }
+        let parts = [string(element, kAXRoleAttribute) ?? "?", string(element, kAXSubroleAttribute) ?? "",
+                     string(element, kAXIdentifierAttribute) ?? "", label(element) ?? "", string(element, kAXValueAttribute) ?? ""]
+        print(String(repeating: "  ", count: depth) + parts.filter { !$0.isEmpty }.joined(separator: " | "))
+        for child in children(element) { show(child, depth + 1) }
+      }
+      show(window, 0); fflush(stdout)
     case "menu": let top = try take(); try auditor.menu(top, try take())
     case "choose": let key = try take(), prefix = try take(); try auditor.choose(key) { auditor.audit(prefix + ":" + $0) }
     case "value":

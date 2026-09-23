@@ -377,8 +377,11 @@ cancellation; not yet permission to replace the shipping frontend.
     and tested (reviewed 2026-09-23).
   - [x] Actual-app history persistence (2026-09-23, same script): a successful
     connection appears in Recent connections after quit and relaunch.
-  - [ ] Interactive profile creation/editing (text entry cannot be automated
-    through AXValue with SwiftUI bindings) and keyboard/VoiceOver verification.
+  - [x] Actual-app profile persistence (same script): New Profile, with name and
+    address typed through the accessibility text system (`AXSelectedText`), and
+    Save survive relaunch. The listed profile opens a pre-filled connection
+    window that connects.
+  - [ ] Profile editing/deletion and keyboard/VoiceOver verification.
 - [ ] N3.3 Implement connection document codecs and native open/save/overwrite flows; retain both accepted headers and new `.tidyvnc` exports. Never export secrets.
   - [x] Native Save As review/picker, explicit overwrite, private atomic writer,
     conflict/failure/cancellation handling, close/quit joins and result feedback.
