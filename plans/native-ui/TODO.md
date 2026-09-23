@@ -287,9 +287,16 @@ are proven before substantial SwiftUI screen work begins.
 - [ ] N2.8 Verify UI responsiveness during slow DNS/connect/auth/decoding and quit; test active frame resize while view/session is removed.
   - Native auth cancellation/quit and 12 view removals with resize in flight pass.
     Slow DNS/connect, sustained heavy decode and measured UI responsiveness remain.
-- [ ] N2.9 Compile/exercise a mock non-Apple consumer of the same interface, checking no Foundation/Objective-C/Swift/POSIX/widget types leak into public contracts. No WinUI frontend is required.
+- [x] N2.9 Compile/exercise a mock non-Apple consumer of the same interface, checking no Foundation/Objective-C/Swift/POSIX/widget types leak into public contracts. No WinUI frontend is required.
   - C99 smoke consumer and generated dependency audit cover the initial C ABI on
-    macOS without GUI dependencies. No Linux/Windows execution claim.
+    macOS without GUI dependencies.
+  - 2026-09-23: the same C99 consumer (`viewer-c-abi-smoke`, now also exercising the
+    parameter-grammar exports) and `viewer-core-smoke` build and pass on Linux
+    (Ubuntu 24.04, GCC 13) in Release and under ASan+UBSan+LSan and TSan.
+    `tests/viewer/headless.py` now also rejects any public-header include other than
+    `stdint.h`/`stddef.h` and any POSIX/Apple/Objective-C/Windows/FLTK or
+    non-fixed-width type in `tidyvnc.h` declarations; it passes on Linux (3 + 765)
+    and macOS (3 + 768). Windows execution is not claimed.
 
 Exit: an end-to-end native vertical slice with proven bridge ownership and
 cancellation; not yet permission to replace the shipping frontend.

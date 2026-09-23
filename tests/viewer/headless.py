@@ -72,6 +72,19 @@ for header in (root / 'viewer').rglob('*.h'):
     for line in header.read_text().splitlines():
         if re.match(r'\s*#\s*include', line) and forbidden.search(line):
             raise RuntimeError(f'GUI include in public header {header}: {line}')
+# The public C contract carries only fixed-width values, spans and opaque handles:
+# no POSIX, Apple, Objective-C/Swift, Windows or widget types, and no platform
+# headers, so a non-Apple frontend consumes exactly the same declarations.
+public = (root / 'viewer/bridge/tidyvnc.h').read_text()
+includes = re.findall(r'#\s*include\s*[<"]([^>"]+)[>"]', public)
+if any(name not in ('stdint.h', 'stddef.h') for name in includes):
+    raise RuntimeError(f'Public C header includes a platform header: {includes}')
+declarations = re.sub(r'/\*.*?\*/', '', public, flags=re.S)
+leaked = sorted(set(re.findall(
+    r'\b(pthread_\w+|sockaddr\w*|socklen_t|pid_t|ssize_t|off_t|FILE|time_t|timeval|timespec|dispatch_\w+|'
+    r'CF\w+Ref|NS[A-Z]\w+|BOOL|HWND|HANDLE|DWORD|wchar_t|bool|long|size_t|Fl_\w+)\b', declarations)))
+if leaked:
+    raise RuntimeError(f'Public C header exposes platform or non-fixed-width types: {leaked}')
 print('Portable dependency graph:', ', '.join(sorted(refs[x]['name'] for x in seen)), flush=True)
 run('cmake', '--build', str(build), '--parallel', '4')
 run('ctest', '--test-dir', str(build / 'tests/viewer'), '--output-on-failure', '--no-tests=error')
