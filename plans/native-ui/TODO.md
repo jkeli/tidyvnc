@@ -171,10 +171,20 @@ may disappear merely because it is absent from an initial mockup.
     advice (catalog 1053 keys; `run-ayzryxkl` passes 3/762/89). **Missing:** an access/permission service (Local Network,
     Accessibility, security-scoped file access repeated inline) and app services
     (static launch hand-off, static process logging, direct `NSApp` quit/About,
-    `Bundle.main` help resources, `String` startup failures). The production
-    wiring in `AppCoordinator` is not compiled into any test target. Stores take
-    concrete actors; faking happens at the storage layer. Close N1.9 only after
-    those contracts, typed errors and a wiring test exist.
+    `Bundle.main` help resources, `String` startup failures). Stores take concrete
+    actors; faking happens at the storage layer. Close N1.9 only after the access
+    and app-service contracts and typed errors exist.
+  - [x] Production wiring under test (2026-09-23): `AppCoordinator(services:)`
+    takes an `AppServices` value (`.production()` by default) for clipboard, bell,
+    displays, credential/trust/profile stores, environment, runtime and preference
+    backing. `NativeApp.ProductionWiring` compiles the real coordinator and every
+    app source except the `@main` entry with memory stores and fakes, and checks
+    that Settings/profiles use the injected stores and that each connection window
+    gets its own session with the app bell and pasteboard copy action. Removing the
+    coordinator's bell assignment makes it fail. `run-jrw1fso9` passes 3/762/90.
+  - Reviewed: the remaining direct `NSScreen` reads are inside the AppKit adapters
+    (`AppKitFullscreenWindows`, window startup placement, fit-to-desktop), which must
+    create/place windows on concrete screens; their geometry is pure and tested.
 - [x] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. Implemented by `PromptAuthentication`; see evidence below. Real TLS/socket cancellation is verified by N1.11 below.
 - [x] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect. Loopback TCP/GnuTLS proof at the core/host boundary; see evidence below. Production reactor and native close/quit wiring remain separate items.
 - [x] N1.12 Implement bounded input/event queues, coalescing rules and release-all on focus loss/overflow/disconnect; keep view-only enforcement in core. See input and event evidence below; the full lifecycle/command catalog remains N1.5.

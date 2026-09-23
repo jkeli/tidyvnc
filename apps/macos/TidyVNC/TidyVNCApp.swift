@@ -46,13 +46,13 @@ struct TidyVNCApp: App {
 
 @MainActor final class AppCoordinator: NSObject, NSApplicationDelegate, ObservableObject {
   private var runtime: NativeRuntime?
-  private let clipboard = NativeClipboardCoordinator()
-  private let bell: any NativeBellSounding = NativeSystemBell()
-  let displays = NativeDisplayService()
-  private let credentials = NativeCredentialStore()
+  private let clipboard: NativeClipboardCoordinator
+  private let bell: any NativeBellSounding
+  let displays: NativeDisplayService
+  private let credentials: NativeCredentialStore
   private let trustStore: NativeLegacyTrustStore?
-  private let savedTrust = NativeTrustStore()
-  private let savedHostKeys = NativeTrustStore(kind: .hostKey)
+  private let savedTrust: NativeTrustStore
+  private let savedHostKeys: NativeTrustStore
   private(set) var hostKeyLibrary: NativeTrustLibrary?
   private(set) var trustLibrary: NativeTrustLibrary?
   private var preferences: NativePreferencesStore?
@@ -89,23 +89,25 @@ struct TidyVNCApp: App {
       }
     }
   }
-  override init() {
-    let profiles = NativeProfileHistoryStore(backing: NativeApplicationSupportProfiles())
-    trustStore = (try? NativeLegacyTrustFile.applicationStore()).map { NativeLegacyTrustStore(backing: $0) }
+  override convenience init() { self.init(services: .production()) }
+  init(services: AppServices) {
+    clipboard = services.clipboard; bell = services.bell; displays = services.displays
+    credentials = services.credentials; trustStore = services.legacyTrust
+    savedTrust = services.savedTrust; savedHostKeys = services.savedHostKeys
+    let profiles = services.profiles
     self.profiles = profiles; history = NativeRecentHistory(store: profiles)
     super.init()
     trustLibrary = NativeTrustLibrary(store: savedTrust)
     hostKeyLibrary = NativeTrustLibrary(store: savedHostKeys)
     history.reload()
     clipboard.setApplicationActive(NSApp?.isActive == true)
-    let environment = NativePathEnvironment.capture()
+    let environment = services.environment
     let importPaths = try? NativeImportPaths(homeDirectory:environment["HOME"] ?? FileManager.default.homeDirectoryForCurrentUser.path,
                                             environment:environment)
     if let importPaths { historyImportService = NativeHistoryImportService(paths:importPaths,store:profiles) }
     do {
-      runtime = try NativeRuntime()
-      let domain = (Bundle.main.bundleIdentifier ?? "io.github.jkeli.tidyvnc") + ".native.preferences"
-      let store = NativePreferencesStore(backing: try UserDefaultsPreferencesBacking(domain:domain))
+      runtime = try services.makeRuntime()
+      let store = NativePreferencesStore(backing: try services.makePreferencesBacking())
       preferences = store; settings = NativePreferencesDraft(store: store)
       importAvailability = DefaultsImportAvailability(store:store)
       if let paths = importPaths {

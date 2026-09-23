@@ -743,6 +743,54 @@ if(Python3_Interpreter_FOUND)
   endforeach()
 endif()
 
+# Compiles the real app coordinator and every app source except the @main entry.
+add_executable(native-app-wiring-tests NativeAppWiringTests.swift
+  ../../apps/macos/TidyVNC/TidyVNCApp.swift
+  ../../apps/macos/TidyVNC/AppServices.swift
+  ../../apps/macos/TidyVNC/ConnectionModel.swift
+  ../../apps/macos/TidyVNC/AuthenticationSheet.swift
+  ../../apps/macos/TidyVNC/TrustDetailsView.swift
+  ../../apps/macos/TidyVNC/SecuritySettingsFields.swift
+  ../../apps/macos/TidyVNC/TrustFileSettingsFields.swift
+  ../../apps/macos/TidyVNC/TrustLibraryView.swift
+  ../../apps/macos/TidyVNC/PreferencesSettingsView.swift
+  ../../apps/macos/TidyVNC/EncodingSettingsFields.swift
+  ../../apps/macos/TidyVNC/ConnectionSettingsFields.swift
+  ../../apps/macos/TidyVNC/FullscreenDefaultsFields.swift
+  ../../apps/macos/TidyVNC/ApplicationHelpView.swift
+  ../../apps/macos/TidyVNC/SSHAuthenticationSheet.swift
+  ../../apps/macos/TidyVNC/ConnectionContent.swift
+  ../../apps/macos/TidyVNC/DocumentExportView.swift
+  ../../apps/macos/TidyVNC/ListenerModel.swift
+  ../../apps/macos/TidyVNC/ListenerView.swift
+  ../../apps/macos/TidyVNC/DefaultsImportView.swift
+  ../../apps/macos/TidyVNC/HistoryImportView.swift
+  ../../apps/macos/TidyVNC/DocumentReviewView.swift
+  ../../apps/macos/TidyVNC/DocumentMonitorMappingView.swift
+  ../../apps/macos/TidyVNC/FullscreenSettingsSheet.swift
+  ../../apps/macos/TidyVNC/RemoteResizeSheet.swift
+  ../../apps/macos/TidyVNC/RemoteResizePolicySheet.swift
+  ../../apps/macos/TidyVNC/RemoteResizeSettingsFields.swift
+  ../../apps/macos/TidyVNC/SessionSecuritySheet.swift
+  ../../apps/macos/TidyVNC/SessionEncodingSheet.swift
+  ../../apps/macos/TidyVNC/RecentConnectionsView.swift
+  ../../apps/macos/TidyVNC/ProfileLibraryView.swift
+  ../../apps/macos/TidyVNC/EndpointIssueView.swift
+  ../../apps/macos/TidyVNC/DesktopActions.swift
+  ../../apps/macos/TidyVNC/ConnectionInformationSheet.swift
+  ../../apps/macos/TidyVNC/ConnectionStatisticsOverlay.swift
+  ../../apps/macos/TidyVNC/InputSettingsSheet.swift
+  ../../apps/macos/TidyVNC/InputDefaultsFields.swift
+  ../../apps/macos/TidyVNC/ScalingSettingsSheet.swift
+  ../../apps/macos/TidyVNC/ScalingDefaultsFields.swift
+)
+set_target_properties(native-app-wiring-tests PROPERTIES Swift_MODULE_NAME NativeAppWiringTests)
+target_compile_options(native-app-wiring-tests PRIVATE -swift-version 6 -strict-concurrency=complete
+  -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+target_link_libraries(native-app-wiring-tests PRIVATE tidyvnc_macos_bridge)
+add_test(NAME NativeApp.ProductionWiring COMMAND native-app-wiring-tests)
+set_tests_properties(NativeApp.ProductionWiring PROPERTIES TIMEOUT 40)
+
 add_executable(native-presentation-issue-tests NativePresentationIssueTests.swift)
 set_target_properties(native-presentation-issue-tests PROPERTIES Swift_MODULE_NAME NativePresentationIssueTests)
 target_compile_options(native-presentation-issue-tests PRIVATE -swift-version 6 -strict-concurrency=complete

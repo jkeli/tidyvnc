@@ -17,10 +17,9 @@ N1.16 remain open.
    service (Local Network guidance, Accessibility, security-scoped file access)
    with typed states and a fake; an app-services contract (lifecycle/quit, logging,
    help/URL resources) replacing the static launch hand-off; route remaining
-   `NSScreen`/`NSApp.isActive`/`NSWorkspace` reads through the display/window
-   contracts; add a document writer fake and a picker service; unify trust errors
-   and stop dropping them with `try?`; add a test that builds the production
-   `AppCoordinator` wiring (or extract it into a testable factory).
+   `NSApp.isActive`/`NSWorkspace` reads through injectable contracts where a
+   test benefits; add a document writer fake and a picker service; unify trust
+   errors. The production wiring is now under test (`NativeApp.ProductionWiring`).
 2. Finish the N1.2/N1.3/N1.4 audits: confirm every CAPABILITIES.md parameter's
    schema lives in portable core (not only Swift), document transactions, then close.
 3. Map existing encoding/security, authentication/trust, clipboard, reverse/listen,
