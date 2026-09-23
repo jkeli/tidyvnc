@@ -348,3 +348,36 @@ and the retained FLTK harness regression. This adds actual command-line startup,
 fragmented update/framebuffer/cursor replacement and measured resize-wire evidence
 to the scaling rows. It does not accept their displayed pixels, input, physical
 hardware or interaction columns, or the broader security/encoding matrix.
+
+### Side-by-side baseline and actual-app evidence (2026-09-23)
+
+[BASELINE.md](BASELINE.md) holds window-only screenshots of the retained FLTK
+viewer and the native app in five matching states: connection, connected
+desktop, password prompt, untrusted certificate and connection refused. The
+comparison found one gap, which is now fixed: T01 certificate issuer, serial,
+validity, key and signature details. The following rows gained actual-app
+evidence this session (details in UI-ACCEPTANCE.md, ACCESSIBILITY.md and
+TODO.md):
+
+- **A01/A03/A05 (password prompt).** Structure, Cancel and Escape (keyboard
+  test). The truncated credential warning is fixed.
+- **T01/T03/T04/T05/T07 (certificate trust).** Fingerprint and SPKI verified
+  against the peer certificate. Return is Cancel (keyboard test, with a
+  mutation check). Connect Once saves nothing. A confirmed save is reused.
+  Forget re-prompts.
+- **Handshakes against the project's server side.** VncAuth, TLS, CA-trusted
+  X509 and all RSA-AES variants (`macos-security-smoke.py`).
+- **Tunnel and reconnect.** SSH tunnel through a loopback sshd, and Retry
+  reconnect (`macos-tunnel-smoke.py`, `reconnect`).
+- **Labels.** All 26 reachable screens expose VoiceOver labels
+  (`accessibility-audit.py`).
+
+#### Differences proposed as intentional (owner review pending)
+
+| Retained behaviour | Native behaviour | Rationale |
+| --- | --- | --- |
+| Connection refused: "Attempt to reconnect?" with **Yes** as the default | "Connection Refused" guidance with **Cancel** as the default and a separate Retry | A refused port rarely succeeds on an immediate retry, and Return must not start network activity unasked. Retry stays one click or Tab-then-Space away. |
+| Password prompt: single "Keep password for reconnect" toggle | Password lifetime: use once / this session's reconnect / remember on this Mac (Keychain) | A superset. "This session's reconnect" matches the FLTK toggle; "remember" is explicit and saves only after successful authentication. |
+| Red "This connection is not secure" banner | Accessible warning colour: "may not adequately protect your credentials", plus a note that this is not a statement about traffic encryption | Precise wording, because the core's policy assesses credential protection rather than transport encryption. It meets contrast requirements. |
+| Certificate: "Add exception" (saved) | Connect Once, or a confirmed Save Exception and Connect… | A one-time decision needs no persistence. Saving shows its scope and confirms. |
+| Certificate: SPKI pin (base64) | Certificate SHA-256 on the sheet; SPKI SHA-256 in Saved Certificate Decisions | Administrators usually publish certificate fingerprints. The SPKI value stays available for saved-key comparison. |
