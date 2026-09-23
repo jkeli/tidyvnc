@@ -4,6 +4,41 @@ Updated 2026-09-23. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Committed checkpoint and next execution order
+
+Implementation checkpoint: **`dc065580`** (`fix(macos): launch CLI sessions and
+validate native protocol baseline`). The worktree was clean after that commit;
+its Debug suite and both final protocol reports were rechecked as passed during
+this planning handoff. The Release artifact from **`ba849f57`** predates the
+startup, preference-domain and viewport-diagnostic changes, so it does not validate
+the current implementation. No new runtime or acceptance result is claimed by
+this documentation update.
+
+1. Rebuild and verify Release with the current implementation, run the full native
+   55-case protocol baseline against that executable, then regenerate and inspect
+   its app/DMG. Record the new source commit, executable/artifact hashes and reports.
+   Keep the explicit host dependency floor separate from supported minimum-OS proof.
+2. Reconcile the remaining N1.2–N1.6/N1.13 contract and global-state items against
+   current source and tests. For each unresolved item, name the reachable state or
+   missing contract, its owner/thread/lifetime, and the test needed to close it.
+   Use STATE-AUDIT.md and the original checklist; do not close parent items from
+   narrow protocol or model coverage.
+3. Map existing encoding/security, authentication/trust, clipboard, reverse/listen,
+   tunnel and reconnect fixtures to PLAN §12. Extend actual-frontend coverage for
+   uncovered paths; preserve the distinction between wire assertions and visible
+   presentation/input acceptance.
+4. Resume actual app window/menu/file-panel, keyboard and VoiceOver acceptance
+   through CUA when native access works. Record observations against PARITY.md;
+   its previous access failures and unverified draft state remain documented in
+   UI-ACCEPTANCE.md. Complete matched performance and physical 1×/2×, mixed-display,
+   hotplug/Spaces/IME checks with the required hardware and workloads.
+5. Verify minimum-OS/Intel dependencies, hosted CI, installed Finder/network-consent
+   behavior and intended signing/Keychain upgrade access. Complete the full parity
+   and requirement audit before changing the shipping frontend or declaring N6 done.
+
+These are ordered follow-ups within the original plan, not replacement completion
+criteria. The full goal remains active and FLTK remains the default.
+
 ## Latest follow-up (2026-09-23) — Actual native protocol baseline and startup fix
 
 The full retained **55-case** baseline now runs through the actual native app with

@@ -26,6 +26,16 @@ Scope: portable session/service interfaces and macOS SwiftUI replacement.
 No WinUI application or Windows backend implementation is included. Preserve
 Windows/Linux FLTK builds. The Java client remains removed.
 
+## Current committed checkpoint
+
+**`dc065580`** contains the native CLI startup fix, isolated 55-case protocol
+baseline, numeric viewport diagnostic and CI definition. Its Debug and protocol
+reports pass; the existing Release package predates those changes. Follow the
+[ordered execution handoff](RESUME.md#committed-checkpoint-and-next-execution-order)
+for current Release/package validation, remaining service/global-state and broader
+protocol work, then actual interaction/physical/performance and deployment gates.
+This planning update adds no acceptance evidence and changes no completion boxes.
+
 ## N0 — Inventory, baseline and decisions
 
 - [x] N0.1 Create an exhaustive parity inventory mapping each dialog/control/menu/shortcut/launch path to source, option, native replacement and acceptance test; include every row of PLAN §9. See [PARITY.md](PARITY.md): 162 rows, registered fixture references and explicit remaining manual actions; acceptance is still N4/N5/N6.
