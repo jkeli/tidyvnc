@@ -541,8 +541,18 @@ UI uses, with migration and credential behavior verified independently.
   - 2026-09-23 actual-app (isolated copy, background control; UI-ACCEPTANCE.md):
     separate defaults/history import offers, import window with explicit exclusions
     and "no file" handling, Escape to close, Return-to-connect, connected state,
-    correct displayed pixels, Disconnect, menu Quit. Recent-hosts popover and
-    remote input need the app frontmost and remain open.
+    correct displayed pixels, Disconnect, menu Quit. The later full-screen pass
+    covered the Recent connections popover and remote input.
+  - [x] Actual-app endpoint validation (2026-09-23, typed through the accessibility
+    text system):
+    - `fixture.invalid::99999` disables Connect with "Use host:display or
+      host::port. The port must be between 1 and 65535."
+    - `[fe80::1` disables it with "Add the closing bracket after the IPv6
+      address or host name."
+    - A valid address re-enables Connect.
+    - History entries persist across relaunch (`persistence-acceptance.py`).
+  - [ ] Tab/keyboard traversal of the window (depends on the system Keyboard
+    Navigation setting).
   - [x] Native Open and Save As menus, reviewed immutable export, explicit
     replacement confirmation and non-disruptive save feedback.
   - [x] Shared-parser endpoint preflight with typed inline errors and Connect/Save
