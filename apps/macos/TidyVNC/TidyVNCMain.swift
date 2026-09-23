@@ -27,7 +27,7 @@ import TidyVNCNative
     } catch let error as NativeInvocationResolutionFailure {
       fail(error.description)
     } catch {
-      fail("Unable to initialize the native command line.")
+      fail(String(localized:"invocation.error.initialize", defaultValue:"Unable to initialize the native command line."))
     }
   }
   private static func fail(_ message: String) -> Never {

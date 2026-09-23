@@ -74,47 +74,33 @@ public enum NativeInvocationBootstrap {
   public static func terminal(_ options: NativeInvocationOptions, version: String, copyright: String = "") throws -> NativeInvocationTerminal? {
     guard options.action != .launch else { return nil }
     _ = try NativeProcessLogging.selection(options)
-    var text = "TidyVNC v\(version)\nNative macOS viewer\n"
+    var text = "TidyVNC v\(version)\n" + String(localized:"invocation.viewer", defaultValue:"Native macOS viewer") + "\n"
     if !copyright.isEmpty { text += copyright + "\n" }
     if options.action == .version { return .init(text:text,exitCode:0) }
-    text += """
-
-    Usage: vncviewer [parameters] [host][:display]
-           vncviewer [parameters] [host][::port]
-           vncviewer [parameters] [path/to/socket]
-           vncviewer [parameters] [./connection.tidyvnc]
-           vncviewer -listen [parameters] [port]
-
-    -h, --help       Show this help (exit status 1, matching the retained viewer).
-    -v, --version    Show the version.
-
-    Names are case-insensitive. Enable a boolean with -Name; disable it with
-    -Name=off. Values accept -Name value, Name=value, -Name=value or --Name=value.
-    Use ./ before a relative file name; a bare name is a server address.
-    Explicit files override CLI settings and open for review before connecting.
-    With no server address, a connection form opens. Native defaults use native
-    stores; importing compatibility defaults/history is a separate explicit action.
-
-    Parameters (* requires a native adapter; unavailable entries cannot be used):
-
-    """
+    // Command grammar is literal; localized prose receives it as arguments.
+    let forms = "vncviewer [parameters] [host][:display]\n       vncviewer [parameters] [host][::port]\n       vncviewer [parameters] [path/to/socket]\n       vncviewer [parameters] [./connection.tidyvnc]\n       vncviewer -listen [parameters] [port]"
+    text += "\n" + String(localized:"invocation.help.usage", defaultValue:"Usage: \(forms)") + "\n\n"
+    text += "-h, --help       " + String(localized:"invocation.help.help.action", defaultValue:"Show this help (exit status 1, matching the retained viewer).") + "\n"
+    text += "-v, --version    " + String(localized:"invocation.help.version.action", defaultValue:"Show the version.") + "\n\n"
+    text += String(localized:"invocation.help.syntax", defaultValue:"Names are case-insensitive. Enable a boolean with \("-Name"); disable it with\n\("-Name=off"). Values accept \("-Name value"), \("Name=value"), \("-Name=value") or \("--Name=value").\nUse \("./") before a relative file name; a bare name is a server address.\nExplicit files override CLI settings and open for review before connecting.\nWith no server address, a connection form opens. Native defaults use native\nstores; importing compatibility defaults/history is a separate explicit action.") + "\n\n"
+    text += String(localized:"invocation.help.parameters", defaultValue:"Parameters (* requires a native adapter; unavailable entries cannot be used):") + "\n"
     let supported = try NativeInvocationResolution.supportedOptions()
     var defaults = Dictionary(uniqueKeysWithValues:try NativeEncodingOptions.schema().map { ($0.name,$0.defaultValue) })
     defaults["MaxCutText"] = String(try NativeMessageLimits.defaultMaxCutText())
     defaults["PointerEventInterval"] = String(try NativePointerTiming.defaultMilliseconds())
     defaults["Log"] = NativeProcessLogging.defaultPolicy
     for option in try NativeInvocationSyntax.options() {
-      let status = !option.available ? " [unavailable]" : (supported.contains(option.name) ? "" : " *")
-      let alias = option.alias.isEmpty ? "" : " (alias: \(option.alias))"
-      let value = option.boolean ? "[on|off]" : "<value>"
-      let initial = defaults[option.name].map { " [default: \($0)]" } ?? ""
+      let status = !option.available ? String(localized:"invocation.help.unavailable", defaultValue:" [unavailable]") : (supported.contains(option.name) ? "" : " *")
+      let alias = option.alias.isEmpty ? "" : String(localized:"invocation.help.alias", defaultValue:" (alias: \(option.alias))")
+      let value = option.boolean ? "[on|off]" : String(localized:"invocation.help.value", defaultValue:"<value>")
+      let initial = defaults[option.name].map { String(localized:"invocation.help.default", defaultValue:" [default: \($0)]") } ?? ""
       text += "  \(option.name) \(value)\(alias)\(initial)\(status)\n"
     }
-    text += "\nLog targets: stderr, stdout, file, or empty to disable.\nFile: /tmp/vncviewer.log, created on first output with one .bak; failures use stderr.\n"
-    text += "Listen defaults to TCP port 5500; port 0 chooses an available port. Use a decimal port from 0 to 65535.\nWith -listen ./file.tidyvnc, review file settings before binding; ServerName supplies the port. Unix socket listeners are unsupported.\nAccept each incoming connection in the listener window.\n"
-    text += "Legacy password files apply only to password-only authentication. VNC_PASSWORD (with VNC_USERNAME when required) takes precedence.\nLaunch credentials belong to the first connection window (first accepted incoming window with -listen) and are never saved.\nStopping the listener clears unclaimed launch credentials.\n"
-    text += "Unsupported native adapters fail explicitly; their parameters are never ignored.\n"
-    text += "SSH via accepts [user@]host or ssh://[user@]host[:port]. It uses SSH host-key verification, default-key/agent authentication and native password/passphrase prompts.\nNew Ed25519/RSA/ECDSA gateway keys require explicit Trust and Save; changed keys are rejected.\nSupported ~/.ssh/config settings are captured before connecting; commands, proxy hops and VNC_VIA_CMD are unsupported.\nSSH forwarding cannot be used with -listen or Unix socket targets. An empty via value selects a direct connection.\n"
+    text += String(localized:"invocation.help.logging", defaultValue:"\nLog targets: \("stderr, stdout, file"), or empty to disable.\nFile: \("/tmp/vncviewer.log"), created on first output with one \(".bak"); failures use \("stderr").\n")
+    text += String(localized:"invocation.help.listen", defaultValue:"Listen defaults to TCP port 5500; port 0 chooses an available port. Use a decimal port from 0 to 65535.\nWith \("-listen ./file.tidyvnc"), review file settings before binding; \("ServerName") supplies the port. Unix socket listeners are unsupported.\nAccept each incoming connection in the listener window.\n")
+    text += String(localized:"invocation.help.credentials", defaultValue:"Legacy password files apply only to password-only authentication. \("VNC_PASSWORD") (with \("VNC_USERNAME") when required) takes precedence.\nLaunch credentials belong to the first connection window (first accepted incoming window with \("-listen")) and are never saved.\nStopping the listener clears unclaimed launch credentials.\n")
+    text += String(localized:"invocation.help.adapters", defaultValue:"Unsupported native adapters fail explicitly; their parameters are never ignored.\n")
+    text += String(localized:"invocation.help.ssh", defaultValue:"SSH \("via") accepts \("[user@]host") or \("ssh://[user@]host[:port]"). It uses SSH host-key verification, default-key/agent authentication and native password/passphrase prompts.\nNew Ed25519/RSA/ECDSA gateway keys require explicit \(String(localized:"ssh.trust.and.save", defaultValue:"Trust and Save")); changed keys are rejected.\nSupported \("~/.ssh/config") settings are captured before connecting; commands, proxy hops and \("VNC_VIA_CMD") are unsupported.\nSSH forwarding cannot be used with \("-listen") or Unix socket targets. An empty \("via") value selects a direct connection.\n")
     return .init(text:text,exitCode:1)
   }
   // Startup-only metadata inspection, before AppKit/store initialization. No file

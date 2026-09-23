@@ -35,9 +35,17 @@ func arguments() throws {
   let help = try NativeInvocationBootstrap.terminal(.init(arguments:["-PasswordFile=private-path","--help"]),version:"fixture")!
   try check(help.exitCode == 1 && help.text.contains("TidyVNC vfixture") && !help.text.contains("private-path"),"retained help status and no input reflection")
   for option in try NativeInvocationSyntax.options() { try check(help.text.contains("  "+option.name+" "),"shared help catalog") }
-  try check(help.text.contains("PasswordFile <value> (alias: passwd)\n") && help.text.contains("Shared [on|off]\n"),"native support status and aliases")
+  let valueLabel = String(localized:"invocation.help.value", defaultValue:"<value>")
+  let passwordAlias = String(localized:"invocation.help.alias", defaultValue:" (alias: \("passwd"))")
+  try check(help.text.contains("PasswordFile " + valueLabel + passwordAlias + "\n") && help.text.contains("Shared [on|off]\n"),"native support status and aliases")
+  for syntax in ["vncviewer [parameters] [host][:display]", "vncviewer -listen [parameters] [port]",
+                 "-h, --help", "-v, --version", "-Name=off", "-Name value", "Name=value", "--Name=value",
+                 "-listen ./file.tidyvnc", "ServerName", "VNC_PASSWORD", "VNC_USERNAME", "VNC_VIA_CMD",
+                 "ssh://[user@]host[:port]", "~/.ssh/config", "/tmp/vncviewer.log", "stderr, stdout, file"] {
+    try check(help.text.contains(syntax),"localized help preserves literal command grammar")
+  }
   let version = try NativeInvocationBootstrap.terminal(.init(arguments:["--version"]),version:NativeBuildInfo.version)!
-  try check(version.exitCode == 0 && version.text.contains(NativeBuildInfo.version) && !version.text.contains("Parameters"),"build-derived version")
+  try check(version.exitCode == 0 && version.text.contains(NativeBuildInfo.version) && !version.text.contains("vncviewer [parameters]"),"build-derived version")
   try check(try NativeInvocationBootstrap.terminal(.init(arguments:[]),version:"fixture") == nil,"ordinary launch does not print terminal output")
 }
 final class Inspector: NativeInvocationPathInspecting, @unchecked Sendable {

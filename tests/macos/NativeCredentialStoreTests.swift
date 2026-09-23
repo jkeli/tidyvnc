@@ -24,12 +24,14 @@ final class Client: NativeSecItemClient, @unchecked Sendable {
   var returned: CFTypeRef?
   var calls = 0, wasMain = false
   var interactionNotAllowed: Bool?
+  var localizedReason: String?
   var query: [String:Any] = [:], attributes: [String:Any] = [:]
   func configure(_ status: OSStatus, result: CFTypeRef? = nil) { lock.withLock { self.status = status; returned = result } }
   func record(_ query: [String:Any], attributes: [String:Any] = [:]) -> OSStatus {
     lock.withLock {
       calls += 1; wasMain = Thread.isMainThread
-      interactionNotAllowed = (query[kSecUseAuthenticationContext as String] as? LAContext)?.interactionNotAllowed
+      let context = query[kSecUseAuthenticationContext as String] as? LAContext
+      interactionNotAllowed = context?.interactionNotAllowed; localizedReason = context?.localizedReason
       self.query = query; self.attributes = attributes; return status
     }
   }
@@ -48,6 +50,7 @@ final class Client: NativeSecItemClient, @unchecked Sendable {
       try check(query[kSecAttrAccount as String] as? String == key?.account, "exact account or bounded metadata listing")
       try check(query[kSecAttrAccessGroup as String] == nil && query[kSecAttrAccessControl as String] == nil && query[kSecAttrAccess as String] == nil, "no shared group, ACL override or biometric requirement")
       try check(interactionNotAllowed == !interaction, "per-call OS interaction policy")
+      try check(localizedReason == String(localized:"credentials.keychain.access.reason", defaultValue:"Access a saved TidyVNC credential."), "per-call localized OS access reason")
     }
   }
 }
@@ -68,6 +71,7 @@ func backend() throws {
   try client.policy(key,interaction: true)
   try check(client.query[kSecAttrAccessible as String] as? String == kSecAttrAccessibleWhenUnlockedThisDeviceOnly as String, "local unlocked-only accessibility")
   try check(client.query[kSecValueData as String] as? Data == Data([1,2,3]), "create stores secret payload")
+  try check(client.query[kSecAttrLabel as String] as? String == String(localized:"credentials.keychain.item.label", defaultValue:"TidyVNC credential"), "new item uses localized metadata label without changing identity")
   client.configure(errSecDuplicateItem)
   let before = client.calls
   try expect(.duplicate) { try backend.save(key,secret: secret,mode: .create,interaction: .forbid) }

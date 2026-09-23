@@ -4,6 +4,33 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — CLI and Keychain presentation localization
+
+The catalog now has **1037** English source entries. Native command-line syntax
+failures, initialization/launch-credential errors, version/help prose and option
+annotations are localized. Command names, grammar examples, aliases, defaults,
+paths and environment variable names remain literal arguments. Argument numbering
+reuses the complete localized diagnostic template. Keychain access reasons and
+new-item display labels are localized; account/service identity and existing-item
+labels are not rewritten.
+
+Five focused syntax/bootstrap/credential/Keychain tests pass **5/5 (1.60 s)**.
+Expanded bootstrap and Keychain policy fixtures pass, including literal command
+syntax, scoped queries, interaction policy and new-record label assertions. The
+final app's English help (**3711 bytes**) and version (**108 bytes**) match the
+pre-change app byte for byte with identical exit statuses and untouched isolated
+HOME/XDG. Build/signature, **1037** packaged values/fallback/interpolation, **32**
+terminal cases, branding baseline **1650** and diff checks pass.
+
+The audit still finds raw error presentation in app startup, desktop rendering,
+cursor/input/canvas and fullscreen failure detail paths. Map these to structured,
+localized recovery without exposing arbitrary diagnostics. Native bundle privacy/
+document-type descriptions from release/Info.plist.in also need localization review.
+Protocol headers, stored trust commitments and caught internal errors need use-based
+classification, not blanket translation. N4.16 and all actual-app/VoiceOver/physical/
+installed/deployment/CI/performance/release gates remain open. No full-suite/sanitizer,
+real Keychain prompt or CUA/user-app acceptance is claimed. All handles completed.
+
 ## Latest follow-up (2026-09-22) — Controller and service recovery localization
 
 The catalog now has **1009** English source entries. Fixed connection-controller,

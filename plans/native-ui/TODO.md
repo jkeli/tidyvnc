@@ -2,12 +2,12 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **1009** entries;
-controller/tunnel/clipboard/fullscreen/desktop recovery and accessibility text join
-the migrated native UI. Focused normal and expanded behavior checks pass. Remaining
-localization audit: launch/CLI text, Keychain access reasons and generic diagnostic
-presentation. Classify protocol/persisted/internal literals before changing them.
-Actual window/menu/file-panel accessibility and all other unchecked gates stay open.
+implementation, validation and next steps. The catalog now has **1037** entries;
+CLI help/errors and Keychain presentation join the migrated native UI. English
+terminal output is byte-identical; expanded grammar/policy checks pass. Remaining
+localization audit: raw startup/desktop diagnostic presentation and native bundle
+privacy/document-type descriptions, with use-based classification of internal and
+compatibility literals. All interactive/physical/installed/release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
 file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
@@ -9139,3 +9139,43 @@ localized access reasons, and remaining generic diagnostic presentation paths.
 Several other raw strings are caught internal diagnostics or protocol/persisted
 metadata (configuration header, trust commitment, credential labels); classify
 those by use before translating. N4.16 and all other unchecked requirements remain.
+
+
+### 2026-09-22 — Native CLI and Keychain presentation localization
+
+Added 28 entries (**1037** total) for syntax/initialization/launch-credential errors,
+version/help prose, usage/alias/default/unavailable/value annotations, Keychain
+access reasons and newly created item labels. Complete templates take literal
+command syntax, aliases/defaults, paths and environment names. Syntax argument
+numbers use the existing localized argument/message template. No lexer, argv,
+precedence, startup ordering, error code, credential identity or access policy
+changed; replacing an existing credential does not rewrite its stored label.
+
+Validation:
+
+- Syntax/catalog, strict bootstrap/connection, Keychain store policy/lifetime and
+  both launch credential tests: **5/5 (1.60 s)**. Existing strict UTF-8/bounds,
+  redaction, file/socket classification, one-shot/first-window ownership, wire,
+  scoped queries, cancellation and secret disposal assertions remain.
+- Expanded bootstrap and Keychain fixtures pass. Help tests check literal syntax
+  examples and aliases with localized annotations. Mock SecItem calls verify the
+  localized LAContext reason and new-item label alongside stable account/service
+  scope and interaction/access policy. No real Keychain prompt is invoked.
+- App build and strict deep signature pass. English help (**3711 bytes**) and
+  version (**108 bytes**) are byte-identical to the pre-change app, including exit
+  statuses; isolated HOME/XDG remains empty. All **32/32** terminal cases pass.
+- **1037** packaged values, fallback and interpolation checks pass, including literal
+  percent/Unicode arguments in alias/default/usage templates. Branding **1650** and
+  whitespace checks pass. No full-suite/sanitizer or installed/minimum-OS/VoiceOver
+  acceptance. Existing dependency warnings remain. All process handles completed.
+
+Evidence: `/tmp/tidyvnc-cli-localization-{build,app,tests,bootstrap-expanded,
+keychain-expanded,bundle,terminal,english-comparison}.log`; pre-change English
+bytes: `/tmp/tidyvnc-cli-localization-baseline-{help,version}.txt`.
+
+Next audit findings: TidyVNCApp startup and NativeDesktopView/Canvas report raw
+String(describing:) failures, including renderer/cursor/input paths; fullscreen
+failure detail interpolates one. Map these safely and retain actionable recovery.
+Native Info.plist privacy/document-type descriptions need review too. Do not
+translate compatibility file headers, persisted trust commitments or internal
+exceptions blindly. N4.16/N4.17 and every other unchecked requirement remain open.

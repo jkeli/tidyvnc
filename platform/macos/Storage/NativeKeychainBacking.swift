@@ -43,7 +43,7 @@ public final class NativeKeychainBacking: NativeCredentialBacking, Sendable {
   }
   private func context(_ interaction: NativeCredentialInteraction) -> LAContext {
     let value = LAContext(); value.interactionNotAllowed = interaction == .forbid
-    value.localizedReason = "Access a saved TidyVNC credential."
+    value.localizedReason = String(localized:"credentials.keychain.access.reason", defaultValue:"Access a saved TidyVNC credential.")
     return value
   }
   static func check(_ status: OSStatus) throws {
@@ -83,7 +83,7 @@ public final class NativeKeychainBacking: NativeCredentialBacking, Sendable {
     switch mode {
     case .create:
       attributes.merge(query(key, context: context)) { _,new in new }
-      attributes[kSecAttrLabel as String] = "TidyVNC credential"
+      attributes[kSecAttrLabel as String] = String(localized:"credentials.keychain.item.label", defaultValue:"TidyVNC credential")
       try Self.check(client.add(attributes))
     case .replace:
       try Self.check(client.update(query(key, context: context),attributes: attributes))

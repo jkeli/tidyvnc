@@ -19,17 +19,17 @@ public struct NativeInvocationFailure: Error, Sendable, Equatable, CustomStringC
   public var description: String {
     let message: String
     switch problem {
-    case .tooManyArguments: message = "Too many command-line arguments."
-    case .tooLarge: message = "Command-line input exceeds its byte limit."
-    case .nullByte: message = "A command-line argument contains a null byte."
-    case .unknownOption: message = "An unrecognized command-line option was supplied."
-    case .missingValue: message = "A command-line option requires a value."
-    case .unavailable: message = "A command-line option is unavailable in this build."
-    case .extraOperand: message = "Only one server address, connection file or listen port may be supplied."
-    case .invalidText: message = "A command-line argument is not valid UTF-8."
-    case .invalidValue: message = "A command-line option has an invalid value."
+    case .tooManyArguments: message = String(localized:"invocation.error.too.many.command.line.arguments", defaultValue:"Too many command-line arguments.")
+    case .tooLarge: message = String(localized:"invocation.error.command.line.input.exceeds.its.byte.limit", defaultValue:"Command-line input exceeds its byte limit.")
+    case .nullByte: message = String(localized:"invocation.error.a.command.line.argument.contains.a.null.byte", defaultValue:"A command-line argument contains a null byte.")
+    case .unknownOption: message = String(localized:"invocation.error.an.unrecognized.command.line.option.was.supplied", defaultValue:"An unrecognized command-line option was supplied.")
+    case .missingValue: message = String(localized:"invocation.error.a.command.line.option.requires.a.value", defaultValue:"A command-line option requires a value.")
+    case .unavailable: message = String(localized:"invocation.error.a.command.line.option.is.unavailable.in.this.build", defaultValue:"A command-line option is unavailable in this build.")
+    case .extraOperand: message = String(localized:"invocation.error.only.one.server.address.connection.file.or.listen.port.may.be.supplied", defaultValue:"Only one server address, connection file or listen port may be supplied.")
+    case .invalidText: message = String(localized:"invocation.error.a.command.line.argument.is.not.valid.utf.8", defaultValue:"A command-line argument is not valid UTF-8.")
+    case .invalidValue: message = String(localized:"invocation.error.a.command.line.option.has.an.invalid.value", defaultValue:"A command-line option has an invalid value.")
     }
-    return argument == 0 ? message : "Argument \(argument): \(message)"
+    return argument == 0 ? message : String(localized:"document.error.argument", defaultValue:"Argument \(argument.formatted()): \(message)")
   }
 }
 public struct NativeInvocationAssignment: Sendable, Equatable {

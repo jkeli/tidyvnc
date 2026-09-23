@@ -12107,6 +12107,342 @@
           }
         }
       }
+    },
+    "invocation.error.too.many.command.line.arguments": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many command-line arguments."
+          }
+        }
+      }
+    },
+    "invocation.error.command.line.input.exceeds.its.byte.limit": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command-line input exceeds its byte limit."
+          }
+        }
+      }
+    },
+    "invocation.error.a.command.line.argument.contains.a.null.byte": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A command-line argument contains a null byte."
+          }
+        }
+      }
+    },
+    "invocation.error.an.unrecognized.command.line.option.was.supplied": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An unrecognized command-line option was supplied."
+          }
+        }
+      }
+    },
+    "invocation.error.a.command.line.option.requires.a.value": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A command-line option requires a value."
+          }
+        }
+      }
+    },
+    "invocation.error.a.command.line.option.is.unavailable.in.this.build": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A command-line option is unavailable in this build."
+          }
+        }
+      }
+    },
+    "invocation.error.only.one.server.address.connection.file.or.listen.port.may.be.supplied": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only one server address, connection file or listen port may be supplied."
+          }
+        }
+      }
+    },
+    "invocation.error.a.command.line.argument.is.not.valid.utf.8": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A command-line argument is not valid UTF-8."
+          }
+        }
+      }
+    },
+    "invocation.error.a.command.line.option.has.an.invalid.value": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A command-line option has an invalid value."
+          }
+        }
+      }
+    },
+    "invocation.error.initialize": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to initialize the native command line."
+          }
+        }
+      }
+    },
+    "credentials.launch.invalid.environment": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A launch credential exceeds its byte limit or contains invalid data."
+          }
+        }
+      }
+    },
+    "credentials.keychain.access.reason": {
+      "comment": "System credential access reason. Do not insert server identities or secret values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access a saved TidyVNC credential."
+          }
+        }
+      }
+    },
+    "credentials.keychain.item.label": {
+      "comment": "Display metadata for a newly created Keychain item. Never translate account or service identifiers.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC credential"
+          }
+        }
+      }
+    },
+    "invocation.viewer": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native macOS viewer"
+          }
+        }
+      }
+    },
+    "invocation.help.usage": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usage: %@"
+          }
+        }
+      }
+    },
+    "invocation.help.help.action": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this help (exit status 1, matching the retained viewer)."
+          }
+        }
+      }
+    },
+    "invocation.help.version.action": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the version."
+          }
+        }
+      }
+    },
+    "invocation.help.syntax": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Names are case-insensitive. Enable a boolean with %@; disable it with\n%@. Values accept %@, %@, %@ or %@.\nUse %@ before a relative file name; a bare name is a server address.\nExplicit files override CLI settings and open for review before connecting.\nWith no server address, a connection form opens. Native defaults use native\nstores; importing compatibility defaults/history is a separate explicit action."
+          }
+        }
+      }
+    },
+    "invocation.help.parameters": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parameters (* requires a native adapter; unavailable entries cannot be used):"
+          }
+        }
+      }
+    },
+    "invocation.help.unavailable": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " [unavailable]"
+          }
+        }
+      }
+    },
+    "invocation.help.alias": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " (alias: %@)"
+          }
+        }
+      }
+    },
+    "invocation.help.value": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<value>"
+          }
+        }
+      }
+    },
+    "invocation.help.default": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " [default: %@]"
+          }
+        }
+      }
+    },
+    "invocation.help.logging": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\nLog targets: %@, or empty to disable.\nFile: %@, created on first output with one %@; failures use %@.\n"
+          }
+        }
+      }
+    },
+    "invocation.help.listen": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen defaults to TCP port 5500; port 0 chooses an available port. Use a decimal port from 0 to 65535.\nWith %@, review file settings before binding; %@ supplies the port. Unix socket listeners are unsupported.\nAccept each incoming connection in the listener window.\n"
+          }
+        }
+      }
+    },
+    "invocation.help.credentials": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy password files apply only to password-only authentication. %@ (with %@ when required) takes precedence.\nLaunch credentials belong to the first connection window (first accepted incoming window with %@) and are never saved.\nStopping the listener clears unclaimed launch credentials.\n"
+          }
+        }
+      }
+    },
+    "invocation.help.adapters": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported native adapters fail explicitly; their parameters are never ignored.\n"
+          }
+        }
+      }
+    },
+    "invocation.help.ssh": {
+      "comment": "Native launch presentation. Preserve technical names and format placeholders; arguments are literal command syntax or display values.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH %@ accepts %@ or %@. It uses SSH host-key verification, default-key/agent authentication and native password/passphrase prompts.\nNew Ed25519/RSA/ECDSA gateway keys require explicit %@; changed keys are rejected.\nSupported %@ settings are captured before connecting; commands, proxy hops and %@ are unsupported.\nSSH forwarding cannot be used with %@ or Unix socket targets. An empty %@ value selects a direct connection.\n"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

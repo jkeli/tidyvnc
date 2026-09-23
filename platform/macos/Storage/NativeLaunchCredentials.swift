@@ -4,7 +4,7 @@ import Foundation
 
 public enum NativeLaunchCredentialIssue: Error, Sendable, CustomStringConvertible {
   case invalidEnvironment
-  public var description: String { "A launch credential exceeds its byte limit or contains invalid data." }
+  public var description: String { String(localized:"credentials.launch.invalid.environment", defaultValue:"A launch credential exceeds its byte limit or contains invalid data.") }
 }
 // A single claim transfers these inputs to one connection. No Codable, observable
 // secret, global cache or reread of the process environment is permitted.

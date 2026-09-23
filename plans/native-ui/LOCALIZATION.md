@@ -235,7 +235,7 @@ acceptance. Source English is still the only supplied translation. Existing gett
 catalogs and translator attribution remain intact.
 
 
-The source catalog now has **1009** entries. Fixed controller/tunnel/clipboard,
+The controller/service checkpoint brought the source catalog to **1009** entries. Fixed controller/tunnel/clipboard,
 fullscreen/automatic-resize and desktop keyboard/scaling recovery messages are
 localized, along with the desktop accessibility label, help and focus action.
 OpenSSH grammar/diagnostic classification remains literal and error selection uses
@@ -254,3 +254,29 @@ generic diagnostic presentation. Do not translate a raw literal just because it
 resembles prose: protocol headers, saved trust commitments and internal errors
 caught before presentation have different compatibility obligations. N4.16 remains
 open, and English remains the only supplied language.
+
+
+The source catalog now has **1037** entries. CLI syntax failures, initialization and
+launch-credential errors, version/help prose and option annotations are localized.
+Help templates receive command syntax, paths, environment names and shared-schema
+aliases/defaults as literal arguments; translators can reorder prose without
+rewriting those tokens. Argument diagnostics reuse the complete argument/message
+template. English help/version bytes and exit statuses are unchanged.
+
+Keychain LAContext reasons and newly created item labels use catalog values.
+Service/account identity and OS interaction/access policy remain fixed; replacing
+an existing item does not rewrite its label. Expanded fake-SecItem checks verify
+presentation together with these identity/policy invariants. Actual OS prompt,
+installed signing/upgrade and VoiceOver acceptance remain separate open gates.
+
+`invocation.` is included in the expansion runner. The bootstrap fixture checks
+literal syntax examples as well as localized annotation construction. Bundle checks
+cover literal percent/Unicode usage, alias and default arguments.
+
+Remaining presentation audit: raw errors in startup, desktop/cursor/rendering/input/
+canvas callbacks and fullscreen failure details; native bundle privacy and document
+type descriptions inherited from release/Info.plist.in. Translate user presentation
+through structured mappings, while classifying protocol headers, trust commitments,
+identities and caught internal exceptions according to their actual uses. N4.16
+remains open; only English is supplied and no actual translated-language acceptance
+is inferred from synthetic expansion.
