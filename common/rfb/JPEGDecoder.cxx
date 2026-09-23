@@ -37,7 +37,8 @@
 
 using namespace rfb;
 
-JPEGDecoder::JPEGDecoder() : Decoder(DecoderPlain), state(IDLE)
+JPEGDecoder::JPEGDecoder()
+  : Decoder(DecoderPlain), state(IDLE), seenHuffman(false), seenQuant(false)
 {
 }
 

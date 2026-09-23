@@ -840,6 +840,20 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     and TSan, with CI jobs defined. Fixed the upstream TLS description leak and
     null-memcpy UB it found. Native app/Swift and Apple sanitizer coverage remain open.
 - [ ] N6.6 Validate bad credentials/trust, clipboard, remote resize, reverse/listen, tunnel, peer disappearance and reconnect; protocol tests supplement native presentation/input evidence.
+  - Fixture map (2026-09-23), layers A core / B native wrapper with real sockets /
+    C app model / app executable: remote resize covered at all four; reverse/listen,
+    SSH tunnel and reconnect at A–C (the app executable only for argument errors);
+    clipboard at A–B; bad credentials at A and C; TLS/RSA trust at A (SSH host keys
+    at B–C with real sshd); peer loss during authentication at A only. **Gaps:** no
+    actual-app case for bad credentials, clipboard traffic, trust, listen, tunnel or
+    reconnect; TLS/RSA-AES/DH/MSLogonII never completed end to end outside core.
+  - [x] Encoding round trips (2026-09-23): `EncodingRoundTrip.*` encodes a patterned
+    framebuffer with the server EncodeManager and decodes it with the client:
+    Raw, Hextile, ZRLE and lossless Tight reproduce every pixel; Tight/JPEG and
+    standalone JPEG are lossy but bounded; RRE is checked with a hand-built rect.
+    Previously no layer decoded ZRLE, Hextile or JPEG. The Linux ASan run found
+    uninitialized `seenHuffman`/`seenQuant` flags in `JPEGDecoder` (undefined bool
+    read on the first image), now initialized.
 - [ ] N6.7 Validate final bundle identity, document associations, localization, credits, Local Network description, signing/resource seal and dependency paths; verify no FLTK linkage/symbols.
   - [x] Local ad hoc package identity/resources/notices/signature, full dylib
     closure, relocated CLI and read-only mounted-DMG inspection; see PACKAGING.md.
