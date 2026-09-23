@@ -795,7 +795,9 @@ char* loadViewerParameters(const char *filename) {
     snprintf(filepath, sizeof(filepath), "%s", filename);
   }
 
-  std::unique_ptr<FILE, decltype(&fclose)> file(fopen(filepath, "rb"), fclose);
+  // A deleter type, not decltype(&fclose): GCC rejects glibc's attributes there.
+  struct CloseFile { void operator()(FILE* f) const { fclose(f); } };
+  std::unique_ptr<FILE, CloseFile> file(fopen(filepath, "rb"));
   if (!file) {
     if (!filename && errno == ENOENT) return nullptr;
     throw core::posix_error(core::format(_("Failed to open \"%s\""), filepath), errno);

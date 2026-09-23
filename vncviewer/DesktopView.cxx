@@ -9,11 +9,11 @@
 #include <algorithm>
 #include <cmath>
 
-DesktopView::DesktopView(DesktopWindow* owner, CConn* cc,
+DesktopView::DesktopView(DesktopWindow* owner_, CConn* cc,
     std::shared_ptr<DesktopSession> session,const DesktopRegion& region)
   : Fl_Window(region.monitor.logical.tl.x,region.monitor.logical.tl.y,
               region.monitor.logical.width(),region.monitor.logical.height()),
-    owner(owner),monitorId(region.monitor.id)
+    owner(owner_),monitorId(region.monitor.id)
 {
   copy_label(owner->label());
   viewport=new Viewport(w(),h(),cc,session);

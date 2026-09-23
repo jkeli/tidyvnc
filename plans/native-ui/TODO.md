@@ -72,6 +72,18 @@ may disappear merely because it is absent from an initial mockup.
     into core sessions and retained FLTK. Other settings/capabilities remain open.
   - [x] Security method catalog with compiled availability, exact bounded allow-list
     parsing, checked C results and immutable native defaults/profile application.
+  - Parameter audit (2026-09-23) of all 47 CAPABILITIES.md parameters: 36 are
+    validated/canonicalized in core (`InvocationSyntax::validatingValues`,
+    `documentOptionValue`, `EncodingOptions`, `SecuritySelection`, `ScalingSettings`,
+    `WindowGeometry`, `LoggingPolicy`), 9 in core and re-checked in Swift, 4 are
+    platform exclusions. Fixed: command-line `GnuTLSPriority` skipped the core GnuTLS
+    preflight; `validatingValues` now calls `validateTLSPriority` (mutation-checked
+    regression test). **Swift-only, to move for N1.2:** `DesktopSize` grammar (legacy
+    CLI `%dx%d` and strict `WxH`), `via` gateway grammar/limits/canonical URI and the
+    via+listen conflict, `PasswordFile` path policy, `X509CA`/`X509CRL` path policy,
+    the listen port operand and both-families-off rule; plus FullScreenSelectedMonitors
+    ID/cap rules, the two deprecated migrations and layer order (`NativeOptionOverlay`),
+    which also keep N1.3 open.
 - [ ] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs.
   - [x] Extract owned, bounded connection-document syntax and non-secret export
     serialization; retained FLTK load/save/import uses the shared codec. See
@@ -83,7 +95,7 @@ may disappear merely because it is absent from an initial mockup.
     live export, Save As, Finder delivery and ordinary CLI/file precedence are implemented below; remaining CLI adapters stay open.
   - Encoding settings now share validation and explicit layer resolution. Full
     document transactions and remaining parameter groups are still open.
-- [ ] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races.
+- [x] N1.4 Replace mutable session-global options, security configuration, timer ownership and reconnect credentials with scoped state. Preserve compatible legacy consumers without introducing races. Closed 2026-09-23 against the row-by-row reconciliation in STATE-AUDIT.md ("N1.4 global-state reconciliation"): every native-reachable row is session/host-owned or resolved (GnuTLS lifetime, client randomness, socket setup); the rest are FLTK/server-only single-thread consumers kept for compatibility. The required integration test (N1.14) and the full core suite pass under ASan/UBSan and TSan on Linux and macOS.
   - Completed prerequisites: caller-owned DES schedules for client/server VNC
     authentication/password-file helpers, invocation-owned Tight gradient
     scratch rows, explicit per-connection authentication/TLS policies, and
@@ -150,7 +162,7 @@ may disappear merely because it is absent from an initial mockup.
     transports. See listener evidence below; native listen wiring remains open.
 - [x] N1.7 Remove window/widget ownership from the session; introduce attach/detach view subscriptions and presentation-independent framebuffer ownership. Implemented by the portable `ProtocolSession`; see evidence below. Retained FLTK remains a comparison adapter.
 - [x] N1.8 Implement retained frame/cursor leases, explicit pixel format/stride/origin, damage and size generations; bound memory and merge skipped damage correctly. See N1.8 evidence below; session/frontend integration remains in N1.7/N2.
-- [ ] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors.
+- [x] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors. Closed 2026-09-23 after the audit and follow-ups below. Per service: preferences, profile/history, credential, trust (saved `NativeStorageError`, legacy `NativeTrustStoreIssue`), clipboard, tunnel, bell and display have injected contracts, fakes and typed errors; document/file access is the injected `NativeDocumentReading`/`NativeDocumentWriting`/`NativePasswordFileReading` services (security-scoped access is internal to them); permission access is typed guidance (Local Network connection issues, since macOS offers no query API; Accessibility via `NativeKeyboardCaptureStart`); app services are the injected `AppServices` value, tested by `NativeApp.ProductionWiring`. Deliberately process-wide: redacted process logging (one process log policy), the SwiftUI launch hand-off (`App` has no initializer arguments) and `NSApp` terminate/About. Help reads bundled resources with an explicit localized fallback, verified by bundle inspection.
   - Clipboard protocol/channel boundary, injected native pasteboard adapter and
     active-session routing are implemented. Visible app-control/activation checks
     remain N3.15. Diagnostics copying now uses the coordinator's `copyLocal`
@@ -204,6 +216,13 @@ may disappear merely because it is absent from an initial mockup.
 - [x] N1.14 Test two simultaneous sessions with different security/settings, one awaiting credentials while the other continues; no secret, modifier, clipboard or option leakage. `SessionWorker.SimultaneousSessionsIsolatePromptSecretInputClipboardAndSettings` (2026-09-23 evidence below) exercises this at the production runtime; `ViewerABI.AnotherSessionProgressesWhileCredentialsAreParked` covers the C boundary. Native multi-window/app-quit isolation remains N6.10.
 - [x] N1.15 Run existing applicable unit suites plus deterministic core/service tests with fake stores, transport, scheduler and event sink; run supported sanitizers and record limitations. 2026-09-23: retained FLTK 782 unit; portable core 762 (macOS) / 759 (Linux) with fake transport, scheduler, event sink and prompt fixtures; 89 native Swift tests with fake preferences/history/credential/trust/pasteboard/tunnel/display backings. Sanitizers: full core suite under Linux ASan+UBSan+LSan and TSan, and macOS ASan+UBSan and TSan, crypto enabled; full native Swift suite under macOS ASan and TSan. Limitations recorded in the evidence section below.
 - [ ] N1.16 Keep the FLTK frontend building and exercising the extracted logic during transition; shared server behavior remains unchanged.
+  - 2026-09-23: a local reproduction of the Linux CI job (Ubuntu 24.04 aarch64,
+    GCC 13.3, pinned FLTK 1.4.5, Debug `-Werror`, NLS/H.264/audio/GnuTLS/nettle/PAM/
+    systemd/pwquality/Wayland on) failed: `vncviewer.cxx` included `<FL/platform.H>`
+    only on Apple since the FLTK 1.4.5 upgrade (X11 lost `fl_open_display`/`Window`),
+    plus GCC-only shadow and `fclose`-attribute errors. After the fixes it builds with
+    zero warnings, passes 775/775 unit tests, produces the tarball and the viewer runs.
+    macOS FLTK Release passes 782/782. Stays open as a standing obligation until cutover.
 
 Exit: headless, reusable session engine; lifetime and authentication boundaries
 are proven before substantial SwiftUI screen work begins.

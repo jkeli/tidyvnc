@@ -20,8 +20,10 @@ N1.16 remain open.
    `NSApp.isActive`/`NSWorkspace` reads through injectable contracts where a
    test benefits; add a document writer fake and a picker service; unify trust
    errors. The production wiring is now under test (`NativeApp.ProductionWiring`).
-2. Finish the N1.2/N1.3/N1.4 audits: confirm every CAPABILITIES.md parameter's
-   schema lives in portable core (not only Swift), document transactions, then close.
+2. N1.2/N1.3: move the Swift-only parameter rules recorded under N1.2 (DesktopSize,
+   via, PasswordFile, X509CA/CRL paths, listen port, selected-monitor IDs, deprecated
+   migrations and layer order) into portable core with C exports and tests. N1.4,
+   N1.9 and N1.13–N1.15 are closed; the Linux FLTK CI job is locally green again.
 3. Map existing encoding/security, authentication/trust, clipboard, reverse/listen,
    tunnel and reconnect fixtures to PLAN §12 (N6.6). Extend actual-frontend coverage
    for uncovered paths, keeping wire assertions distinct from visible acceptance.

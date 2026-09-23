@@ -6,6 +6,7 @@
 #include "LoggingPolicy.h"
 #include <viewer/core/EncodingOptions.h>
 #include <viewer/core/DocumentOptions.h>
+#include <viewer/core/SecurityOptions.h>
 #include <core/ParameterArgument.h>
 #include <algorithm>
 #include <cerrno>
@@ -53,8 +54,14 @@ InvocationSyntax InvocationSyntax::validatingValues() const {
         // Pure candidate parsing only. Registry/target admission belongs to the
         // startup adapter. Preserve original spelling for later resolution.
         LoggingPolicy::parse(field.value);
+      } else if (field.name == "GnuTLSPriority") {
+        // The same bounded GnuTLS preflight as saved settings and drafts, so an
+        // invalid command-line priority fails at startup rather than at connect.
+        validateTLSPriority(field.value);
       }
     } catch (const LoggingError&) {
+      throw InvocationError(InvocationProblem::InvalidValue,field.argument);
+    } catch (const SecurityOptionError&) {
       throw InvocationError(InvocationProblem::InvalidValue,field.argument);
     } catch (const DocumentError& error) {
       throw InvocationError(error.code == DocumentErrorCode::Unavailable ? InvocationProblem::Unavailable : InvocationProblem::InvalidValue,field.argument);

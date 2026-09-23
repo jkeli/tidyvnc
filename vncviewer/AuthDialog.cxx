@@ -44,7 +44,7 @@
 // when FLTK enlarged them on Retina displays. UI dimensions stay logical.
 class SecurityIcon : public Fl_Image {
 public:
-  explicit SecurityIcon(bool locked) : Fl_Image(16,16,0), locked(locked) {}
+  explicit SecurityIcon(bool locked_) : Fl_Image(16,16,0), locked(locked_) {}
   void draw(int x,int y,int w,int h,int cx=0,int cy=0) override
   {
     fl_push_clip(x,y,w,h);

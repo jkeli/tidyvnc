@@ -1,4 +1,7 @@
 /* Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later. */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 #include <gtest/gtest.h>
 #include <viewer/core/Invocation.h>
 #include <core/Configuration.h>
@@ -208,6 +211,17 @@ TEST(Invocation, EveryValueIncludingBeforeHelpMustValidate) {
     }
   }
   EXPECT_NO_THROW(InvocationSyntax::parse({"-Log= , *:stderr:30,,"}).validatingValues());
+  EXPECT_NO_THROW(InvocationSyntax::parse({"-GnuTLSPriority=NORMAL:-VERS-ALL:+VERS-TLS1.2"},all()).validatingValues());
+  EXPECT_NO_THROW(InvocationSyntax::parse({"-GnuTLSPriority="},all()).validatingValues());
+#ifdef HAVE_GNUTLS
+  // Command-line priorities get the same GnuTLS preflight as saved settings.
+  const auto priority = InvocationSyntax::parse({"host","-GnuTLSPriority=private-priority"},all());
+  try { priority.validatingValues(); FAIL() << "Invalid TLS priority accepted"; }
+  catch (const InvocationError& error) {
+    EXPECT_EQ(error.problem,InvocationProblem::InvalidValue); EXPECT_EQ(error.argument,2u);
+    EXPECT_EQ(std::string(error.what()).find("private"),std::string::npos);
+  }
+#endif
   // String interpretation belongs to the host adapter, not the stateless parser.
   EXPECT_NO_THROW(InvocationSyntax::parse({"-DesktopSize=host-specific","-geometry=host-specific"}).validatingValues());
 }

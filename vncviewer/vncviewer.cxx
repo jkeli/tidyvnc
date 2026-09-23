@@ -57,7 +57,8 @@
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/fl_ask.H>
-#ifdef __APPLE__
+#ifndef WIN32
+// FLTK 1.4 declares fl_open_display and the X11 Window type here.
 #include <FL/platform.H>
 #endif
 
