@@ -954,6 +954,17 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     other five cases run without it. This is the first end-to-end completion of
     TLS, X509 and RSA-AES through the app. DH and MSLogonII have no server
     implementation in the tree; they stay covered by core client tests only.
+  - [x] Actual-app SSH tunnel and reconnect (2026-09-23):
+    - `tests/integration/macos-tunnel-smoke.py` starts a loopback
+      `/usr/sbin/sshd` (fresh keys, public-key only, local forwarding only) and
+      gives the isolated app an isolated `~/.ssh/config` and known_hosts. The
+      launcher now also removes `SSH_AUTH_SOCK`. With `-via ssh://user@127.0.0.1:<port>`,
+      sshd accepts the fixture key and VncAuth completes through the tunnel.
+    - The security smoke's `reconnect` case: the server drops the session after
+      its first update, Retry is pressed through the accessibility API, and a
+      second VncAuth session authenticates with the launch credentials.
+    - Remaining actual-app gaps: clipboard traffic (the system pasteboard is not
+      isolated) and listen (it opens a listening socket).
   - [x] Encoding round trips (2026-09-23): `EncodingRoundTrip.*` encodes a patterned
     framebuffer with the server EncodeManager and decodes it with the client:
     Raw, Hextile, ZRLE and lossless Tight reproduce every pixel; Tight/JPEG and

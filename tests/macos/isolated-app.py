@@ -34,7 +34,7 @@ def helper(state):
 def environment(state):
     env = os.environ.copy()
     for name in ['VNC_USERNAME', 'VNC_PASSWORD', 'VNC_VIA_CMD', 'CFFIXED_USER_HOME',
-                 '__CFPREFERENCES_AVOID_DAEMON']:
+                 '__CFPREFERENCES_AVOID_DAEMON', 'SSH_AUTH_SOCK']:
         env.pop(name, None)
     for name in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME']:
         directory = state / name
@@ -44,7 +44,8 @@ def environment(state):
     return env
 
 
-def launch(source, state, arguments, extra_env=None):
+def launch(source, state, arguments, extra_env=None, home_files=None):
+    """home_files maps HOME-relative paths to text written (0600, parents 0700) before launch."""
     state.mkdir(parents=True, exist_ok=False)
     state = state.resolve()
     info = plistlib.loads((source / 'Contents/Info.plist').read_bytes())
@@ -60,6 +61,10 @@ def launch(source, state, arguments, extra_env=None):
     subprocess.run(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(copied)], check=True)
     (state / 'fixture.json').write_text(json.dumps({'domain': domain, 'app': str(copied)}))
     env = environment(state)
+    for relative, text in (home_files or {}).items():
+        path = Path(env['HOME']) / relative
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        path.write_text(text); path.chmod(0o600)
     subprocess.run([str(helper(state)), env['HOME'], domain], env=env, check=True, timeout=30)
     log = open(state / 'app.log', 'wb')
     process = subprocess.Popen([str(copied / 'Contents/MacOS' / info['CFBundleExecutable']), *arguments],

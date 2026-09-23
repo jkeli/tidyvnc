@@ -5,12 +5,13 @@
  * tests/integration/macos-security-smoke.py to complete real security
  * handshakes against the actual native app.
  *
- *   native-security-peer <SecurityTypes> [Param=value ...]
+ *   native-security-peer [--close-after-update] <SecurityTypes> [Param=value ...]
  *
  * Parameters are applied to the core configuration (e.g. RSAKey=, X509Cert=,
  * X509Key=); VncPassword=<text> sets the obfuscated Password parameter. It listens on an ephemeral 127.0.0.1 port,
  * prints "127.0.0.1::<port>", serves one connection at a time and prints
- * "accepted", "authenticated <SecurityTypes>", "request" and "closed <reason>". */
+ * "accepted", "authenticated <SecurityTypes>", "request" and "closed <reason>".
+ * --close-after-update drops each connection after its first update. */
 #include <core/Configuration.h>
 #include <core/LogWriter.h>
 #include <core/Logger_stdio.h>
@@ -43,6 +44,7 @@ namespace {
 
 const rfb::PixelFormat format(32, 24, false, true, 255, 255, 255, 16, 8, 0);
 const char* configured = "";
+bool closeAfterUpdate = false;
 constexpr int width = 64, height = 48;
 
 class Peer : public rfb::SConnection {
@@ -81,6 +83,7 @@ public:
     printf("request\n");
     fflush(stdout);
   }
+  bool updated() const { return sent; }
   void setDesktopSize(int, int, const rfb::ScreenSet&) override {}
   void keyEvent(uint32_t, uint32_t, bool) override {}
   void pointerEvent(const core::Point&, uint16_t) override {}
@@ -110,6 +113,11 @@ void serve(int fd)
       // Security handlers may swap in TLS/AES streams; flush the current one.
       peer.getOutStream()->flush();
       out.flush();
+      if (closeAfterUpdate && peer.updated()) {
+        usleep(200000);
+        printf("closing after update\n");
+        break;
+      }
       if (peer.state() == rfb::SConnection::RFBSTATE_CLOSING ||
           peer.state() == rfb::SConnection::RFBSTATE_INVALID)
         break;
@@ -127,12 +135,20 @@ void serve(int fd)
 int main(int argc, char** argv)
 {
   if (argc < 2) {
-    fprintf(stderr, "usage: native-security-peer <SecurityTypes> [Param=value ...]\n");
+    fprintf(stderr, "usage: native-security-peer [--close-after-update] <SecurityTypes> [Param=value ...]\n");
     return 2;
   }
   if (const char* log = getenv("SECURITY_PEER_LOG")) {
     core::initStdIOLoggers();
     core::LogWriter::setLogParams(log);
+  }
+  if (argc > 1 && strcmp(argv[1], "--close-after-update") == 0) {
+    closeAfterUpdate = true;
+    argv++; argc--;
+    if (argc < 2) {
+      fprintf(stderr, "missing SecurityTypes\n");
+      return 2;
+    }
   }
   configured = argv[1];
   if (!core::Configuration::setParam("SecurityTypes", argv[1])) {

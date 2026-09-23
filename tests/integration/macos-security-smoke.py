@@ -18,6 +18,11 @@ running. Credentials come from VNC_PASSWORD (launch credentials, never saved).
                        with "Connect Once" through the accessibility API
                        (tests/macos/AccessibilityAudit.swift; the caller must be an
                        accessibility client). Without it these cases are not run.
+  reconnect            VncAuth; the peer drops the session after its first update,
+                       the app shows its disconnect alert, Retry is pressed
+                       through the accessibility API (--accept-prompts) and a
+                       second session must authenticate (launch credentials
+                       are reused for an explicit Retry in the same window).
 
 Requires WindowServer, codesign, a Swift compiler and /usr/bin/openssl. Displayed
 UI is not asserted.
@@ -50,6 +55,7 @@ CASES = {
     'ra2ne': ('RA2ne', False, True),
     'ra2_256': ('RA2_256', False, True),
     'ra2ne_256': ('RA2ne_256', False, True),
+    'reconnect': ('VncAuth', False, True),
 }
 
 
@@ -63,8 +69,9 @@ def materials(work):
 
 
 class Peer:
-    def __init__(self, executable, security, parameters):
-        self.process = subprocess.Popen([str(executable), security, *parameters], stdout=subprocess.PIPE,
+    def __init__(self, executable, security, parameters, close_after_update=False):
+        options = ['--close-after-update'] if close_after_update else []
+        self.process = subprocess.Popen([str(executable), *options, security, *parameters], stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT, text=True)
         self.lines = queue.Queue()
         threading.Thread(target=self.pump, daemon=True).start()
@@ -96,23 +103,35 @@ def run_case(app, peer_executable, accessibility, name, work, key, cert, rsa):
     parameters = [f'VncPassword={PASSWORD}']
     if security.startswith('X509'): parameters += [f'X509Cert={cert}', f'X509Key={key}']
     if security.startswith('RA2'): parameters += [f'RSAKey={rsa}']
-    peer = Peer(peer_executable, security, parameters)
-    arguments = [f'-SecurityTypes={security}', '-SendClipboard=0', '-AcceptClipboard=0', '-ReconnectOnError=0']
+    reconnect = name == 'reconnect'
+    peer = Peer(peer_executable, security, parameters, close_after_update=reconnect)
+    arguments = [f'-SecurityTypes={security}', '-SendClipboard=0', '-AcceptClipboard=0',
+                 '-ReconnectOnError=1' if reconnect else '-ReconnectOnError=0']
     if uses_ca: arguments.append(f'-X509CA={cert}')
     state = work / name
     process = isolated.launch(app, state, [*arguments, peer.endpoint], extra_env={'VNC_PASSWORD': PASSWORD})['process']
     try:
         peer.expect(lambda line: line == 'accepted', 30)
-        if needs_prompt:
+        if needs_prompt and not reconnect:
             result = subprocess.run([str(accessibility), str(process.pid), 'wait', 'authentication.trust',
                                      'press', 'authentication.trust'], capture_output=True, text=True, timeout=60)
             if result.returncode:
                 raise AssertionError(f'could not answer the server-key prompt: {result.stdout.strip()} {result.stderr.strip()}')
         peer.expect(lambda line: line == f'authenticated {security}', 30)
         peer.expect(lambda line: line == 'request', 15)
+        if reconnect:
+            peer.expect(lambda line: line == 'closing after update', 10)
+            result = subprocess.run([str(accessibility), str(process.pid), 'wait', 'Retry', 'press', 'Retry'],
+                                    capture_output=True, text=True, timeout=60)
+            if result.returncode:
+                raise AssertionError(f'could not press Retry: {result.stdout.strip()} {result.stderr.strip()}')
+            peer.expect(lambda line: line == 'accepted', 30)
+            peer.expect(lambda line: line == f'authenticated {security}', 30)
+            peer.expect(lambda line: line == 'request', 15)
         time.sleep(0.5)
         assert process.poll() is None, f'viewer exited (code {process.returncode})'
-        print(f'PASS {name}: {security} authenticated and the app requested a framebuffer update', flush=True)
+        detail = 'reconnected through Retry after the server dropped the session; ' if reconnect else ''
+        print(f'PASS {name}: {detail}{security} authenticated and the app requested a framebuffer update', flush=True)
     finally:
         if process.poll() is None:
             process.terminate()
