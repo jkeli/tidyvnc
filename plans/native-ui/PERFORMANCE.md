@@ -2,9 +2,9 @@
 
 Local matched baseline for N0.5/N5.9, recorded 2026-09-23. This is **not** a
 completed performance gate. Presentation latency (native and FLTK), native
-presentation copies, damage and a two-view workload are measured below. Not
-measured: allocation rate, mixed displays and a second machine. All results come
-from one machine.
+presentation copies, damage, a two-view workload and allocation rate are
+measured below. Not measured: mixed displays and a second machine. All results
+come from one machine.
 
 ## Method
 
@@ -160,3 +160,42 @@ Reading:
   comparable.
 - **Verdict.** No presentation-latency regression against the retained viewer
   on this machine. Budget sign-off for N0.5/N5.9 is still a review decision.
+
+## Allocation rate (2026-09-23)
+
+`viewer-workloads.py --fltk … --native … --alloc-trace` injects
+`tests/perf/alloc-trace.c` into both unchanged Release viewers. It counts calls
+to the malloc, zone and typed-malloc entry points and the bytes requested; the
+harness samples it with SIGUSR1 at the start and end of each 8 s window.
+libmalloc-internal and kernel (VM) allocations are not seen, and "requested
+bytes" counts sizes asked for, not resident memory. Native here is the actual
+isolated app at `-ScalingFactor=100`, like the first baseline table. Raw JSON:
+[perf-2026-09-23-allocations.json](perf-2026-09-23-allocations.json).
+
+| Workload | Frontend | Updates/s | Allocations/s | Requested MiB/s | MiB per update |
+| --- | --- | --- | --- | --- | --- |
+| idle | FLTK | 0 | 125,764 | 630.3 | — |
+| idle | native | 0 | 8,043 | 8.0 | — |
+| full1080 | FLTK | 15.2 | 310,168 | 3,306.4 | 217 |
+| full1080 | native | 30.1 | 119,398 | 1,714.5 | 57 |
+| full4k | FLTK | 10.5 | 295,898 | 2,755.2 | 262 |
+| full4k | native | 30.1 | 109,447 | 3,228.7 | 107 |
+| scroll | FLTK | 15.3 | 310,891 | 3,419.5 | 223 |
+| scroll | native | 30.1 | 115,652 | 1,692.2 | 56 |
+| patch | FLTK | 30.1 | 154,116 | 652.9 | 22 |
+| patch | native | 30.1 | 48,610 | 519.4 | 17 |
+
+Reading:
+
+- **Per update, native allocates 3–4× fewer bytes** than FLTK for full frames,
+  while presenting twice the update rate.
+- **Idle.** FLTK's idle redraw loop costs about 126k allocations and 630 MiB
+  per second of requested memory; native allocates about 8 MiB/s while idle.
+- **Optimisation opportunity (not a regression).** Native requests about two
+  framebuffer-sized blocks per update even for a 64×64 patch: 17 MiB on a
+  1080p desktop (8.3 MB each). `FramePublisher::copyPixels` allocates a fresh,
+  zero-filled `PixelStorage` for every published frame and copies every row.
+  Recycling released storage and copying only damage would remove most of
+  this. It is recorded for the N5.1/N5.9 budget review rather than changed
+  now: no budget has failed, and frame immutability for concurrent view leases
+  depends on this ownership.

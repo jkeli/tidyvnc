@@ -45,8 +45,14 @@ tests/perf/draw-trace.c is compiled and injected with DYLD_INSERT_LIBRARIES
 is how FLTK's Surface draws the framebuffer. Each draw is paired with the latest
 update sent before it, and an update's draw time is its last paired draw, so
 FLTK reports draw latency and drawn updates (no decode or refresh split).
+
+--alloc-trace injects tests/perf/alloc-trace.c the same way into any frontend
+(FLTK, the isolated native app or the probe) and reports allocation calls and
+requested bytes per second over the measurement window (malloc, zone and typed
+malloc entry points; libmalloc-internal and kernel allocations are not seen).
 """
 import argparse
+import os
 import bisect
 import importlib.util
 import json
@@ -156,7 +162,7 @@ class Peer:
             self.connection.sendall(rect)
 
 
-def serve(peer, workload, width, height, seconds, pid, rate):
+def serve(peer, workload, width, height, seconds, pid, rate, on_window=lambda edge: None):
     colour = [(40, 120, 200), (200, 80, 40)]
     frames, round_trips, rss_peak = 0, [], 0
     sends = []                                         # CLOCK_UPTIME_RAW ns after each update was written
@@ -167,6 +173,7 @@ def serve(peer, workload, width, height, seconds, pid, rate):
         if message[0] == 'request':
             peer.update([peer.raw(0, 0, width, height, colour[0])]); sends.append(uptime_ns()); break
     start, cpu_start = time.monotonic(), cpu_seconds(pid)
+    on_window('start')
     sent_at = time.monotonic()
     # Sample RSS off the serving loop: spawning ps per message would throttle the peer.
     stop, peaks = threading.Event(), [0]
@@ -196,6 +203,7 @@ def serve(peer, workload, width, height, seconds, pid, rate):
                          peer.raw(0, height - 16, width, 16, colour[frames % 2])])
         sent_at = time.monotonic(); frames += 1; sends.append(uptime_ns())
     elapsed = time.monotonic() - start
+    on_window('end')
     cpu = (cpu_seconds(pid) or 0) - (cpu_start or 0)
     stop.set(); sampler.join(); rss_peak = max(peaks[0], rss_kib(pid) or 0)
     return {'workload': workload, 'width': width, 'height': height, 'seconds': round(elapsed, 3), 'offeredRate': rate,
@@ -272,7 +280,15 @@ def analyse_probe(sends, probe, rate):
             'probeScaling': probe.get('scaling')}
 
 
-def run(frontend, target, workload, seconds, work, rate, probe_views=1, fltk_trace=False):
+def build_library(work, name):
+    library = work / f'{name}.dylib'
+    if not library.exists():
+        subprocess.run(['xcrun', 'clang', '-dynamiclib', '-O2', '-framework', 'CoreGraphics',
+                        str(ROOT / f'tests/perf/{name}.c'), '-o', str(library)], check=True)
+    return library
+
+
+def run(frontend, target, workload, seconds, work, rate, probe_views=1, fltk_trace=False, alloc_trace=False):
     width, height = WORKLOADS[workload]
     listener = socket.socket(); listener.bind(('127.0.0.1', 0)); listener.listen(1)
     port = listener.getsockname()[1]
@@ -281,31 +297,39 @@ def run(frontend, target, workload, seconds, work, rate, probe_views=1, fltk_tra
     state = work / f'{frontend}-{workload}'
     probe_report = work / f'probe-{workload}.json'
     trace = work / f'fltk-draws-{workload}.txt'
+    allocations = work / f'{frontend}-allocations-{workload}.txt'
+    inject, extra = [], {}
+    if alloc_trace:
+        inject.append(str(build_library(work, 'alloc-trace'))); extra['TIDYVNC_ALLOC_TRACE'] = str(allocations)
+    if frontend == 'fltk' and fltk_trace:
+        inject.append(str(build_library(work, 'draw-trace'))); extra['TIDYVNC_DRAW_TRACE'] = str(trace)
+    if inject: extra['DYLD_INSERT_LIBRARIES'] = ':'.join(inject)
     if frontend == 'native':
-        process = isolated.launch(target, state, args)['process']
-    elif frontend == 'fltk' and fltk_trace:
-        state.mkdir(parents=True)
-        library = work / 'draw-trace.dylib'
-        if not library.exists():
-            subprocess.run(['xcrun', 'clang', '-dynamiclib', '-O2', '-framework', 'CoreGraphics',
-                            str(ROOT / 'tests/perf/draw-trace.c'), '-o', str(library)], check=True)
-        env = isolated.environment(state)
-        env.update({'DYLD_INSERT_LIBRARIES': str(library), 'TIDYVNC_DRAW_TRACE': str(trace)})
-        process = subprocess.Popen([str(target), *args], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process = isolated.launch(target, state, args, extra_env=extra)['process']
     elif frontend == 'probe':
         state.mkdir(parents=True)
         process = subprocess.Popen([str(target), f'127.0.0.1::{port}', str(probe_report), '--views', str(probe_views)],
-                                   env=isolated.environment(state), stdout=subprocess.DEVNULL)
+                                   env={**isolated.environment(state), **extra}, stdout=subprocess.DEVNULL)
     else:
         state.mkdir(parents=True)
-        env = isolated.environment(state)
-        process = subprocess.Popen([str(target), *args], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        process = subprocess.Popen([str(target), *args], env={**isolated.environment(state), **extra},
+                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         listener.settimeout(30)
         connection, _ = listener.accept()
         with connection:
             peer = Peer(connection); peer.handshake(width, height)
-            result = serve(peer, workload, width, height, seconds, process.pid, rate)
+            snapshot = (lambda edge: os.kill(process.pid, signal.SIGUSR1)) if alloc_trace else (lambda edge: None)
+            result = serve(peer, workload, width, height, seconds, process.pid, rate, snapshot)
+            if alloc_trace:
+                time.sleep(0.2)
+                values = allocations.read_text().split() if allocations.exists() else []
+                if len(values) >= 4:
+                    a0, b0, a1, b1 = (int(value) for value in values[-4:])
+                    result.update({'allocationsPerSecond': round((a1 - a0) / result['seconds']),
+                                   'allocatedMiBPerSecond': round((b1 - b0) / result['seconds'] / 2**20, 1)})
+                else:
+                    result['allocationTrace'] = "missing"
             if frontend == 'probe':
                 process.send_signal(signal.SIGTERM); process.wait(10)
                 result.update(analyse_probe(result['_sends'], json.loads(probe_report.read_text()), rate))
@@ -330,6 +354,7 @@ def main():
     parser.add_argument('--fltk', type=Path, help='retained FLTK vncviewer executable')
     parser.add_argument('--probe', type=Path, help='native-presentation-probe from the core build (tests/macos)')
     parser.add_argument('--fltk-trace', action='store_true', help='time FLTK framebuffer draws with draw-trace.c')
+    parser.add_argument('--alloc-trace', action='store_true', help='count allocations with alloc-trace.c (any frontend)')
     parser.add_argument('--probe-views', type=int, default=1, choices=range(1, 5), help='views bound to the probe session')
     parser.add_argument('--workload', action='append', choices=sorted(WORKLOADS))
     parser.add_argument('--seconds', type=float, default=8)
@@ -347,7 +372,7 @@ def main():
         for workload in workloads:
             for frontend, target in targets:
                 result = run(frontend, target, workload, args.seconds, Path(temporary), args.rate, args.probe_views,
-                             args.fltk_trace)
+                             args.fltk_trace, args.alloc_trace)
                 result['frontend'] = frontend
                 result.pop('_sends', None)
                 report['results'].append(result)

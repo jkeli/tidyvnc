@@ -68,7 +68,12 @@ This planning update adds no acceptance evidence and changes no completion boxes
     `CGContextDrawImage` trace (`tests/perf/draw-trace.c`, `--fltk-trace`). Full-
     frame FLTK draw p50 is about 60 ms against about 15 ms native; patch p50 is
     equivalent (1.9 vs 2.5–3.4 ms). FLTK redraws about 3.4×/s while idle.
-  - [ ] Allocation rate, mixed displays, a second machine and sign-off budgets.
+  - [x] Allocation rate for both unchanged Release viewers (`--alloc-trace`,
+    `tests/perf/alloc-trace.c`). Native requests 3–4× fewer bytes per full-frame
+    update than FLTK and about 8 MiB/s while idle, against FLTK's 630 MiB/s.
+    Per-publish full-frame copies are recorded as an optimisation opportunity
+    ([PERFORMANCE.md](PERFORMANCE.md)).
+  - [ ] Mixed displays, a second machine and sign-off budgets.
 - [ ] N0.6 Validate provisional macOS 14 deployment floor, Xcode/Swift/C++ versions, architecture matrix and dependency targets; record final supported configurations.
 - [x] N0.7 Confirm C ABI/module-map/Swift wrapper and CMake-to-Xcode build arrangement; decide CLI app-executable versus launcher behavior without relaying secrets in arguments. Decision (closed 2026-09-23): the app executable is the CLI (same-process bootstrap, no launcher/relaunch); secrets come only from captured `VNC_USERNAME`/`VNC_PASSWORD` or PasswordFile and never enter argv. All 47 parameters, listen and `via` have native adapters (CAPABILITIES.md), with 36 terminal cases on the development and packaged apps; one CMake core → Xcode path (BUILD.md) and the `TidyVNC` module map/Swift wrappers are in use.
   - [x] Shared stateless CLI syntax/catalog, retained lexer reuse, C ABI and Swift
