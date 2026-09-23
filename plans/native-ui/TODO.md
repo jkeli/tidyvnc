@@ -861,8 +861,12 @@ UI uses, with migration and credential behavior verified independently.
       mutation that made Connect Once the default is caught.
     - Authentication: Escape cancels.
   - [x] Connection-window Tab order and Shift-Tab return (see N4.1).
-  - [ ] VoiceOver listening pass (reading order, announcements), Tab order of
-    the sheets, Save-panel Command-Q and an on-device Increase Contrast look.
+  - [x] Sheet key-view loops (`NativeSettings.DraftRendering`): the password
+    sheet has 6 stops from Password in reading order; the trust, Input, Scaling
+    and Encoding sheets have closed loops in reading order that skip disabled
+    controls.
+  - [ ] VoiceOver listening pass (reading order, announcements), Save-panel
+    Command-Q and an on-device Increase Contrast look.
 - [ ] N4.18 Update parity inventory with native screenshots and UI-test/manual evidence for every control and action; record intentional differences explicitly.
 
 Exit: all existing macOS UI behaviors have tested native counterparts; no

@@ -384,6 +384,32 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   try await Task.sleep(for: .milliseconds(200))
 }
 @MainActor func dismissKeyboard(_ window: NSWindow) { window.contentView = nil; window.orderOut(nil); window.close() }
+// Walks a window's key-view loop from its current first responder until it
+// returns there, recording each stop's name and window frame.
+@MainActor func keyLoop(_ window: NSWindow) async throws -> [(name: String, frame: CGRect)] {
+  func current() -> NSView? {
+    if let editor = window.firstResponder as? NSTextView, let field = editor.delegate as? NSTextField { return field }
+    return window.firstResponder as? NSView
+  }
+  func name(_ view: NSView) -> String {
+    if let field = view as? NSTextField { return field.placeholderString ?? field.accessibilityLabel() ?? "field" }
+    if let label = view.accessibilityLabel(), !label.isEmpty { return label }
+    if let button = view as? NSButton, !button.title.isEmpty { return button.title }
+    return String(describing: type(of: view))
+  }
+  if current() == nil { window.selectNextKeyView(nil); try await Task.sleep(for: .milliseconds(60)) }
+  guard let start = current() else { throw Failure(message: "no initial key view") }
+  func stop(_ view: NSView) -> (name: String, frame: CGRect) { (name(view), view.convert(view.bounds, to: nil)) }
+  var stops = [stop(start)]
+  for _ in 0..<40 {
+    guard let view = current() else { break }
+    window.selectKeyView(following: view); try await Task.sleep(for: .milliseconds(60))
+    guard let next = current() else { break }
+    if next === start { return stops }
+    stops.append(stop(next))
+  }
+  throw Failure(message: "key-view loop did not close: \(stops.map(\.name))")
+}
 @MainActor func keyboardActions() async throws {
   let escape = (UInt16(53), "\u{1b}"), enter = (UInt16(36), "\r")
   let peer = native_test_peer_create_pattern(0)!
@@ -467,6 +493,43 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     }
     print("PASS keyboard \(name)")
   }
+  // Password sheet key-view loop: every enabled control, in visual order, closing at Password.
+  do {
+    let (window, sheet) = try await presentForKeys(AuthenticationSheet(model: model, session: session, request: credentials,
+                                                                       trustModel: model.trust))
+    let stops = try await keyLoop(sheet)
+    dismissKeyboard(window)
+    // Six stops: Password, lifetime pop-up, Use/Forget Saved Password, Cancel, Authenticate,
+    // visited in reading order (AppKit frames: larger maxY is higher on screen).
+    let reading = stops.sorted { abs($0.frame.midY - $1.frame.midY) > 4 ? $0.frame.midY > $1.frame.midY : $0.frame.minX < $1.frame.minX }
+    guard stops.count == 6, stops.first?.name == "Password", stops.map(\.frame) == reading.map(\.frame) else {
+      throw Failure(message: "password sheet key loop \(stops.map { "\($0.name)@\($0.frame.integral)" })")
+    }
+    print("PASS keyboard password sheet key loop of \(stops.count) stops in reading order, starting at Password")
+  }
+  // Other sheets: the loop closes and follows reading order.
+  func readingOrder(_ stops: [(name: String, frame: CGRect)]) -> Bool {
+    stops.map(\.frame) == stops.sorted { abs($0.frame.midY - $1.frame.midY) > 4 ? $0.frame.midY > $1.frame.midY
+      : $0.frame.minX < $1.frame.minX }.map(\.frame)
+  }
+  let loopInput = NativeInputState(); loopInput.bind(session)
+  let loopTarget = try EncodingTarget(), encodingDraft = NativeSessionEncodingDraft(target: loopTarget); encodingDraft.reload()
+  let sheets: [(String, AnyView)] = [
+    ("trust", AnyView(AuthenticationSheet(model: model, session: session, request: certificate, trustModel: model.trust))),
+    ("input", AnyView(InputSettingsSheet(model: NativeInputDraft(state: loopInput), dismiss: {}))),
+    ("scaling", AnyView(ScalingSettingsSheet(model: NativeScalingDraft(state: NativeScalingState()), dismiss: {}))),
+    ("encoding", AnyView(SessionEncodingSheet(model: encodingDraft, dismiss: {}))),
+  ]
+  for (name, content) in sheets {
+    let (window, sheet) = try await presentForKeys(content)
+    let stops = try await keyLoop(sheet)
+    dismissKeyboard(window)
+    guard stops.count >= 2, readingOrder(stops) else {
+      throw Failure(message: "\(name) sheet key loop \(stops.map { "\($0.name)@\($0.frame.integral)" })")
+    }
+    print("PASS keyboard \(name) sheet key loop of \(stops.count) stops in reading order")
+  }
+  loopInput.stop()
   await model.close()
   try await session.close(); try await runtime.shutdown()
 }
