@@ -178,3 +178,64 @@ the peer received no keys), connected Connection-menu commands (the menu showed
 "No active connection" because routing follows the key window), transient
 popovers such as Recent connections, VoiceOver and physical displays. Repeat with
 full-screen control from a regular desktop Space.
+
+## 2026-09-23 — isolated copy with full-screen control: input, commands, sheets, errors
+
+With the user's approval ("Yes, now"), computer-use took full-screen control from a
+regular desktop Space and drove an isolated copy (`tests/macos/isolated-app.py`,
+UUID bundle identifier, fresh HOME/XDG, `-SecurityTypes=None -SendClipboard=0
+-AcceptClipboard=0`) against `native-loopback-peer` over a FIFO (`status`, `resize`,
+`bell`, `keys <keysym>`). Peer counts are the RFB KeyEvents it received. The copy,
+peer and fixture domains were removed afterwards.
+
+Observed in the actual, frontmost app:
+
+- **Keyboard input** from real key events reaches the peer paired: `b`, Shift+`C`,
+  Return each down=1 up=1. (Computer-use `type` posts text events with keycode 0 and
+  no key-up; they left a keysym held until the next real press. That is a tooling
+  artifact, not app behavior, so only `key` events were used as evidence.)
+- **Connection menu** while connected lists Disconnect, Enter Full Screen, Minimize,
+  Resize Window to Desktop, Resize Remote Desktop…, Pan Desktop, Hold Control,
+  Hold Alt, Capture Keyboard, Send Ctrl-Alt-Delete, Refresh Desktop, Connection
+  Settings, Connection Information…, Show Connection Statistics and About TidyVNC….
+- **Send Ctrl-Alt-Delete** sent Control_L, Alt_L and Delete, each down=1 up=1.
+- **Hold Control** latched Control_L (down with no up); a real `x` then arrived as
+  its own down=1 up=1 while Control stayed down; toggling Hold Control off released
+  it (Control_L up count caught up to its down count).
+- **Connection Information…** sheet: server, desktop name, RFB 3.8, security None,
+  depth 24 (32 bpp) little-endian rgb888, requested Tight / last used raw, 20,000
+  kbit/s estimate, 2 × 2, 1 frame, remote resize unavailable, input "Keyboard and
+  pointer", middle-button emulation and both clipboard directions Off, with Copy
+  Diagnostics and Done. Copy Diagnostics was not pressed (the system pasteboard is
+  not isolated).
+- **Show Connection Statistics** overlay; a server-initiated **resize** to 3 × 1
+  updated the overlay (3 × 1, 2 frames), the status bar and the displayed desktop
+  live. A server **bell** was sent; audible output was not observable by the harness.
+- **Input Settings** sheet: toggling View only changes the source label to "This
+  connection override" and enables Apply. After Apply a real `z` never reached the
+  peer (down=0 up=0); reopening shows the applied override; clearing it and applying
+  restores input (`z` down=1 up=1).
+- **Scaling Settings** sheet: the Scaling quality pop-up (Nearest neighbor /
+  Bilinear / Area averaging) switched to Nearest neighbor; after Apply the 3 × 1
+  desktop was shown as three sharp blocks instead of a bilinear gradient.
+- **Connection Encoding** sheet: clearing "Choose encoding and quality
+  automatically" enables Preferred encoding and Full color and turns Done into
+  Cancel; Cancel discards the draft (reopening shows the built-in automatic state).
+- **Disconnect** returns to "Disconnected" with Connect and the address editable
+  and input/scaling/encoding toolbar actions disabled.
+- **Recent connections** popover lists the isolated history entry with a clear
+  button, Reload and Clear Recent Connections; choosing the entry fills the address.
+- **Cancel during a stalled handshake** (the single-connection peer accepts TCP but
+  never answers a second session) returns to Disconnected promptly.
+- **Refused connection** (`127.0.0.1::1`, typed then Return) shows a "Connection
+  Refused" alert with port/service guidance and Cancel (default) and Retry; Cancel
+  leaves "Connection failed" in the window and status bar.
+- **App Settings** (TidyVNC › Settings…) opens "Connection Defaults" separately from
+  the live sheets; editing a clipboard default shows "App default override" and
+  enables Cancel Edits / Apply; Cancel Edits reverts to "Uses the built-in default".
+- TidyVNC › Quit TidyVNC exits cleanly with an open Settings window.
+
+Still not established: VoiceOver and high-contrast/reduced-motion passes, full
+keyboard-only traversal of every sheet, fullscreen and multi-display behavior,
+clipboard exchange (kept off because the pasteboard is not isolated), audible bell,
+authentication/trust sheets interactively, and physical 1×/2× displays.

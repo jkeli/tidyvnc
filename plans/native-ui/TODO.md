@@ -535,6 +535,8 @@ UI uses, with migration and credential behavior verified independently.
   - [x] Separate live-session encoding draft/apply/cancel, sourced immutable values,
     generation/baseline guards, cancellation reconciliation and sheet cleanup.
     Fault-injected models, two real sessions and actual app-controller tests pass.
+  - [x] Actual-app live encoding sheet: automatic toggle enables dependent
+    controls and Cancel discards the draft ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 full-screen pass).
   - [ ] Interactive keyboard/accessibility and visible live-encoding acceptance.
 - [ ] N4.5 Security settings: encryption/authentication options, CA/CRL pickers and reconnect-required changes with unchanged negotiation policy.
   - [x] CA/CRL defaults/profile controls and new-window application.
@@ -554,7 +556,9 @@ UI uses, with migration and credential behavior verified independently.
     AppKit shortcut routing, permission guidance and injected capture lifetime tests.
   - [x] Typed app-default/profile input persistence, pre-connect installation,
     fieldwise inheritance and live-source labels; saved changes affect new windows.
-  - [ ] Interactive acceptance of input/clipboard/shortcut controls.
+  - [x] Actual-app view-only Apply/clear and source labels, verified by peer key
+    counts ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 full-screen pass).
+  - [ ] Interactive clipboard/shortcut/keyboard-only and VoiceOver acceptance.
 - [ ] N4.7 Scaling settings: eight modes, custom dimensions/decimal percentages, validation/help, filters and logical/device units.
   - [x] Connection-local eight-mode Apply/Cancel sheet, custom values, shared-parser
     validation/help and logical/device units; atomic view geometry and inverse
@@ -566,6 +570,8 @@ UI uses, with migration and credential behavior verified independently.
     canonical saves, initial desktop installation and per-field live source labels.
   - [x] Native menu and accessibility pan actions with edge gating, logical/device
     units, resize clamping and coherent displayed-image/pointer mapping.
+  - [x] Actual-app scaling-quality pop-up and Apply change the displayed filter
+    live (nearest vs bilinear) ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 full-screen pass).
   - [ ] Full interactive keyboard/VoiceOver acceptance of scaling and pan controls.
 - [ ] N4.8 Display/miscellaneous settings: window/current/all/selected screens and visual chooser, remote resize policy, shared/reconnect settings and capability-gated optional features.
   - [x] Shared-session ClientInit policy and explicit Retry option: defaults/profile
@@ -603,6 +609,8 @@ UI uses, with migration and credential behavior verified independently.
     copied drafts preserve untouched inherited values and existing-session isolation.
   - [x] Scaling defaults/profile inheritance and live-source separation, with
     invalid-save gating, canonical draft reconciliation and new-window-only loading.
+  - [x] Actual-app Settings window separate from live sheets; app-default and
+    connection-override labels, Cancel Edits and Apply gating ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 full-screen pass).
   - [ ] Broader settings and their live-session sheets, complete effective-source/
     reconnect-required flows and interactive keyboard/accessibility verification.
 - [ ] N4.10 Desktop commands/context menu: disconnect, fullscreen/minimize/resize-to-session, Ctrl/Alt toggles, Ctrl-Alt-Del, refresh, options, info and About; route to focused session.
@@ -614,6 +622,8 @@ UI uses, with migration and credential behavior verified independently.
     held-input/capture release, bounded retry recovery and lifecycle cancellation.
   - [x] Negotiated connection information matching the retained viewer's fields,
     copied from bounded core observations, with redacted diagnostic copying.
+  - [x] Actual-app connected Connection menu, Ctrl-Alt-Delete, Hold Control latch
+    and release, and Disconnect verified by peer key counts ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 full-screen pass).
   - [ ] Physical fullscreen/minimize and multi-display transitions and interactive acceptance.
 - [ ] N4.11 Native app menus/Dock/new connection/open document/quit; Finder, CLI, explicit file, reverse/listen and supported tunnel entry paths work without secret-bearing relaunch arguments.
   - [x] Implement AlertOnFatalError with immutable launch/session scope, retained
@@ -689,12 +699,16 @@ UI uses, with migration and credential behavior verified independently.
     information; Connection/toolbar/context menu toggle and lifecycle reset.
   - [x] Passive statistics on every owned fullscreen surface, shared sampled
     values, in-place menu toggles and transition/disconnect cleanup.
-  - [ ] Broader performance metrics and interactive acceptance.
+  - [x] Actual-app information sheet and statistics overlay, including a live
+    server-resize update ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 full-screen pass).
+  - [ ] Broader performance metrics and VoiceOver acceptance.
 - [ ] N4.13 Errors/reconnect/permission guidance with correct category, Retry/Cancel and safe context; routing errors do not assert a proven privacy denial.
   - [x] Typed redacted connection/command errors, unexpected-disconnect alerts,
     explicit generation-scoped Retry/Cancel and address/lifecycle guards.
   - [x] Distinct DNS, refused, timeout, routing and suspected network-policy
     guidance; no privacy-denial assertion from a routing error.
+  - [x] Actual-app refused-connection alert (Cancel default, Retry) and Cancel of a
+    stalled handshake ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 full-screen pass).
   - [ ] Interactive alert/keyboard/accessibility acceptance and native localization.
 - [ ] N4.14 Open/save/import/overwrite confirmations with native panels, cancellation and filesystem error recovery.
 - [ ] N4.15 About/credits/help with correct identity, licenses, attribution and support links.
