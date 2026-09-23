@@ -8,14 +8,14 @@ public struct NativeConnectionStatisticsOverlay: View {
   public init(information: NativeConnectionInformation) { self.information = information }
   public var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text("Connection Statistics").font(.headline)
+      Text(String(localized:"information.connection.statistics", defaultValue:"Connection Statistics")).font(.headline)
       Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 5) {
-        row("Desktop", "\(information.width) × \(information.height)")
-        row("Frames received", "\(information.frames)")
-        row("Encoding", information.lastEncoding < 0 ? "Not received" : information.lastEncodingName)
-        row("Line speed estimate", information.frames == 0 ? "Not sampled" : "\(information.bitsPerSecond / 1000) kbit/s")
-        row("Protocol", "RFB \(information.protocolMajor).\(information.protocolMinor)")
-        row("Security method", information.securityName)
+        row(String(localized:"information.desktop", defaultValue:"Desktop"), String(localized:"information.desktop.size", defaultValue:"\((information.width).formatted()) × \((information.height).formatted())"))
+        row(String(localized:"information.frames.received", defaultValue:"Frames received"), information.frames.formatted())
+        row(String(localized:"settings.section.encoding", defaultValue:"Encoding"), information.lastEncoding < 0 ? String(localized:"information.not.received", defaultValue:"Not received") : information.lastEncodingName)
+        row(String(localized:"information.line.speed.estimate", defaultValue:"Line speed estimate"), information.frames == 0 ? String(localized:"information.not.sampled", defaultValue:"Not sampled") : String(localized:"information.speed", defaultValue:"\((information.bitsPerSecond / 1000).formatted()) kbit/s"))
+        row(String(localized:"information.protocol", defaultValue:"Protocol"), "RFB \(information.protocolMajor).\(information.protocolMinor)")
+        row(String(localized:"information.security.method", defaultValue:"Security method"), information.securityName)
       }.font(.caption).monospacedDigit()
     }
     .padding(12)
@@ -24,7 +24,7 @@ public struct NativeConnectionStatisticsOverlay: View {
     .allowsHitTesting(false)
     .accessibilityElement(children: .combine)
     .accessibilityIdentifier("connection.statistics")
-    .accessibilityHint("Use Show Connection Statistics in the Connection menu to hide these statistics.")
+    .accessibilityHint(String(localized:"information.use.show.connection.statistics.in.the.connection.menu.to.hide.these.statistics", defaultValue:"Use Show Connection Statistics in the Connection menu to hide these statistics."))
   }
   private func row(_ label: String, _ value: String) -> some View {
     GridRow {

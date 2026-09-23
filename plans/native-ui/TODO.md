@@ -2,12 +2,13 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The catalog now has **851** entries;
-defaults-import source/review/mapping/recovery and first-use text join the migrated
-document, listener, profile/history and settings groups. Expanded minimum-size
-fixtures keep consent/recovery/actions visible. Next: app menus/connection/status,
-file panels and remaining controlled controller/gateway errors, plus integrated
-window acceptance. Interactive/physical/installed and release gates stay open.
+implementation, validation and next steps. The catalog now has **973** entries;
+app menus/panels, connection controls/status and information/statistics join the
+migrated settings/import/document/profile/history/listener groups. Expanded and
+mirrored fixtures now exercise the actual connection content at 640×420. Compact
+idle guidance remains readable against the black desktop. Next: controlled
+controller/gateway/status errors and actual window/menu/file-panel accessibility.
+Interactive/physical/installed and release gates stay open.
 The prior commit checkpoint passed the full native suite **85/85 (130.78 s)**.
 Latest presentation-only checks and their limits are recorded at the end of this
 file; no new full-suite/sanitizer/minimum-OS acceptance is implied.
@@ -9045,3 +9046,59 @@ branding}.log`. Images: `/tmp/tidyvnc-defaults-import-expanded/`,
 `import-ui-render` / `defaults-mapping-ui-render` fixture directories.
 All process handles completed. Continue app menus/connection/status, file panels,
 remaining controlled controller/gateway errors and the full unchecked plan.
+
+
+### 2026-09-22 — App menus and integrated connection localization
+
+Added 122 entries (**973** total) for app/window/file-panel presentation, SwiftUI
+and AppKit context menus, connection controls and state labels, information/
+statistics and fixed app recovery messages. Complete clipboard/profile provenance,
+size and speed templates preserve literal percent/Unicode arguments. Display
+numbers use locale formatting; protocol versions, server values, diagnostic copy,
+shortcuts, action IDs and stored/file data are unchanged.
+
+Extracted ConnectionContent into a shared app/fixture source. The rendering fixture
+uses isolated stores and a direct loopback handshake; no user credentials or tunnel
+backend are invoked. First-use (both offers), gateway, idle and connected views use
+640×420, information 560×650, and statistics a 296-point content width plus padding
+inside a 320×300 host. Statistics retain intrinsic height as in fullscreen; no
+fixed production height was introduced. The viewport helper disables host resizing,
+checks proposed/actual sizes and rejects wholly blank bitmaps. Existing settings
+fitting checks remain. The expansion runner supports repeatable `--renderer-arg`.
+
+Initial unconstrained fitting checks produced oversized host images and a false
+statistics-width failure. These were fixture errors, not proof of a production
+minimum-size regression. Expanded first-use content motivated a compact placeholder
+fallback; white text fixes its contrast on the black desktop in light appearance.
+One image preview omitted layers, but rereading the same PNG showed the complete
+capture; speculative visible-window/cache/warmup workarounds were removed.
+
+Validation:
+
+- Panning/context-menu routing, complete settings rendering and fullscreen statistics
+  input/geometry/lifetime checks: **3/3 (30.16 s)** before the final placeholder fix.
+  The finalized settings fixture passes **1/1 (33.57 s)**.
+- Expanded connection and mirrored connection fixtures pass in both appearances.
+  Final light first-use capture shows both offers/actions, address and gateway
+  fields, toolbar, compact idle guidance and Ready footer within the minimum size.
+  Information and statistics wrap without losing fields. Expanded fullscreen
+  statistics pass visibility, input pass-through, session isolation and teardown.
+- Final app build, strict deep signature, **973** packaged values/fallback/
+  interpolation and **32/32** actual executable terminal cases pass. Branding
+  baseline **1650** and whitespace checks pass. Retained gettext/attribution intact.
+- No full-suite/sanitizer rerun. Synthetic mirrored English is not translation or
+  VoiceOver acceptance. Actual menus/file panels, user-app keyboard navigation,
+  physical/network/installed-app/minimum-OS/CI/performance/release gates remain open.
+  The known temporary-app sandbox-extension diagnostic accompanies successful
+  fixture assertions. Dependency deployment warnings remain. No CUA/user-app action.
+
+Evidence: `/tmp/tidyvnc-app-localization-{tests,fullscreen-expanded,contrast-build,
+contrast-app,final-fixture-build,contrast-expanded,complete-tests,complete-rtl,
+complete-bundle,complete-terminal,branding}.log`. Final source-equivalent expanded
+captures: `/tmp/tidyvnc-connection-contrast-expanded/`; mirrored captures:
+`/tmp/tidyvnc-connection-complete-rtl/`. The extra warmup in
+`/tmp/tidyvnc-connection-accepted-expanded/` was later removed; its reread first-use
+PNG also shows the final production layout. Ordinary captures are in settings-render.
+
+All recorded process handles completed. Continue remaining controller/gateway/status
+localization and every unchecked item.

@@ -18,11 +18,11 @@ public enum NativeDesktopPan: CaseIterable, Sendable {
   case left, right, up, down, origin
   public var title: String {
     switch self {
-    case .left: return "Pan Left"
-    case .right: return "Pan Right"
-    case .up: return "Pan Up"
-    case .down: return "Pan Down"
-    case .origin: return "Return to Top Left"
+    case .left: return String(localized:"desktop.pan.left", defaultValue:"Pan Left")
+    case .right: return String(localized:"desktop.pan.right", defaultValue:"Pan Right")
+    case .up: return String(localized:"desktop.pan.up", defaultValue:"Pan Up")
+    case .down: return String(localized:"desktop.pan.down", defaultValue:"Pan Down")
+    case .origin: return String(localized:"desktop.return.to.top.left", defaultValue:"Return to Top Left")
     }
   }
 }
@@ -250,7 +250,7 @@ public enum NativeDesktopCommandIssue: Error { case unavailable }
       do { try await Task.sleep(for: timeout) } catch { return }
       guard let self, !Task.isCancelled, self.minimizeID == ticket, self.isMinimizing else { return }
       self.cancelMinimize()
-      self.windowMessage = "The window could not be minimized. Try Minimize again."
+      self.windowMessage = String(localized:"desktop.the.window.could.not.be.minimized.try.minimize.again", defaultValue:"The window could not be minimized. Try Minimize again.")
       self.host?.refreshCommandFocus()
     }
     if minimizePhase == .exitingFullscreen { window.toggleFullScreen(nil) }

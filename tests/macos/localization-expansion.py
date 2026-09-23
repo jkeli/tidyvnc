@@ -16,11 +16,12 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("renderer", type=Path)
 parser.add_argument("catalog", type=Path)
 parser.add_argument("output", type=Path)
-parser.add_argument("--prefix", action="append", help="Catalog prefix to expand (repeatable). Defaults to authentication, credentials, trust, actions, settings, profiles, history, listener, documents, defaults import and endpoint errors.")
+parser.add_argument("--prefix", action="append", help="Catalog prefix to expand (repeatable). Defaults to authentication, credentials, trust, actions, settings, profiles, history, listener, documents, defaults import, app menus/connection, desktop commands, information and endpoint errors.")
 parser.add_argument("--rtl", action="store_true", help="Mirror the fixture layout; this is not a translated-language acceptance test.")
 parser.add_argument("--named-output", action="store_true", help="Run app-style fixture arguments: --verify --output DIRECTORY.")
+parser.add_argument("--renderer-arg", action="append", default=[], help="Additional fixture argument (repeatable; use --renderer-arg=--flag).")
 args = parser.parse_args()
-prefixes = tuple(args.prefix or ["authentication.", "credentials.", "trust.", "action.", "settings.", "profiles.", "history.", "listener.", "document.", "import.defaults.", "endpoint.issue.", "import.source."])
+prefixes = tuple(args.prefix or ["authentication.", "credentials.", "trust.", "action.", "settings.", "profiles.", "history.", "listener.", "document.", "import.defaults.", "app.", "desktop.", "information.", "endpoint.issue.", "import.source."])
 catalog = json.loads(args.catalog.read_text())
 assert catalog["sourceLanguage"] == "en"
 with tempfile.TemporaryDirectory(prefix="tidyvnc-localization-") as directory:
@@ -48,4 +49,5 @@ with tempfile.TemporaryDirectory(prefix="tidyvnc-localization-") as directory:
     command = [str(executable)] + (["--verify", "--output"] if args.named_output else []) + [str(args.output.resolve())]
     if args.rtl:
         command.append("--rtl")
+    command.extend(args.renderer_arg)
     subprocess.run(command, check=True)

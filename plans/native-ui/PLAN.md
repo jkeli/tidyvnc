@@ -3,11 +3,11 @@
 For the current implementation checkpoint and restart instructions, see
 [RESUME.md](RESUME.md) (updated 2026-09-22). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
-review, native Help/About resources, and 851 English-source localization entries
+review, native Help/About resources, and 973 English-source localization entries
 are implemented. Actual Help/About interaction and expanded Settings/trust layouts
 now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
-input/display, installed-app and release gates are not yet accepted. Continue remaining menu/connection/status and file-panel localization and fixed
-controller/gateway errors, plus interactive acceptance. Profile/history/import text
+input/display, installed-app and release gates are not yet accepted. Continue remaining controlled controller/gateway/status errors and interactive
+window/menu/file-panel acceptance. Profile/history/import text
 and minimum-window fixes now have focused evidence. Defaults-import and listener
 hosts now also preserve their content minimums after AppKit layout; reverse hosts
 use the same policy, with actual-app acceptance still open. Fullscreen/remote-resize fields now also have localized
@@ -17,7 +17,10 @@ catalog coverage, expanded minimum-size renders and scroll reachability evidence
 Connection-file review/export, monitor mapping and file/invocation diagnostics now
 also have catalog coverage and focused admission/layout/packaging evidence.
 Defaults-import and first-use/source/recovery text now have expanded minimum-size
-fixtures; combined connection-window and interactive acceptance remain open.
+fixtures. App menus, connection state/controls and information/statistics now have
+catalog coverage. Integrated connection fixtures check 640×420 with expanded and
+mirrored text; idle guidance has a compact, high-contrast fallback. Actual user-app
+interaction and accessibility acceptance remain open.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,

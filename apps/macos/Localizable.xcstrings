@@ -10211,6 +10211,1470 @@
           }
         }
       }
+    },
+    "app.connection.file": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection File"
+          }
+        }
+      }
+    },
+    "app.saved.profiles.are.unavailable": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved profiles are unavailable."
+          }
+        }
+      }
+    },
+    "app.saved.defaults.are.unavailable": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved defaults are unavailable."
+          }
+        }
+      }
+    },
+    "app.the.application.is.closing": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The application is closing."
+          }
+        }
+      }
+    },
+    "app.incoming.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incoming Connection"
+          }
+        }
+      }
+    },
+    "app.defaults.import.is.unavailable": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Defaults import is unavailable"
+          }
+        }
+      }
+    },
+    "app.check.the.native.settings.store.and.the.home.xdg.configuration.paths.then": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the native settings store and the home/XDG configuration paths, then reopen the app."
+          }
+        }
+      }
+    },
+    "app.history.import.is.unavailable": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History import is unavailable"
+          }
+        }
+      }
+    },
+    "app.check.the.home.xdg.paths.then.reopen.the.app": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the home/XDG paths, then reopen the app."
+          }
+        }
+      }
+    },
+    "app.open.connection.file": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Connection File"
+          }
+        }
+      }
+    },
+    "app.review": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review"
+          }
+        }
+      }
+    },
+    "app.save.connection.file": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Connection File"
+          }
+        }
+      }
+    },
+    "app.quit.tidyvnc": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit TidyVNC"
+          }
+        }
+      }
+    },
+    "app.listen.for.connections": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listen for Connections…"
+          }
+        }
+      }
+    },
+    "app.open.connection.file.title": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Connection File…"
+          }
+        }
+      }
+    },
+    "app.save.connection.file.as": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Connection File As…"
+          }
+        }
+      }
+    },
+    "app.import.connection.defaults": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Connection Defaults…"
+          }
+        }
+      }
+    },
+    "app.import.recent.connections": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Recent Connections…"
+          }
+        }
+      }
+    },
+    "app.saved.server.keys": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Server Keys…"
+          }
+        }
+      }
+    },
+    "app.saved.certificate.decisions": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Certificate Decisions…"
+          }
+        }
+      }
+    },
+    "app.saved.profiles": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Profiles…"
+          }
+        }
+      }
+    },
+    "app.no.active.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No active connection"
+          }
+        }
+      }
+    },
+    "app.retry.command.line.options": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry Command-Line Options"
+          }
+        }
+      }
+    },
+    "app.retry.profile": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry Profile"
+          }
+        }
+      }
+    },
+    "app.use.built.in.defaults.for.this.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Built-in Defaults for This Connection"
+          }
+        }
+      }
+    },
+    "app.loading.connection.defaults": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading connection defaults…"
+          }
+        }
+      }
+    },
+    "app.unable.to.start.a.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to start a connection"
+          }
+        }
+      }
+    },
+    "app.please.try.again": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please try again."
+          }
+        }
+      }
+    },
+    "app.source.address.of.this.incoming.connection.it.is.not.an.outbound.destination": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source address of this incoming connection; it is not an outbound destination."
+          }
+        }
+      }
+    },
+    "app.disconnect": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect"
+          }
+        }
+      }
+    },
+    "app.saved.profiles.title": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved profiles"
+          }
+        }
+      }
+    },
+    "app.clipboard.sharing.for.this.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard sharing for this connection"
+          }
+        }
+      }
+    },
+    "app.connection.actions": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection actions"
+          }
+        }
+      }
+    },
+    "app.input.settings.for.this.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input settings for this connection"
+          }
+        }
+      }
+    },
+    "app.input.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input settings"
+          }
+        }
+      }
+    },
+    "app.scaling.settings.for.this.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling settings for this connection"
+          }
+        }
+      }
+    },
+    "app.scaling.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling settings"
+          }
+        }
+      }
+    },
+    "app.encoding.settings.for.this.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding settings for this connection"
+          }
+        }
+      }
+    },
+    "app.encoding.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding settings"
+          }
+        }
+      }
+    },
+    "app.incoming.connection.to.reconnect.ask.the.server.to.connect.to.the.listener": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incoming connection. To reconnect, ask the server to connect to the listener again. Passwords, trust decisions and this temporary address are not saved."
+          }
+        }
+      }
+    },
+    "app.enter.a.vnc.server.address.to.begin": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a VNC server address to begin."
+          }
+        }
+      }
+    },
+    "app.keyboard.captured": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard captured"
+          }
+        }
+      }
+    },
+    "app.connection.problem": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Problem"
+          }
+        }
+      }
+    },
+    "app.retry": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        }
+      }
+    },
+    "app.ok": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "app.clipboard.settings.could.not.be.changed.try.again": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clipboard settings could not be changed. Try again."
+          }
+        }
+      }
+    },
+    "app.ready": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        }
+      }
+    },
+    "app.resolving.server": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolving server…"
+          }
+        }
+      }
+    },
+    "app.connecting": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecting…"
+          }
+        }
+      }
+    },
+    "app.waiting.for.authentication": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for authentication"
+          }
+        }
+      }
+    },
+    "app.connected": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected"
+          }
+        }
+      }
+    },
+    "app.disconnecting": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnecting…"
+          }
+        }
+      }
+    },
+    "app.disconnected": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnected"
+          }
+        }
+      }
+    },
+    "app.connection.failed": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection failed"
+          }
+        }
+      }
+    },
+    "app.clipboard.send.source": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send: %@"
+          }
+        }
+      }
+    },
+    "app.clipboard.receive.source": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receive: %@"
+          }
+        }
+      }
+    },
+    "app.profile.source": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings from profile: %@"
+          }
+        }
+      }
+    },
+    "information.desktop.size": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ × %@"
+          }
+        }
+      }
+    },
+    "desktop.exit.full.screen": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit Full Screen"
+          }
+        }
+      }
+    },
+    "desktop.enter.full.screen": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter Full Screen"
+          }
+        }
+      }
+    },
+    "desktop.minimize": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimize"
+          }
+        }
+      }
+    },
+    "desktop.resize.window.to.desktop": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize Window to Desktop"
+          }
+        }
+      }
+    },
+    "desktop.resize.remote.desktop": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize Remote Desktop…"
+          }
+        }
+      }
+    },
+    "desktop.requires.server.resize.support.and.input.access": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires server resize support and input access."
+          }
+        }
+      }
+    },
+    "desktop.pan.desktop": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pan Desktop"
+          }
+        }
+      }
+    },
+    "desktop.hold.control": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold Control"
+          }
+        }
+      }
+    },
+    "desktop.hold.alt": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold Alt"
+          }
+        }
+      }
+    },
+    "desktop.release.keyboard": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release Keyboard"
+          }
+        }
+      }
+    },
+    "desktop.capture.keyboard": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture Keyboard"
+          }
+        }
+      }
+    },
+    "desktop.send.ctrl.alt.delete": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send Ctrl-Alt-Delete"
+          }
+        }
+      }
+    },
+    "desktop.refresh.desktop": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Desktop"
+          }
+        }
+      }
+    },
+    "desktop.connection.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Settings"
+          }
+        }
+      }
+    },
+    "desktop.fullscreen.displays": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fullscreen Displays…"
+          }
+        }
+      }
+    },
+    "desktop.input": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input…"
+          }
+        }
+      }
+    },
+    "desktop.remote.resize": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote Resize…"
+          }
+        }
+      }
+    },
+    "desktop.scaling": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling…"
+          }
+        }
+      }
+    },
+    "desktop.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection…"
+          }
+        }
+      }
+    },
+    "desktop.disconnect.before.changing.shared.access.or.retry.options": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect before changing shared access or Retry options."
+          }
+        }
+      }
+    },
+    "desktop.security": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security…"
+          }
+        }
+      }
+    },
+    "desktop.disconnect.before.editing.security.for.the.next.connection": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect before editing security for the next connection."
+          }
+        }
+      }
+    },
+    "desktop.encoding": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding…"
+          }
+        }
+      }
+    },
+    "desktop.connection.information": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Information…"
+          }
+        }
+      }
+    },
+    "desktop.show.connection.statistics": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Connection Statistics"
+          }
+        }
+      }
+    },
+    "desktop.input.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Settings…"
+          }
+        }
+      }
+    },
+    "desktop.remote.resize.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote Resize Settings…"
+          }
+        }
+      }
+    },
+    "desktop.scaling.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scaling Settings…"
+          }
+        }
+      }
+    },
+    "desktop.connection.options": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Options…"
+          }
+        }
+      }
+    },
+    "desktop.security.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security Settings…"
+          }
+        }
+      }
+    },
+    "desktop.encoding.settings": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encoding Settings…"
+          }
+        }
+      }
+    },
+    "information.connection.information": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Information"
+          }
+        }
+      }
+    },
+    "information.server": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        }
+      }
+    },
+    "information.desktop.name": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop name"
+          }
+        }
+      }
+    },
+    "information.unnamed": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed"
+          }
+        }
+      }
+    },
+    "information.protocol": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protocol"
+          }
+        }
+      }
+    },
+    "information.security.method": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Security method"
+          }
+        }
+      }
+    },
+    "information.pixel.format": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pixel format"
+          }
+        }
+      }
+    },
+    "information.requested.encoding": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requested encoding"
+          }
+        }
+      }
+    },
+    "information.last.used.encoding": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last used encoding"
+          }
+        }
+      }
+    },
+    "information.not.received": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not received"
+          }
+        }
+      }
+    },
+    "information.line.speed.estimate": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line speed estimate"
+          }
+        }
+      }
+    },
+    "information.not.sampled": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sampled"
+          }
+        }
+      }
+    },
+    "information.desktop.size.title": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop size"
+          }
+        }
+      }
+    },
+    "information.frames.received": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frames received"
+          }
+        }
+      }
+    },
+    "information.remote.resize": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remote resize"
+          }
+        }
+      }
+    },
+    "information.requested": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requested"
+          }
+        }
+      }
+    },
+    "information.available": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available"
+          }
+        }
+      }
+    },
+    "information.keyboard.and.pointer": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard and pointer"
+          }
+        }
+      }
+    },
+    "information.middle.button.emulation": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Middle-button emulation"
+          }
+        }
+      }
+    },
+    "information.send.clipboard": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send clipboard"
+          }
+        }
+      }
+    },
+    "information.receive.clipboard": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receive clipboard"
+          }
+        }
+      }
+    },
+    "information.copy.diagnostics": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Diagnostics"
+          }
+        }
+      }
+    },
+    "information.copies.connection.details.without.the.server.address.or.desktop.name": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copies connection details without the server address or desktop name."
+          }
+        }
+      }
+    },
+    "information.speed": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kbit/s"
+          }
+        }
+      }
+    },
+    "information.connection.statistics": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection Statistics"
+          }
+        }
+      }
+    },
+    "information.desktop": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desktop"
+          }
+        }
+      }
+    },
+    "information.use.show.connection.statistics.in.the.connection.menu.to.hide.these.statistics": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Show Connection Statistics in the Connection menu to hide these statistics."
+          }
+        }
+      }
+    },
+    "desktop.pan.left": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pan Left"
+          }
+        }
+      }
+    },
+    "desktop.pan.right": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pan Right"
+          }
+        }
+      }
+    },
+    "desktop.pan.up": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pan Up"
+          }
+        }
+      }
+    },
+    "desktop.pan.down": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pan Down"
+          }
+        }
+      }
+    },
+    "desktop.return.to.top.left": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to Top Left"
+          }
+        }
+      }
+    },
+    "desktop.the.window.could.not.be.minimized.try.minimize.again": {
+      "comment": "Native application presentation. Addresses, names and protocol values are literal arguments; placeholders may be reordered. Keyboard shortcuts and stable identifiers remain unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The window could not be minimized. Try Minimize again."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

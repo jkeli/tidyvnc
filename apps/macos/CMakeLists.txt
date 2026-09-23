@@ -31,6 +31,7 @@ add_executable(TidyVNC MACOSX_BUNDLE TidyVNC/TidyVNCMain.swift TidyVNC/TidyVNCAp
   TidyVNC/ApplicationHelpView.swift
   TidyVNC/SSHAuthenticationSheet.swift
   ${askpass_helper}
+  TidyVNC/ConnectionContent.swift
   TidyVNC/DocumentExportView.swift
   TidyVNC/ListenerModel.swift
   TidyVNC/ListenerView.swift

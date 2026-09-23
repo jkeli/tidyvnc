@@ -18,25 +18,25 @@ struct TidyVNCApp: App {
     WindowGroup("TidyVNC", id: "profile-connection", for: ProfileConnectionRequest.self) { $request in
       if let request { ConnectionRoot(coordinator: coordinator, profileID: request.profileID) }
     }.defaultSize(width: 960, height: 700)
-    WindowGroup("Connection File", id: "document-connection", for: NativeDocumentOpenRequest.self) { $request in
+    WindowGroup(String(localized:"app.connection.file", defaultValue:"Connection File"), id: "document-connection", for: NativeDocumentOpenRequest.self) { $request in
       if let request {
         ConnectionRoot(coordinator:coordinator,document:request)
           .navigationTitle(request.url.lastPathComponent)
       }
     }.defaultSize(width:960,height:700)
-    Window("Saved Profiles", id: "profiles") {
+    Window(String(localized:"profiles.saved.profiles", defaultValue:"Saved Profiles"), id: "profiles") {
       if let library = coordinator.profileLibrary { ProfileLibraryRoot(model: library) }
-      else { Text("Saved profiles are unavailable.").padding(24) }
+      else { Text(String(localized:"app.saved.profiles.are.unavailable", defaultValue:"Saved profiles are unavailable.")).padding(24) }
     }.defaultSize(width:940,height:680)
-    Window("Saved Server Keys", id: "server-keys") {
+    Window(String(localized:"trust.library.ui.saved.server.keys", defaultValue:"Saved Server Keys"), id: "server-keys") {
       if let library = coordinator.hostKeyLibrary { TrustLibraryView(model: library) }
     }
-    Window("Saved Certificate Decisions", id: "trust-decisions") {
+    Window(String(localized:"trust.library.ui.saved.certificate.decisions", defaultValue:"Saved Certificate Decisions"), id: "trust-decisions") {
       if let library = coordinator.trustLibrary { TrustLibraryView(model: library) }
     }
     Settings {
       if let settings = coordinator.settings { PreferencesSettingsView(model: settings) }
-      else { Text("Saved defaults are unavailable.").padding(24) }
+      else { Text(String(localized:"app.saved.defaults.are.unavailable", defaultValue:"Saved defaults are unavailable.")).padding(24) }
     }
     Window(String(localized:"help.title", defaultValue:"TidyVNC Help"),id:"help") {
       ApplicationHelpView()
@@ -113,7 +113,7 @@ struct TidyVNCApp: App {
   }
   func takeInvocation() -> NativeInvocationLaunch? { invocationStartup.take() }
   func makeConnection(profileID: UUID? = nil, document: NativeDocumentOpenRequest? = nil, launch: NativeInvocationLaunch? = nil) -> ConnectionModel {
-    guard let runtime, let preferences, !quitting else { return ConnectionModel(error: startupError ?? "The application is closing.") }
+    guard let runtime, let preferences, !quitting else { return ConnectionModel(error: startupError ?? String(localized:"app.the.application.is.closing", defaultValue:"The application is closing.")) }
     return ConnectionModel(runtime: runtime, preferences: preferences, displays: displays, history: history, profileStore: profiles, profileID: profileID,
       document:document ?? launch?.document,invocation:launch?.invocation,connectOnReady:launch?.connectsOnReady == true,launchCredentials:launch?.credentials,credentialStore: credentials, trustStore: trustStore, savedTrustStore: savedTrust,hostKeyStore: savedHostKeys) { [weak self] session, model in
       model.fullscreen.onActivate = { [weak self, weak model] in if let model { self?.active = model } }
@@ -158,7 +158,7 @@ struct TidyVNCApp: App {
     }
     let window = NSWindow(contentRect:NSRect(x:0,y:0,width:960,height:700),
       styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
-    window.title = "Incoming Connection"; window.isReleasedWhenClosed = false
+    window.title = String(localized:"app.incoming.connection", defaultValue:"Incoming Connection"); window.isReleasedWhenClosed = false
     let content = NSHostingController(rootView:ConnectionRoot(coordinator:self,model:model)); content.sizingOptions = [.minSize]
     window.contentViewController = content
     window.setContentSize(NSSize(width:960,height:700))
@@ -171,8 +171,8 @@ struct TidyVNCApp: App {
     if let defaultsImportWindow { defaultsImportWindow.showWindow(nil); return }
     guard let defaultsImportService else {
       let alert = NSAlert()
-      alert.messageText = "Defaults import is unavailable"
-      alert.informativeText = "Check the native settings store and the home/XDG configuration paths, then reopen the app."
+      alert.messageText = String(localized:"app.defaults.import.is.unavailable", defaultValue:"Defaults import is unavailable")
+      alert.informativeText = String(localized:"app.check.the.native.settings.store.and.the.home.xdg.configuration.paths.then", defaultValue:"Check the native settings store and the home/XDG configuration paths, then reopen the app.")
       alert.runModal(); return
     }
     let controller = DefaultsImportWindowController(service:defaultsImportService,displays:{ [displays] in
@@ -187,8 +187,8 @@ struct TidyVNCApp: App {
     if let historyImportWindow { historyImportWindow.showWindow(nil); return }
     guard let historyImportService else {
       let alert = NSAlert()
-      alert.messageText = "History import is unavailable"
-      alert.informativeText = "Check the home/XDG paths, then reopen the app."
+      alert.messageText = String(localized:"app.history.import.is.unavailable", defaultValue:"History import is unavailable")
+      alert.informativeText = String(localized:"app.check.the.home.xdg.paths.then.reopen.the.app", defaultValue:"Check the home/XDG paths, then reopen the app.")
       alert.runModal(); return
     }
     let controller = HistoryImportWindowController(service:historyImportService,reloadHistory:{ [history] in
@@ -201,7 +201,7 @@ struct TidyVNCApp: App {
   func openDocument(_ open: @escaping @MainActor (NativeDocumentOpenRequest) -> Void) {
     guard !quitting, documentPanel == nil else { return }
     let panel = NSOpenPanel()
-    panel.title = "Open Connection File"; panel.prompt = "Review"
+    panel.title = String(localized:"app.open.connection.file", defaultValue:"Open Connection File"); panel.prompt = String(localized:"app.review", defaultValue:"Review")
     panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
     documentPanel = panel
     panel.begin { [weak self, weak panel] result in
@@ -219,10 +219,10 @@ struct TidyVNCApp: App {
       model.documentSave.cancel(id); return
     }
     let panel = NSSavePanel()
-    panel.title = "Save Connection File"; panel.prompt = "Save"
+    panel.title = String(localized:"app.save.connection.file", defaultValue:"Save Connection File"); panel.prompt = String(localized:"profiles.save", defaultValue:"Save")
     panel.allowedContentTypes = [type]; panel.allowsOtherFileTypes = false
     panel.isExtensionHidden = false; panel.canCreateDirectories = true
-    panel.nameFieldStringValue = "Connection"
+    panel.nameFieldStringValue = String(localized:"settings.section.connection", defaultValue:"Connection")
     documentSavePanels[key] = panel
     panel.beginSheetModal(for:window) { [weak self, weak model, weak panel] response in
       guard let self, let panel, self.documentSavePanels[key] === panel else { return }
@@ -341,7 +341,7 @@ private struct StartupRoot: View {
     switch startup.content {
     case .connection(let model): ConnectionRoot(coordinator:coordinator,model:model)
     case .listener(let model):
-      ListenerView(model:model).navigationTitle("Listen for Connections")
+      ListenerView(model:model).navigationTitle(String(localized:"listener.listen.for.connections", defaultValue:"Listen for Connections"))
         .background(ListenerRegistration(coordinator:coordinator,model:model).frame(width:0,height:0))
         .onAppear {
           let action = openWindow
@@ -363,28 +363,28 @@ private struct ConnectionCommands: Commands {
     // A SwiftUI authentication sheet can defer the standard termination action.
     // Cancel and dismiss our requests before asking AppKit to terminate.
     CommandGroup(replacing: .appTermination) {
-      Button("Quit TidyVNC") { coordinator.requestQuit() }.keyboardShortcut("q")
+      Button(String(localized:"app.quit.tidyvnc", defaultValue:"Quit TidyVNC")) { coordinator.requestQuit() }.keyboardShortcut("q")
     }
     CommandGroup(replacing: .newItem) {
-      Button("New Connection") { openWindow(id: "connection") }.keyboardShortcut("n")
-      Button("Listen for Connections…") { coordinator.showListener() }.keyboardShortcut("l",modifiers:[.command,.shift])
-      Button("Open Connection File…") {
+      Button(String(localized:"import.defaults.new.connection", defaultValue:"New Connection")) { openWindow(id: "connection") }.keyboardShortcut("n")
+      Button(String(localized:"app.listen.for.connections", defaultValue:"Listen for Connections…")) { coordinator.showListener() }.keyboardShortcut("l",modifiers:[.command,.shift])
+      Button(String(localized:"app.open.connection.file.title", defaultValue:"Open Connection File…")) {
         coordinator.openDocument { openWindow(id:"document-connection",value:$0) }
       }.keyboardShortcut("o")
-      Button("Save Connection File As…") { coordinator.active?.beginDocumentExport() }
+      Button(String(localized:"app.save.connection.file.as", defaultValue:"Save Connection File As…")) { coordinator.active?.beginDocumentExport() }
         .keyboardShortcut("s",modifiers:[.command,.shift])
         .disabled(coordinator.active?.canExportDocument != true)
       Divider()
-      Button("Import Connection Defaults…") { coordinator.showDefaultsImport { openWindow(id:"connection") } }
-      Button("Import Recent Connections…") { coordinator.showHistoryImport() }
+      Button(String(localized:"app.import.connection.defaults", defaultValue:"Import Connection Defaults…")) { coordinator.showDefaultsImport { openWindow(id:"connection") } }
+      Button(String(localized:"app.import.recent.connections", defaultValue:"Import Recent Connections…")) { coordinator.showHistoryImport() }
       Divider()
-      Button("Saved Server Keys…") { openWindow(id: "server-keys") }
-      Button("Saved Certificate Decisions…") { openWindow(id: "trust-decisions") }
-      Button("Saved Profiles…") { openWindow(id: "profiles") }.keyboardShortcut("p", modifiers: [.command, .shift])
+      Button(String(localized:"app.saved.server.keys", defaultValue:"Saved Server Keys…")) { openWindow(id: "server-keys") }
+      Button(String(localized:"app.saved.certificate.decisions", defaultValue:"Saved Certificate Decisions…")) { openWindow(id: "trust-decisions") }
+      Button(String(localized:"app.saved.profiles", defaultValue:"Saved Profiles…")) { openWindow(id: "profiles") }.keyboardShortcut("p", modifiers: [.command, .shift])
     }
-    CommandMenu("Connection") {
+    CommandMenu(String(localized:"settings.section.connection", defaultValue:"Connection")) {
       if let model = coordinator.active { DesktopActions(model: model) }
-      else { Text("No active connection") }
+      else { Text(String(localized:"app.no.active.connection", defaultValue:"No active connection")) }
     }
   }
 }
@@ -418,22 +418,22 @@ private struct ConnectionRoot: View {
               accept:{ defaults.acceptDocument(review.id) },cancel:{ defaults.cancelDocument(review.id) })
           } else if let issue = defaults.invocationIssue {
             Text(issue).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("invocation.error")
-            Button("Retry Command-Line Options") { defaults.load() }
+            Button(String(localized:"app.retry.command.line.options", defaultValue:"Retry Command-Line Options")) { defaults.load() }
               .accessibilityIdentifier("invocation.retry")
           } else if let issue = defaults.documentIssue {
             Text(issue).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("document.error")
-            Button("Reload Connection File") { defaults.load() }
+            Button(String(localized:"listener.reload.connection.file", defaultValue:"Reload Connection File")) { defaults.load() }
           } else if let error = defaults.profileError {
             Text(profileMessage(error)).fixedSize(horizontal: false, vertical: true)
-            Button("Retry Profile") { defaults.load() }
+            Button(String(localized:"app.retry.profile", defaultValue:"Retry Profile")) { defaults.load() }
           } else if let error = defaults.error {
             Text(preferencesMessage(error)).fixedSize(horizontal: false, vertical: true)
-            Button("Retry Defaults") { defaults.load() }
-            Button("Use Built-in Defaults for This Connection") { defaults.useBuiltInDefaults() }
-          } else { ProgressView("Loading connection defaults…") }
+            Button(String(localized:"listener.retry.defaults", defaultValue:"Retry Defaults")) { defaults.load() }
+            Button(String(localized:"app.use.built.in.defaults.for.this.connection", defaultValue:"Use Built-in Defaults for This Connection")) { defaults.useBuiltInDefaults() }
+          } else { ProgressView(String(localized:"app.loading.connection.defaults", defaultValue:"Loading connection defaults…")) }
         }.padding(24)
       }
-      else { ContentUnavailableView("Unable to start a connection", systemImage: "exclamationmark.triangle", description: Text(model.message ?? "Please try again.")) }
+      else { ContentUnavailableView(String(localized:"app.unable.to.start.a.connection", defaultValue:"Unable to start a connection"), systemImage: "exclamationmark.triangle", description: Text(model.message ?? String(localized:"app.please.try.again", defaultValue:"Please try again."))) }
     }
     .sheet(item:Binding(get:{ model.documentSave.presentation },set:{ value in
       if value == nil, let id = model.documentSave.presentation?.id { model.documentSave.cancelPresentation(id) }
@@ -447,7 +447,7 @@ private struct ConnectionRoot: View {
       }
     }
     .frame(minWidth: 640, minHeight: 420)
-    .navigationTitle(model.isReverse ? "Incoming Connection" : model.defaults?.documentRequest?.url.lastPathComponent ?? "TidyVNC")
+    .navigationTitle(model.isReverse ? String(localized:"app.incoming.connection", defaultValue:"Incoming Connection") : model.defaults?.documentRequest?.url.lastPathComponent ?? "TidyVNC")
     .onAppear {
       guard !model.isReverse else { return }
       // Capture only the scene action, not this root or its connection model.
@@ -455,266 +455,6 @@ private struct ConnectionRoot: View {
       coordinator.installDocumentRouting { action(id:"document-connection",value:$0) }
     }
     .background(WindowRegistration(coordinator: coordinator, model: model).frame(width: 0, height: 0))
-  }
-}
-
-private struct ConnectionContent: View {
-  @Environment(\.openWindow) private var openWindow
-  @ObservedObject var model: ConnectionModel
-  @ObservedObject var session: NativeSession
-  let displays: NativeDisplayService
-  let importAvailability: DefaultsImportAvailability?
-  let openImport: () -> Void
-  let openHistoryImport: () -> Void
-  var body: some View {
-    let visibleSheet = presentedSheet
-    let problem = model.connectionProblem
-    VStack(spacing: 0) {
-      if !model.isReverse, session.snapshot.state == .idle, model.defaults?.profile == nil, model.defaults?.documentRequest == nil,
-         !model.busy {
-        if let importAvailability { FirstUseDefaultsImportOffer(availability:importAvailability,open:openImport) }
-        if let history = model.history { FirstUseHistoryImportOffer(history:history,open:openHistoryImport) }
-      }
-      HStack(spacing: 12) {
-        Image(systemName: "display").foregroundStyle(.secondary).accessibilityHidden(true)
-        TextField("Server address", text: $model.endpoint).textFieldStyle(.roundedBorder)
-          .help(model.isReverse ? "Source address of this incoming connection; it is not an outbound destination." : "Enter host:display, host::port, [IPv6]:display, or a Unix socket path.")
-          .accessibilityIdentifier("connection.endpoint").disabled(!model.canEditDestination)
-          .onSubmit { model.connect() }
-        if model.busy {
-          ProgressView().controlSize(.small)
-          Button("Cancel") { model.cancel() }.accessibilityIdentifier("connection.cancel")
-        } else if session.snapshot.state == .connected {
-          Button("Disconnect") { model.disconnect() }.accessibilityIdentifier("connection.disconnect")
-        } else if !model.isReverse {
-          Button("Connect") { model.connect() }.disabled(!model.canConnect).keyboardShortcut(.defaultAction)
-            .accessibilityIdentifier("connection.connect")
-        }
-      }.padding(.horizontal,14).padding(.top,14).padding(.bottom,8)
-      HStack(spacing: 12) {
-        if let history = model.history {
-          RecentConnectionsButton(model: history, canSelect:model.canEditDestination) { model.selectDestination($0) }
-        }
-        if !model.isReverse { Button { openWindow(id: "profiles") } label: { Image(systemName: "folder") }
-          .help("Saved profiles").accessibilityLabel("Saved profiles").accessibilityIdentifier("connection.profiles")
-        }
-        Menu {
-          Toggle("Send clipboard to server", isOn: Binding(get: { session.clipboardSendEnabled }, set: { setClipboard(send: $0) }))
-            .accessibilityIdentifier("clipboard.send")
-          Toggle("Receive clipboard from server", isOn: Binding(get: { session.clipboardReceiveEnabled }, set: { setClipboard(receive: $0) }))
-            .accessibilityIdentifier("clipboard.receive")
-          if let defaults = model.defaults {
-            Divider()
-            Text("Send: \(source(defaults.overrides.clipboardSend, defaults.profile?.settings.clipboardSend, defaults.inherited.clipboardSend, document:defaults.documentResolution?.fieldLines["SendClipboard"] != nil))")
-            Text("Receive: \(source(defaults.overrides.clipboardReceive, defaults.profile?.settings.clipboardReceive, defaults.inherited.clipboardReceive, document:defaults.documentResolution?.fieldLines["AcceptClipboard"] != nil))")
-          }
-        } label: { Image(systemName: "doc.on.clipboard") }
-          .fixedSize().help("Clipboard sharing for this connection").accessibilityLabel("Clipboard sharing")
-          .accessibilityIdentifier("clipboard.options")
-          .disabled(model.defaults?.isReady != true)
-        Menu { DesktopActions(model: model) } label: { Image(systemName: "ellipsis.circle") }
-          .fixedSize().help("Connection actions").accessibilityLabel("Connection actions")
-          .accessibilityIdentifier("connection.actions")
-        Button { model.openInput() } label: { Image(systemName: "keyboard") }
-          .disabled(!model.canOpenInput).help("Input settings for this connection")
-          .accessibilityLabel("Input settings").accessibilityIdentifier("connection.input")
-        Button { model.openScaling() } label: { Image(systemName: "arrow.up.left.and.arrow.down.right") }
-          .disabled(!model.canOpenScaling).help("Scaling settings for this connection")
-          .accessibilityLabel("Scaling settings").accessibilityIdentifier("connection.scaling")
-        Button { model.openEncoding() } label: { Image(systemName: "slider.horizontal.3") }
-          .disabled(!model.canOpenEncoding).help("Encoding settings for this connection")
-          .accessibilityLabel("Encoding settings").accessibilityIdentifier("connection.encoding")
-        Spacer(minLength:0)
-      }.padding(.horizontal,14).padding(.bottom,8)
-      EndpointIssueView(issue: model.endpointIssue).padding(.horizontal, 14)
-      if !model.isReverse {
-        VStack(alignment:.leading,spacing:4) {
-          TextField("SSH gateway (optional)",text:$model.sshGatewayText).textFieldStyle(.roundedBorder)
-            .disabled(!model.canEditDestination).accessibilityIdentifier("connection.sshGateway")
-            .help("Enter user@host or ssh://user@host:port. Leave empty for a direct connection.")
-          if let issue = model.gatewayIssue { Text(issue).foregroundStyle(.red).font(.caption) }
-          if !model.sshGatewayText.isEmpty {
-            Text("SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected.")
-              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-          }
-        }.padding(.horizontal,14).padding(.bottom,8)
-      }
-      if model.isReverse {
-        Text("Incoming connection. To reconnect, ask the server to connect to the listener again. Passwords, trust decisions and this temporary address are not saved.")
-          .font(.caption).foregroundStyle(.secondary).padding(.horizontal,14).padding(.bottom,8)
-          .accessibilityIdentifier("connection.reverse")
-      }
-      if let history = model.history { RecentHistoryStatus(model: history).padding(.horizontal, 14) }
-      if let profile = model.defaults?.profile {
-        Text("Settings from profile: \(profile.name)").font(.caption).foregroundStyle(.secondary).padding(.bottom, 8)
-      }
-      if let notice = model.credentials.notice {
-        HStack {
-          Text(notice).font(.caption).fixedSize(horizontal: false, vertical: true)
-          Spacer()
-          Button("Dismiss") { model.credentials.dismissNotice() }
-        }.padding(.horizontal, 14).padding(.vertical, 8).accessibilityIdentifier("credentials.notice")
-      }
-      Divider()
-      ZStack {
-        NativeDesktop(session: session, displays: displays, scaling: model.scaling, input: model.input, commands: model.desktopCommands, fullscreen: model.fullscreen, onContextMenu: { view in
-          let popup = DesktopContextMenu(model: model)
-          withExtendedLifetime(popup) { popup.show(in: view) }
-        }) { model.message = $0 }
-        if !session.hasFrame {
-          ContentUnavailableView(session.snapshot.state == .idle ? "Connect to a desktop" : status,
-            systemImage: "display", description: Text(session.snapshot.state == .idle ? "Enter a VNC server address to begin." : ""))
-            .allowsHitTesting(false)
-        }
-      }.overlay(alignment: .topTrailing) {
-        if model.showsStatistics, let information = session.information {
-          ConnectionStatisticsOverlay(information: information).padding(12)
-        }
-      }.clipped()
-      Divider()
-      HStack {
-        Text(status).accessibilityIdentifier("connection.status")
-        Spacer()
-        if let message = model.fullscreen.message {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("fullscreen.status")
-        }
-        if let message = model.desktopCommands.windowMessage {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("window.commandStatus")
-        }
-        if model.desktopCommands.keyboardCaptured {
-          Text("Keyboard captured").accessibilityIdentifier("keyboard.captured")
-        } else if let message = model.desktopCommands.captureMessage {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("keyboard.captureStatus")
-        }
-        if let message = session.remoteResize.message {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("remoteResize.status")
-        }
-        if let message = model.clipboardMessage {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("clipboard.status")
-        }
-        if session.snapshot.width > 0 { Text("\(session.snapshot.width) × \(session.snapshot.height)").monospacedDigit() }
-      }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 14).padding(.vertical, 8)
-    }
-    .sheet(item: Binding(get: { visibleSheet }, set: { value in
-      // Dismiss only the editor that created this binding. A delayed dismissal
-      // must not cancel a newer editor or an authentication prompt.
-      guard value == nil, session.prompt == nil else { return }
-      switch visibleSheet {
-      case .fullscreen(let draft) where model.fullscreenDraft === draft: model.closeFullscreen()
-      case .resizePolicy(let draft) where model.resizePolicyDraft === draft: model.closeResizePolicy()
-      case .remoteResize(let draft) where model.remoteResizeDraft === draft: model.closeRemoteResize()
-      case .connectionOptions(let draft) where model.connectionOptionsDraft === draft: model.closeConnectionOptions()
-      case .security(let draft) where model.securityDraft === draft: model.closeSecurity()
-      case .encoding(let draft) where model.encodingDraft === draft: model.closeEncoding()
-      case .information(let id) where model.informationID == id: model.closeInformation()
-      case .input(let draft) where model.inputDraft === draft: model.closeInput()
-      case .scaling(let draft) where model.scalingDraft === draft: model.closeScaling()
-      default: break
-      }
-    })) { sheet in
-      switch sheet {
-      case .ssh(let request):
-        SSHAuthenticationSheet(interaction:model.sshInteraction,request:request,cancel:model.cancel).interactiveDismissDisabled()
-      case .authentication(let request):
-        AuthenticationSheet(model: model, session: session, request: request).interactiveDismissDisabled()
-      case .information:
-        ConnectionInformationSheet(endpoint: model.endpoint, session: session, dismiss: model.closeInformation)
-      case .input(let draft):
-        InputSettingsSheet(model: draft, dismiss: model.closeInput)
-      case .scaling(let draft):
-        ScalingSettingsSheet(model: draft, dismiss: model.closeScaling)
-      case .fullscreen(let draft):
-        FullscreenSettingsSheet(model:draft,dismiss:model.closeFullscreen)
-      case .resizePolicy(let draft):
-        RemoteResizePolicySheet(model:draft,dismiss:model.closeResizePolicy)
-      case .remoteResize(let draft):
-        RemoteResizeSheet(model:draft,dismiss:model.closeRemoteResize)
-      case .connectionOptions(let draft):
-        SessionConnectionSheet(model:draft,dismiss:model.closeConnectionOptions)
-      case .security(let draft):
-        SessionSecuritySheet(model:draft,dismiss:model.closeSecurity)
-      case .encoding(let draft):
-        SessionEncodingSheet(model: draft, dismiss: model.closeEncoding)
-      }
-    }
-    .alert(problem?.issue.title ?? "Connection Problem", isPresented: Binding(
-      get: { !model.documentSave.hasPending && model.fullscreen.phase == .windowed && (problem != nil || model.message != nil) },
-      set: { visible in
-        if !visible {
-          if let problem { model.hideConnectionProblem(problem.id) }
-          else { model.message = nil }
-        }
-      })) {
-      if let problem {
-        if model.offersRetryConnection(problem) {
-          Button("Retry") { model.retryConnection(problem) }
-            .disabled(!model.canRetryConnection(problem))
-            .accessibilityIdentifier("connection.retry")
-        }
-        Button("Cancel", role: .cancel) { model.dismissConnectionProblem(problem.id) }
-          .keyboardShortcut(.defaultAction)
-      } else {
-        Button("OK", role: .cancel) { model.message = nil }.keyboardShortcut(.defaultAction)
-      }
-    } message: {
-      Text(problem?.issue.message ?? model.message ?? "")
-    }
-  }
-  private enum Sheet: Identifiable {
-    case ssh(NativeSSHQuestion)
-    case fullscreen(NativeFullscreenDraft)
-    case resizePolicy(NativeRemoteResizePolicyDraft)
-    case remoteResize(NativeRemoteResizeDraft)
-    case security(NativeSessionSecurityDraft), connectionOptions(NativeConnectionDraft)
-    case authentication(NativePrompt), encoding(NativeSessionEncodingDraft), scaling(NativeScalingDraft), input(NativeInputDraft), information(UUID)
-    var id: String {
-      switch self {
-      case .ssh(let request): return "ssh-\(request.id)"
-      case .authentication(let request): return "authentication-\(request.generation)-\(request.id)"
-      case .information(let id): return "information-\(id)"
-      case .input(let draft): return "input-\(draft.id)"
-      case .scaling(let draft): return "scaling-\(draft.id)"
-      case .fullscreen(let draft): return "fullscreen-\(draft.id)"
-      case .resizePolicy(let draft): return "resize-policy-\(draft.id)"
-      case .remoteResize(let draft): return "remote-resize-\(draft.id)"
-      case .connectionOptions(let draft): return "connection-options-\(draft.id)"
-      case .security(let draft): return "security-\(draft.id)"
-      case .encoding(let draft): return "encoding-\(draft.id)"
-      }
-    }
-  }
-  private var presentedSheet: Sheet? {
-    if let question = model.sshInteraction.question { return .ssh(question) }
-    if let prompt = session.prompt { return .authentication(prompt) }
-    if let id = model.informationID { return .information(id) }
-    if let draft = model.inputDraft { return .input(draft) }
-    if let draft = model.fullscreenDraft { return .fullscreen(draft) }
-    if let draft = model.resizePolicyDraft { return .resizePolicy(draft) }
-    if let draft = model.remoteResizeDraft { return .remoteResize(draft) }
-    if let draft = model.scalingDraft { return .scaling(draft) }
-    if let draft = model.connectionOptionsDraft { return .connectionOptions(draft) }
-    if let draft = model.securityDraft { return .security(draft) }
-    if let draft = model.encodingDraft { return .encoding(draft) }
-    return nil
-  }
-  private func setClipboard(send: Bool? = nil, receive: Bool? = nil) {
-    do { try model.defaults?.setClipboard(send: send, receive: receive); model.clipboardMessage = nil }
-    catch { model.clipboardMessage = "Clipboard settings could not be changed. Try again." }
-  }
-  private func source(_ override: Bool?, _ profile: Bool?, _ inherited: Bool?, document: Bool) -> String {
-    override != nil ? "Connection override" : document ? "Connection file" : profile != nil ? "Profile" : inherited != nil ? "App default" : "Built-in default"
-  }
-  private var status: String {
-    switch session.snapshot.state {
-    case .idle: return "Ready"
-    case .resolving: return "Resolving server…"
-    case .connecting, .negotiating: return "Connecting…"
-    case .authenticating: return "Waiting for authentication"
-    case .connected: return "Connected"
-    case .disconnecting: return "Disconnecting…"
-    case .closed: return "Disconnected"
-    case .failed: return "Connection failed"
-    }
   }
 }
 

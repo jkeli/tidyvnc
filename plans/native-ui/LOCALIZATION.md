@@ -189,7 +189,7 @@ implement `--rtl`. Remaining app menus/connection/status, file panels and other 
 still require localization; N4.16 stays open. Defaults import is covered below.
 
 
-The source catalog now has **851** entries. Defaults-import source/review/mapping,
+The defaults-import checkpoint brought the source catalog to **851** entries. Defaults-import source/review/mapping,
 category/omission explanations, consent, results, first-use offer and fixed state/
 source recovery messages are localized. Omission rows have separate literal name,
 localized line-number and notice arguments; shared file-monitor templates keep
@@ -209,3 +209,27 @@ The expansion runner includes `import.defaults.` by default. Use it with
 and `--named-output`. The fixtures use private temporary sources and in-memory
 native stores. Inspect their PNGs in addition to fitting assertions; allow native
 control appearance/size transitions to settle before judging captures.
+
+
+The source catalog now has **973** entries. App/window/file-panel titles and actions,
+connection controls/state/provenance, native and SwiftUI desktop menus, information
+and statistics have stable IDs. Dimensions, speeds and counts use formatted display
+numbers. Protocol versions/names, remote values, redacted diagnostics, stored IDs,
+keyboard shortcuts and command routing remain unchanged. Fixed controller/gateway
+and some status-service errors still need migration; N4.16 remains open.
+
+ConnectionContent is compiled into both the app and settings fixture. Use the
+expansion command with `--renderer-arg=--connection-only` to render only the
+integrated connection, information and statistics surfaces; add `--rtl` to mirror.
+The default prefixes now include `app.`, `desktop.` and `information.`. A fixed
+hosting-controller viewport checks actual and proposed sizes rather than allowing
+unconstrained ideal sizing to enlarge the fixture. Connection content uses 640×420,
+information 560×650, statistics a constrained width with intrinsic height inside
+320×300. A compact placeholder fallback and white foreground keep idle guidance
+readable when first-use offers reduce the black desktop area. Inspect the PNGs:
+geometry and nonblank-image checks alone cannot establish text visibility.
+
+The fixtures use in-memory stores and loopback peers. They do not establish real
+menu/panel interaction, VoiceOver, translated-language, installed-app or release
+acceptance. Source English is still the only supplied translation. Existing gettext
+catalogs and translator attribution remain intact.

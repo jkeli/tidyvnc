@@ -4,6 +4,38 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — App and connection localization
+
+The catalog now has **973** English source entries. App menus, native context menus,
+window/panel titles, connection controls and state labels, information/statistics
+and fixed app recovery text use stable IDs. Clipboard/profile provenance, dimensions
+and speed use complete templates with literal arguments and formatted display
+numbers. Protocol names/versions, remote values, diagnostics, shortcuts and action
+identities retain their existing meaning. Remaining controller/gateway/status
+errors still need coverage; this does not complete N4.16.
+
+ConnectionContent is now a separate source shared by the app and rendering fixture.
+The fixture uses private in-memory stores and a loopback peer, with first-use,
+gateway, idle and connected captures at exactly 640×420. Information uses 560×650;
+statistics use a constrained width and intrinsic height in a 320×300 host. Measuring
+unconstrained ideal sizes previously let the host resize itself, so the new helper
+checks proposed and actual bounds and rejects wholly blank captures. Idle guidance
+has a compact fallback and white text against the black desktop. Expanded and
+mirrored light/dark checks pass. An incomplete image preview was complete when the
+same PNG was read again; no AppKit drawing workaround is retained.
+
+Focused panning/settings/fullscreen checks pass **3/3 (30.16 s)** before the final
+placeholder adjustment; the final settings rerun passes **1/1 (33.57 s)**. Expanded
+fullscreen statistics also pass their input/geometry/lifetime assertions. Final
+app build/signature, **973** packaged values/fallback/interpolation, **32** terminal
+cases, branding baseline **1650** and diff checks pass. No full-suite/sanitizer,
+actual-user-app, VoiceOver, installed-app or deployment-floor acceptance follows.
+Newer dependency deployment warnings remain. No CUA/user-app action was attempted.
+
+Continue controlled controller/gateway/status localization and actual window/menu/
+file-panel accessibility acceptance, then the entire unchecked parity, physical,
+installed-app, CI, performance, deployment and release plan. Evidence is in TODO.
+
 ## Latest follow-up (2026-09-22) — Defaults-import localization
 
 The catalog now has **851** English source entries. Defaults-import source choice,

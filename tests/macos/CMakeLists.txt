@@ -57,6 +57,12 @@ add_executable(native-settings-tests NativeSettingsTests.swift support/TrustFixt
   ../../apps/macos/TidyVNC/RemoteResizePolicySheet.swift
   ../../apps/macos/TidyVNC/FullscreenDefaultsFields.swift
   ../../apps/macos/TidyVNC/RemoteResizeSettingsFields.swift ../../apps/macos/TidyVNC/SessionSecuritySheet.swift ../../apps/macos/TidyVNC/SessionEncodingSheet.swift ../../apps/macos/TidyVNC/RecentConnectionsView.swift ../../apps/macos/TidyVNC/ProfileLibraryView.swift ../../apps/macos/TidyVNC/EndpointIssueView.swift ../../apps/macos/TidyVNC/ScalingSettingsSheet.swift ../../apps/macos/TidyVNC/ScalingDefaultsFields.swift ../../apps/macos/TidyVNC/InputSettingsSheet.swift ../../apps/macos/TidyVNC/InputDefaultsFields.swift ../../apps/macos/TidyVNC/ConnectionInformationSheet.swift ../../apps/macos/TidyVNC/ConnectionStatisticsOverlay.swift)
+target_sources(native-settings-tests PRIVATE
+  ../../apps/macos/TidyVNC/ConnectionContent.swift
+  ../../apps/macos/TidyVNC/DefaultsImportView.swift
+  ../../apps/macos/TidyVNC/HistoryImportView.swift
+  ../../apps/macos/TidyVNC/DesktopActions.swift
+  ../../apps/macos/TidyVNC/SSHAuthenticationSheet.swift)
 set_target_properties(native-settings-tests PROPERTIES Swift_MODULE_NAME NativeSettingsTests)
 target_compile_options(native-settings-tests PRIVATE -swift-version 6 -strict-concurrency=complete
   -warnings-as-errors -parse-as-library -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)

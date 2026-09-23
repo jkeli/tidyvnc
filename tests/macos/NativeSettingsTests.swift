@@ -29,11 +29,11 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
   try await Task.sleep(for: .milliseconds(50)); try await ready()
   view.layoutSubtreeIfNeeded()
   let fitting = view.fittingSize
-  guard fitting.width <= size.width, fitting.height <= size.height else { throw Failure(message: "Settings \(name) exceeds test window: \(fitting)") }
   guard let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { throw Failure(message: "No settings bitmap") }
   view.cacheDisplay(in: view.bounds, to: bitmap)
   guard let data = bitmap.representation(using: .png, properties: [:]) else { throw Failure(message: "No settings PNG") }
   try data.write(to: directory.appendingPathComponent(name + ".png"))
+  guard fitting.width <= size.width, fitting.height <= size.height else { throw Failure(message: "Settings \(name) exceeds test window: \(fitting)") }
   print("PASS rendered \(name): fitting \(fitting), bitmap \(bitmap.pixelsWide) × \(bitmap.pixelsHigh)")
 }
 @MainActor func render(_ model: NativePreferencesDraft, name: String, directory: URL, dark: Bool,
@@ -374,12 +374,83 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   await hosts.close(); await hostStore.close()
   await library.close(); await service.close(); await model.close(); await preferences.close(); try await session.close(); try await runtime.shutdown()
 }
+// Flexible connection content must be measured with the proposed viewport, not
+// its unconstrained ideal size. The host must not resize this fixture window.
+@MainActor func captureViewport<Content: View>(_ content: Content, name: String, directory: URL, dark: Bool,
+                                               size: NSSize = NSSize(width:640,height:420)) async throws {
+  let host = NSHostingController(rootView:content
+    .environment(\.layoutDirection,CommandLine.arguments.contains("--rtl") ? .rightToLeft : .leftToRight)
+    .environment(\.colorScheme,dark ? .dark : .light).background(Color(nsColor:.windowBackgroundColor)))
+  host.sizingOptions = []
+  let window = NSWindow(contentRect:NSRect(origin:.zero,size:size),styleMask:[.titled],backing:.buffered,defer:false)
+  window.isReleasedWhenClosed = false; window.contentViewController = host; window.setContentSize(size)
+  defer { window.contentViewController = nil; window.close() }
+  let view = host.view
+  window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua); view.appearance = window.appearance
+  view.layoutSubtreeIfNeeded(); try await Task.sleep(for:.milliseconds(500)); view.layoutSubtreeIfNeeded(); view.displayIfNeeded(); window.displayIfNeeded()
+  let fitting = host.sizeThatFits(in:size)
+  guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing connection bitmap") }
+  view.effectiveAppearance.performAsCurrentDrawingAppearance { view.cacheDisplay(in:view.bounds,to:bitmap) }
+  try bitmap.representation(using:.png,properties:[:])!.write(to:directory.appendingPathComponent(name+".png"))
+  let corner = bitmap.colorAt(x:0,y:0)
+  let hasContent = stride(from:0,to:bitmap.pixelsHigh,by:max(1,bitmap.pixelsHigh/16)).contains { y in
+    stride(from:0,to:bitmap.pixelsWide,by:max(1,bitmap.pixelsWide/16)).contains { x in bitmap.colorAt(x:x,y:y) != corner }
+  }
+  guard hasContent else { throw Failure(message:"Connection \(name) captured a blank surface") }
+  guard view.bounds.size == size, fitting.width <= size.width, fitting.height <= size.height else {
+    throw Failure(message:"Connection \(name) fits \(fitting), actual \(view.bounds.size), expected \(size)")
+  }
+  print("PASS rendered \(name): proposed and actual \(size)")
+}
+
+@MainActor func renderConnectionScreen(directory: URL) async throws {
+  let runtime = try NativeRuntime(), preferences = NativePreferencesStore(backing:SettingsBacking())
+  let historyStore = NativeProfileHistoryStore(backing:HistoryBacking()), history = NativeRecentHistory(store:historyStore)
+  history.reload()
+  let availability = DefaultsImportAvailability(store:preferences)
+  let source = ResizeDisplaySource()
+  let bounds = NativeDisplayRectangle(x:0,y:0,width:800,height:600)
+  source.values = [.init(id:.init("fixture-screen"),name:"Fixture Display",bounds:bounds,workArea:bounds,backingScale:1,isPrimary:true)]
+  let displays = NativeDisplayService(source:source,notifications:NotificationCenter(),workspaceNotifications:NotificationCenter())
+  let model = ConnectionModel(runtime:runtime,preferences:preferences,displays:displays,history:history) { _,_ in }
+  try await waitForEncoding { model.session != nil && availability.canOffer && history.canImportHistory }
+  let session = model.session!
+  for dark in [false,true] {
+    for fixture in ["first-use","gateway","idle"] {
+      model.endpoint = fixture == "first-use" ? "" : "fixture.invalid::5901"
+      model.sshGatewayText = fixture == "gateway" ? "ssh://user@gateway.invalid:2222" : ""
+      let view = ConnectionContent(model:model,session:session,displays:displays,
+        importAvailability:fixture == "first-use" ? availability : nil,openImport:{},openHistoryImport:{})
+      try await captureViewport(view,name:"connection-window-"+fixture+(dark ? "-dark" : ""),directory:directory,dark:dark)
+    }
+  }
+  // A direct fixture handshake avoids credential or tunnel backend operations.
+  let peer = native_test_peer_create_pattern(0)!; defer { native_test_peer_destroy(peer) }
+  model.sshGatewayText = ""; model.endpoint = "127.0.0.1::\(native_test_peer_port(peer))"
+  _ = try await session.connect(endpoint:model.endpoint)
+  try await waitForEncoding { session.hasFrame && session.information != nil }
+  for dark in [false,true] {
+    try await captureViewport(ConnectionContent(model:model,session:session,displays:displays,importAvailability:nil,openImport:{},openHistoryImport:{}),
+      name:"connection-window-connected"+(dark ? "-dark" : ""),directory:directory,dark:dark)
+    try await captureViewport(ConnectionInformationSheet(endpoint:"fixture-%@-开发.invalid::5901",session:session,dismiss:{}),
+      name:"connection-details"+(dark ? "-dark" : ""),directory:directory,dark:dark,size:NSSize(width:560,height:650))
+    // Statistics have a constrained width and an intrinsic height in fullscreen.
+    try await captureViewport(ConnectionStatisticsOverlay(information:session.information!)
+      .frame(width:296).fixedSize(horizontal:false,vertical:true).padding(12),
+      name:"connection-overlay"+(dark ? "-dark" : ""),directory:directory,dark:dark,size:NSSize(width:320,height:300))
+  }
+  await model.close(); await availability.close(); await history.close(); await historyStore.close()
+  await preferences.close(); displays.stop(); try await runtime.shutdown()
+}
+
 @main struct NativeSettingsTests {
   @MainActor static func main() async {
     _ = NSApplication.shared
     do {
       let directory = URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? NSTemporaryDirectory())
       try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+      try await renderConnectionScreen(directory:directory)
+      if CommandLine.arguments.contains("--connection-only") { return }
       try await renderRecentHistory(directory: directory)
       try await renderScaling(directory: directory)
       try await renderInput(directory: directory)
