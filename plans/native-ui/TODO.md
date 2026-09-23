@@ -706,8 +706,11 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     rejection, relocation, dependency notices, nested signing, atomic publication
     and mounted-image inspection. Root/convenience build paths and policy tests
     are wired; see PACKAGING.md for the supported single-architecture scope.
-  - [ ] Validate clean Release/minimum-OS/Intel packages, complete selected
-    dependency distribution obligations and intended signing-identity acceptance.
+  - [x] Clean Release core/app/test build and complete verification on arm64
+    macOS 27, followed by dependency assembly and mounted-DMG inspection. The
+    package explicitly declares 27.0; see the Release evidence below.
+  - [ ] Validate minimum-OS/Intel packages, complete selected dependency
+    distribution obligations and intended signing-identity acceptance.
 - [x] N6.3 Split FLTK surface-dependent tests from GUI-independent tests; core-only and SwiftUI builds neither discover nor link FLTK. Clean headless/native graph proof and retained FLTK tests are in [BUILD.md](BUILD.md); other-platform CI remains N6.4.
 - [ ] N6.4 Add native build/model/adapter/UI CI jobs and retain Windows/Linux FLTK jobs; test chosen minimum/current macOS and supported architectures, recording unavailable runners.
   - [x] Five-job native workflow definition, host/toolchain/dependency evidence,
@@ -9597,3 +9600,44 @@ minimum-OS/Intel packages, intended signing identity and installed privacy/Keych
 plus every remaining interaction, protocol, physical/performance and parity gate.
 N6.2's local assembly subitem is complete; parent/distribution acceptance stays
 open. The complete original goal remains active. FLTK stays the shipping default.
+
+### N6.2 / N6.5 clean Release build, fixture synchronization and package proof (2026-09-22)
+
+Started from a nonexistent `build/native-release-validation` directory and built
+all core, app and test targets with `--configuration Release --test --package`.
+The generated handoff and Xcode configuration are Release-only, arm64, SDK 27,
+build deployment declaration 14.0. C++ uses `-O3` with the root's existing
+`-UNDEBUG` assertion policy; Swift uses `-O`. The package explicitly declares
+27.0 for the current Homebrew dependency floors. No production code changed.
+
+The first full report (`run-85kkqfoe`) caught a clipboard-limit wire-fixture race:
+an initial-frame publication could satisfy a generic frame-sequence wait before
+the clipboard message was sent, leaving the fixture queue occupied. It reproduced
+immediately in isolation. The test now checks the exact pixel marker following
+each clipboard message, including messages that must be discarded, rather than
+any newer frame. Existing admission, boundary, retention, reconnect and isolation
+assertions remain. The corrected test passes **30 Release + 30 Debug** repetitions.
+
+The final complete pipeline passes in
+`build/native-release-validation/verification/run-mu47vmxj/summary.json`:
+**3/3 viewer, 756/756 unit (21.87 s), 89/89 native (124.63 s)**, graph **170/3**,
+**10** configure rejection checks, **1052 UI + 2 metadata** localized values,
+strict signature and **36** CLI cases. Compiler audit remains **139 sources /
+1353 call sites**. No sanitizer rerun is claimed for this fixture-only change.
+
+Release artifact:
+`build/native-release-validation/package/Release/TidyVNC-1.16.80-arm64.dmg`, SHA-256
+`31684912587385f21ce9eeb21a5c7a376aed0cba241f805926d656151e9fdf6b`.
+The mounted read-only image passes all **36** CLI cases plus identity/resources/
+notices, closed dependency graph, symbol and strict signature checks. It contains
+**13 signed binaries / 11 bundled dylibs** and is detached after inspection.
+The adjacent `package-report.json` preserves hashes and minimums. All process
+handles completed; branding **1650** and diff checks pass.
+
+The CUA access check still could not inspect the actual app; see UI-ACCEPTANCE.md.
+No interactive acceptance is inferred. The 55-case protocol harness still has
+FLTK-specific log and process-lifetime assertions and needs a native adapter
+before it can establish native baseline coverage. Next: that full native protocol
+baseline, supported minimum-OS/Intel dependency packages and intended signing /
+installed behavior, plus all remaining service/interaction/physical/performance
+and parity gates. The complete original goal stays active; FLTK stays the default.

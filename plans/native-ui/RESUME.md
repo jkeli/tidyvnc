@@ -4,6 +4,47 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Clean Release validation
+
+Started from a nonexistent `build/native-release-validation` directory and built
+all core, app and test targets with `--configuration Release --test --package`.
+The generated handoff and Xcode configuration are Release-only, arm64, SDK 27,
+build deployment declaration 14.0. C++ uses `-O3` with the root's existing
+`-UNDEBUG` assertion policy; Swift uses `-O`. The package explicitly declares
+27.0 for the current Homebrew dependency floors. No production code changed.
+
+The first full report (`run-85kkqfoe`) caught a clipboard-limit wire-fixture race:
+an initial-frame publication could satisfy a generic frame-sequence wait before
+the clipboard message was sent, leaving the fixture queue occupied. It reproduced
+immediately in isolation. The test now checks the exact pixel marker following
+each clipboard message, including messages that must be discarded, rather than
+any newer frame. Existing admission, boundary, retention, reconnect and isolation
+assertions remain. The corrected test passes **30 Release + 30 Debug** repetitions.
+
+The final complete pipeline passes in
+`build/native-release-validation/verification/run-mu47vmxj/summary.json`:
+**3/3 viewer, 756/756 unit (21.87 s), 89/89 native (124.63 s)**, graph **170/3**,
+**10** configure rejection checks, **1052 UI + 2 metadata** localized values,
+strict signature and **36** CLI cases. Compiler audit remains **139 sources /
+1353 call sites**. No sanitizer rerun is claimed for this fixture-only change.
+
+Release artifact:
+`build/native-release-validation/package/Release/TidyVNC-1.16.80-arm64.dmg`, SHA-256
+`31684912587385f21ce9eeb21a5c7a376aed0cba241f805926d656151e9fdf6b`.
+The mounted read-only image passes all **36** CLI cases plus identity/resources/
+notices, closed dependency graph, symbol and strict signature checks. It contains
+**13 signed binaries / 11 bundled dylibs** and is detached after inspection.
+The adjacent `package-report.json` preserves hashes and minimums. All process
+handles completed; branding **1650** and diff checks pass.
+
+The CUA access check still could not inspect the actual app; see UI-ACCEPTANCE.md.
+No interactive acceptance is inferred. The 55-case protocol harness still has
+FLTK-specific log and process-lifetime assertions and needs a native adapter
+before it can establish native baseline coverage. Next: that full native protocol
+baseline, supported minimum-OS/Intel dependency packages and intended signing /
+installed behavior, plus all remaining service/interaction/physical/performance
+and parity gates. The complete original goal stays active; FLTK stays the default.
+
 ## Latest follow-up (2026-09-22) — Relocatable native app and DMG
 
 The native build now has `native-package`/`dmg` targets and `build.py --package`.

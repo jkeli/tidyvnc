@@ -218,3 +218,27 @@ The current host's libraries fail the default 14.0 package gate (nettle requires
 27.0); local packages explicitly declare 27.0. This does not change the supported
 minimum decision or waive minimum-OS dependency builds. No actual production
 identity, installed service acceptance, Intel or Release package proof is inferred.
+
+## Clean Release follow-up (2026-09-22)
+
+A fresh `build/native-release-validation` core/app/test build succeeds with the
+Release-only generated handoff. The complete final command is:
+
+```sh
+python3 apps/macos/build.py --build-dir build/native-release-validation \
+  --configuration Release --parallel 2 --test --package --package-minimum-os 27.0
+```
+
+The first verification failed one clipboard fixture synchronization check; it did
+not package an incomplete result. The corrected test waits for the exact trailing
+wire marker and passes 30 repetitions in each configuration. The final full report
+`verification/run-mu47vmxj/summary.json` passes **3/756/89** tests, graph **170/3**,
+10 configuration checks, **1052 + 2** localized values, strict signature and 36 CLI
+cases. Compiler coverage is unchanged. C++ Release assertions remain enabled by
+existing `-UNDEBUG`; no assertion-policy change was needed. Production app code
+is unchanged. The earlier failed report is retained as `run-85kkqfoe`.
+
+The Release DMG also passes mounted-image inspection and all 36 packaged CLI
+cases. See [PACKAGING.md](PACKAGING.md) for its exact artifact/hash and limitations.
+This establishes local optimized build/package evidence, not runtime performance
+budgets, the native 55-case protocol baseline, older-OS/Intel or installed services.

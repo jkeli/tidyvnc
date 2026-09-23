@@ -1,5 +1,17 @@
 # Native UI acceptance observations
 
+## 2026-09-22 — Release validation access check
+
+While the clean Release build was compiling, CUA selection of the current
+`build/native-ui-frontend/app/Debug/TidyVNC.app` returned “Running application not
+found.” Inventory then showed multiple TidyVNC registrations; selecting by bundle
+identifier was explicitly ambiguous. Selecting the older
+`build/native-app/app/Debug/TidyVNC.app` by full path returned “Sky Computer Use
+native pipe closed before response.” No subsequent window, keyboard, profile,
+credential, trust or preference action was sent. These responses do not prove an
+app crash or any interactive acceptance. Release automated fixtures and packaged
+CLI evidence remain separate from the unresolved actual-window gates.
+
 ## 2026-09-22 — bundle/trust localization follow-up access check
 
 After the final bundle build and reloading CUA documentation, selecting the app

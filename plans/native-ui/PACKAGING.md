@@ -140,3 +140,24 @@ The first no-override packaging attempt correctly failed before publication on
 nettle's 27.0 minimum versus the app's 14.0 declaration. Subsequent local packages
 raised the declared package floor explicitly. This is not evidence for macOS 14,
 Intel, a clean Release package, production identity or Finder-launched behavior.
+
+## Clean Release package (2026-09-22)
+
+A new `build/native-release-validation` tree builds the optimized core, native
+bridge, Xcode app and all test targets. After fixing a clipboard test's ambiguous
+frame-publication wait, the full Release pipeline passes **3 viewer / 756 unit /
+89 native** tests. The corrected fixture separately passes 30 Debug and 30 Release
+repetitions; no application-code change was required.
+
+Artifact: `build/native-release-validation/package/Release/TidyVNC-1.16.80-arm64.dmg`
+(SHA-256 `31684912587385f21ce9eeb21a5c7a376aed0cba241f805926d656151e9fdf6b`).
+Its report records **13 signed binaries / 11 bundled dylibs** and the explicit
+**27.0** package floor. Read-only mounted inspection passes resources/notices,
+identity, dependency closure, symbols, strict signature and all 36 CLI cases; the
+image is detached afterward. Source/compiled English localization remains 1052 UI
+plus two metadata entries. Full evidence is in
+`build/native-release-validation/verification/run-mu47vmxj/summary.json`.
+
+The clean Release package gate is now locally verified on arm64 macOS 27. The
+minimum-OS/Intel, intended signing identity, real installed services, distribution
+obligations and full protocol/UI/physical/performance gates remain open.

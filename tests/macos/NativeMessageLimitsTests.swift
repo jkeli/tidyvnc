@@ -33,6 +33,7 @@ func values() throws {
 }
 final class Peer {
   let raw: UnsafeMutableRawPointer
+  var clipboardMarker: UInt8 = 0
   init() throws {
     guard let raw = native_test_peer_create_reconnecting(0) else { throw Failure(message:"local peer unavailable") }
     self.raw = raw
@@ -46,8 +47,17 @@ final class Peer {
 }
 @MainActor func receive(_ bytes: [UInt8], from peer: Peer, into session: NativeSession) async throws {
   let frame = session.frame?.sequence ?? 0
+  try check(peer.clipboardMarker < .max,"fixture marker must not wrap")
   try check(bytes.withUnsafeBufferPointer { native_test_peer_clipboard_bytes(peer.raw,$0.baseAddress,UInt32($0.count)) } == 1,"bounded fixture admission")
-  try await until("frame after clipboard") { (session.frame?.sequence ?? 0) > frame }
+  peer.clipboardMarker += 1
+  let marker = Data([peer.clipboardMarker,0,0,0])
+  // A queued initial-frame publication can advance sequence before the peer
+  // has sent this clipboard message. Only its trailing wire marker establishes
+  // that the message (including discarded text) has actually been consumed.
+  try await until("clipboard wire marker") {
+    (session.frame?.sequence ?? 0) > frame &&
+      (try? session.frame?.copyPixels().prefix(4)) == marker
+  }
   try check(session.snapshot.state == .connected && session.deliveryError == nil,"oversize discard preserves protocol alignment and connection")
 }
 @MainActor func wire() async throws {
