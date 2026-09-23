@@ -553,6 +553,64 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   print("PASS rendered \(name): proposed and actual \(size)")
 }
 
+// Tab moves keyboard focus from the server address to the SSH gateway field and
+// Shift-Tab back, independent of the system Keyboard Navigation setting (which
+// only adds buttons and other controls to the loop).
+@MainActor func connectionTabTraversal(model: ConnectionModel, session: NativeSession, displays: NativeDisplayService) async throws {
+  model.endpoint = ""; model.sshGatewayText = ""
+  let view = NSHostingView(rootView: ConnectionContent(model: model, session: session, displays: displays,
+    importAvailability: nil, openImport: {}, openHistoryImport: {}))
+  let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 600), styleMask: [.titled], backing: .buffered, defer: false)
+  window.isReleasedWhenClosed = false; window.contentView = view; window.orderFront(nil)
+  defer { window.contentView = nil; window.orderOut(nil); window.close() }
+  try await Task.sleep(for: .milliseconds(300)); view.layoutSubtreeIfNeeded()
+  // SwiftUI keeps accessibility identifiers off the backing NSTextField; use the placeholders.
+  func all(_ root: NSView) -> [NSTextField] { (root as? NSTextField).map { [$0] } ?? [] + root.subviews.flatMap(all) }
+  func field(_ placeholder: String) -> NSTextField? { all(view).first { $0.placeholderString == placeholder && $0.isEditable } }
+  guard let address = field("Server address"), let gateway = field("SSH gateway (optional)") else {
+    throw Failure(message: "connection window text fields not found")
+  }
+  func focused() -> NSTextField? {
+    if let editor = window.firstResponder as? NSTextView { return editor.delegate as? NSTextField }
+    return window.firstResponder as? NSTextField
+  }
+  window.makeKey(); guard window.makeFirstResponder(address) else { throw Failure(message: "address field refused focus") }
+  try await Task.sleep(for: .milliseconds(100))
+  func press(shift: Bool) async throws {
+    // A background test window is never key, so AppKit ignores Tab events sent to
+    // a focused button; step the same key-view loop directly there. Text fields
+    // receive the real Tab event through their field editor.
+    guard focused() != nil else {
+      if shift { window.selectPreviousKeyView(nil) } else { window.selectNextKeyView(nil) }
+      try await Task.sleep(for: .milliseconds(80)); return
+    }
+    for type in [NSEvent.EventType.keyDown, .keyUp] {
+      let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: shift ? [.shift] : [], timestamp: ProcessInfo.processInfo.systemUptime,
+        windowNumber: window.windowNumber, context: nil, characters: "\t", charactersIgnoringModifiers: "\t", isARepeat: false, keyCode: 48)!
+      window.sendEvent(event)
+    }
+    try await Task.sleep(for: .milliseconds(120))
+  }
+  func stop() -> String {
+    if let field = focused() { return field === address ? "address" : field === gateway ? "gateway" : "field" }
+    return window.firstResponder.map { String(describing: type(of: $0)).contains("Popup") ? "menu button" :
+      String(describing: type(of: $0)).contains("Button") ? "button" : "control" } ?? "none"
+  }
+  // With Keyboard Navigation on, buttons join the loop; either way Tab must reach
+  // the gateway field and Shift-Tab must return to the address field.
+  var stops: [String] = []
+  while stops.last != "gateway" && stops.count < 20 { try await press(shift: false); stops.append(stop()) }
+  guard stops.last == "gateway" else { throw Failure(message: "Tab never reached the SSH gateway field: \(stops)") }
+  var back: [String] = []
+  // Backward: step the key-view loop itself (event delivery was covered forwards).
+  while back.last != "address" && back.count < 20 {
+    // A focused field's editor has no key-view links; step from the field itself.
+    if let field = focused() { window.selectKeyView(preceding: field) } else { window.selectPreviousKeyView(nil) }
+    try await Task.sleep(for: .milliseconds(80)); back.append(stop())
+  }
+  guard back.last == "address" else { throw Failure(message: "Shift-Tab never returned to the address field: \(back)") }
+  print("PASS keyboard connection window Tab order address -> \(stops.joined(separator: " -> ")); Shift-Tab back in \(back.count) steps")
+}
 @MainActor func renderConnectionScreen(directory: URL) async throws {
   let runtime = try NativeRuntime(), preferences = NativePreferencesStore(backing:SettingsBacking())
   let historyStore = NativeProfileHistoryStore(backing:HistoryBacking()), history = NativeRecentHistory(store:historyStore)
@@ -574,6 +632,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
       try await captureViewport(view,name:"connection-window-"+fixture+(dark ? "-dark" : ""),directory:directory,dark:dark)
     }
   }
+  try await connectionTabTraversal(model: model, session: session, displays: displays)
   // A direct fixture handshake avoids credential or tunnel backend operations.
   let peer = native_test_peer_create_pattern(0)!; defer { native_test_peer_destroy(peer) }
   model.sshGatewayText = ""; model.endpoint = "127.0.0.1::\(native_test_peer_port(peer))"

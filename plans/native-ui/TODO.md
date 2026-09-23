@@ -551,8 +551,12 @@ UI uses, with migration and credential behavior verified independently.
       address or host name."
     - A valid address re-enables Connect.
     - History entries persist across relaunch (`persistence-acceptance.py`).
-  - [ ] Tab/keyboard traversal of the window (depends on the system Keyboard
-    Navigation setting).
+  - [x] Connection-window Tab order (`NativeSettings.DraftRendering`, host with
+    Keyboard Navigation on): address → Recent connections → Saved profiles →
+    Clipboard sharing → Connection actions → SSH gateway, skipping disabled
+    Connect and settings buttons; Shift-Tab returns. Tab events reach the field
+    editor; button stops use the same key-view loop, because a background test
+    window is never key.
   - [x] Native Open and Save As menus, reviewed immutable export, explicit
     replacement confirmation and non-disruptive save feedback.
   - [x] Shared-parser endpoint preflight with typed inline errors and Connect/Save
@@ -856,9 +860,9 @@ UI uses, with migration and credential behavior verified independently.
     - Trust sheet: Return is **Cancel** and never trusts; Escape cancels. A
       mutation that made Connect Once the default is caught.
     - Authentication: Escape cancels.
-  - [ ] VoiceOver listening pass (reading order, announcements), Tab traversal
-    (depends on the system Keyboard Navigation setting), Save-panel Command-Q and
-    an on-device Increase Contrast look.
+  - [x] Connection-window Tab order and Shift-Tab return (see N4.1).
+  - [ ] VoiceOver listening pass (reading order, announcements), Tab order of
+    the sheets, Save-panel Command-Q and an on-device Increase Contrast look.
 - [ ] N4.18 Update parity inventory with native screenshots and UI-test/manual evidence for every control and action; record intentional differences explicitly.
 
 Exit: all existing macOS UI behaviors have tested native counterparts; no
