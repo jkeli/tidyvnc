@@ -57,7 +57,7 @@ struct TrustFileSettingsFields: View {
       }.disabled(patch[keyPath: key] == nil)
       if let path = patch[keyPath: key], !NativeTrustFiles.isValidPath(path) {
         Text(String(localized:"settings.trustFiles.enter.a.valid.full.file.path.or.leave.it.empty.for.no", defaultValue:"Enter a valid full file path, or leave it empty for no additional file."))
-          .font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+          .font(.caption).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true)
       } else {
         Text(patch[keyPath: key] == nil ? String(localized:"settings.trustFiles.inherited.status", defaultValue:"\(inheritance): \((inherited[keyPath: key] ?? "").isEmpty ? String(localized:"settings.trustFiles.no.additional.file", defaultValue:"no additional file") : String(localized:"settings.trustFiles.selected.file", defaultValue:"selected file"))") :
           patch[keyPath: key] == "" ? String(localized:"settings.trustFiles.no.additional.file.title", defaultValue:"No additional file") : String(localized:"settings.trustFiles.selected.file.title", defaultValue:"Selected file"))

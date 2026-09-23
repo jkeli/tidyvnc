@@ -22,7 +22,7 @@ struct SessionSecuritySheet: View {
             inheritance:String(localized:"settings.security.use.this.window.s.initial.settings", defaultValue:"Use this window’s initial settings"),contextID:model.id.uuidString,scopeMessage:String(localized:"settings.security.changes.apply.when.this.window.connects.again", defaultValue:"Changes apply when this window connects again.")).padding(8)
         }
       }.frame(minHeight:120,idealHeight:380,maxHeight:380).disabled(model.isBusy || model.needsReload)
-      if let error = model.error { Text(error).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
+      if let error = model.error { Text(error).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal:false,vertical:true) }
       if model.didApply { Text(String(localized:"settings.security.applied.for.the.next.connection.in.this.window", defaultValue:"Applied for the next connection in this window.")).font(.caption).foregroundStyle(.secondary) }
       if model.isBusy { ProgressView(String(localized:"settings.security.checking.security.settings", defaultValue:"Checking security settings…")).controlSize(.small) }
       if model.needsReload { Button(String(localized:"action.discard.edits.reload", defaultValue:"Discard Edits and Reload")) { model.reload() }.disabled(!model.canReload) }

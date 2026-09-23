@@ -67,7 +67,7 @@ struct HistoryImportView: View {
               Text(String(localized:"history.import.no.history.file.was.found.for.that.source.choose.another.source.or", defaultValue:"No history file was found for that source. Choose another source or close this window."))
                 .accessibilityIdentifier("historyImport.absent")
             }
-            if let issue = state.issue { Text(issue).foregroundStyle(.red).accessibilityIdentifier("historyImport.error") }
+            if let issue = state.issue { Text(issue).foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("historyImport.error") }
           }.frame(maxWidth: .infinity, alignment: .leading)
         }
         Text(String(localized:"history.import.import.is.a.one.time.copy.changes.are.not.synchronized.with.the", defaultValue:"Import is a one-time copy. Changes are not synchronized with the original file."))
@@ -100,7 +100,7 @@ struct HistoryImportView: View {
       }
       Text(String(localized:"history.import.import.preserves.the.listed.order.and.address.spelling.no.connection.will.be", defaultValue:"Import preserves the listed order and address spelling. No connection will be started."))
         .font(.caption).foregroundStyle(.secondary)
-      if let issue = state.issue { Text(issue).foregroundStyle(.red).accessibilityIdentifier("historyImport.error") }
+      if let issue = state.issue { Text(issue).foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("historyImport.error") }
       HStack {
         Button(String(localized:"action.cancel", defaultValue:"Cancel")) { state.cancel(review.id) }.keyboardShortcut(.cancelAction)
         Spacer()

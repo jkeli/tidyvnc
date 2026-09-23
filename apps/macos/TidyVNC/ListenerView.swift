@@ -30,7 +30,7 @@ struct ListenerView: View {
                 .monospacedDigit().textSelection(.enabled)
             }
           }
-          if let issue = model.issue { Text(issue).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("listener.error") }
+          if let issue = model.issue { Text(issue).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("listener.error") }
           Divider()
           HStack { Text(String(localized:"listener.incoming.connections", defaultValue:"Incoming Connections")).font(.headline); Spacer(); Text(model.incoming.count.formatted()).foregroundStyle(.secondary) }
           VStack(alignment:.leading,spacing:12) {
@@ -109,7 +109,7 @@ private struct ListenerPreparationView: View {
           editMapping:{ preparation.editDocumentMapping(review.id) },
           accept:{ model.acceptDocument(review.id) },cancel:{ model.cancelDocument(review.id) },listening:true)
       } else if let issue = preparation.documentIssue ?? preparation.invocationIssue {
-        Text(issue).foregroundStyle(.red).accessibilityIdentifier("listener.document.error")
+        Text(issue).foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("listener.document.error")
         Button(String(localized:"listener.reload.connection.file", defaultValue:"Reload Connection File")) { preparation.load() }.disabled(model.closing)
       } else if preparation.error != nil {
         Text(String(localized:"listener.saved.defaults.could.not.be.loaded.retry.or.review.the.file.using", defaultValue:"Saved defaults could not be loaded. Retry, or review the file using built-in defaults."))

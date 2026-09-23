@@ -77,10 +77,10 @@ private struct MonitorMappingForm: View {
             .font(.caption).foregroundStyle(.secondary)
         }.frame(maxWidth:.infinity,alignment:.leading)
       }
-      if let issue { Text(issue).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
+      if let issue { Text(issue).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal:false,vertical:true) }
       else if displays.snapshot.error != nil || displays.snapshot.displays.isEmpty {
         Text(String(localized:"document.display.information.is.unavailable.connect.a.display.and.refresh.before.continuing", defaultValue:"Display information is unavailable. Connect a display and refresh before continuing."))
-          .foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true)
+          .foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true)
       }
       Button(String(localized:"document.refresh.displays", defaultValue:"Refresh Displays")) { displays.refresh() }
       HStack {

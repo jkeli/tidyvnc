@@ -146,7 +146,7 @@ struct DefaultsImportView: View {
             .accessibilityIdentifier("import.absent")
         }
         if let issue = state.issue {
-          Text(issue).foregroundStyle(.red).accessibilityIdentifier("import.error")
+          Text(issue).foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("import.error")
         }
         Text(String(localized:"import.defaults.imports.are.a.one.time.copy.native.defaults.are.saved.by.this", defaultValue:"Imports are a one-time copy. Native defaults are saved by this app; changes are not synchronized with the original files."))
           .font(.caption).foregroundStyle(.secondary)
@@ -207,7 +207,7 @@ struct DefaultsImportView: View {
       }
       Text(String(localized:"import.defaults.import.saves.this.reviewed.copy.for.new.connection.windows.and.leaves.the", defaultValue:"Import saves this reviewed copy for new connection windows and leaves the source file unchanged."))
         .font(.caption).foregroundStyle(.secondary)
-      if let issue = state.issue { Text(issue).foregroundStyle(.red).accessibilityIdentifier("import.error") }
+      if let issue = state.issue { Text(issue).foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("import.error") }
       HStack {
         Button(String(localized:"action.cancel", defaultValue:"Cancel")) { state.cancel(review.id) }.keyboardShortcut(.cancelAction).accessibilityIdentifier("import.cancel")
         Spacer()
@@ -267,9 +267,9 @@ private struct DefaultsImportMappingView: View {
           .font(.caption).foregroundStyle(.secondary)
       }.frame(maxWidth:.infinity,alignment:.leading)
     }
-    if let issue { Text(issue).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
+    if let issue { Text(issue).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal:false,vertical:true) }
     else if choices.snapshot?.error != nil || choices.snapshot?.displays.isEmpty != false {
-      Text(String(localized:"document.display.information.is.unavailable.connect.a.display.and.refresh.before.continuing", defaultValue:"Display information is unavailable. Connect a display and refresh before continuing.")).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true)
+      Text(String(localized:"document.display.information.is.unavailable.connect.a.display.and.refresh.before.continuing", defaultValue:"Display information is unavailable. Connect a display and refresh before continuing.")).foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true)
     }
     Button(String(localized:"document.refresh.displays", defaultValue:"Refresh Displays")) { choices.snapshot = displays() }
     HStack {

@@ -25,8 +25,8 @@ struct SecuritySettingsFields: View {
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
       if selected?.types.isEmpty == true {
         Text(String(localized:"settings.security.no.methods.are.allowed.new.connections.will.be.refused", defaultValue:"No methods are allowed. New connections will be refused."))
-          .foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("security.empty")
-      } else if selected == nil { Text(String(localized:"settings.security.the.security.selection.is.invalid.or.unavailable.in.this.build", defaultValue:"The security selection is invalid or unavailable in this build.")).foregroundStyle(.red) }
+          .foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("security.empty")
+      } else if selected == nil { Text(String(localized:"settings.security.the.security.selection.is.invalid.or.unavailable.in.this.build", defaultValue:"The security selection is invalid or unavailable in this build.")).foregroundStyle(Color.nativeErrorText) }
       ForEach(NativeSecurityChoice.Protection.allCases,id:\.self) { group in
         GroupBox(title(group)) {
           VStack(alignment:.leading,spacing:8) {
@@ -94,7 +94,7 @@ struct TLSPrioritySettingsFields: View {
             .font(.caption).foregroundStyle(.secondary)
           Text(String(localized:"settings.security.applies.to.tls.methods.when.connecting.gnutls.expressions.are.checked.on.apply", defaultValue:"Applies to TLS methods when connecting. GnuTLS expressions are checked on Apply or Save; the server must support the chosen algorithms and TLS versions."))
             .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-          if !patch.isPriorityTextValid { Text(String(localized:"settings.security.use.at.most.4096.utf.8.bytes.with.no.nul.characters", defaultValue:"Use at most 4096 UTF-8 bytes with no NUL characters.")).foregroundStyle(.red) }
+          if !patch.isPriorityTextValid { Text(String(localized:"settings.security.use.at.most.4096.utf.8.bytes.with.no.nul.characters", defaultValue:"Use at most 4096 UTF-8 bytes with no NUL characters.")).foregroundStyle(Color.nativeErrorText) }
           if !available {
             Text(String(localized:"settings.security.custom.tls.priorities.are.unavailable.in.this.build.use.the.library.default", defaultValue:"Custom TLS priorities are unavailable in this build. Use the library default or inherit.")).font(.caption).foregroundStyle(.secondary)
           }

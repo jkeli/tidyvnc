@@ -71,7 +71,7 @@ struct ScalingDefaultsFields: View {
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
       if effective == nil {
         Text(String(localized:"settings.scaling.enter.a.valid.scaling.value.dimensions.range.from.1.to.65535.percentages", defaultValue:"Enter a valid scaling value. Dimensions range from 1 to 65535; percentages range from 0.01 to 10000 with up to two decimal places."))
-          .font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("scalingDefaults.error")
+          .font(.caption).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("scalingDefaults.error")
       }
       Button(resetSource == .appDefaults ? String(localized:"settings.inheritance.use.app.defaults", defaultValue:"Use App Defaults") : String(localized:"settings.inheritance.use.builtin.defaults", defaultValue:"Use Built-in Defaults")) { patch = .init() }
         .disabled(patch == NativeScalingPreferences()).accessibilityIdentifier("scalingDefaults.inherit")

@@ -17,10 +17,10 @@ struct TrustDetailsView: View {
         LabeledContent(String(localized:"trust.destination", defaultValue:"Destination"), value: destination).textSelection(.enabled)
       }
       if isWorking { ProgressView(String(localized:"trust.checking.saved.certificate.exceptions", defaultValue:"Checking saved certificate exceptions…")).controlSize(.small) }
-      if let issue { Text(issue).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true) }
+      if let issue { Text(issue).foregroundStyle(Color.nativeWarningText).fixedSize(horizontal: false, vertical: true) }
       if let saved, saved.state != .absent {
         if saved.state == .changed {
-          Text(String(localized:"trust.the.server.public.key.differs.from.the.key.saved.for.this.destination", defaultValue:"The server public key differs from the key saved for this destination.")).foregroundStyle(.red)
+          Text(String(localized:"trust.the.server.public.key.differs.from.the.key.saved.for.this.destination", defaultValue:"The server public key differs from the key saved for this destination.")).foregroundStyle(Color.nativeErrorText)
             .fixedSize(horizontal: false,vertical: true).accessibilityIdentifier("trust.changedScopedKey")
           Text(request.kind == .hostKey ? String(localized:"trust.expected.serverKey", defaultValue:"Expected Server-key SHA-256: \(saved.expectedFingerprint ?? "")") : String(localized:"trust.expected.spki", defaultValue:"Expected SPKI SHA-256: \(saved.expectedFingerprint ?? "")"))
             .font(.system(.caption,design: .monospaced)).textSelection(.enabled).fixedSize(horizontal: false,vertical: true)
@@ -35,7 +35,7 @@ struct TrustDetailsView: View {
       if let inspection {
         if inspection.state == .changed {
           Text(String(localized:"trust.the.server.public.key.differs.from.the.saved.certificate.exception", defaultValue:"The server public key differs from the saved certificate exception."))
-            .foregroundStyle(.red).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("trust.changedKey")
+            .foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("trust.changedKey")
           ForEach(inspection.expectedIdentities, id: \.self) { identity in
             Text(identity.expectedMessage).font(.system(.caption, design: .monospaced))
               .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
@@ -77,7 +77,7 @@ struct TrustDetailsView: View {
           .font(.caption).foregroundStyle(.secondary)
       } else {
         Text(String(localized:"trust.this.identity.cannot.be.accepted.cancel.and.contact.the.server.administrator", defaultValue:"This identity cannot be accepted. Cancel and contact the server administrator."))
-          .foregroundStyle(.red).accessibilityIdentifier("trust.cannotOverride")
+          .foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("trust.cannotOverride")
       }
     }
   }

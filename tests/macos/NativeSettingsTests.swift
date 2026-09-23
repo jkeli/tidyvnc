@@ -273,11 +273,14 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
     }
   }
   // The unassured warning wraps to two lines at the sheet width; none may be cut.
+  var warning = NSColor.black
+  NSAppearance(named: .aqua)!.performAsCurrentDrawingAppearance { warning = NSColor.nativeWarningText.usingColorSpace(.sRGB)! }
   let unassured = NativePrompt(id: 1, generation: session.generation, kind: .credentials, secure: false, securityType: 2,
     usernameRequired: false, certificateStatus: 0, serverName: "127.0.0.1", fingerprint: "", identity: Data())
   let warningLines = try await presentedSheetLines(AuthenticationSheet(model: authModel, session: session, request: unassured),
     name: "authentication-unassured", directory: directory) { color in
-      color.redComponent > 0.8 && color.greenComponent > 0.35 && color.greenComponent < 0.7 && color.blueComponent < 0.35
+      abs(color.redComponent - warning.redComponent) < 0.12 && abs(color.greenComponent - warning.greenComponent) < 0.12
+        && abs(color.blueComponent - warning.blueComponent) < 0.12
     }
   guard warningLines == 2 else { throw Failure(message: "presented authentication sheet shows \(warningLines) of 2 credential-warning lines") }
   for dark in [false, true] {

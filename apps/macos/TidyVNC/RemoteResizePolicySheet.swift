@@ -30,7 +30,7 @@ struct RemoteResizePolicySheet: View {
             .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
         }.frame(maxWidth: .infinity, alignment: .leading)
       }.frame(minHeight: 100, idealHeight: 430, maxHeight: 430)
-      if let message = model.message ?? model.validationMessage { Text(message).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true) }
+      if let message = model.message ?? model.validationMessage { Text(message).foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true) }
       Button(String(localized:"settings.fullscreen.restore.initial.settings", defaultValue:"Restore Initial Settings")) { model.restoreInitial() }
       HStack {
         Spacer()

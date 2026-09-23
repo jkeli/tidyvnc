@@ -29,7 +29,7 @@ struct AuthenticationSheet: View {
       Text(request.serverName).font(.headline).textSelection(.enabled).lineLimit(3).help(request.serverName)
       if request.kind == .credentials {
         Text(request.credentialProtectionMessage)
-          .foregroundStyle(request.secure ? Color.secondary : Color.orange)
+          .foregroundStyle(request.secure ? Color.secondary : Color.nativeWarningText)
           // Sheet sizing may round a line short; wrapped warnings must never truncate.
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityIdentifier("authentication.credentialProtection")
@@ -96,7 +96,7 @@ struct AuthenticationSheet: View {
           Button(String(localized:"authentication.reload.saved.decisions", defaultValue:"Reload Saved Decisions")) { trustModel.reload() }.disabled(trustModel.isWorking)
         }
       }
-      if let problem { Text(problem).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("authentication.error") }
+      if let problem { Text(problem).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("authentication.error") }
       HStack {
         Spacer()
         Button(String(localized:"action.cancel", defaultValue:"Cancel"), role: .cancel) { password = ""; model.cancel() }.keyboardShortcut(request.kind == .credentials ? .cancelAction : .defaultAction)

@@ -78,7 +78,7 @@ struct DocumentExportMappingView: View {
           }.frame(maxWidth:.infinity,alignment:.leading)
           Text(String(localized:"document.use.a.different.positive.whole.number.for.each.display.these.choices.affect", defaultValue:"Use a different positive whole number for each display. These choices affect only the exported file; this connection keeps its selected displays."))
             .font(.caption).foregroundStyle(.secondary)
-          if let issue { Text(issue).foregroundStyle(.red) }
+          if let issue { Text(issue).foregroundStyle(Color.nativeErrorText) }
         }.frame(maxWidth:.infinity,alignment:.leading)
       }
       HStack {

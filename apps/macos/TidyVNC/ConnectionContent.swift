@@ -77,7 +77,7 @@ struct ConnectionContent: View {
           TextField(String(localized:"profiles.ssh.gateway.optional", defaultValue:"SSH gateway (optional)"),text:$model.sshGatewayText).textFieldStyle(.roundedBorder)
             .disabled(!model.canEditDestination).accessibilityIdentifier("connection.sshGateway")
             .help(String(localized:"profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a", defaultValue:"Enter user@host or ssh://user@host:port. Leave empty for a direct connection."))
-          if let issue = model.gatewayIssue { Text(issue).foregroundStyle(.red).font(.caption) }
+          if let issue = model.gatewayIssue { Text(issue).foregroundStyle(Color.nativeErrorText).font(.caption) }
           if !model.sshGatewayText.isEmpty {
             Text(String(localized:"profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are", defaultValue:"SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected."))
               .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
@@ -125,21 +125,21 @@ struct ConnectionContent: View {
         Text(status).accessibilityIdentifier("connection.status")
         Spacer()
         if let message = model.fullscreen.message {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("fullscreen.status")
+          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("fullscreen.status")
         }
         if let message = model.desktopCommands.windowMessage {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("window.commandStatus")
+          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("window.commandStatus")
         }
         if model.desktopCommands.keyboardCaptured {
           Text(String(localized:"app.keyboard.captured", defaultValue:"Keyboard captured")).accessibilityIdentifier("keyboard.captured")
         } else if let message = model.desktopCommands.captureMessage {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("keyboard.captureStatus")
+          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("keyboard.captureStatus")
         }
         if let message = session.remoteResize.message {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("remoteResize.status")
+          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("remoteResize.status")
         }
         if let message = model.clipboardMessage {
-          Text(message).foregroundStyle(.orange).lineLimit(1).help(message).accessibilityIdentifier("clipboard.status")
+          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("clipboard.status")
         }
         if session.snapshot.width > 0 { Text(String(localized:"information.desktop.size", defaultValue:"\((session.snapshot.width).formatted()) × \((session.snapshot.height).formatted())")).monospacedDigit() }
       }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 14).padding(.vertical, 8)

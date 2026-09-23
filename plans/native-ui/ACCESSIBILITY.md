@@ -22,6 +22,15 @@ open in [TODO.md](TODO.md).
   optional passive overlay.
 - **Motion.** The app defines no custom animations or transitions; system
   animations follow the Reduce Motion setting.
+- **Colour contrast.** Warning and error text uses `Color.nativeWarningText` and
+  `Color.nativeErrorText` (`platform/macos/Presentation/NativeStatusColors.swift`)
+  rather than system orange and red. System orange measured 1.79:1 on a light
+  sheet, below WCAG AA. The replacement colours are at least 4.5:1 on window,
+  control and text backgrounds in light and dark, and at least 6:1 in the
+  high-contrast appearances; `NativePresentation.StructuredRecoveryAndRedaction` checks this. The
+  rendered light-mode warning measures 4.94:1. Offscreen renders do not apply
+  the high-contrast appearance, so what Increase Contrast actually looks like
+  still needs an on-device look.
 
 ## Remote framebuffer limits (inherent to RFB)
 

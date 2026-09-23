@@ -47,7 +47,7 @@ struct ScalingSettingsSheet: View {
       }.frame(maxWidth: .infinity, alignment: .leading)
       }.frame(minHeight: 120, idealHeight: 330, maxHeight: 330)
       if let message {
-        Text(message).foregroundStyle(.red).font(.callout).fixedSize(horizontal: false, vertical: true)
+        Text(message).foregroundStyle(Color.nativeErrorText).font(.callout).fixedSize(horizontal: false, vertical: true)
           .accessibilityIdentifier("scaling.error")
       }
       HStack {

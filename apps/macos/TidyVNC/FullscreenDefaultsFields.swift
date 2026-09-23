@@ -50,9 +50,9 @@ struct FullscreenDefaultsFields: View {
           }
         }.frame(maxWidth:.infinity,alignment:.leading)
       }.frame(height:90).disabled(patch.selectedDisplays == nil)
-      if displays.snapshot.error != nil { Text(String(localized:"settings.fullscreen.display.information.is.unavailable.saved.selections.are.kept", defaultValue:"Display information is unavailable. Saved selections are kept.")).foregroundStyle(.orange) }
+      if displays.snapshot.error != nil { Text(String(localized:"settings.fullscreen.display.information.is.unavailable.saved.selections.are.kept", defaultValue:"Display information is unavailable. Saved selections are kept.")).foregroundStyle(Color.nativeWarningText) }
       if (try? patch.resolved(base:inherited)) == nil {
-        Text(String(localized:"settings.fullscreen.selected.displays.mode.requires.at.least.one.selected.display", defaultValue:"Selected displays mode requires at least one selected display.")).foregroundStyle(.orange)
+        Text(String(localized:"settings.fullscreen.selected.displays.mode.requires.at.least.one.selected.display", defaultValue:"Selected displays mode requires at least one selected display.")).foregroundStyle(Color.nativeWarningText)
       }
       Text(String(localized:"settings.fullscreen.selections.are.kept.when.displays.disconnect.if.none.are.available.the.current", defaultValue:"Selections are kept when displays disconnect. If none are available, the current display is used temporarily. These settings apply to new connection windows."))
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)

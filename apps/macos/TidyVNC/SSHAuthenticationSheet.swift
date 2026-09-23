@@ -52,7 +52,7 @@ struct SSHAuthenticationSheet: View {
         Text(String(localized:"ssh.used.once.for.this.ssh.request.it", defaultValue:"Used once for this SSH request. It is not saved as a desktop password."))
           .font(.caption).foregroundStyle(.secondary)
       }
-      if let problem { Text(problem).foregroundStyle(.red).accessibilityIdentifier("ssh.error") }
+      if let problem { Text(problem).foregroundStyle(Color.nativeErrorText).accessibilityIdentifier("ssh.error") }
     }
   }
   @ViewBuilder private var actions: some View {

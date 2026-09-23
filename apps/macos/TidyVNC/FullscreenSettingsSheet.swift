@@ -63,7 +63,7 @@ struct FullscreenSettingsSheet: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
       }.frame(minHeight: 100, idealHeight: 470, maxHeight: 470)
       if let message = model.validationMessage ?? model.message {
-        Text(message).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("fullscreen.issue")
+        Text(message).foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("fullscreen.issue")
       }
       Button(String(localized:"settings.fullscreen.restore.initial.settings", defaultValue:"Restore Initial Settings")) { model.restoreInitial() }
         Button(String(localized:"settings.fullscreen.review.displays", defaultValue:"Review Displays")) { model.reviewDisplays() }.disabled(!model.needsReview)

@@ -76,7 +76,7 @@ struct ProfileLibraryView: View {
               TextField("",text:$model.gatewayText).textFieldStyle(.roundedBorder)
                 .accessibilityLabel(String(localized:"profiles.ssh.gateway.optional", defaultValue:"SSH gateway (optional)")).accessibilityIdentifier("profiles.sshGateway")
                 .help(String(localized:"profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a", defaultValue:"Enter user@host or ssh://user@host:port. Leave empty for a direct connection."))
-              if let issue = model.gatewayIssue { Text(issue).font(.caption).foregroundStyle(.red) }
+              if let issue = model.gatewayIssue { Text(issue).font(.caption).foregroundStyle(Color.nativeErrorText) }
               if !model.gatewayText.isEmpty {
                 Text(String(localized:"profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are", defaultValue:"SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected."))
                   .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
@@ -144,8 +144,8 @@ struct ProfileLibraryView: View {
           }
         }
       }.frame(minHeight: 180, idealHeight: 430, maxHeight: 430)
-      if let error = model.error { Text(profileMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true) }
-      if model.defaultsError != nil { Text(String(localized:"profiles.app.defaults.could.not.be.loaded.resolve.the.defaults.error.and.reload", defaultValue:"App defaults could not be loaded. Resolve the defaults error and reload profiles.")).foregroundStyle(.red) }
+      if let error = model.error { Text(profileMessage(error)).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true) }
+      if model.defaultsError != nil { Text(String(localized:"profiles.app.defaults.could.not.be.loaded.resolve.the.defaults.error.and.reload", defaultValue:"App defaults could not be loaded. Resolve the defaults error and reload profiles.")).foregroundStyle(Color.nativeErrorText) }
       if model.isBusy { ProgressView(String(localized:"profiles.updating.profiles", defaultValue:"Updating profiles…")).controlSize(.small) }
       HStack {
         Button(model.hasChanges ? String(localized:"action.discard.edits.reload", defaultValue:"Discard Edits and Reload") : String(localized:"trust.library.ui.reload", defaultValue:"Reload")) { model.reload() }.disabled(model.isBusy)

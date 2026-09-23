@@ -36,7 +36,7 @@ struct RemoteResizeSettingsFields: View {
       }
       Text(String(localized:"settings.resize.an.optional.widthxheight.such.as.1920x1080.is.requested.once.on.connection.when", defaultValue:"An optional widthxheight, such as 1920x1080, is requested once on connection when resizing is enabled. Each dimension must be 1 to 65535. An explicit blank value uses the server’s size."))
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-      if !patch.isValid { Text(String(localized:"settings.resize.enter.a.valid.initial.size.or.leave.the.override.blank", defaultValue:"Enter a valid initial size or leave the override blank.")).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true) }
+      if !patch.isValid { Text(String(localized:"settings.resize.enter.a.valid.initial.size.or.leave.the.override.blank", defaultValue:"Enter a valid initial size or leave the override blank.")).foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true) }
       Text(String(localized:"settings.resize.resizing.may.affect.other.viewers.windowed.and.initial.size.requests.use.one", defaultValue:"Resizing may affect other viewers. Windowed and initial-size requests use one remote screen; fullscreen follows the selected displays."))
         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
     }

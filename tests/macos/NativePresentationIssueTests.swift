@@ -111,9 +111,42 @@ actor FailingCursor: NativeCursorRendering {
   try check(session.presentations.count == 0,"failed renderers drain through session close")
   print("PASS renderer/cursor/canvas failure routing, redaction, fallback, recovery and drain")
 }
+// Status text must meet WCAG AA text contrast (4.5:1) on the standard window and
+// control/text backgrounds in every appearance, and 6:1 under Increase Contrast.
+@MainActor func statusContrast() throws {
+  func luminance(_ color: NSColor) -> Double {
+    let c = color.usingColorSpace(.sRGB)!
+    func linear(_ v: CGFloat) -> Double { let v = Double(v); return v <= 0.03928 ? v / 12.92 : pow((v + 0.055) / 1.055, 2.4) }
+    return 0.2126 * linear(c.redComponent) + 0.7152 * linear(c.greenComponent) + 0.0722 * linear(c.blueComponent)
+  }
+  func ratio(_ a: NSColor, _ b: NSColor) -> Double {
+    let x = luminance(a), y = luminance(b); return (max(x, y) + 0.05) / (min(x, y) + 0.05)
+  }
+  var failures: [String] = []
+  for name in [NSAppearance.Name.aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua] {
+    let appearance = NSAppearance(named: name)!, minimum = name.rawValue.contains("HighContrast") ? 6.0 : 4.5
+    appearance.performAsCurrentDrawingAppearance {
+      for background in [NSColor.windowBackgroundColor, .controlBackgroundColor, .textBackgroundColor] {
+        let resolvedBackground = background.usingColorSpace(.sRGB)!
+        for (label, text) in [("warning", NSColor.nativeWarningText), ("error", .nativeErrorText)] {
+          let value = ratio(text.usingColorSpace(.sRGB)!, resolvedBackground)
+          if value < minimum { failures.append("\(label) text contrast \(value) < \(minimum) on \(background) in \(name.rawValue)") }
+        }
+      }
+    }
+  }
+  // The system colours this replaces fail in light mode, which is why they are not used.
+  var systemOrange = 0.0
+  NSAppearance(named: .aqua)!.performAsCurrentDrawingAppearance {
+    systemOrange = ratio(NSColor.systemOrange.usingColorSpace(.sRGB)!, NSColor.windowBackgroundColor.usingColorSpace(.sRGB)!)
+  }
+  try check(failures.isEmpty, failures.joined(separator: "; "))
+  try check(systemOrange < 4.5, "system orange contrast assumption (\(systemOrange))")
+  print("PASS warning/error text contrast in light, dark and high-contrast appearances")
+}
 @main struct NativePresentationIssueTests {
   static func main() async {
-    do { try mapping(); try await routedFailures() }
+    do { try await MainActor.run { try statusContrast() }; try mapping(); try await routedFailures() }
     catch { print("FAIL \(error)"); exit(1) }
   }
 }

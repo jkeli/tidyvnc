@@ -28,7 +28,7 @@ struct SessionEncodingSheet: View {
         }.disabled(model.isBusy || model.needsReload || !model.isAvailable)
       }
       if let error = model.error {
-        Text(encodingDraftMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+        Text(encodingDraftMessage(error)).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true)
           .accessibilityIdentifier("encoding.error")
       }
       if model.needsReload {

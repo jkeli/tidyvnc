@@ -793,8 +793,11 @@ UI uses, with migration and credential behavior verified independently.
     [ACCESSIBILITY.md](ACCESSIBILITY.md): image element, label/help and focus/pan
     actions; no remote UI semantics over RFB; the default Control+Option shortcut
     modifiers overlap the VoiceOver modifier.
+  - [x] Text contrast: warning/error text moved from system orange/red (1.79:1
+    on light sheets) to accessible semantic colours, with a contrast test
+    (≥ 4.5:1 light/dark, ≥ 6:1 high contrast) across 26 app files.
   - [ ] VoiceOver listening pass (reading order, announcements), keyboard
-    traversal/Escape/default actions and high-contrast review.
+    traversal/Escape/default actions and an on-device Increase Contrast look.
 - [ ] N4.18 Update parity inventory with native screenshots and UI-test/manual evidence for every control and action; record intentional differences explicitly.
 
 Exit: all existing macOS UI behaviors have tested native counterparts; no

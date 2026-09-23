@@ -114,7 +114,7 @@ struct PreferencesSettingsView: View {
         .disabled(model.isBusy || model.snapshot == nil || model.needsReload)
       if let error = model.error {
         VStack(alignment: .leading, spacing: 8) {
-          Text(preferencesMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+          Text(preferencesMessage(error)).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("preferences.error")
           if model.needsReload || model.snapshot == nil { reloadButton }
         }

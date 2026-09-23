@@ -46,7 +46,7 @@ struct SessionConnectionSheet: View {
         Text(String(localized:"settings.connection.sources", defaultValue:"Shared access: \(source(baseline.sharedSource)) · Retry: \(source(baseline.reconnectSource))"))
           .font(.caption).foregroundStyle(.secondary)
       }
-      if let error = model.error { Text(error).foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
+      if let error = model.error { Text(error).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal:false,vertical:true) }
       if model.didApply { Text(String(localized:"settings.connection.applied.to.this.connection.window", defaultValue:"Applied to this connection window.")).font(.caption).foregroundStyle(.secondary) }
       if model.needsReload { Button(String(localized:"action.discard.edits.reload", defaultValue:"Discard Edits and Reload")) { model.reload() }.disabled(!model.canReload) }
       HStack {

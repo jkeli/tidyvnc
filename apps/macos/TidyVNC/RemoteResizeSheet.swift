@@ -29,7 +29,7 @@ struct RemoteResizeSheet: View {
               .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
             if let baseline = model.baseline, baseline.layout.screens.count > 1 {
               Text(String(localized:"settings.resize.replaces.layout", defaultValue:"This request replaces the server’s current \((baseline.layout.screens.count).formatted())-screen layout with one screen."))
-                .foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true)
+                .foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true)
             }
           } else {
             RemoteDisplayChooser(model:model).disabled(model.isBusy)
@@ -38,7 +38,7 @@ struct RemoteResizeSheet: View {
       }.frame(minHeight: 100, idealHeight: 410, maxHeight: 410)
       if model.isBusy { ProgressView(String(localized:"settings.resize.waiting.for.the.server", defaultValue:"Waiting for the server…")).controlSize(.small) }
       if let message = model.message {
-        Text(message).foregroundStyle(model.didApply ? Color.secondary : Color.orange)
+        Text(message).foregroundStyle(model.didApply ? Color.secondary : Color.nativeWarningText)
           .fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("remoteResize.result")
       }
       HStack {
@@ -117,7 +117,7 @@ private struct RemoteDisplayChooser: View {
         }
       }
       if let message = model.displayMessage {
-        Text(message).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true)
+        Text(message).foregroundStyle(Color.nativeWarningText).fixedSize(horizontal:false,vertical:true)
       }
     }
   }

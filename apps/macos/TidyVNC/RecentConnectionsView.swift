@@ -20,7 +20,7 @@ struct RecentHistoryStatus: View {
   var body: some View {
     if let error = model.error {
       HStack(alignment: .top) {
-        Text(historyMessage(error)).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+        Text(historyMessage(error)).foregroundStyle(Color.nativeWarningText).fixedSize(horizontal: false, vertical: true)
         Spacer()
         Button(String(localized:"history.reload.history", defaultValue:"Reload History")) { model.reload() }.disabled(model.isBusy)
       }.font(.caption).padding(.bottom, 8).accessibilityIdentifier("history.status")
@@ -74,7 +74,7 @@ struct RecentConnectionsPanel: View {
         }.frame(height: min(CGFloat(model.connections.count) * 52, 260))
       }
       if let error = model.error {
-        Text(historyMessage(error)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+        Text(historyMessage(error)).foregroundStyle(Color.nativeErrorText).fixedSize(horizontal: false, vertical: true)
       }
       if model.isBusy { ProgressView(String(localized:"history.updating.recent.connections", defaultValue:"Updating recent connections…")).controlSize(.small) }
       VStack(alignment: .leading, spacing: 8) {

@@ -47,7 +47,7 @@ struct InputSettingsSheet: View {
       }.frame(maxWidth: .infinity, alignment: .leading)
       }.frame(minHeight: 180, idealHeight: 500, maxHeight: 500)
       if let message {
-        Text(message).foregroundStyle(.red).font(.callout).fixedSize(horizontal: false, vertical: true)
+        Text(message).foregroundStyle(Color.nativeErrorText).font(.callout).fixedSize(horizontal: false, vertical: true)
           .accessibilityIdentifier("input.error")
       }
       HStack {

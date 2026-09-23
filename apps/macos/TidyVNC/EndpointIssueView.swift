@@ -20,7 +20,7 @@ struct EndpointIssueView: View {
   let issue: NativeEndpointIssue?
   var body: some View {
     if let issue, issue != .required {
-      Text(endpointMessage(issue)).font(.caption).foregroundStyle(.red)
+      Text(endpointMessage(issue)).font(.caption).foregroundStyle(Color.nativeErrorText)
         .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("endpoint.validation")
     }
   }
