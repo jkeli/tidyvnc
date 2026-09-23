@@ -6,38 +6,28 @@ for the full checklist and historical evidence. The objective remains the entire
 
 ## Committed checkpoint and next execution order
 
-Implementation checkpoint: the commit that adds this section (`feat(macos): sound
-server bells, route app copies through the pasteboard worker and run Apple
-sanitizers`), on top of `c2a6057e`. See the two 2026-09-23 TODO evidence sections.
-N1.5, N1.6, N1.13, N1.14 and N1.15 are now checked; N1.2, N1.3, N1.4, N1.9 and
-N1.16 remain open.
+Checkpoint: the latest commit on master (2026-09-23 session). Closed this session:
+N0.7, N0.10, N1.4, N1.5, N1.6, N1.9, N1.13, N1.14, N1.15, N2.1, N2.2, N2.8, N2.9,
+N3.6, N3.7, N3.17, N3.18, N3.19, N3.20, N5.10 and N6.14; see TODO.md for each
+item's evidence. The last full macOS Debug verification passes **3/770/90**. FLTK
+remains the default.
 
-1. N1.9 service contracts, from the recorded audit (keyboard capture is now typed,
-   `c078a2dc` onward): add an access/permission
-   service (Local Network guidance, Accessibility, security-scoped file access)
-   with typed states and a fake; an app-services contract (lifecycle/quit, logging,
-   help/URL resources) replacing the static launch hand-off; route remaining
-   `NSApp.isActive`/`NSWorkspace` reads through injectable contracts where a
-   test benefits; add a document writer fake and a picker service; unify trust
-   errors. The production wiring is now under test (`NativeApp.ProductionWiring`).
-2. N1.2/N1.3: move the Swift-only parameter rules recorded under N1.2 (DesktopSize,
-   via, PasswordFile, X509CA/CRL paths, listen port, selected-monitor IDs, deprecated
-   migrations and layer order) into portable core with C exports and tests. N1.4,
-   N1.9 and N1.13–N1.15 are closed; the Linux FLTK CI job is locally green again.
-3. Map existing encoding/security, authentication/trust, clipboard, reverse/listen,
-   tunnel and reconnect fixtures to PLAN §12 (N6.6). Extend actual-frontend coverage
-   for uncovered paths, keeping wire assertions distinct from visible acceptance.
-4. Resume actual app window/menu/file-panel, keyboard and VoiceOver acceptance
-   through CUA when native access works (UI-ACCEPTANCE.md, PARITY.md), including
-   an audible/visible bell check; then matched performance and physical 1×/2×,
-   mixed-display, hotplug/Spaces/IME checks.
-5. Verify minimum-OS/Intel dependencies, hosted CI (including the Linux sanitizer
-   jobs), installed Finder/network-consent behavior and intended signing/Keychain
-   upgrade access. Complete the full parity and requirement audit before changing
-   the shipping frontend or declaring N6 done.
-
-These are ordered follow-ups within the original plan, not replacement completion
-criteria. The full goal remains active and FLTK remains the default.
+1. **N3.13 secret lifetime audit** (in progress when this was written): trace every
+   credential copy from UI/env/file/Keychain to the wire; fix unwiped copies.
+2. **N6.6 fixture map**: record which of encodings/security, bad credentials,
+   trust, clipboard, resize, reverse/listen, tunnel, peer disappearance and
+   reconnect run at core, native-wrapper and actual-app level, then add actual-app
+   protocol cases for the gaps (extend `macos-scaling-smoke.py`).
+3. **N1.2/N1.3**: only selected-monitor ID rules, the two deprecated migrations and
+   layer composition remain frontend-owned (a deliberate choice, recorded in
+   HANDOFF.md). Decide whether to close them with that rationale.
+4. **Interactive acceptance** (N4.x, N4.17/N4.18, N5 physical): computer-use access
+   works for `io.github.jkeli.tidyvnc`. Use `tests/macos/isolated-app.py` to avoid
+   touching real user data; the user denied access to an isolated copy once, so
+   ask before retrying. Physical 1×/2×, mixed-display, Spaces and IME need hardware.
+5. **Distribution** (N0.6, N6.2/N6.4/N6.7–N6.13): minimum-OS/Intel dependencies,
+   hosted CI (the Linux sanitizer and FLTK jobs now pass locally), signing identity,
+   installed consent/Keychain and the final parity audit before any cutover.
 
 ## Latest follow-up (2026-09-23) — Apple sanitizers, server bell, pasteboard routing
 
