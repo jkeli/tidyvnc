@@ -172,3 +172,15 @@ inspector passes 13 binaries / 11 bundled libraries, closure, notices, identity,
 strict signature, symbols and 36 CLI cases, then detaches. The packaged executable
 passes the 55-case protocol baseline. Minimum-OS, Intel, production identity and
 installed behavior remain open.
+
+## Release package after the 2026-09-23 fixes
+
+Rebuilt at `621dd02a` (after the sanitizer, secret-wiping, JPEG, grammar and
+bell changes): verification `build/native-release-validation/verification/run-1py7qpl5`
+passes **3/776/90**. Package `build/native-release-621dd02a`: DMG SHA-256
+`85b496bfa0495340e9d5989e076df66bd210f284bf9169cd2792013d3f0437a5`, packaged
+executable `a39372919c6c366783e185001100b6c35d310885027ca2d3263c6f02f8198646`.
+The mounted-image inspection passes (13 binaries, 11 libraries, 36 CLI cases), the
+packaged app passes the 4 actual-app authentication/trust cases and the 55-case
+protocol baseline (`build/native-protocol-release-621dd02a`, hash matched). The
+package floor is still the explicit 27.0 host-dependency floor.

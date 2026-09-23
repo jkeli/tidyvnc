@@ -6,28 +6,35 @@ for the full checklist and historical evidence. The objective remains the entire
 
 ## Committed checkpoint and next execution order
 
-Checkpoint: the latest commit on master (2026-09-23 session). Closed this session:
-N0.7, N0.10, N1.4, N1.5, N1.6, N1.9, N1.13, N1.14, N1.15, N2.1, N2.2, N2.8, N2.9,
-N3.6, N3.7, N3.17, N3.18, N3.19, N3.20, N5.10 and N6.14; see TODO.md for each
-item's evidence. The last full macOS Debug verification passes **3/770/90**. FLTK
-remains the default.
+Checkpoint: the latest commit on master (2026-09-23 session). **Owner decisions:**
+hosted GitHub CI must not be enabled and nothing is pushed (reproduce Linux jobs
+in the local Podman Ubuntu container). Interactive checks use an isolated app copy
+(`tests/macos/isolated-app.py`); access is granted per launch, so ask first.
 
-1. **N3.13 secret lifetime audit** (in progress when this was written): trace every
-   credential copy from UI/env/file/Keychain to the wire; fix unwiped copies.
-2. **N6.6 fixture map**: record which of encodings/security, bad credentials,
-   trust, clipboard, resize, reverse/listen, tunnel, peer disappearance and
-   reconnect run at core, native-wrapper and actual-app level, then add actual-app
-   protocol cases for the gaps (extend `macos-scaling-smoke.py`).
-3. **N1.2/N1.3**: only selected-monitor ID rules, the two deprecated migrations and
-   layer composition remain frontend-owned (a deliberate choice, recorded in
-   HANDOFF.md). Decide whether to close them with that rationale.
-4. **Interactive acceptance** (N4.x, N4.17/N4.18, N5 physical): computer-use access
-   works for `io.github.jkeli.tidyvnc`. Use `tests/macos/isolated-app.py` to avoid
-   touching real user data; the user denied access to an isolated copy once, so
-   ask before retrying. Physical 1×/2×, mixed-display, Spaces and IME need hardware.
-5. **Distribution** (N0.6, N6.2/N6.4/N6.7–N6.13): minimum-OS/Intel dependencies,
-   hosted CI (the Linux sanitizer and FLTK jobs now pass locally), signing identity,
-   installed consent/Keychain and the final parity audit before any cutover.
+Closed this session (evidence in TODO.md): N0.7, N0.10, N1.2–N1.6, N1.9, N1.13–N1.15,
+N2.1, N2.2, N2.8, N2.9, N3.6, N3.7, N3.13, N3.17–N3.20, N5.3, N5.10, N6.5, N6.14.
+Highlights: Linux hostname lookup; full sanitizer passes on Linux and macOS (core
+and Swift) that found and fixed a TLS leak, null-memcpy UB, uninitialized JPEG
+decoder state and a restored Linux FLTK build; the silent server bell; core
+parameter grammars; secret wiping across RFB handlers, streams and Keychain saves;
+encoding round trips; actual-app authentication/trust cases; a matched FLTK/native
+workload baseline (PERFORMANCE.md); the WinUI handoff (HANDOFF.md).
+
+Everything still open needs one of:
+
+1. **Interactive UI with the app frontmost** (N4.x, N4.17/N4.18, N3.15 visible
+   controls, N3.3 Command-Q with the Save panel, N5.4–N5.6 visible checks):
+   background control works for windows, menus, sheets and connect/disconnect
+   (UI-ACCEPTANCE.md) but cannot activate the app, so remote input, popovers and
+   VoiceOver need full-screen control from a regular desktop Space.
+2. **Hardware/installation** (N0.4 baseline screenshots, N0.6 minimum OS/Intel,
+   N0.8/N5.7/N5.8 mixed displays and Spaces, N6.8–N6.10 installed consent, signing
+   identity, Keychain upgrade, sleep/wake, N3.9–N3.12/N3.14 real Keychain).
+3. **Hosted CI** (N6.4): blocked by the owner decision above.
+4. **Measurement still missing** (N0.5/N5.1/N5.9): presentation latency p50/p95,
+   copies and damage, multi-view.
+5. **Final review** (N6.6 remaining actual-app cases needing UI, N6.7/N6.11–N6.13):
+   only after 1–4; FLTK remains the default.
 
 ## Latest follow-up (2026-09-23) — Apple sanitizers, server bell, pasteboard routing
 

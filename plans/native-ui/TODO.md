@@ -775,7 +775,7 @@ unchecked parity rows hidden by a visually complete connection screen.
     coherent asynchronous transforms, damage-only updates and hide/unhide.
   - [x] Expose nearest/bilinear/area filters in the connection scaling sheet.
   - [ ] Finish cursor/pan parity and physical acceptance.
-- [ ] N5.3 Verify damage coalescing, dropped-presentation recovery, bounded retained frames and resize generation handling with attached/detached views.
+- [x] N5.3 Verify damage coalescing, dropped-presentation recovery, bounded retained frames and resize generation handling with attached/detached views. Covered by automated tests (reviewed 2026-09-23): `FramePublisher.SlowViewsMergeDamageIndependently`, `RetainedFramesBoundMemoryAndSkippedDamageIsRecovered`, `ResizeAndFormatChangesForceFullDamage`, `SkippedResizeAndReconnectCannotLoseInvalidation`, `ConcurrentConsumerRetainsConsistentFramesDuringReset`; `NativePresentation` (damage-only redraw and CG tile reuse, detached-work accounting, 16-slot renderer bound including pending detach, released-view drain, coalesced snapshot invalidations); `NativeDesktop` 12 view removals with a server resize in flight; and the N5.10 reconnect stress test.
 - [ ] N5.4 Verify remote/local cursor fallback, shape/hotspot, scaling and pointer mapping at edges and outside letterboxed content.
   - [x] C/Swift shared cursor sampling service: nearest/bilinear/area, premultiplied
     edge filtering, rounded/clamped hotspots, anisotropic/extreme scaling and
