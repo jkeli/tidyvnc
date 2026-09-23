@@ -63,7 +63,7 @@ may disappear merely because it is absent from an initial mockup.
 ## N1 — Portable session engine and services
 
 - [x] N1.1 Create GUI-independent core/service targets with clear dependency direction; prove clean configure/build without FLTK, SwiftUI, AppKit or WinUI. See the N1.1 evidence below and [build instructions](../../viewer/README.md).
-- [ ] N1.2 Extract endpoint parsing/normalization, typed options, capabilities, structured errors and settings schema; preserve endpoint syntax, option aliases/ranges and precedence.
+- [x] N1.2 Extract endpoint parsing/normalization, typed options, capabilities, structured errors and settings schema; preserve endpoint syntax, option aliases/ranges and precedence. Closed 2026-09-23: every parameter's grammar, aliases, ranges and canonical form is in core (the 36/9 audit below plus the moved DesktopSize, port and `via` grammars), with structured errors through the C ABI. Precedence is preserved and tested in the frontend's layer composition; the selected-monitor stable-ID rules (native display identities) and the post-merge deprecated migrations are frontend-owned by design, as recorded in HANDOFF.md.
   - [x] Owned endpoint values and a shared checked VNC address parser, preserving
     original labels, IPv6 scopes, Unix paths and tunnel-route identity. See the
     N1.2 endpoint evidence below; options/schema/capabilities remain open.
@@ -94,7 +94,7 @@ may disappear merely because it is absent from an initial mockup.
     N1.9 file services). Remaining for N1.2: FullScreenSelectedMonitors ID/cap rules,
     deprecated migrations and layer order. `run-h996jb49` passes 3/768/90; Linux ASan
     765/765 with zero warnings.
-- [ ] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs.
+- [x] N1.3 Extract shared configuration/document validation from FLTK/global parameter mutation; distinguish app defaults, profiles, session overrides and CLI inputs. Closed 2026-09-23: document syntax/semantic validation and invocation validation are shared core code with no global mutation (subitems below); native layers keep distinct app-default, profile, session and CLI/file sources with per-field provenance (`NativeInvocation.ResolutionAndPrecedence`, `FileMonitorPrecedenceAndRecovery`, document resolution tests). Transactions are per store (revisioned records). Layer composition stays with each frontend's typed model (HANDOFF.md).
   - [x] Extract owned, bounded connection-document syntax and non-secret export
     serialization; retained FLTK load/save/import uses the shared codec. See
     [DOCUMENTS.md](DOCUMENTS.md). Native file flows remain open.
