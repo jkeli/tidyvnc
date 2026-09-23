@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+# Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
+"""Matched FLTK/native viewer workload measurements (macOS, requires WindowServer).
+
+Runs an actual viewer executable against a loopback RFB 3.8 peer that answers
+every FramebufferUpdateRequest with a scripted update, so the request cadence is
+paced by the viewer's own read/decode/request loop:
+
+  idle      one full frame, then no updates for the measurement window
+  full1080  1920x1080 full-frame Raw update per request
+  full4k    3840x2160 full-frame Raw update per request
+  scroll    1920x1080 CopyRect shift by 16 rows plus a 16-row Raw strip
+
+Updates are offered at a fixed rate (--rate, default 30/s; 0 answers every
+request immediately), so both frontends receive the same load. Reported per workload: updates consumed per second; the protocol round trip from
+the end of each update the peer sent to the viewer's next request (p50/p95); the
+viewer's CPU time (user+system) per second; and peak RSS. The round trip is only
+a protocol-level signal: near zero means the viewer had already requested the
+next update (pipelined), and it never includes the time until pixels reach the
+display, so it is NOT presentation latency. For the native app, updates consumed
+are decoded updates; presentation may coalesce them.
+
+The native app runs as an isolated copy (tests/macos/isolated-app.py); FLTK runs
+with fresh HOME/XDG roots. Both use -ScalingFactor=100 -RemoteResize=0 and no
+clipboard. Results are a local baseline for matched comparison on one machine.
+"""
+import argparse
+import importlib.util
+import json
+import os
+import platform
+import select
+import signal
+import socket
+import struct
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+spec = importlib.util.spec_from_file_location('isolated_app', ROOT / 'tests/macos/isolated-app.py')
+isolated = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(isolated)
+
+WORKLOADS = {'idle': (1920, 1080), 'full1080': (1920, 1080), 'full4k': (3840, 2160), 'scroll': (1920, 1080)}
+
+
+def cpu_seconds(pid):
+    out = subprocess.run(['/bin/ps', '-o', 'time=', '-p', str(pid)], capture_output=True, text=True).stdout.strip()
+    if not out:
+        return None
+    parts = out.replace('-', ':').split(':')
+    seconds = 0.0
+    for part in parts:
+        seconds = seconds * 60 + float(part)
+    return seconds
+
+
+def rss_kib(pid):
+    out = subprocess.run(['/bin/ps', '-o', 'rss=', '-p', str(pid)], capture_output=True, text=True).stdout.strip()
+    return int(out) if out else None
+
+
+def percentile(values, fraction):
+    if not values:
+        return None
+    ordered = sorted(values)
+    return ordered[min(len(ordered) - 1, int(round(fraction * (len(ordered) - 1))))]
+
+
+class Peer:
+    def __init__(self, connection):
+        self.connection = connection
+        self.pixel_format = struct.pack('>BBBBHHHBBBxxx', 32, 24, 0, 1, 255, 255, 255, 16, 8, 0)
+
+    def read(self, count):
+        data = bytearray()
+        while len(data) < count:
+            chunk = self.connection.recv(count - len(data))
+            if not chunk:
+                raise ConnectionError('viewer closed the connection')
+            data.extend(chunk)
+        return bytes(data)
+
+    def handshake(self, width, height):
+        c = self.connection
+        c.sendall(b'RFB 003.008\n'); assert self.read(12) == b'RFB 003.008\n'
+        c.sendall(b'\1\1'); assert self.read(1) == b'\1'
+        c.sendall(b'\0\0\0\0'); self.read(1)
+        name = b'workload fixture'
+        c.sendall(struct.pack('>HH', width, height) + self.pixel_format + struct.pack('>I', len(name)) + name)
+
+    def next_message(self, timeout):
+        """Returns ('request', incremental) for FramebufferUpdateRequest, other kinds consumed."""
+        if not select.select([self.connection], [], [], timeout)[0]:
+            return None
+        kind = self.read(1)[0]
+        if kind == 0: self.read(3); self.pixel_format = self.read(16); return ('other', None)
+        if kind == 2: self.read(1); self.read(4 * struct.unpack('>H', self.read(2))[0]); return ('other', None)
+        if kind == 3: return ('request', self.read(9)[0])
+        if kind == 4: self.read(7); return ('other', None)
+        if kind == 5: self.read(5); return ('other', None)
+        if kind == 6: self.read(3); self.read(struct.unpack('>I', self.read(4))[0]); return ('other', None)
+        if kind == 150: self.read(9); return ('other', None)
+        if kind == 251:
+            self.read(1); _, _, count, _ = struct.unpack('>HHBB', self.read(6)); self.read(16 * count); return ('other', None)
+        raise AssertionError(f'unexpected client message {kind}')
+
+    def pixel(self, value):
+        bits, _, big, _, rmax, gmax, bmax, rs, gs, bs = struct.unpack('>BBBBHHHBBBxxx', self.pixel_format)
+        r, g, b = value
+        word = ((r * rmax // 255) << rs) | ((g * gmax // 255) << gs) | ((b * bmax // 255) << bs)
+        return word.to_bytes(bits // 8, 'big' if big else 'little')
+
+    def raw(self, x, y, w, h, colour):
+        # Cached per geometry, colour and pixel format so the peer is not the bottleneck.
+        key = (x, y, w, h, colour, self.pixel_format)
+        cache = self.__dict__.setdefault('cache', {})
+        if key not in cache:
+            cache[key] = struct.pack('>HHHHi', x, y, w, h, 0) + self.pixel(colour) * (w * h)
+        return cache[key]
+
+    def copyrect(self, x, y, w, h, sx, sy):
+        return struct.pack('>HHHHiHH', x, y, w, h, 1, sx, sy)
+
+    def update(self, rects):
+        self.connection.sendall(b'\0\0' + struct.pack('>H', len(rects)))
+        for rect in rects:
+            self.connection.sendall(rect)
+
+
+def serve(peer, workload, width, height, seconds, pid, rate):
+    colour = [(40, 120, 200), (200, 80, 40)]
+    frames, round_trips, rss_peak = 0, [], 0
+    # First request always gets a full frame; the window starts afterwards.
+    while True:
+        message = peer.next_message(30)
+        assert message, 'viewer never requested the first frame'
+        if message[0] == 'request':
+            peer.update([peer.raw(0, 0, width, height, colour[0])]); break
+    start, cpu_start = time.monotonic(), cpu_seconds(pid)
+    sent_at = time.monotonic()
+    # Sample RSS off the serving loop: spawning ps per message would throttle the peer.
+    stop, peaks = threading.Event(), [0]
+    def sample():
+        while not stop.wait(0.25):
+            value = rss_kib(pid)
+            if value: peaks[0] = max(peaks[0], value)
+    sampler = threading.Thread(target=sample, daemon=True); sampler.start()
+    while time.monotonic() - start < seconds:
+        message = peer.next_message(0.25)
+        if not message or message[0] != 'request':
+            continue
+        now = time.monotonic()
+        if workload == 'idle':
+            continue                                   # answer nothing: measure idle cost
+        round_trips.append(now - sent_at)
+        if rate:                                       # hold the offered rate (absolute schedule)
+            wait = start + frames / rate - time.monotonic()
+            if wait > 0: time.sleep(wait)
+        if workload in ('full1080', 'full4k'):
+            peer.update([peer.raw(0, 0, width, height, colour[frames % 2])])
+        else:                                          # scroll: shift up 16 rows, new strip
+            peer.update([peer.copyrect(0, 0, width, height - 16, 0, 16),
+                         peer.raw(0, height - 16, width, 16, colour[frames % 2])])
+        sent_at = time.monotonic(); frames += 1
+    elapsed = time.monotonic() - start
+    cpu = (cpu_seconds(pid) or 0) - (cpu_start or 0)
+    stop.set(); sampler.join(); rss_peak = max(peaks[0], rss_kib(pid) or 0)
+    return {'workload': workload, 'width': width, 'height': height, 'seconds': round(elapsed, 3), 'offeredRate': rate,
+            'updatesPerSecond': round(frames / elapsed, 2), 'updates': frames,
+            'roundTripP50ms': None if not round_trips else round(percentile(round_trips, .5) * 1000, 2),
+            'roundTripP95ms': None if not round_trips else round(percentile(round_trips, .95) * 1000, 2),
+            'cpuSecondsPerSecond': round(cpu / elapsed, 3), 'peakRSSMiB': round(rss_peak / 1024, 1)}
+
+
+def run(frontend, target, workload, seconds, work, rate):
+    width, height = WORKLOADS[workload]
+    listener = socket.socket(); listener.bind(('127.0.0.1', 0)); listener.listen(1)
+    port = listener.getsockname()[1]
+    args = ['-SecurityTypes=None', '-SendClipboard=0', '-AcceptClipboard=0', '-ScalingFactor=100',
+            '-RemoteResize=0', '-ReconnectOnError=0', f'127.0.0.1::{port}']
+    state = work / f'{frontend}-{workload}'
+    if frontend == 'native':
+        process = isolated.launch(target, state, args)['process']
+    else:
+        state.mkdir(parents=True)
+        env = isolated.environment(state)
+        process = subprocess.Popen([str(target), *args], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        listener.settimeout(30)
+        connection, _ = listener.accept()
+        with connection:
+            peer = Peer(connection); peer.handshake(width, height)
+            return serve(peer, workload, width, height, seconds, process.pid, rate)
+    finally:
+        listener.close()
+        if process.poll() is None:
+            process.send_signal(signal.SIGTERM)
+            try: process.wait(10)
+            except subprocess.TimeoutExpired: process.kill(); process.wait()
+        if frontend == 'native':
+            isolated.cleanup(state)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--native', type=Path, help='TidyVNC.app from build/native-ui-frontend')
+    parser.add_argument('--fltk', type=Path, help='retained FLTK vncviewer executable')
+    parser.add_argument('--workload', action='append', choices=sorted(WORKLOADS))
+    parser.add_argument('--seconds', type=float, default=8)
+    parser.add_argument('--rate', type=float, default=30, help='offered updates per second (0: unpaced)')
+    parser.add_argument('--report', type=Path, help='write JSON results here')
+    args = parser.parse_args()
+    targets = [(name, path.resolve()) for name, path in (('fltk', args.fltk), ('native', args.native)) if path]
+    if not targets:
+        parser.error('give --native and/or --fltk')
+    workloads = args.workload or ['idle', 'full1080', 'full4k', 'scroll']
+    report = {'macOS': platform.mac_ver()[0], 'architecture': platform.machine(), 'results': [],
+              'note': 'roundTrip is update-sent to next-request, a protocol proxy that excludes display time'}
+    with tempfile.TemporaryDirectory(prefix='tidyvnc-workloads-') as temporary:
+        for workload in workloads:
+            for frontend, target in targets:
+                result = run(frontend, target, workload, args.seconds, Path(temporary), args.rate)
+                result['frontend'] = frontend
+                report['results'].append(result)
+                print(json.dumps(result), flush=True)
+    if args.report:
+        args.report.write_text(json.dumps(report, indent=2) + '\n')
+
+
+if __name__ == '__main__':
+    sys.exit(main())
