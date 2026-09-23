@@ -347,3 +347,17 @@ panel's credits text, which speaks its content and cannot be labeled by the app.
 
 This is an automated label audit. It is not a VoiceOver listening pass (reading
 order and announcements), and it does not cover keyboard traversal.
+
+## 2026-09-23 — Help and About content through the accessibility API
+
+In an isolated copy, the accessibility tool opened Help › TidyVNC Help, pressed
+each segment of the Help topic picker and read the texts, then opened TidyVNC ›
+About TidyVNC:
+
+- **Getting Started:** the guide text ("Enter a server address, then select
+  Connect…", SSH gateway guidance, and so on).
+- **Acknowledgements:** the bundled README ("About TidyVNC … a fork of
+  TigerVNC"), with a note that upstream copyrights are preserved.
+- **Licence:** the GNU General Public License, version 2.
+- **About:** "TidyVNC", "Version 1.16.80 (1.16.80)" and "Copyright (C)
+  1999-2026 TigerVNC team and many others", with the credits text.

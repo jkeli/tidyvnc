@@ -756,6 +756,17 @@ UI uses, with migration and credential behavior verified independently.
     topic switching, About presentation, keyboard and VoiceOver acceptance remain
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
+  - [x] Actual-app Help and About, read through the accessibility API
+    (2026-09-23):
+    - The three Help topics switch to distinct content: Getting Started, the
+      README acknowledgements (upstream copyrights preserved) and the GPL v2
+      licence.
+    - The About panel shows "TidyVNC", "Version 1.16.80 (1.16.80)", the
+      TigerVNC copyright line and the credits text.
+    - Every Help and About control is labeled (26-screen audit).
+    - Project and issue links point to the repository remote
+      (github.com/jkeli/tidyvnc and /issues).
+  - [ ] Keyboard traversal of Help/About and a VoiceOver listening pass.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
   - Current source coverage: 1052 Localizable and 2 InfoPlist entries. App menus,
     connection/status, file panels, controller/gateway recovery, CLI/Keychain and
