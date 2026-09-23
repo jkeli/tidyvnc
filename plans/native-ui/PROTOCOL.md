@@ -94,3 +94,14 @@ Final reports `build/native-protocol-final/summary.json` and
 and measured expectations. Their executable hashes match the tested binaries.
 See RESUME.md and TODO.md for the full rebuilt and sanitizer verification.
 The default frontend remains FLTK.
+
+## Release and shared-fix evidence — 2026-09-23
+
+The packaged Release executable from `8b56c793`
+(`build/native-release-8b56c793/TidyVNC.app`) passes **55/55**
+(`build/native-protocol-release-8b56c793`). After the shared-code sanitizer fixes
+(empty-cursor copy, zero-length stream reads, TLS description logging), the native
+Debug app and retained FLTK executable pass **55/55** again
+(`build/native-protocol-shared-fixes`, `build/fltk-protocol-shared-fixes`). Each
+report's executable hash matches the tested binary. Scope is unchanged: wire and
+lifecycle assertions only.

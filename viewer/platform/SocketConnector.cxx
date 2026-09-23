@@ -17,6 +17,10 @@
 #include <sys/un.h>
 #ifdef __APPLE__
 #include <dns_sd.h>
+#elif defined(TIDYVNC_HAVE_GETADDRINFO_A)
+#include <memory>
+#include <netdb.h>
+#include <signal.h>
 #endif
 
 namespace viewer {
@@ -161,6 +165,67 @@ void resolve(State& state, const Endpoint& endpoint, const SocketConnectOptions&
   if (!output.count) throw ConnectionError(ConnectionErrorCode::Resolution, ConnectionPhase::Resolving,
                                           queries[0].error ? queries[0].error : queries[1].error);
 }
+#elif defined(TIDYVNC_HAVE_GETADDRINFO_A)
+// glibc asynchronous lookup. The request, its strings and result list are shared
+// with glibc's notification thread: after an abandoned (cancelled or expired)
+// lookup, whichever side finishes last releases them. run() therefore returns
+// promptly without joining or detaching a resolver thread of its own.
+struct Lookup {
+  ~Lookup() { if (request.ar_result) ::freeaddrinfo(request.ar_result); }
+  std::string name;
+  addrinfo hints{};
+  gaicb request{};
+  detail::WakePipe completed;
+};
+void notified(sigval value) noexcept
+{
+  std::unique_ptr<std::shared_ptr<Lookup>> holder(static_cast<std::shared_ptr<Lookup>*>(value.sival_ptr));
+  (*holder)->completed.signal();
+}
+void resolve(State& state, const Endpoint& endpoint, const SocketConnectOptions& options, Addresses& output)
+{
+  const auto deadline = Clock::now() + options.resolveTimeout;
+  auto lookup = std::make_shared<Lookup>();
+  lookup->name = endpoint.host();
+  lookup->hints.ai_family = options.ipv4 && options.ipv6 ? AF_UNSPEC : options.ipv4 ? AF_INET : AF_INET6;
+  lookup->hints.ai_socktype = SOCK_STREAM;
+  lookup->hints.ai_protocol = IPPROTO_TCP;
+  lookup->request.ar_name = lookup->name.c_str();
+  lookup->request.ar_request = &lookup->hints;
+  gaicb* list[] = {&lookup->request};
+  std::unique_ptr<std::shared_ptr<Lookup>> holder(new std::shared_ptr<Lookup>(lookup));
+  sigevent notification{};
+  notification.sigev_notify = SIGEV_THREAD;
+  notification.sigev_notify_function = notified;
+  notification.sigev_value.sival_ptr = holder.get();
+  state.check(ConnectionPhase::Resolving);
+  if (const int error = ::getaddrinfo_a(GAI_NOWAIT, list, 1, &notification))
+    throw ConnectionError(ConnectionErrorCode::Resolution, ConnectionPhase::Resolving, error);
+  // From here only notified() may release the holder, unless glibc confirms that
+  // the queued request was removed and will never notify.
+  auto* pending = holder.release();
+  try {
+    pollfd events[] = {{state.wake.read.value, POLLIN, 0}, {lookup->completed.read.value, POLLIN, 0}};
+    state.wait(events, 2, deadline, ConnectionPhase::Resolving);
+  } catch (...) {
+    if (::gai_cancel(&lookup->request) == EAI_CANCELED) delete pending;
+    throw;
+  }
+  const int error = ::gai_error(&lookup->request);
+  state.check(ConnectionPhase::Resolving);
+  if (error) throw ConnectionError(ConnectionErrorCode::Resolution, ConnectionPhase::Resolving, error);
+  for (auto* entry = lookup->request.ar_result; entry && output.count < output.values.size(); entry = entry->ai_next) {
+    if ((entry->ai_family != AF_INET && entry->ai_family != AF_INET6) || !entry->ai_addr ||
+        entry->ai_addrlen > sizeof(sockaddr_storage)) continue;
+    Address next;
+    std::memcpy(&next.storage, entry->ai_addr, entry->ai_addrlen);
+    next.length = entry->ai_addrlen;
+    if (entry->ai_family == AF_INET) reinterpret_cast<sockaddr_in*>(&next.storage)->sin_port = htons(endpoint.port());
+    else reinterpret_cast<sockaddr_in6*>(&next.storage)->sin6_port = htons(endpoint.port());
+    output.values[output.count++] = next;
+  }
+  if (!output.count) throw ConnectionError(ConnectionErrorCode::Resolution, ConnectionPhase::Resolving, EAI_NONAME);
+}
 #endif
 
 class Connector final : public ConnectionAttempt {
@@ -202,7 +267,7 @@ public:
         if (progress) progress(phase);
         state->check(phase);
         if (!endpoint.scope().empty()) throw ConnectionError(ConnectionErrorCode::InvalidAddress, phase);
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(TIDYVNC_HAVE_GETADDRINFO_A)
         resolve(*state, endpoint, options, addresses);
 #else
         throw ConnectionError(ConnectionErrorCode::Unsupported, phase);

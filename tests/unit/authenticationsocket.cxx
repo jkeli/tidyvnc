@@ -606,7 +606,7 @@ TEST_P(AuthenticationSocket, OtherSecuritySessionCompletesWhileFirstPromptIsPark
   parked.stopFromUI(); EXPECT_EQ(parked.finish().kind,Outcome::Interrupted);
 }
 INSTANTIATE_TEST_SUITE_P(Loopback,AuthenticationSocket,::testing::Bool(),
-  [](const ::testing::TestParamInfo<bool>& info) { return info.param ? "X509Vnc" : "Vnc"; });
+  [](const ::testing::TestParamInfo<bool>& parameter) { return parameter.param ? "X509Vnc" : "Vnc"; });
 
 #ifdef HAVE_NETTLE
 TEST(AuthenticationSocket, RSAAESWireKeysReachOwnedTrustPromptBeforeCredentials)

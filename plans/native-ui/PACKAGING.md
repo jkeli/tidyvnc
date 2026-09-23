@@ -161,3 +161,14 @@ plus two metadata entries. Full evidence is in
 The clean Release package gate is now locally verified on arm64 macOS 27. The
 minimum-OS/Intel, intended signing identity, real installed services, distribution
 obligations and full protocol/UI/physical/performance gates remain open.
+
+## Release package at the implementation commit (2026-09-23)
+
+`build/native-release-validation` was rebuilt at `8b56c793` (all targets, `--test
+--package --package-minimum-os 27.0`) and published `build/native-release-8b56c793`.
+Full verification `verification/run-tia1q75j` passes **3/756/89**. DMG SHA-256
+`ac238bdcee5e11972bc7ae014e79ae7e7d9b246e6674347d15ba4f86ce9be54a`; the mounted
+inspector passes 13 binaries / 11 bundled libraries, closure, notices, identity,
+strict signature, symbols and 36 CLI cases, then detaches. The packaged executable
+passes the 55-case protocol baseline. Minimum-OS, Intel, production identity and
+installed behavior remain open.

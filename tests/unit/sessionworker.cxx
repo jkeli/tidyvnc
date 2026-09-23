@@ -790,7 +790,7 @@ TEST(SessionWorker, ReconnectPreservesMailboxesSettingsAndOldFrameLeases)
     EXPECT_EQ(event.result, OperationResult::Succeeded);
     EXPECT_EQ(event.snapshot.generation, accepted.generation);
     EXPECT_EQ(event.snapshot.state, SessionState::Connected);
-    if (attempt) EXPECT_EQ(probe->executor, executor);
+    if (attempt) { EXPECT_EQ(probe->executor, executor); }
     executor = probe->executor;
     EXPECT_EQ(events, session->events()); EXPECT_EQ(view, session->view());
     EXPECT_EQ(input, session->input()); EXPECT_EQ(auth, session->authentication());
@@ -886,7 +886,7 @@ TEST(SessionWorker, ConnectCancellationWorksBeforeWorkerSetupAndDuringResolve)
     auto probe = std::make_shared<SetupProbe>();
     auto accepted = session->connect(connection(probe));
     ASSERT_EQ(accepted.status, CommandAdmission::Accepted);
-    if (n % 2) ASSERT_TRUE(until([&] { return probe->entered.load(); }));
+    if (n % 2) { ASSERT_TRUE(until([&] { return probe->entered.load(); })); }
     EXPECT_EQ(session->cancelOperation(accepted.generation, accepted.operation), CommandCancellation::Cancelled);
     SessionEvent event;
     ASSERT_TRUE(completion(session, accepted.operation, event));
@@ -1363,4 +1363,99 @@ TEST(SessionWorker, SharedFlagRevisionAndAttemptAdmissionAreAtomic)
   EXPECT_FALSE(worker->sharing().shared);
   ASSERT_EQ(worker->closeAndDrain().wait_for(seconds(3)),std::future_status::ready);
   idle = worker->sharing(); EXPECT_EQ(worker->setShared(idle.generation,idle.revision,true),CommandAdmission::Closing);
+}
+
+namespace {
+bool contains(const std::shared_ptr<Probe>& probe, const std::vector<uint8_t>& needle)
+{
+  std::lock_guard<std::mutex> lock(probe->mutex);
+  return std::search(probe->output.begin(), probe->output.end(), needle.begin(), needle.end()) != probe->output.end();
+}
+std::vector<uint8_t> bytes(const std::string& text) { return {text.begin(), text.end()}; }
+}
+
+// N1.14: two simultaneous sessions with different security and encoding settings.
+// One stays parked at its credential prompt while the other connects, receives a
+// frame, holds a modifier, sends clipboard text and changes its encoding. Nothing
+// crosses sessions: secrets, prompts, held input, clipboard or settings.
+TEST(SessionWorker, SimultaneousSessionsIsolatePromptSecretInputClipboardAndSettings)
+{
+  SessionRuntime runtime;
+  SessionWorkerOptions parkedOptions;
+  parkedOptions.encoding = EncodingOptions().withPatch({{"QualityLevel", "2"}}, OptionSource::Session);
+  auto parkedProbe = std::make_shared<Probe>();
+  auto parked = runtime.start(transport(parkedProbe, wire(true)), "parked", security(true), parkedOptions);
+  AuthenticationPrompt prompt;
+  ASSERT_TRUE(until([&] { return parked->authentication()->takeRequest(prompt); }));
+  size_t parkedBefore;
+  { std::lock_guard<std::mutex> lock(parkedProbe->mutex); parkedBefore = parkedProbe->output.size(); }
+
+  auto liveProbe = std::make_shared<Probe>();
+  auto live = runtime.start(transport(liveProbe, wire(false, true)), "live", security());
+  ASSERT_TRUE(until([&] { return live->events()->snapshot().frames == 1; }));
+  const auto generation = live->events()->snapshot().generation;
+
+  // Held modifier and clipboard on the live session only.
+  ASSERT_EQ(live->input()->key(generation, 7, 0xffe3, 0, true), InputResult::Accepted); // Control_L
+  live->wake();
+  const std::vector<uint8_t> controlDown{4, 1, 0, 0, 0x00, 0x00, 0xff, 0xe3};
+  ASSERT_TRUE(until([&] { return contains(liveProbe, controlDown); }));
+  auto offer = live->offerClipboard(generation, "live clipboard");
+  ASSERT_EQ(offer.status, CommandAdmission::Accepted);
+  SessionEvent event; ASSERT_TRUE(completion(live, offer.operation, event));
+  EXPECT_EQ(event.result, OperationResult::Succeeded);
+  auto changed = live->applyEncodingOptions(generation,
+    live->encodingOptions().withPatch({{"QualityLevel", "9"}}, OptionSource::Session));
+  ASSERT_EQ(changed.status, CommandAdmission::Accepted);
+  ASSERT_TRUE(completion(live, changed.operation, event));
+
+  // The parked session saw none of it and still waits, with its own settings.
+  EXPECT_EQ(parked->events()->snapshot().state, SessionState::Authenticating);
+  EXPECT_EQ(parked->events()->snapshot().frames, 0u);
+  EXPECT_EQ(parked->encodingOptions().value(EncodingOption::QualityLevel), "2");
+  EXPECT_EQ(live->encodingOptions().value(EncodingOption::QualityLevel), "9");
+  EXPECT_NE(parked->securityOptions().options, live->securityOptions().options);
+  EXPECT_EQ(parked->input()->status().queued, 0u);
+  EXPECT_FALSE(parked->input()->status().releasePending);
+  { std::lock_guard<std::mutex> lock(parkedProbe->mutex); EXPECT_EQ(parkedProbe->output.size(), parkedBefore); }
+  EXPECT_FALSE(contains(parkedProbe, bytes("live clipboard")));
+  EXPECT_FALSE(contains(parkedProbe, controlDown));
+  EXPECT_EQ(parked->clipboard()->bytesInUse(), 0u);
+
+  // Prompts are session-scoped: the live session cannot answer the parked one.
+  AuthenticationPrompt none;
+  EXPECT_FALSE(live->authentication()->takeRequest(none));
+  EXPECT_EQ(live->authentication()->replyCredentials(prompt.id, prompt.generation, "", "wrong session"),
+            PromptReply::NoPendingRequest);
+  EXPECT_EQ(parked->events()->snapshot().state, SessionState::Authenticating);
+
+  // Answering the parked prompt sends only a VNC challenge response on its own
+  // transport; the secret's plaintext reaches neither wire.
+  const std::string secret = "parked-secret";
+  EXPECT_EQ(parked->authentication()->replyCredentials(prompt.id, prompt.generation, "", secret),
+            PromptReply::Accepted);
+  // The whole parked transcript is version, VncAuth selection and the 16-byte
+  // challenge response; the client may batch these into one flush.
+  const size_t transcript = 12 + 1 + 16;
+  ASSERT_TRUE(until([&] {
+    std::lock_guard<std::mutex> lock(parkedProbe->mutex); return parkedProbe->output.size() == transcript;
+  }));
+  {
+    std::lock_guard<std::mutex> lock(parkedProbe->mutex);
+    EXPECT_TRUE(std::equal(parkedProbe->output.begin(), parkedProbe->output.begin() + 12,
+                           reinterpret_cast<const uint8_t*>("RFB 003.008\n")));
+    EXPECT_EQ(parkedProbe->output[12], rfb::secTypeVncAuth);
+  }
+  EXPECT_FALSE(contains(parkedProbe, bytes(secret)));
+  EXPECT_FALSE(contains(liveProbe, bytes(secret)));
+  EXPECT_FALSE(contains(liveProbe, bytes("parked")));
+
+  // Closing the live session releases its held key there, not on the parked one.
+  const std::vector<uint8_t> controlUp{4, 0, 0, 0, 0x00, 0x00, 0xff, 0xe3};
+  ASSERT_EQ(live->closeAndDrain().wait_for(seconds(3)), std::future_status::ready);
+  EXPECT_TRUE(contains(liveProbe, controlUp));
+  EXPECT_FALSE(contains(parkedProbe, controlUp));
+  EXPECT_EQ(parked->drained().wait_for(milliseconds(1)), std::future_status::timeout);
+  parked->closeAndDrain(); runtime.shutdown();
+  ASSERT_EQ(runtime.drained().wait_for(seconds(3)), std::future_status::ready);
 }

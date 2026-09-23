@@ -100,7 +100,7 @@ void CSecurityMSLogonII::writeCredentials()
 {
   std::string username;
   std::string password;
-  rdr::RandomStream rs;
+  rdr::RandomStream rs(rdr::RandomStream::RequireSystem);
 
   cc->getUserPasswd(isSecure(), &username, &password);
 

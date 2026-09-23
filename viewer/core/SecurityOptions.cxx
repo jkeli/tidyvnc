@@ -7,6 +7,10 @@
 #include <new>
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
+// Concurrent sessions and validators pair gnutls_global_init/deinit per object.
+// That is only safe with the thread-safe, reference-counted global lifetime.
+static_assert(GNUTLS_VERSION_NUMBER >= 0x030300,
+              "Concurrent native sessions require GnuTLS 3.3.0 or newer");
 #endif
 #include <rfb/SecurityClient.h>
 #include <algorithm>

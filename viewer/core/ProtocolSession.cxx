@@ -120,11 +120,11 @@ public:
     syncFramebuffer();
     bool published = true;
     if (!damage.is_empty()) {
-      auto* framebuffer = getFramebuffer();
+      auto* buffer = getFramebuffer();
       int stride;
-      const auto* data = framebuffer->getBuffer(framebuffer->getRect(), &stride);
-      PixelView input{data, size_t(stride)*framebuffer->height()*4,
-        uint32_t(framebuffer->width()), uint32_t(framebuffer->height()), size_t(stride)*4,
+      const auto* data = buffer->getBuffer(buffer->getRect(), &stride);
+      PixelView input{data, size_t(stride)*buffer->height()*4,
+        uint32_t(buffer->width()), uint32_t(buffer->height()), size_t(stride)*4,
         PixelFormat::BGRA8, AlphaMode::Opaque, PixelOrigin::TopLeft};
       const auto result = owner.publisher.publishFrame(owner.publisher.generation(), input,
         {uint32_t(damage.tl.x), uint32_t(damage.tl.y), uint32_t(damage.width()), uint32_t(damage.height())});

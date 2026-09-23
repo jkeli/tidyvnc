@@ -12,7 +12,7 @@
 // (0,0) in the full output raster; window position is only a blit offset.
 class DesktopTileCache {
 public:
-  explicit DesktopTileCache(size_t budget = 32 * 1024 * 1024) : budget(budget) {}
+  explicit DesktopTileCache(size_t bytes = 32 * 1024 * 1024) : budget(bytes) {}
   void clear();
   void setBudget(size_t bytes);
   void configure(int sw, int sh, int dw, int dh,

@@ -28,6 +28,7 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include <stdexcept>
 #ifndef WIN32
 #include <unistd.h>
 #include <errno.h>
@@ -44,7 +45,11 @@ using namespace rdr;
 
 unsigned int RandomStream::seed;
 
-RandomStream::RandomStream()
+RandomStream::RandomStream() : RandomStream(AllowWeakFallback)
+{
+}
+
+RandomStream::RandomStream(Source source)
 {
 #ifdef RFB_HAVE_WINCRYPT
   provider = 0;
@@ -71,6 +76,8 @@ RandomStream::RandomStream()
 #endif
 #endif
     vlog.error(_("No system random source available"));
+    if (source == RequireSystem)
+      throw std::runtime_error(_("No system random source available"));
     seed += (unsigned int) time(nullptr) + getpid() + getpid() * 987654 + rand();
     srand(seed);
   }

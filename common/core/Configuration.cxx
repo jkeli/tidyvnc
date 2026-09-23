@@ -519,7 +519,8 @@ std::string BinaryParameter::getValueStr() const {
 
 std::vector<uint8_t> BinaryParameter::getData() const {
   std::vector<uint8_t> out(length);
-  memcpy(out.data(), value, length);
+  if (length)
+    memcpy(out.data(), value, length);
   return out;
 }
 

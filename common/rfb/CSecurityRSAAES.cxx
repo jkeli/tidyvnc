@@ -158,7 +158,7 @@ bool CSecurityRSAAES::processMsg()
 
 static void random_func(void*, size_t length, uint8_t* dst)
 {
-  rdr::RandomStream rs;
+  rdr::RandomStream rs(rdr::RandomStream::RequireSystem);
   if (!rs.hasData(length))
     throw std::runtime_error(_("Failed to generate random data"));
   rs.readBytes(dst, length);
@@ -253,7 +253,7 @@ void CSecurityRSAAES::verifyServer()
 
 void CSecurityRSAAES::writeRandom()
 {
-  rdr::RandomStream rs;
+  rdr::RandomStream rs(rdr::RandomStream::RequireSystem);
   rdr::OutStream* os = cc->getOutStream();
   if (!rs.hasData(keySize / 8))
     throw std::runtime_error(_("Failed to generate random data"));

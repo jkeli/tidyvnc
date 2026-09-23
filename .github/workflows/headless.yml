@@ -27,3 +27,43 @@ jobs:
           python3 tests/viewer/headless.py --build-dir build/headless \
             --cmake-arg=-GNinja --cmake-arg=-DENABLE_GNUTLS=ON --cmake-arg=-DENABLE_NETTLE=ON \
             --cmake-arg=-DCMAKE_REQUIRE_FIND_PACKAGE_GTest=TRUE
+
+  linux-sanitizers:
+    # Debug adds -Werror. Each sanitizer runs the full portable unit suite with
+    # leak detection; glibc getaddrinfo_a tests self-skip under TSan because its
+    # resolver threads are created without ThreadSanitizer interception.
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - name: address-undefined
+            flags: -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=undefined
+          - name: thread
+            flags: -fsanitize=thread -fno-omit-frame-pointer
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install protocol and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libpixman-1-dev libjpeg-turbo8-dev zlib1g-dev libgnutls28-dev nettle-dev libgtest-dev
+      - name: Configure and build Debug with ${{ matrix.sanitizer.name }}
+        run: |
+          cmake -S . -B build/${{ matrix.sanitizer.name }} -GNinja -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_VIEWER=OFF -DBUILD_PLATFORM_APPS=OFF -DBUILD_MACOS_NATIVE=OFF \
+            -DENABLE_NLS=OFF -DENABLE_AUDIO=OFF -DENABLE_H264=OFF \
+            -DENABLE_GNUTLS=ON -DENABLE_NETTLE=ON -DCMAKE_REQUIRE_FIND_PACKAGE_GTest=TRUE \
+            "-DCMAKE_C_FLAGS=${{ matrix.sanitizer.flags }}" "-DCMAKE_CXX_FLAGS=${{ matrix.sanitizer.flags }}" \
+            "-DCMAKE_EXE_LINKER_FLAGS=${{ matrix.sanitizer.flags }}"
+          cmake --build build/${{ matrix.sanitizer.name }} --parallel 4
+      - name: Reduce runner ASLR entropy for ThreadSanitizer mappings
+        if: matrix.sanitizer.name == 'thread'
+        run: sudo sysctl vm.mmap_rnd_bits=28
+      - name: Run portable suites
+        env:
+          ASAN_OPTIONS: detect_leaks=1
+          TSAN_OPTIONS: halt_on_error=1
+        run: |
+          ctest --test-dir build/${{ matrix.sanitizer.name }}/tests/viewer --output-on-failure --no-tests=error --timeout 900
+          ctest --test-dir build/${{ matrix.sanitizer.name }}/tests/unit --output-on-failure --no-tests=error --timeout 900 --parallel 4

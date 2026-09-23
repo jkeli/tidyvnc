@@ -16,7 +16,7 @@ TEST(DesktopResampler, IdentityAndTiles)
         resampleDesktop(source.data(),17,13,17*4,tiled.data()+(y*size.x+x)*4,size.x*4,size.x,size.y,tile,quality,true);
       }
       EXPECT_EQ(full,tiled);
-      if(size==core::Point(17,13)) EXPECT_EQ(full,source);
+      if(size==core::Point(17,13)) { EXPECT_EQ(full,source); }
     }
   }
 }

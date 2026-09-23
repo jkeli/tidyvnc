@@ -70,7 +70,7 @@ TEST(Logging, ConcurrentFormattedRecordsRemainContiguousAndComplete) {
   for (auto& thread : threads) thread.join();
   const auto output = read(file); std::set<std::string> lines;
   std::istringstream stream(output); std::string line;
-  while (std::getline(stream,line)) if (line.find(" fixture: ") == 0) ASSERT_TRUE(lines.insert(line).second);
+  while (std::getline(stream,line)) if (line.find(" fixture: ") == 0) { ASSERT_TRUE(lines.insert(line).second); }
   ASSERT_EQ(lines.size(),workers*records*2u);
   for (int worker = 0; worker < workers; ++worker) for (int record = 0; record < records; ++record) {
     const auto id = std::to_string(worker)+"-"+std::to_string(record);
@@ -98,7 +98,8 @@ TEST(Logging, ConcurrentDirectAndFormattedWritesCannotRaceFileReplacement) {
     }
   });
   start = true;
-  for (auto& thread : threads) thread.join(); replace.join(); ASSERT_FALSE(failed);
+  for (auto& thread : threads) thread.join();
+  replace.join(); ASSERT_FALSE(failed);
   FILE* final = std::tmpfile(); ASSERT_NE(final,nullptr); logger.setFile(final);
   emit(logger,"last record"); EXPECT_NE(read(final).find(" fixture: last record\n"),std::string::npos);
 }
@@ -116,7 +117,8 @@ TEST(Logging, IndependentSinkTimestampsHaveNoSharedScratch) {
           output.find(" fixture:     owned timestamp\n") == std::string::npos) failed = true;
     }
   });
-  for (auto& thread : threads) thread.join(); EXPECT_FALSE(failed);
+  for (auto& thread : threads) thread.join();
+  EXPECT_FALSE(failed);
 }
 
 TEST(Logging, LazyRotationAndFilenameSwitchPreserveLegacyLifecycle) {

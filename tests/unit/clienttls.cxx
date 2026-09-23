@@ -15,13 +15,16 @@
 #include <gnutls/x509.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <thread>
+#include <vector>
 
 namespace {
 
@@ -293,4 +296,43 @@ TEST_F(ClientTLS, InvalidExplicitPriorityDoesNotFallBack)
   Exchange exchange(policy, leaf, ca, key);
   EXPECT_THROW(exchange.finish(), rdr::tls_error);
   EXPECT_EQ(0u, exchange.toServer.length());
+}
+
+// Every CSecurityTLS pairs gnutls_global_init/deinit. Constructing and destroying
+// other sessions' security objects must not disturb handshakes in progress; this
+// relies on GnuTLS >= 3.3's thread-safe, reference-counted global lifetime.
+TEST_F(ClientTLS, GlobalLifetimeChurnDoesNotDisturbActiveHandshakes)
+{
+  auto settings = options();
+  rfb::SecurityClient policy({rfb::secTypeX509None}, settings);
+  std::atomic<bool> running{true};
+  std::atomic<unsigned> churned{0};
+  std::mutex errorLock;
+  std::exception_ptr churnError;
+  std::vector<std::thread> churners;
+  for (int i = 0; i < 2; ++i)
+    churners.emplace_back([&] {
+      try {
+        while (running.load()) {
+          TestConnection connection(policy);
+          connection.setServerName("localhost");
+          auto security = connection.makeTLS();
+          ++churned;
+        }
+      } catch (...) {
+        std::lock_guard<std::mutex> lock(errorLock);
+        if (!churnError) churnError = std::current_exception();
+        running = false;
+      }
+    });
+  std::exception_ptr handshakeError;
+  for (int i = 0; i < 8 && !handshakeError; ++i) {
+    try { Exchange exchange(policy, leaf, ca, key); exchange.finish(); }
+    catch (...) { handshakeError = std::current_exception(); }
+  }
+  running = false;
+  for (auto& thread : churners) thread.join();
+  EXPECT_EQ(nullptr, churnError);
+  EXPECT_EQ(nullptr, handshakeError);
+  EXPECT_GT(churned.load(), 0u);
 }

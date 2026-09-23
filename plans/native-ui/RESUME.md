@@ -6,38 +6,63 @@ for the full checklist and historical evidence. The objective remains the entire
 
 ## Committed checkpoint and next execution order
 
-Implementation checkpoint: **`dc065580`** (`fix(macos): launch CLI sessions and
-validate native protocol baseline`). The worktree was clean after that commit;
-its Debug suite and both final protocol reports were rechecked as passed during
-this planning handoff. The Release artifact from **`ba849f57`** predates the
-startup, preference-domain and viewport-diagnostic changes, so it does not validate
-the current implementation. No new runtime or acceptance result is claimed by
-this documentation update.
+Implementation checkpoint: the commit that adds this section (`fix(viewer): resolve
+Linux hostnames, harden shared code under sanitizers and isolate sessions`), on top
+of `8b56c793`. Release was revalidated at `8b56c793` (no later edit reached that
+build); the later changes are validated by the Debug macOS, FLTK and Linux runs
+below. See the matching TODO evidence section for commands, hashes and counts.
 
-1. Rebuild and verify Release with the current implementation, run the full native
-   55-case protocol baseline against that executable, then regenerate and inspect
-   its app/DMG. Record the new source commit, executable/artifact hashes and reports.
-   Keep the explicit host dependency floor separate from supported minimum-OS proof.
-2. Reconcile the remaining N1.2–N1.6/N1.13 contract and global-state items against
-   current source and tests. For each unresolved item, name the reachable state or
-   missing contract, its owner/thread/lifetime, and the test needed to close it.
-   Use STATE-AUDIT.md and the original checklist; do not close parent items from
-   narrow protocol or model coverage.
+1. Continue the N1 contract audit for the items still open: N1.2 (remaining
+   settings/capability schema), N1.3 (document transactions/remaining groups),
+   N1.5 (remaining command catalog and native service ownership), N1.9 (service
+   contracts other than clipboard), N1.13 (service requests and app-level runtime
+   shutdown), N1.15/N1.16 (record the suites/sanitizers now run and their limits).
+   For each, name the reachable state/contract, owner/thread/lifetime and the test
+   that would close it; do not close parents from narrow coverage.
+2. Run the full crypto-enabled core suite under macOS ASan+UBSan and TSan (the
+   existing Apple sanitizer builds disable crypto and cover 11 focused tests), then
+   the native app/Swift sanitizers where the toolchain allows.
 3. Map existing encoding/security, authentication/trust, clipboard, reverse/listen,
-   tunnel and reconnect fixtures to PLAN §12. Extend actual-frontend coverage for
-   uncovered paths; preserve the distinction between wire assertions and visible
-   presentation/input acceptance.
+   tunnel and reconnect fixtures to PLAN §12 (N6.6). Extend actual-frontend coverage
+   for uncovered paths, keeping wire assertions distinct from visible acceptance.
 4. Resume actual app window/menu/file-panel, keyboard and VoiceOver acceptance
-   through CUA when native access works. Record observations against PARITY.md;
-   its previous access failures and unverified draft state remain documented in
-   UI-ACCEPTANCE.md. Complete matched performance and physical 1×/2×, mixed-display,
-   hotplug/Spaces/IME checks with the required hardware and workloads.
-5. Verify minimum-OS/Intel dependencies, hosted CI, installed Finder/network-consent
-   behavior and intended signing/Keychain upgrade access. Complete the full parity
-   and requirement audit before changing the shipping frontend or declaring N6 done.
+   through CUA when native access works (see UI-ACCEPTANCE.md and PARITY.md), then
+   matched performance and physical 1×/2×, mixed-display, hotplug/Spaces/IME checks.
+5. Verify minimum-OS/Intel dependencies, hosted CI (including the new Linux
+   sanitizer jobs), installed Finder/network-consent behavior and intended
+   signing/Keychain upgrade access. Complete the full parity and requirement audit
+   before changing the shipping frontend or declaring N6 done.
 
 These are ordered follow-ups within the original plan, not replacement completion
 criteria. The full goal remains active and FLTK remains the default.
+
+## Latest follow-up (2026-09-23) — Release revalidation, Linux resolver, sanitizers
+
+Release at `8b56c793` passes **3/756/89** and the new packaged DMG passes mounted
+inspection. Its packaged executable passes the full **55/55** protocol baseline
+(`build/native-protocol-release-8b56c793`). DMG SHA-256
+`ac238bdcee5e11972bc7ae014e79ae7e7d9b246e6674347d15ba4f86ce9be54a`; the explicit
+27.0 floor remains a host-dependency floor.
+
+N1.6 is now complete: glibc Linux resolves hostnames through `getaddrinfo_a` with
+prompt cancellation/deadline abandonment. Running the portable suite for the first
+time as Linux Debug (`-Werror`) under ASan+UBSan+LSan and TSan found and fixed an
+upstream per-handshake GnuTLS description leak, three null-`memcpy` UB sites,
+GCC-only warnings and a test allocator mismatch. All Linux configurations pass
+**759/759** (TSan skips only three glibc resolver tests, documented in code). CI
+jobs are defined; hosted execution is unverified.
+
+The N1.4 global-state table is reconciled in STATE-AUDIT.md. GnuTLS global
+lifetime is resolved under a `static_assert`ed ≥ 3.3 floor with a churn test.
+Client key exchange fails closed without a system random source (verified with
+`/dev` hidden). N1.14 is complete at the production runtime: a parked VncAuth
+session and a live session keep prompt, secret, held modifier, clipboard and
+encoding settings separate.
+
+After all changes, macOS Debug passes **3/3 viewer, 762/762 unit, 89/89 native**
+(`build/native-ui-frontend/verification/run-y01wnifx`). Retained FLTK passes
+782/782 unit and 3/3 viewer. Both 55-case baselines pass again with the shared-code fixes (native Debug `build/native-protocol-shared-fixes`, FLTK `build/fltk-protocol-shared-fixes`, hashes matched). Branding and diff checks
+pass. FLTK remains the default; the full goal stays active.
 
 ## Latest follow-up (2026-09-23) — Actual native protocol baseline and startup fix
 

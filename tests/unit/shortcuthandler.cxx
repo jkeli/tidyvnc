@@ -631,8 +631,9 @@ TEST(ShortcutHandler, EveryModifierCombinationResetsAndSupportsSides)
     SCOPED_TRACE(mask);
     for (const auto* symbols : {left,right}) {
       handler.setModifiers(mask);
-      for (unsigned i = 0; i < 4; ++i) if (mask & (1u<<i))
+      for (unsigned i = 0; i < 4; ++i) if (mask & (1u<<i)) {
         EXPECT_EQ(handler.handleKeyPress(i,symbols[i]),ShortcutHandler::KeyNormal);
+      }
       EXPECT_EQ(handler.handleKeyPress(99,XK_Return),mask ? ShortcutHandler::KeyShortcut : ShortcutHandler::KeyNormal);
       EXPECT_EQ(handler.handleKeyRelease(99),mask ? ShortcutHandler::KeyShortcut : ShortcutHandler::KeyNormal);
       handler.reset();

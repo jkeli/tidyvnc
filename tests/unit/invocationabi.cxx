@@ -120,7 +120,8 @@ TEST(InvocationABI, ConcurrentImmutableReads) {
       if (tidyvnc_invocation_assignment_at(owner.id,0,&value,nullptr) != TIDYVNC_OK || copied(value.value) != "1") ++failures;
     }
   });
-  for (auto& reader : readers) reader.join(); EXPECT_EQ(failures,0u);
+  for (auto& reader : readers) reader.join();
+  EXPECT_EQ(failures,0u);
 }
 TEST(InvocationABI, ValidationCreatesIndependentCanonicalOwnerAndPreservesFailures) {
   const std::string raw = "-Shared=YES"; const auto arg = bytes(raw); Handle syntax, validated;

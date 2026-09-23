@@ -39,7 +39,9 @@ Cursor::Cursor(int width, int height, const core::Point& hotspot,
   width_(width), height_(height), hotspot_(hotspot)
 {
   data = new uint8_t[width_*height_*4];
-  memcpy(data, data_, width_*height_*4);
+  // An empty cursor may have no source buffer; memcpy requires non-null.
+  if (width_*height_ > 0)
+    memcpy(data, data_, width_*height_*4);
 }
 
 Cursor::Cursor(const Cursor& other) :
@@ -47,7 +49,8 @@ Cursor::Cursor(const Cursor& other) :
   hotspot_(other.hotspot_)
 {
   data = new uint8_t[width_*height_*4];
-  memcpy(data, other.data, width_*height_*4);
+  if (width_*height_ > 0)
+    memcpy(data, other.data, width_*height_*4);
 }
 
 Cursor::~Cursor()

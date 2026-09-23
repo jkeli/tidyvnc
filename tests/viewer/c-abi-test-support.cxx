@@ -18,3 +18,13 @@ void operator delete[](void* pointer) noexcept { std::free(pointer); }
 void operator delete(void* pointer,std::size_t) noexcept { std::free(pointer); }
 void operator delete[](void* pointer,std::size_t) noexcept { std::free(pointer); }
 #endif
+// Replace every variant a consumer may call (gtest uses nothrow new), so no
+// allocation from the default implementation reaches the free() above.
+void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
+  try { return ::operator new(size); } catch (...) { return nullptr; }
+}
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
+  try { return ::operator new[](size); } catch (...) { return nullptr; }
+}
+void operator delete(void* pointer, const std::nothrow_t&) noexcept { std::free(pointer); }
+void operator delete[](void* pointer, const std::nothrow_t&) noexcept { std::free(pointer); }

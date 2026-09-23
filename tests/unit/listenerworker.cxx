@@ -81,7 +81,8 @@ template<class F> bool until(F predicate) {
 }
 std::vector<ListenerEvent> take(const std::shared_ptr<ListenerEvents>& events) {
   std::vector<ListenerEvent> result; ListenerEvent event;
-  while (events->take(event)) result.push_back(event); return result;
+  while (events->take(event)) result.push_back(event);
+  return result;
 }
 uint64_t incoming(const std::shared_ptr<ListenerEvents>& events) {
   uint64_t id = 0;

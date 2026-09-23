@@ -413,8 +413,13 @@ policy, exposing no native descriptor or global parameter reads. DNS/connect
 work starts only on the admitted session worker. macOS asynchronous DNS-SD
 queries, bounded address results, nonblocking candidate sockets and cancellation
 pipes have scoped ownership; successful socket ownership transfers once into
-`SessionTransport`. Linux hostname lookup explicitly rejects until a cancellable
-backend is supplied. Numeric TCP/Unix source is shared but tested here on macOS.
+`SessionTransport`. glibc Linux now resolves hostnames with `getaddrinfo_a`
+(2026-09-23): the request, its strings and results are shared with glibc's
+completion notification; a cancelled or expired lookup is released by whichever
+side finishes last (`gai_cancel` returning `EAI_CANCELED` means no notification
+will follow). `run()` never joins or detaches a resolver thread of its own.
+Non-glibc Linux still reports hostnames as unsupported. Numeric TCP/Unix source is
+shared and now also tested on Linux.
 
 A stable synchronized worker control preserves close across the setup/connected
 handoff. Control callbacks and disposal run outside its mutex. Close during setup
@@ -2438,3 +2443,47 @@ selection and current-route export capture, replacing the temporary admission
 guard. Service/storage coverage does not prove controller cancellation, exit,
 reconnect or close/quit behavior; those dedicated tests are the next task. No SSH
 session is launched by storage.
+
+## N1.4 global-state reconciliation (2026-09-23)
+
+The N0.3 table rows were re-checked against current source. Status per row, with
+the reachable state, its owner and the evidence or missing test:
+
+| Row | Current status | Evidence / remaining work |
+| --- | --- | --- |
+| `Configuration` registry, viewer parameters | Native sessions consume copied typed snapshots; FLTK retains the registry on its UI thread | Encoding/security/document/network sections above. Registry itself is unchanged by design |
+| `SecurityClient::secTypes`, `GnuTLSPriority`, `X509CA/CRL` | Explicit policy constructors; legacy values captured on the host thread | ClientTLS/SecurityClient concurrency tests |
+| `noJpeg`, `maxCutText` | Instance-owned | ConnectionEncoding/ClientClipboard concurrency tests |
+| `UseIPv4/UseIPv6` | Copied `NativeNetworkPolicy` per attempt | Invocation/network sections above |
+| `savedUsername/savedPassword` | Session-scoped `ClientCredentialCache` (FLTK) and native retention | Credential sections above |
+| `d3des KnL`, Tight gradient scratch | Caller/invocation-owned | d3des/TightDecoder concurrency tests |
+| `gnutls_global_init/deinit` per object | **Resolved:** GnuTLS ≥ 3.3.0 makes it thread-safe and reference counted, and its library constructor also holds an implicit reference, so one object's deinit cannot tear down another's state. The native core now has a `static_assert` on that floor | New `ClientTLS.GlobalLifetimeChurnDoesNotDisturbActiveHandshakes`: two threads construct/destroy TLS security objects while handshakes complete; passes plain, ASan and TSan (Linux) |
+| `RandomStream` weak fallback (`seed`, `srand/rand`) | **Resolved for clients:** `RandomStream(RequireSystem)` throws instead of seeding the shared process PRNG. `CSecurityDH`, `CSecurityRSAAES` and `CSecurityMSLogonII` use it. Server callers keep the legacy fallback (unchanged server behavior) | `RandomStream.*`; fail-closed verified in a Linux container with `/dev` hidden. FLTK clients also fail closed on such hosts, an intentional hardening |
+| `Timer::pending`, `CConn::socketEvent recursing` | Native uses session schedulers/workers; legacy queue remains for FLTK/server | Scheduler/worker sections above |
+| `socketsInitialised` | **Resolved** in source: `std::call_once` | `common/network/Socket.cxx` |
+| `TcpSocket` peer/endpoint static buffers | Not reachable from native sessions (owned `Endpoint` values; no peer-string calls in `viewer/` or the app) | Legacy FLTK/server single-thread use only |
+| `xdgdirs` static buffers | Native stores inject paths; read-only legacy import avoids the helpers | Legacy import section above |
+| Logger registration/levels | Frozen before workers; redacted native route | Logging sections above |
+| `i18n` setup | Host-thread initialization; native UI localizes structured errors | Localization sections |
+| `OptionsDialog`, `ShortcutHandler::modifierPrefix`, `DesktopWindow` registry, `vncviewer.cxx` process state | FLTK-only; the native app has its own owners | Not native-reachable; FLTK remains single-process-per-connection |
+
+Remaining N1.4 work is not a hidden global: native service/store requests and
+reconnect security edits are covered by their own sections, and N1.14 (two
+simultaneous sessions with different security, one parked in a prompt) is the
+integration test that must close this item together with N1.4.
+
+### Additional sanitizer findings (Linux full suite)
+
+The first full Linux Debug ASan+UBSan+LSan run of all portable unit tests found and
+fixed four issues, none native-specific:
+
+- `CSecurityTLS`/`SSecurityTLS` leaked the string returned by
+  `gnutls_session_get_desc` on every successful handshake; it is now freed.
+- `Cursor` copied from a null buffer for empty cursors, and `InStream::readBytes`
+  and `BinaryParameter::getData` passed null pointers to `memcpy` for zero
+  lengths. These are undefined behavior even at size 0; the copies are now guarded.
+- The C-ABI allocation-failure test hooks did not replace nothrow `operator new`,
+  so gtest's allocations were freed with `free()` (an ASan mismatch, test-only).
+
+GCC-only `-Werror` failures (shadowing, misleading indentation, dangling else and
+ignored `fclose` attributes) are fixed so the Linux Debug build is warning-free.

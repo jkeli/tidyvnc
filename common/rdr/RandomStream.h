@@ -36,7 +36,13 @@ namespace rdr {
 
   public:
 
+    // Legacy callers fall back to a process-wide rand() stream when no
+    // system random source exists. Client key exchange uses RequireSystem,
+    // which fails closed instead and never touches that shared state.
+    enum Source { AllowWeakFallback, RequireSystem };
+
     RandomStream();
+    explicit RandomStream(Source source);
     virtual ~RandomStream();
 
   private:

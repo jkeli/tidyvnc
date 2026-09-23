@@ -11,9 +11,10 @@ struct SocketConnectOptions {
   std::chrono::milliseconds connectTimeout{10000};
   std::chrono::milliseconds addressTimeout{2000};
 };
-// macOS: asynchronous system hostname resolution; macOS/Linux: numeric IPv4/v6
-// (including scopes) and Unix sockets. Linux hostnames are explicitly unsupported
-// until a cancellable resolver is available. Nonempty tunnel routes are rejected;
+// macOS: asynchronous DNS-SD hostname resolution; glibc Linux: getaddrinfo_a,
+// abandoning (never joining) a cancelled or expired lookup to its notification.
+// Other platforms report hostnames as unsupported. macOS/Linux: numeric IPv4/v6
+// (including scopes) and Unix sockets. Nonempty tunnel routes are rejected;
 // the tunnel service must prepare its own attempt rather than silently bypass it.
 // Resolves at most 16 addresses and tries each within the total connect budget.
 // Timeouts must be 1..60000ms; at least one IP family must be enabled for TCP.

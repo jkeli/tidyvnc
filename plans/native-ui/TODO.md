@@ -115,7 +115,7 @@ may disappear merely because it is absent from an initial mockup.
   - [x] Separate bounded listener runtime, ordered Starting/Listening/Stopping/
     terminal events, bounded incoming peers, expiry, explicit accept/reject,
     peer handoff into session workers and joined asynchronous close.
-- [ ] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors.
+- [x] N1.6 Separate socket readiness/monotonic scheduling from UI loops; implement cancellation/wakeup and test timer teardown. Public contracts do not expose POSIX descriptors. All subitems are complete, including glibc Linux hostname lookup (2026-09-23 evidence below). A stalled macOS mDNSResponder IPC call and non-glibc Linux hostnames remain documented limitations, not hidden fallbacks.
   - [x] Bounded per-session monotonic scheduler, cross-thread cancellation tokens
     and host wakeup seam; integrated statistics throttling and publication retry
     with close/reconnect teardown. See the N1.6 timer evidence below.
@@ -125,8 +125,10 @@ may disappear merely because it is absent from an initial mockup.
     established-attempt worker evidence below.
   - [x] Prepared endpoint attempts, asynchronous macOS DNS, bounded nonblocking
     TCP/Unix connection attempts, stage-specific failures and cancellation across
-    worker handoff. Linux hostname lookup remains open;
-    see connection-setup and reconnect evidence below.
+    worker handoff. See connection-setup and reconnect evidence below.
+  - [x] glibc Linux hostname lookup through `getaddrinfo_a`, with cancellation and
+    deadline abandonment released by the resolver's own completion; non-glibc
+    hostnames stay explicitly unsupported. See the 2026-09-23 Linux evidence.
   - [x] Prepared numeric TCP listener source, cancellable poll/accept, IPv4/IPv6,
     shared ephemeral port, partial-bind rollback and independently owned accepted
     transports. See listener evidence below; native listen wiring remains open.
@@ -152,7 +154,7 @@ may disappear merely because it is absent from an initial mockup.
     joined cleanup. Listener teardown now has separate bounded/joined ownership.
     Service requests and native app-level
     runtime shutdown integration remain open.
-- [ ] N1.14 Test two simultaneous sessions with different security/settings, one awaiting credentials while the other continues; no secret, modifier, clipboard or option leakage.
+- [x] N1.14 Test two simultaneous sessions with different security/settings, one awaiting credentials while the other continues; no secret, modifier, clipboard or option leakage. `SessionWorker.SimultaneousSessionsIsolatePromptSecretInputClipboardAndSettings` (2026-09-23 evidence below) exercises this at the production runtime; `ViewerABI.AnotherSessionProgressesWhileCredentialsAreParked` covers the C boundary. Native multi-window/app-quit isolation remains N6.10.
 - [ ] N1.15 Run existing applicable unit suites plus deterministic core/service tests with fake stores, transport, scheduler and event sink; run supported sanitizers and record limitations.
 - [ ] N1.16 Keep the FLTK frontend building and exercising the extracted logic during transition; shared server behavior remains unchanged.
 
@@ -736,6 +738,11 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
     executable, isolated state, measured viewport resize assertions and retained
     FLTK regression checks. See [PROTOCOL.md](PROTOCOL.md). Broader protocol,
     sanitizers and physical/presentation acceptance remain open.
+  - [x] Repeat the 55-case baseline with the packaged Release executable at the
+    current implementation commit (2026-09-23 evidence below).
+  - [x] Full portable core/unit suite as Linux Debug (-Werror) under ASan+UBSan+LSan
+    and TSan, with CI jobs defined. Fixed the upstream TLS description leak and
+    null-memcpy UB it found. Native app/Swift and Apple sanitizer coverage remain open.
 - [ ] N6.6 Validate bad credentials/trust, clipboard, remote resize, reverse/listen, tunnel, peer disappearance and reconnect; protocol tests supplement native presentation/input evidence.
 - [ ] N6.7 Validate final bundle identity, document associations, localization, credits, Local Network description, signing/resource seal and dependency paths; verify no FLTK linkage/symbols.
   - [x] Local ad hoc package identity/resources/notices/signature, full dylib
@@ -9709,3 +9716,72 @@ open. Next: remaining contract/global-state audits and broader protocol evidence
 actual interaction/accessibility, physical/performance, supported minimum-OS/Intel,
 installed services/signing, hosted CI and final parity/cutover. The full original
 goal stays active; FLTK remains the shipping default.
+
+### N6.5 / N1.6 / N1.4 / N1.14 Release revalidation, Linux resolver and full sanitizers (2026-09-23)
+
+**Release at the implementation commit.** Built `8b56c793` into the existing
+`build/native-release-validation` tree (`--configuration Release --test --package
+--package-minimum-os 27.0`); the compile phase finished before any later source
+edit (object timestamps checked). `verification/run-tia1q75j/summary.json` passes
+**3/3 viewer, 756/756 unit, 89/89 native** plus graph, configuration, localization,
+signature and CLI stages. New package `build/native-release-8b56c793`: DMG SHA-256
+`ac238bdcee5e11972bc7ae014e79ae7e7d9b246e6674347d15ba4f86ce9be54a`, packaged
+executable `4a4177e336d26d8546dc36a8e9996556dcbee454bd272d4c8a30fdcecac998c8`.
+Mounted read-only inspection passes (13 binaries, 11 bundled libraries, closed
+dependencies, notices, identity, strict signature, symbols, 36 CLI cases) and
+detaches. The 55-case baseline against that packaged executable passes **55/55**
+(`build/native-protocol-release-8b56c793/summary.json`, hash matches). The package
+floor is still the explicit 27.0 host-dependency floor, not minimum-OS proof.
+
+**Linux hostname lookup (N1.6).** glibc `getaddrinfo_a` with a `SIGEV_THREAD`
+notification that signals a pipe polled beside the cancellation wake. The request
+and its buffers are shared with the notification; `gai_cancel == EAI_CANCELED`
+means no notification follows and the worker releases it. Deadline/cancellation
+return immediately without joining or detaching a viewer thread. CMake detects libc
+or libanl; non-glibc remains Unsupported. New tests: localhost and single-family
+resolution, 64-iteration cancellation race (typed result, listener drained), plus a
+manual `stalledlookup` executable (not a CTest case, as verify-build rejects skips).
+With nameserver 192.0.2.1 the stalled check passes in 412–420 ms (plain and ASan).
+
+**Linux sanitizers (N6.5 subitem).** Ubuntu 24.04 aarch64 (Podman VM), GCC 13.3,
+GnuTLS 3.8.3. Debug adds `-Werror`, which first exposed GCC-only warnings (shadowing,
+misleading indentation, dangling else, ignored `fclose` attributes), all fixed.
+The first full ASan+UBSan+LSan run found and fixed an upstream TLS description leak
+(client and server), null-pointer `memcpy` UB (`Cursor`, `InStream::readBytes`,
+`BinaryParameter::getData`) and a test-only nothrow `operator new` mismatch.
+TSan cannot instrument glibc's internally created lookup threads (crash in its
+allocator); only those three resolver tests skip under TSan, with the reason in code.
+Final: Release headless script (graph audit) **3/3 + 759/759**; ASan+UBSan+LSan
+**3/3 + 759/759**; TSan **3/3 + 759/759** (3 skips); zero compiler warnings.
+`.github/workflows/headless.yml` now defines both Linux sanitizer jobs (with the
+runner ASLR adjustment TSan needs on x86_64); hosted execution is unverified.
+
+**Global state (N1.4) and randomness.** STATE-AUDIT.md now reconciles every N0.3 row.
+GnuTLS global init/deinit is safe under the ≥ 3.3 reference-counted lifetime; the
+native core `static_assert`s that floor and
+`ClientTLS.GlobalLifetimeChurnDoesNotDisturbActiveHandshakes` churns security
+objects during handshakes. Client key exchange now uses
+`RandomStream(RequireSystem)`, which fails closed instead of seeding the shared
+`rand()` fallback. In a privileged container with `/dev` hidden, strict mode throws
+and legacy (server) mode proceeds. Server behavior is unchanged.
+
+**Two-session isolation (N1.14).**
+`SessionWorker.SimultaneousSessionsIsolatePromptSecretInputClipboardAndSettings`:
+a VncAuth session parked at its prompt (QualityLevel 2) and a None session that
+receives a frame, holds Control_L, sends clipboard text and changes QualityLevel
+to 9. The parked transcript stays empty and its settings unchanged; the live
+session cannot take or answer the parked prompt. After the reply the parked
+transcript is exactly version, selection and a 16-byte response; the plaintext
+secret reaches neither wire. Closing the live session releases Control_L on its own
+wire only. Passes 10/10 plain, ASan and TSan (Linux) and 10/10 on macOS.
+
+**macOS after all changes.** `build/native-ui-frontend/verification/run-y01wnifx`:
+**3/3 viewer, 762/762 unit (22.08 s), 89/89 native (131.08 s)**, graph, configuration,
+1052 + 2 localization values, strict signature and CLI stages. Retained FLTK Release
+(`build/hidpi-release`) rebuilds and passes 782/782 unit and 3/3 viewer tests.
+The 55-case baseline passes again on both frontends after the shared-code fixes:
+native Debug `build/native-protocol-shared-fixes` (SHA-256 `afaced6b…60d0`) and FLTK
+`build/fltk-protocol-shared-fixes` (`8a31be50…c7c5`), hashes matching the binaries.
+Branding audit (1650 deferred) and `git diff --check` pass. macOS sanitizer runs
+of the full crypto-enabled suite, native app/Swift sanitizers, hosted CI and every
+interactive/physical/installed gate remain open.

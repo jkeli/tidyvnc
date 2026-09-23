@@ -16,6 +16,9 @@ namespace {
 using detail::Descriptor;
 [[noreturn]] void fail() { throw std::runtime_error("Private logging file unavailable"); }
 void require(bool condition) { if (!condition) fail(); }
+// A deleter type rather than decltype(&fclose): glibc's attributes on fclose are
+// ignored in template arguments, which GCC reports under -Werror.
+struct CloseStream { void operator()(FILE* stream) const noexcept { std::fclose(stream); } };
 int privateDescriptor(int fd) {
   if (fd < 0 || fd >= 3) return fd;
   const int replacement = fcntl(fd,F_DUPFD_CLOEXEC,3), code = errno;
@@ -142,7 +145,7 @@ void PrivateFileLogger::initialize() {
   inspect(temporary.fd.value); makePrivate(temporary.fd.value);
   FILE* stream = fdopen(temporary.fd.value,"w"); require(stream != nullptr);
   temporary.fd.value = -1;
-  std::unique_ptr<FILE,decltype(&std::fclose)> owned(stream,&std::fclose);
+  std::unique_ptr<FILE,CloseStream> owned(stream);
   if (old.value >= 0) {
     makePrivate(old.value);
     if (previous.value >= 0) {

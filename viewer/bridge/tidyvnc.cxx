@@ -220,15 +220,18 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
       problem.problem == LoggingProblem::UnknownTarget ? TIDYVNC_UNSUPPORTED : TIDYVNC_INVALID_ARGUMENT;
     const auto fault = Fault(status,TIDYVNC_DOMAIN_LOGGING,
       (static_cast<uint32_t>(problem.entry) << 8) | (static_cast<uint32_t>(problem.problem)+1));
-    if (writable) errorValue(error,fault); return fault.status;
+    if (writable) errorValue(error,fault);
+    return fault.status;
 #if defined(__APPLE__) || defined(__linux__)
   } catch (const LogFilePathError&) {
     const auto fault = Fault(TIDYVNC_INVALID_ARGUMENT,TIDYVNC_DOMAIN_LOGGING,TIDYVNC_LOGGING_INVALID_FILE_PATH);
-    if (writable) errorValue(error,fault); return fault.status;
+    if (writable) errorValue(error,fault);
+    return fault.status;
 #endif
   } catch (const LoggingFrozen&) {
     const auto fault = Fault(TIDYVNC_BUSY,TIDYVNC_DOMAIN_LOGGING,TIDYVNC_LOGGING_FROZEN);
-    if (writable) errorValue(error,fault); return fault.status;
+    if (writable) errorValue(error,fault);
+    return fault.status;
   } catch (const DocumentError& problem) {
     const auto fault = documentFault(problem); if (writable) errorValue(error,fault); return fault.status;
   } catch (const OptionError& error_) {
@@ -243,7 +246,8 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
   catch (const std::length_error&) { if (writable) errorValue(error,Fault(TIDYVNC_RESOURCE_LIMIT)); return TIDYVNC_RESOURCE_LIMIT; }
   catch (const std::overflow_error&) { if (writable) errorValue(error,Fault(TIDYVNC_RESOURCE_LIMIT)); return TIDYVNC_RESOURCE_LIMIT; }
   catch (const std::system_error& fault) {
-    if (writable) errorValue(error,Fault(TIDYVNC_FAILED,TIDYVNC_DOMAIN_BRIDGE,0,fault.code().value())); return TIDYVNC_FAILED;
+    if (writable) errorValue(error,Fault(TIDYVNC_FAILED,TIDYVNC_DOMAIN_BRIDGE,0,fault.code().value()));
+    return TIDYVNC_FAILED;
   } catch (...) { if (writable) errorValue(error,Fault(TIDYVNC_INTERNAL)); return TIDYVNC_INTERNAL; }
 }
 std::string text(tidyvnc_bytes bytes, uint64_t maximum = 4096) {
@@ -354,6 +358,8 @@ struct ProcessLogging {
   }
 };
 ProcessLogging& processLogging() { static ProcessLogging value; return value; }
+// Not decltype(&fclose): GCC ignores glibc's attributes there and -Werror fails.
+struct CloseStream { void operator()(FILE* stream) const noexcept { std::fclose(stream); } };
 std::unique_ptr<core::Logger> loggingDestination(const std::string& name, const std::string& path) {
 #if defined(__APPLE__) || defined(__linux__)
   if (name == "file") return std::unique_ptr<core::Logger>(new PrivateFileLogger(path));
@@ -363,7 +369,7 @@ std::unique_ptr<core::Logger> loggingDestination(const std::string& name, const 
   if (fd < 0) throw std::system_error(errno,std::generic_category());
   FILE* stream = fdopen(fd,"w");
   if (!stream) { const int code = errno; close(fd); throw std::system_error(code,std::generic_category()); }
-  std::unique_ptr<FILE,decltype(&std::fclose)> owned(stream,&std::fclose);
+  std::unique_ptr<FILE,CloseStream> owned(stream);
   std::unique_ptr<core::Logger_File> sink(new core::Logger_File("native-stdio"));
   sink->setFile(owned.get()); owned.release();
   return std::unique_ptr<core::Logger>(sink.release());

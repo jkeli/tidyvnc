@@ -795,8 +795,16 @@ Results are bounded to 16 addresses (8 per family when both are enabled), then
 tried sequentially in observed order. This is not a Happy Eyeballs algorithm.
 
 Numeric IPv4/IPv6, numeric or interface-name IPv6 scopes, and Unix sockets use the
-shared macOS/Linux POSIX implementation. Linux hostname lookup reports Unsupported
-until a cancellable resolver backend exists. Nonempty tunnel routes also report
+shared macOS/Linux POSIX implementation. On glibc Linux, hostnames use
+`getaddrinfo_a` (libc, or libanl before glibc 2.34; CMake detects which) with a
+completion notification written to a pipe the worker polls beside its cancellation
+wake. Cancellation or the lookup deadline returns immediately; glibc's notification
+releases an abandoned request, so no resolver thread is joined or detached by the
+viewer. Results are bounded to 16 addresses in resolver order. Other Linux C
+libraries report hostnames as Unsupported. ThreadSanitizer cannot instrument
+glibc's internally created lookup threads, so those tests skip under TSan; the
+manual `stalledlookup` executable checks a lookup that never completes (for
+example with an unresponsive nameserver). Nonempty tunnel routes also report
 Unsupported; the adapter never silently bypasses the requested route. Address
 family policy is explicitly copied, without reading legacy globals. The RFB/TLS
 server name is the canonical host without its IPv6 scope, or the Unix path;

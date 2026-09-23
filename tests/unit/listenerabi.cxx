@@ -216,8 +216,10 @@ TEST(ListenerABI, ConcurrentDecisionsClaimExactlyOnceAndOverflowDrains) {
   Fixture f; FD peer(connectTo(f.start())); auto id = f.incoming();
   std::atomic<unsigned> accepted{0}, missing{0}; std::vector<std::thread> threads;
   for (unsigned i = 0; i < 8; ++i) threads.emplace_back([&] { auto status = tidyvnc_listener_reject(f.listener.id,id,nullptr);
-    if (status == TIDYVNC_OK) ++accepted; if (status == TIDYVNC_NOT_PENDING) ++missing; });
-  for (auto& thread : threads) thread.join(); EXPECT_EQ(accepted,1u); EXPECT_EQ(missing,7u);
+    if (status == TIDYVNC_OK) ++accepted;
+    if (status == TIDYVNC_NOT_PENDING) ++missing; });
+  for (auto& thread : threads) thread.join();
+  EXPECT_EQ(accepted,1u); EXPECT_EQ(missing,7u);
   Fixture overflow; overflow.options.event_capacity = 4; auto port = overflow.start();
   FD first(connectTo(port)), second(connectTo(port)), third(connectTo(port));
   ASSERT_TRUE(until([&] { return overflow.snapshot().state == TIDYVNC_LISTENER_FAILED; }));

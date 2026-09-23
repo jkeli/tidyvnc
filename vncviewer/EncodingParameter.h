@@ -23,28 +23,28 @@ public:
   }
 protected:
   template<typename... Args>
-  EncodingParameter(viewer::EncodingOption option, const char* description, Args... args)
-    : Base(viewer::encodingSchema(option).name, description, args...), id(option) {}
+  EncodingParameter(viewer::EncodingOption option, const char* text, Args... args)
+    : Base(viewer::encodingSchema(option).name, text, args...), id(option) {}
 private:
   viewer::EncodingOption id;
 };
 class EncodingBoolParameter : public EncodingParameter<core::BoolParameter> {
 public:
-  EncodingBoolParameter(viewer::EncodingOption option, const char* description)
-    : EncodingParameter(option, description,
+  EncodingBoolParameter(viewer::EncodingOption option, const char* text)
+    : EncodingParameter(option, text,
         viewer::EncodingOptions().value(option) == "on") {}
 };
 class EncodingIntParameter : public EncodingParameter<core::IntParameter> {
 public:
-  EncodingIntParameter(viewer::EncodingOption option, const char* description)
-    : EncodingParameter(option, description,
+  EncodingIntParameter(viewer::EncodingOption option, const char* text)
+    : EncodingParameter(option, text,
         std::stoi(viewer::EncodingOptions().value(option)),
         viewer::encodingSchema(option).minimum, viewer::encodingSchema(option).maximum) {}
 };
 class EncodingEnumParameter : public EncodingParameter<core::EnumParameter> {
 public:
-  EncodingEnumParameter(viewer::EncodingOption option, const char* description)
-    : EncodingParameter(option, describe(description).c_str(), choices(),
+  EncodingEnumParameter(viewer::EncodingOption option, const char* text)
+    : EncodingParameter(option, describe(text).c_str(), choices(),
                         viewer::encodingSchema(option).defaultValue) {}
 private:
   static std::string describe(const char* description) {

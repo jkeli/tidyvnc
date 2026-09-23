@@ -768,7 +768,8 @@ TEST(ViewerABI, ScalingParserIsConcurrentAndStateless) {
           value.x != 12500 || value.y != 8000 || value.mode != TIDYVNC_SCALING_INDEPENDENT) valid = false;
     }
   });
-  for (auto& thread : threads) thread.join(); EXPECT_TRUE(valid);
+  for (auto& thread : threads) thread.join();
+  EXPECT_TRUE(valid);
 }
 
 TEST(ViewerABI, TileRendererUsesRetainedFramesCachesAndSerializesCalls) {
@@ -800,7 +801,8 @@ TEST(ViewerABI, TileRendererUsesRetainedFramesCachesAndSerializesCalls) {
           !output.cache_hit || tile != pixels) correct=false;
     }
   });
-  for (auto& thread:threads) thread.join(); EXPECT_TRUE(correct);
+  for (auto& thread:threads) thread.join();
+  EXPECT_TRUE(correct);
   auto before=pixels; const auto resultBefore=result;
   options.damage_width=3;
   EXPECT_EQ(tidyvnc_renderer_render(renderer.id,image.id,&options,{pixels.data(),pixels.size()},&result,nullptr),TIDYVNC_INVALID_ARGUMENT);
@@ -906,7 +908,8 @@ TEST(ViewerABI, CursorSamplerAlphaTilesConcurrencyAndRetainedOwnership) {
       if (tidyvnc_cursor_renderer_render(sampler.id,&tile,{result.data(),result.size()},nullptr) != TIDYVNC_OK || result != expected) ++failures;
     }
   });
-  for (auto& reader : readers) reader.join(); EXPECT_EQ(failures,0u);
+  for (auto& reader : readers) reader.join();
+  EXPECT_EQ(failures,0u);
   const auto stale=sampler.id; tidyvnc_release(sampler.id,nullptr); sampler.id=0;
   EXPECT_EQ(tidyvnc_cursor_renderer_render(stale,&tile,{pixels.data(),pixels.size()},nullptr),TIDYVNC_INVALID_HANDLE);
 }
@@ -1038,7 +1041,8 @@ TEST(ViewerABI, CanonicalEndpointIdentityIsOwnedBoundedAndConcurrent)
         valid = false;
     }
   });
-  for (auto& reader : readers) reader.join(); EXPECT_TRUE(valid);
+  for (auto& reader : readers) reader.join();
+  EXPECT_TRUE(valid);
   const auto before=value; const auto released=local.id;
   ASSERT_EQ(tidyvnc_release(local.id,nullptr),TIDYVNC_OK); local.id=0;
   EXPECT_EQ(tidyvnc_endpoint_get(released,&value,nullptr),TIDYVNC_INVALID_HANDLE);

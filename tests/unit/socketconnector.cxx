@@ -8,7 +8,9 @@
 #include <rdr/MemOutStream.h>
 #include <array>
 #include <cerrno>
+#include <cstdlib>
 #include <cstring>
+#include <future>
 #include <thread>
 #include <vector>
 #include <arpa/inet.h>
@@ -52,6 +54,11 @@ struct Listener {
     pollfd event{fd.value, POLLIN, 0}; require(::poll(&event, 1, 3000) == 1);
     int peer = ::accept(fd.value, nullptr, nullptr); require(peer >= 0); return peer;
   }
+  // Closes connections a cancelled attempt completed at the kernel level.
+  void drain() {
+    pollfd event{fd.value, POLLIN, 0};
+    while (::poll(&event, 1, 0) == 1) { int peer = ::accept(fd.value, nullptr, nullptr); if (peer < 0) break; ::close(peer); }
+  }
   Descriptor fd;
   uint16_t port = 0;
 };
@@ -64,6 +71,22 @@ void exchange(SessionTransport& transport, int peer)
   transport.output().writeU8(91); transport.flush();
   pollfd event{peer, POLLIN, 0}; ASSERT_EQ(::poll(&event, 1, 2000), 1);
   uint8_t reply = 0; ASSERT_EQ(::recv(peer, &reply, 1, 0), 1); EXPECT_EQ(reply, 91);
+}
+#if defined(__SANITIZE_THREAD__)
+#define TIDYVNC_THREAD_SANITIZER 1
+#elif defined(__has_feature)
+#if __has_feature(thread_sanitizer)
+#define TIDYVNC_THREAD_SANITIZER 1
+#endif
+#endif
+// glibc starts getaddrinfo_a lookup threads with its internal thread creation,
+// which ThreadSanitizer does not intercept; those threads crash in its allocator.
+// ASan/LSan and uninstrumented runs cover this path; DNS-SD is unaffected.
+void skipUninstrumentedResolverThreads()
+{
+#if defined(__GLIBC__) && !defined(__APPLE__) && defined(TIDYVNC_THREAD_SANITIZER)
+  GTEST_SKIP() << "ThreadSanitizer cannot instrument glibc getaddrinfo_a threads";
+#endif
 }
 template<class F> bool until(F predicate)
 {
@@ -254,8 +277,13 @@ TEST(SocketConnector, CancellationInterruptsActualPendingConnectWait)
   EXPECT_EQ(executor.get(), ConnectionErrorCode::Cancelled);
 }
 
+#endif
+
+#if defined(__APPLE__) || defined(__GLIBC__)
 TEST(SocketConnector, SystemAsyncResolverConnectsLocalhost)
 {
+  skipUninstrumentedResolverThreads();
+  if (IsSkipped()) return;
   Listener listener;
   SocketConnectOptions options; options.resolveTimeout = milliseconds(2000);
   auto attempt = prepareSocketConnection(Endpoint::parse("localhost::" + std::to_string(listener.port)), options);
@@ -264,6 +292,56 @@ TEST(SocketConnector, SystemAsyncResolverConnectsLocalhost)
   Descriptor peer(listener.accept()); exchange(*transport, peer.value);
   EXPECT_EQ(phases, (std::vector<ConnectionPhase>{ConnectionPhase::Resolving, ConnectionPhase::Connecting}));
 }
+
+TEST(SocketConnector, SystemAsyncResolverHonorsSingleAddressFamily)
+{
+  skipUninstrumentedResolverThreads();
+  if (IsSkipped()) return;
+  Listener listener;
+  SocketConnectOptions options; options.ipv6 = false; options.resolveTimeout = milliseconds(2000);
+  auto attempt = prepareSocketConnection(Endpoint::parse("localhost::" + std::to_string(listener.port)), options);
+  auto transport = attempt->run({});
+  Descriptor peer(listener.accept()); exchange(*transport, peer.value);
+}
+
+// Cancels at varying points around submission and completion. Every outcome must
+// be a typed cancellation or a usable transport; abandoned lookups are released
+// by the resolver's own completion (checked for leaks under LeakSanitizer).
+TEST(SocketConnector, CancellationRacingSystemLookupIsTypedAndOwned)
+{
+  skipUninstrumentedResolverThreads();
+  if (IsSkipped()) return;
+  Listener listener;
+  SocketConnectOptions options; options.resolveTimeout = milliseconds(2000);
+  const auto endpoint = Endpoint::parse("localhost::" + std::to_string(listener.port));
+  size_t cancelled = 0, connected = 0;
+  for (int i = 0; i < 64; ++i) {
+    auto attempt = prepareSocketConnection(endpoint, options);
+    auto control = attempt->control();
+    std::promise<void> resolving;
+    auto canceller = std::async(std::launch::async, [&, i] {
+      resolving.get_future().wait();
+      std::this_thread::sleep_for(microseconds((i % 16) * 50));
+      control->cancel();
+    });
+    try {
+      auto transport = attempt->run([&](ConnectionPhase phase) {
+        if (phase == ConnectionPhase::Resolving) resolving.set_value();
+      });
+      Descriptor peer(listener.accept());
+      ++connected;
+    } catch (const ConnectionError& error) {
+      EXPECT_EQ(error.code, ConnectionErrorCode::Cancelled);
+      ++cancelled;
+    }
+    canceller.get();
+    listener.drain();
+  }
+  EXPECT_EQ(cancelled + connected, 64u);
+  // Give abandoned lookups' completion notifications time to release their state.
+  std::this_thread::sleep_for(milliseconds(250));
+}
+
 #else
 TEST(SocketConnector, HostnamesWithoutCancellableResolverAreExplicitlyUnsupported)
 {

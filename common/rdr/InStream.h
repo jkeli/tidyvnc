@@ -151,6 +151,8 @@ namespace rdr {
     // readBytes() reads an exact number of bytes.
 
     void readBytes(uint8_t* data, size_t length) {
+      if (length == 0)
+        return; // Callers may pass an empty container's null data().
       check(length);
       memcpy(data, ptr, length);
       ptr += length;

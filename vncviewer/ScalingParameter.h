@@ -6,8 +6,8 @@
 #include <stdexcept>
 class ScalingParameter : public core::StringParameter {
 public:
-  ScalingParameter(const char* name, const char* desc)
-    : core::StringParameter(name, desc, "100") {}
+  ScalingParameter(const char* parameterName, const char* desc)
+    : core::StringParameter(parameterName, desc, "100") {}
   bool setParam(const char* v) override {
     try {
       ScalingSettings parsed=ScalingSettings::parse(v);

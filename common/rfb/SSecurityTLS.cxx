@@ -182,8 +182,11 @@ bool SSecurityTLS::processMsg()
     throw;
   }
 
+  // The description is allocated and owned by the caller.
+  char* description = gnutls_session_get_desc(session);
   vlog.debug("TLS handshake completed with %s",
-             gnutls_session_get_desc(session));
+             description ? description : "(unknown)");
+  gnutls_free(description);
 
   sc->setStreams(&tlssock->inStream(), &tlssock->outStream());
 

@@ -34,6 +34,10 @@ The standard app build now verifies compiler localization records for all 139 Sw
 sources (1351 call sites) against the UI catalog. Dynamic text provenance and
 interactive accessibility still need acceptance; see the latest RESUME evidence.
 
+2026-09-23: the portable suite also passes as Linux Debug under ASan+UBSan+LSan and
+TSan (fixing a shared TLS leak and null-copy UB); N1.14 two-session isolation and
+the N1.4 global-state reconciliation are recorded in TODO/STATE-AUDIT.
+
 The latest checkpoint passes all 55 retained protocol baseline cases through the
 actual native executable, with measured resize assertions and isolated user state;
 see [PROTOCOL.md](PROTOCOL.md). It fixes duplicate AppKit interpretation of CLI
@@ -114,9 +118,9 @@ boundary. The macOS pasteboard adapter, app-wide focus routing and independent
 direction controls are implemented; visible control/app activation verification
 remains N3.15. A separate bounded
 listener runtime now owns TCP bind/accept, pending-peer expiry and explicit
-handoff into session workers, with ordered events and joined shutdown. Linux
-hostname resolution, the remaining command catalog and native application service
-ownership remain open. Native display snapshots now provide opaque UUID identity,
+handoff into session workers, with ordered events and joined shutdown. glibc Linux
+hostname resolution now uses cancellable `getaddrinfo_a` (N1.6 complete). The
+remaining command catalog and native application service ownership remain open. Native display snapshots now provide opaque UUID identity,
 logical/work geometry, scales, generation notifications and missing-monitor
 selection resolution; physical topology/fullscreen acceptance remains N5.
 N2 now has a versioned, checked C boundary for reusable session lifecycle,

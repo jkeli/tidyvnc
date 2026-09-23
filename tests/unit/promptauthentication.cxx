@@ -222,7 +222,7 @@ TEST(PromptAuthentication, CancelsRfbVncCallbackAndReconnectsWithFreshGeneration
     });
     auto prompt=ready.get();
     EXPECT_EQ(prompt.generation,generation); EXPECT_GT(prompt.id,oldId);
-    if (oldId) EXPECT_EQ(auth->replyCredentials(oldId,generation-1,"","stale"),PromptReply::StaleRequest);
+    if (oldId) { EXPECT_EQ(auth->replyCredentials(oldId,generation-1,"","stale"),PromptReply::StaleRequest); }
     oldId=prompt.id;
     // The presentation mailbox remains usable while the protocol worker waits.
     ViewUpdate snapshot; view->take(snapshot);
