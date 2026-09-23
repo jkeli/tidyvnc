@@ -296,3 +296,54 @@ password prompt, Tab traversal, and Command-Q with the Save panel open (N3.3).
 The access request, which included system key combinations, was **denied**. No
 interaction took place; the copy, the peer and the fixture domains were removed.
 These keyboard checks remain open.
+
+## 2026-09-23 — automated accessibility-label audit of the actual app
+
+`tests/macos/accessibility-audit.py <TidyVNC.app>` launches isolated copies
+against loopback peers it starts (no security, VncAuth, VeNCrypt X509None with a
+throwaway certificate). It drives them only through the macOS accessibility API
+(`tests/macos/AccessibilityAudit.swift`: AXPress, AXConfirm and AXValue; no
+synthetic mouse or keyboard input, and the app is never activated). The caller
+must be an accessibility client.
+
+Every interactive element reached must expose a label VoiceOver can speak: a
+title, description, title element, placeholder or help. System parts named by
+their subrole count as labeled: window buttons, stepper arrows and scroll-bar
+pages.
+
+The audit covers **26 screens**:
+- the connected and disconnected connection window;
+- the Input, Scaling, Encoding and Connection Information sheets;
+- the Recent connections popover;
+- all eight Settings sections;
+- Saved Certificate Decisions, Saved Server Keys and Saved Profiles;
+- Import Connection Defaults and Import Recent Connections;
+- the three Help topics and About;
+- the VncAuth authentication sheet and the certificate trust sheet.
+
+Raw results: [accessibility-audit-2026-09-23.json](accessibility-audit-2026-09-23.json).
+
+**Defects found and fixed.** Six controls had no spoken label:
+- in the Encoding sheet and Settings: the Preferred encoding and Reduced colors
+  pop-ups and the Compression and JPEG quality steppers;
+- the Settings Section pop-up;
+- the Help topic picker.
+
+SwiftUI showed their label text visually but exposed no accessibility title for
+them (for steppers the text is a sibling of the incrementor). Each now has an
+explicit `accessibilityLabel`, and the steppers also have an `accessibilityValue`.
+
+**Result.** 26/26 screens pass with 0 unlabeled controls and 0 errors. One
+system-provided element is reported separately: the standard AppKit About
+panel's credits text, which speaks its content and cannot be labeled by the app.
+
+**Observed limitations:**
+- SwiftUI text bindings ignore accessibility value writes: setting the address
+  field's AXValue does not change the endpoint used by Connect or Return.
+  VoiceOver typing uses normal text input and is unaffected. The audit therefore
+  launches a separate copy per prompt.
+- File › Listen for Connections was not audited, because it opens a network
+  listener.
+
+This is an automated label audit. It is not a VoiceOver listening pass (reading
+order and announcements), and it does not cover keyboard traversal.

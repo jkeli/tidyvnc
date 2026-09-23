@@ -57,7 +57,7 @@ struct ApplicationHelpView: View {
   private var topicPicker: some View {
     Picker(String(localized:"help.topic.label", defaultValue:"Help topic"),selection:$page) {
       ForEach(Page.allCases) { Text($0.title).tag($0) }
-    }.accessibilityIdentifier("help.topic")
+    }.accessibilityLabel(String(localized:"help.topic.label", defaultValue:"Help topic")).accessibilityIdentifier("help.topic")
   }
   private var guide: some View {
     VStack(alignment:.leading,spacing:16) {

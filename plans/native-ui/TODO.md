@@ -782,6 +782,19 @@ UI uses, with migration and credential behavior verified independently.
     gettext files are untouched. Other native UI strings and long-string layout
     acceptance remain open; see [LOCALIZATION.md](LOCALIZATION.md).
 - [ ] N4.17 VoiceOver labels, keyboard focus/tab/escape/default actions, light/dark/high contrast and reduced motion on every screen/sheet. Document remote framebuffer accessibility limits.
+  - [x] Actual-app accessibility-label audit of 26 screens/sheets/sections
+    (`tests/macos/accessibility-audit.py`, AX API only): 0 unlabeled controls
+    after labeling six SwiftUI pickers/steppers that exposed no title
+    ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 label audit).
+  - [x] Reduced motion: the app defines no custom animations or transitions
+    (no `withAnimation`/`.animation`/`.transition` in apps/macos or platform/macos);
+    system animations follow the system setting.
+  - [x] Remote framebuffer accessibility limits documented in
+    [ACCESSIBILITY.md](ACCESSIBILITY.md): image element, label/help and focus/pan
+    actions; no remote UI semantics over RFB; the default Control+Option shortcut
+    modifiers overlap the VoiceOver modifier.
+  - [ ] VoiceOver listening pass (reading order, announcements), keyboard
+    traversal/Escape/default actions and high-contrast review.
 - [ ] N4.18 Update parity inventory with native screenshots and UI-test/manual evidence for every control and action; record intentional differences explicitly.
 
 Exit: all existing macOS UI behaviors have tested native counterparts; no

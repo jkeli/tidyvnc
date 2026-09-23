@@ -1,0 +1,269 @@
+{
+  "audits": [
+    {
+      "audit": "connected-window",
+      "interactive": 13,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "input-sheet",
+      "interactive": 23,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "scaling-sheet",
+      "interactive": 18,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "encoding-sheet",
+      "interactive": 27,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "information-sheet",
+      "interactive": 15,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "recent-connections-popover",
+      "interactive": 17,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "disconnected-window",
+      "interactive": 13,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Clipboard",
+      "interactive": 22,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Encoding",
+      "interactive": 36,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Input",
+      "interactive": 30,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Scaling",
+      "interactive": 28,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Security",
+      "interactive": 42,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Connection",
+      "interactive": 26,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Remote Resize",
+      "interactive": 26,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "settings:Fullscreen",
+      "interactive": 28,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Settings",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "saved-certificate-decisions",
+      "interactive": 19,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "Saved Certificate Decisions",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "saved-server-keys",
+      "interactive": 19,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "Saved Server Keys",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "saved-profiles",
+      "interactive": 22,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "Saved Profiles",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "import-defaults",
+      "interactive": 19,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "Import Connection Defaults",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "import-history",
+      "interactive": 19,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "Import Recent Connections",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "about",
+      "interactive": 21,
+      "system": [
+        {
+          "frame": [
+            788,
+            409,
+            282,
+            143
+          ],
+          "identifier": "_NS:61",
+          "role": "AXTextArea",
+          "subrole": "",
+          "value": "TidyVNC contributors\nBased on TigerVNC, with retained contributions from RealVNC"
+        }
+      ],
+      "unlabeled": [],
+      "windows": [
+        "",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "help:Getting Started",
+      "interactive": 25,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Help",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "help:Acknowledgements",
+      "interactive": 25,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Help",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "help:Licence",
+      "interactive": 25,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC Help",
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "authentication-sheet",
+      "interactive": 19,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    },
+    {
+      "audit": "trust-sheet",
+      "interactive": 16,
+      "system": [],
+      "unlabeled": [],
+      "windows": [
+        "TidyVNC"
+      ]
+    }
+  ],
+  "errors": []
+}

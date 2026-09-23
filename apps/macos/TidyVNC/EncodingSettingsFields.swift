@@ -20,7 +20,9 @@ struct EncodingSettingsFields: View {
           ForEach(choices, id: \.name) { choice in
             Text(choice.available ? choice.name : String(localized:"settings.encoding.choice.unavailable", defaultValue:"\(choice.name) (unavailable)")).tag(choice.name).disabled(!choice.available)
           }
-        }.disabled(automatic || isReadOnly(.preferred)).accessibilityIdentifier("preferences.encoding.preferred")
+        }.disabled(automatic || isReadOnly(.preferred))
+          .accessibilityLabel(String(localized:"settings.encoding.preferred.encoding", defaultValue:"Preferred encoding"))
+          .accessibilityIdentifier("preferences.encoding.preferred")
         source(.preferred,label:String(localized:"settings.encoding.preferred.encoding", defaultValue:"Preferred encoding"))
       }
       flag(String(localized:"settings.encoding.full.color", defaultValue:"Full color"), .fullColor, values).disabled(automatic)
@@ -30,6 +32,7 @@ struct EncodingSettingsFields: View {
             Text(colorLabel(value)).tag(String(value))
           }
         }.disabled(automatic || values[.fullColor] == "on" || isReadOnly(.lowColorLevel))
+          .accessibilityLabel(String(localized:"settings.encoding.reduced.colors", defaultValue:"Reduced colors"))
         source(.lowColorLevel,label:String(localized:"settings.encoding.reduced.colors", defaultValue:"Reduced colors"))
       }
       flag(String(localized:"settings.encoding.use.custom.compression", defaultValue:"Use custom compression"), .customCompression, values)
@@ -83,6 +86,8 @@ struct EncodingSettingsFields: View {
     HStack {
       Stepper(String(localized:"settings.encoding.option.value", defaultValue:"\(label): \(values[option] ?? "")"), value: Binding(get: { Int(values[option] ?? "") ?? bounds(option).lowerBound },
         set: { setValue(option, String($0)) }), in: bounds(option))
+        // The stepper's visible text is a sibling; name the incrementor itself for VoiceOver.
+        .accessibilityLabel(label).accessibilityValue(values[option] ?? "")
       Spacer(); source(option,label:label)
     }.disabled(isReadOnly(option))
   }

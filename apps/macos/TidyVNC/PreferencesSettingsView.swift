@@ -51,7 +51,9 @@ struct PreferencesSettingsView: View {
         Text(String(localized:"settings.section.remoteResize", defaultValue:"Remote Resize")).tag(Section.remoteResize)
         Text(String(localized:"settings.section.fullscreen", defaultValue:"Fullscreen")).tag(Section.fullscreen)
         if selection.section == .trust { Text(String(localized:"settings.section.certificateFiles", defaultValue:"Certificate Files")).tag(Section.trust) }
-      }.pickerStyle(.menu).accessibilityIdentifier("preferences.section")
+      }.pickerStyle(.menu)
+        .accessibilityLabel(String(localized:"settings.defaults.section", defaultValue:"Section"))
+        .accessibilityIdentifier("preferences.section")
       ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         if selection.section == .clipboard {
