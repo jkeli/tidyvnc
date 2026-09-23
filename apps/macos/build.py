@@ -18,6 +18,10 @@ def main():
     parser.add_argument("--parallel", type=int, default=4, help="Maximum concurrent build jobs (default: 4)")
     parser.add_argument("--test", action="store_true",
                         help="Require GoogleTest, build all tests, and verify every automated suite and the bundle")
+    parser.add_argument("--package", action="store_true", help="Assemble a verified relocatable app and DMG after building/testing")
+    parser.add_argument("--package-output", type=Path, help="New package directory (default: build-dir/package/configuration)")
+    parser.add_argument("--package-minimum-os", help="Explicit package minimum; dependencies above this floor fail packaging")
+    parser.add_argument("--sign-identity", default="-", help="Package signing identity (default: ad hoc)")
     args = parser.parse_args()
     if args.parallel < 1:
         parser.error("--parallel must be positive")
@@ -53,6 +57,13 @@ def main():
     if args.test:
         run(sys.executable, source / "tests/macos/verify-build.py", "--core", core,
             "--app", bundle, "--reports", build / "verification")
+    if args.package:
+        command = [sys.executable, source / "apps/macos/package.py", "--app", bundle,
+                   "--output", args.package_output or build / "package" / args.configuration,
+                   "--sign-identity", args.sign_identity, "--dmg"]
+        if args.package_minimum_os:
+            command += ["--minimum-os", args.package_minimum_os]
+        run(*command)
 
 
 if __name__ == "__main__":

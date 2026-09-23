@@ -751,6 +751,12 @@ CMake-library → xcodebuild app/test/package path, explicit SDK/architecture/
 deployment settings and generated dependency inputs. No hand-copied developer
 build paths or duplicate version/Info.plist sources.
 
+Local native app/DMG assembly is now implemented through the same build script
+and root targets. [PACKAGING.md](PACKAGING.md) records recursive dependency
+bundling, enforced minimums, relocation/signing and mounted-image checks. The
+current macOS 27 ad hoc package is inspection evidence; supported minimum-OS,
+Intel/Release, production identity and installed acceptance remain open.
+
 The viewer selector is `TIDYVNC_UI=FLTK|SWIFTUI`; see [BUILD.md](BUILD.md).
 Keep default FLTK until parity gates pass; SwiftUI is Apple-only and missing Swift/
 Xcode must fail clearly when requested. SwiftUI/core-only builds must not discover

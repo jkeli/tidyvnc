@@ -4,6 +4,46 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Relocatable native app and DMG
+
+The native build now has `native-package`/`dmg` targets and `build.py --package`.
+One packager recursively copies non-system dylibs, rewrites their load paths,
+removes runpaths, checks architecture/deployment floors and preserves dependency
+notices. It signs nested binaries before the app seal, audits closure, executes
+help from a moved path with spaces and atomically publishes a fresh output.
+The reusable inspector checks the actual read-only mounted image and detaches it.
+See [PACKAGING.md](PACKAGING.md) for commands, supported scope and limits.
+
+The current Homebrew libraries correctly fail a 14.0 package declaration: nettle
+requires macOS 27. Local inspection packages explicitly declare **27.0**, preserving
+the original Xcode app's 14.0 declaration and leaving the supported-floor decision
+open. This is a dependency portability improvement, not minimum-OS acceptance.
+The package contains **13 signed binaries / 11 bundled dylibs**, upstream notices,
+resources and an Applications link. No production identity or notarization is used.
+
+Direct `dmg` target and the complete `build.py --test --package` pipeline pass.
+Final verification `build/native-ui-frontend/verification/run-mi4r1bps/summary.json`
+passes **3/3 viewer, 756/756 unit (21.93 s), 89/89 native (129.43 s)**, graph checks
+**170/3**, **10** configure rejection cases, **1052 + 2** packaged localization
+values, strict signature and **36** CLI cases. Compiler coverage stays
+**139 sources / 1353 call sites**. The new native CTest contains **13** package
+policy/failure regressions. Workflow YAML/shell parsing, branding **1650** and diff
+checks pass. No sanitizer rerun is claimed for this packaging change.
+
+Final artifact: `build/native-package-pipeline/TidyVNC-1.16.80-arm64.dmg`, SHA-256
+`5ce0805d95e166cd644e9df280eca4fde584782fc253e5faa10e75fb9447fc4b`.
+`package-report.json` in the same directory records hashes, dependency edges,
+minimums and signing mode. The final mounted image passes binary/resource/notice/
+identity/signature/symbol checks plus all **36** real CLI cases, then detaches.
+No temporary packaging stage remains. All process handles completed.
+
+Native CI now defines host-floor package assembly and mounted-image inspection;
+its execution remains unverified. Next: clean Release and supported dependency/
+minimum-OS/Intel packages, intended signing identity and installed privacy/Keychain,
+plus every remaining interaction, protocol, physical/performance and parity gate.
+N6.2's local assembly subitem is complete; parent/distribution acceptance stays
+open. The complete original goal remains active. FLTK stays the shipping default.
+
 ## Latest follow-up (2026-09-22) — Scoped failure alert policy
 
 `AlertOnFatalError` now has a native adapter, defaults on, and is captured in an

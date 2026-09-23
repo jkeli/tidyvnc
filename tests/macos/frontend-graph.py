@@ -42,7 +42,7 @@ def main():
     parser.add_argument("core", type=Path)
     parser.add_argument("app", type=Path)
     args = parser.parse_args()
-    inspect(args.core, {"vncviewer", "macapp", "tidyvnc_macos_bridge", "tidyvnc_viewer_c",
+    inspect(args.core, {"vncviewer", "macapp", "native-package", "dmg", "tidyvnc_macos_bridge", "tidyvnc_viewer_c",
                         "viewer-core-smoke", "viewer-c-abi-smoke"},
             {"surface", "viewerstate", "fbperf"})
     inspect(args.app, {"TidyVNC"}, {"vncviewer", "surface", "viewerstate", "fbperf"})

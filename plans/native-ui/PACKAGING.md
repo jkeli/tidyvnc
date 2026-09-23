@@ -1,0 +1,142 @@
+# Native app and disk-image assembly
+
+Updated 2026-09-22. This implements the local package/dependency assembly part of
+N6.2 and adds N6.7/N6.12 inspection evidence. It does not establish minimum-OS,
+Intel, installed privacy/Keychain, production identity, notarization or cutover.
+
+## One build and package path
+
+`apps/macos/package.py` consumes the Xcode app, including its generated identity,
+version, resources and SSH helper. It never edits that app or installed libraries.
+Both the convenience script and root `native-package`/`dmg` targets use it:
+
+```sh
+python3 apps/macos/build.py --build-dir build/native-release \
+  --configuration Release --parallel 2 --test --package
+```
+
+This command requires every dependency to support the declared deployment floor
+(14.0 by default). Supply dependencies built for that floor using `--prefix`.
+Packaging fails if any Mach-O binary requires a newer OS; a successful compile
+with `CMAKE_OSX_DEPLOYMENT_TARGET=14.0` cannot prove dependency compatibility.
+The package floor can be raised explicitly with `--package-minimum-os`, which
+changes the staged app's `LSMinimumSystemVersion` and records both build and
+package floors. It cannot be lowered below the input app's declaration.
+
+For the current host's macOS 26/27 Homebrew dependencies, the local inspection
+command is explicitly restricted to macOS 27:
+
+```sh
+python3 apps/macos/build.py --build-dir build/native-ui-frontend \
+  --parallel 2 --test --package --package-minimum-os 27.0 \
+  --package-output build/native-package-pipeline
+```
+
+Default output is `build-dir/package/configuration`. A result contains
+`TidyVNC.app`, `TidyVNC-version-architecture.dmg` and `package-report.json`.
+Output directories must be new; publication uses an exclusive atomic rename,
+including protection from a concurrently created empty directory. Failed assembly
+removes only its private temporary stage. It never replaces an existing package.
+
+The direct CMake equivalents are `TIDYVNC_NATIVE_PACKAGE_OUTPUT`,
+`TIDYVNC_NATIVE_PACKAGE_MINIMUM_OS` and `TIDYVNC_NATIVE_PACKAGE_SIGN_IDENTITY`:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+cmake -S . -B build/native-ui-frontend/core \
+  -DTIDYVNC_NATIVE_PACKAGE_OUTPUT="$PWD/build/native-package-target" \
+  -DTIDYVNC_NATIVE_PACKAGE_MINIMUM_OS=27.0
+cmake --build build/native-ui-frontend/core --target dmg --parallel 2
+```
+
+`macapp` continues to build the development bundle. Packaging is explicit, never
+part of an ordinary all-target build. Existing FLTK release targets are unchanged.
+To package an already built app, use `package.py --app ... --output ... --dmg`.
+Without `--dmg`, it assembles and verifies the app/report only.
+
+## Dependency and signing contract
+
+The packager reads Mach-O load commands, recursively resolves ordinary/weak/
+re-export/upward dependencies, deduplicates canonical paths and handles loader,
+executable and inherited runpaths. It rejects missing/ambiguous resolutions,
+destination collisions, escaping bundle symlinks, FLTK dependencies, mismatched
+architectures and deployment floors. System libraries remain OS-owned; they may
+exist only in the dyld shared cache. External standalone dylibs are copied into
+`Contents/Frameworks`. Third-party frameworks and fat binaries are rejected;
+the native build currently supports one architecture per build directory.
+
+All non-system loads become explicit `@loader_path` paths inside the app. Original
+runpaths are removed, library IDs are rewritten, and a separate final audit
+requires a closed in-bundle dependency graph. Source/final binary hashes, declared
+minimums, architecture, dependency edges and signing mode are recorded. No claim
+is made that inspecting load commands validates optional runtime plugins or every
+TLS/authentication path; native protocol acceptance is still N6.5/N6.6.
+
+Installed upstream licence/notice files from each Homebrew keg are included under
+`Contents/Resources/ThirdParty`. Other dependency installations require
+`--dependency-notices` naming a directory of licence/notice texts. Missing licence
+text is an error. This preserves available notices; release review must still
+address source/relinking and any other obligations for the selected dependencies.
+No release publication occurs here.
+
+Nested binaries are signed individually before the final app seal; verification
+uses `codesign --verify --deep --strict`, never deep signing. Ad hoc signing is
+the default. `--sign-identity` selects an available identity, hardened runtime and
+secure timestamp for non-ad-hoc packaging. No bypass entitlements are introduced.
+Only ad hoc signing has been exercised on this host. Real identity/provisioning,
+Keychain access groups, privacy persistence and upgrade behavior remain open.
+
+Before publication, the app is copied to a second path containing spaces. Its
+help command must execute with an isolated HOME/XDG environment and no dependency
+search overrides. A DMG includes the app, README, licence and Applications link;
+`hdiutil verify` must pass. The sealed app records `notarized: false`.
+
+## Inspection and regression coverage
+
+```sh
+python3 tests/macos/package-tests.py
+python3 tests/macos/package-inspect.py \
+  --dmg build/native-package-pipeline/TidyVNC-1.16.80-arm64.dmg \
+  --source-app build/native-ui-frontend/app/Debug/TidyVNC.app \
+  --report build/native-package-pipeline/package-report.json
+```
+
+The inspector mounts the DMG read-only without opening Finder, compares binaries
+against the report, checks the closed dependency graph, compares original app
+resources/identity except the explicit floor, verifies notices and strict signing,
+checks undefined FLTK symbols and runs all 36 actual executable CLI cases. It also
+checks the image's README/licence/Applications link and detaches in a `finally`
+block. `--app` performs the same bundle checks without mounting an image. These
+are terminal checks, not Finder-launched Local Network or Keychain acceptance.
+
+Thirteen policy regressions cover malformed/unsupported Mach-O metadata, weak and
+re-export loads, transitive cycles/aliases, inherited runpaths, ambiguity, missing
+libraries, name collisions, architecture/floor/FLTK rejection, escaping symlinks,
+system-path normalization, final relocation audit, required notices, input
+immutability, failed-stage cleanup and exclusive publication. They are registered
+as `NativePackage.DependencyClosureAndPolicy` (native suite now 89 tests).
+
+The native CI definition runs build/test/package and mounted-image inspection,
+using an explicitly recorded package floor equal to the runner's actual OS.
+Artifacts include the DMG/report and inspection log. This validates host-specific
+packages; it does not let a current-OS runner stand in for a minimum-OS runner.
+Hosted execution remains unverified. See RESUME/TODO for final local run evidence.
+
+## Local checkpoint
+
+Direct CMake `dmg` and the complete convenience build/test/package pipeline pass
+on arm64 macOS 27/SDK 27, Debug, GnuTLS/nettle on and NLS/audio/H.264 off. The final
+`build/native-package-pipeline` result contains **13 binaries / 11 bundled dylibs**,
+explicitly declares macOS **27.0**, and passes the mounted-DMG inspector including
+**36** CLI cases. The DMG is
+`TidyVNC-1.16.80-arm64.dmg` (SHA-256
+`5ce0805d95e166cd644e9df280eca4fde584782fc253e5faa10e75fb9447fc4b`).
+The image is detached and no private staging directory remains. Final full test
+report is `build/native-ui-frontend/verification/run-mi4r1bps/summary.json`, with
+**3/756/89** passing tests. Thirteen package policy regressions, generated graph
+checks (**170/3**), workflow YAML/shell parsing, branding and diff checks pass.
+
+The first no-override packaging attempt correctly failed before publication on
+nettle's 27.0 minimum versus the app's 14.0 declaration. Subsequent local packages
+raised the declared package floor explicitly. This is not evidence for macOS 14,
+Intel, a clean Release package, production identity or Finder-launched behavior.

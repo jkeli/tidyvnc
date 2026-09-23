@@ -6,9 +6,10 @@ implementation, validation and next steps. N0.1/N0.2 now have a **162-row**
 [parity map](PARITY.md) and a complete **47-parameter** [capability inventory](CAPABILITIES.md),
 checked against the built catalog and both executable help outputs. The inventory
 identified AlertOnFatalError; its scoped native implementation and model/CLI tests now pass. The native `--test` build passes
-**3/3 viewer, 756/756 core and 88/88 native tests**, plus graph/configuration,
-localization, signature and 36 CLI checks. Native CI is defined but hosted execution
-is unverified. A real SSH exit race is fixed with deterministic/repeated/sanitized
+**3/3 viewer, 756/756 core and 89/89 native tests**, plus graph/configuration,
+localization, signature and 36 CLI checks. Local native app/DMG dependency assembly
+and mounted-image inspection pass; see [PACKAGING.md](PACKAGING.md). Native CI is
+defined but hosted execution is unverified. A real SSH exit race is fixed with deterministic/repeated/sanitized
 proof; compiler localization freshness uses successful-build content receipts.
 The app has **1052 UI + 2 InfoPlist entries**, compiler coverage of **139 sources /
 1353 call sites**, and FLTK remains the default. See [BUILD.md](BUILD.md) and the
@@ -701,7 +702,12 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
   - [x] All-target automated verification with mandatory GoogleTest, complete
     CTest inventories/JUnit, fresh failure-preserving reports and bundle/CLI checks.
     Local full pipeline passes; hosted execution remains N6.4.
-  - [ ] Complete distribution package builds and dependency assembly.
+  - [x] Local app/DMG assembly with recursive dylib closure, explicit minimum-OS
+    rejection, relocation, dependency notices, nested signing, atomic publication
+    and mounted-image inspection. Root/convenience build paths and policy tests
+    are wired; see PACKAGING.md for the supported single-architecture scope.
+  - [ ] Validate clean Release/minimum-OS/Intel packages, complete selected
+    dependency distribution obligations and intended signing-identity acceptance.
 - [x] N6.3 Split FLTK surface-dependent tests from GUI-independent tests; core-only and SwiftUI builds neither discover nor link FLTK. Clean headless/native graph proof and retained FLTK tests are in [BUILD.md](BUILD.md); other-platform CI remains N6.4.
 - [ ] N6.4 Add native build/model/adapter/UI CI jobs and retain Windows/Linux FLTK jobs; test chosen minimum/current macOS and supported architectures, recording unavailable runners.
   - [x] Five-job native workflow definition, host/toolchain/dependency evidence,
@@ -713,6 +719,10 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
 - [ ] N6.5 Run all applicable original unit tests, new contract/ABI/service tests, supported sanitizers and full protocol regression matrix through the native frontend.
 - [ ] N6.6 Validate bad credentials/trust, clipboard, remote resize, reverse/listen, tunnel, peer disappearance and reconnect; protocol tests supplement native presentation/input evidence.
 - [ ] N6.7 Validate final bundle identity, document associations, localization, credits, Local Network description, signing/resource seal and dependency paths; verify no FLTK linkage/symbols.
+  - [x] Local ad hoc package identity/resources/notices/signature, full dylib
+    closure, relocated CLI and read-only mounted-DMG inspection; see PACKAGING.md.
+  - [ ] Repeat with the final supported deployment/dependency/signing configuration
+    and actual installed privacy/Keychain/document behavior.
 - [ ] N6.8 Test installed Finder-launched Local Network allow/deny/retry, actual LAN connection and signing-identity upgrade behavior. Do not count Terminal-only smoke tests as privacy validation.
 - [ ] N6.9 Test final packaged Keychain identity/access across updates; no developer-only entitlement/signature assumptions or test secrets remain.
 - [ ] N6.10 Test sleep/wake/network changes, multi-session prompt isolation and clean app quit with pending IO/auth/store operations.
@@ -9547,3 +9557,43 @@ N4.11 implementation evidence is updated; actual window/keyboard/VoiceOver,
 physical/protocol/performance, installed services, minimum-OS/Intel, hosted CI and
 distribution gates remain open. The complete original goal remains active and
 FLTK remains the shipping default. All build/test handles completed.
+
+### N6.2 / N6.7 native dependency assembly and disk image (2026-09-22)
+
+The native build now has `native-package`/`dmg` targets and `build.py --package`.
+One packager recursively copies non-system dylibs, rewrites their load paths,
+removes runpaths, checks architecture/deployment floors and preserves dependency
+notices. It signs nested binaries before the app seal, audits closure, executes
+help from a moved path with spaces and atomically publishes a fresh output.
+The reusable inspector checks the actual read-only mounted image and detaches it.
+See [PACKAGING.md](PACKAGING.md) for commands, supported scope and limits.
+
+The current Homebrew libraries correctly fail a 14.0 package declaration: nettle
+requires macOS 27. Local inspection packages explicitly declare **27.0**, preserving
+the original Xcode app's 14.0 declaration and leaving the supported-floor decision
+open. This is a dependency portability improvement, not minimum-OS acceptance.
+The package contains **13 signed binaries / 11 bundled dylibs**, upstream notices,
+resources and an Applications link. No production identity or notarization is used.
+
+Direct `dmg` target and the complete `build.py --test --package` pipeline pass.
+Final verification `build/native-ui-frontend/verification/run-mi4r1bps/summary.json`
+passes **3/3 viewer, 756/756 unit (21.93 s), 89/89 native (129.43 s)**, graph checks
+**170/3**, **10** configure rejection cases, **1052 + 2** packaged localization
+values, strict signature and **36** CLI cases. Compiler coverage stays
+**139 sources / 1353 call sites**. The new native CTest contains **13** package
+policy/failure regressions. Workflow YAML/shell parsing, branding **1650** and diff
+checks pass. No sanitizer rerun is claimed for this packaging change.
+
+Final artifact: `build/native-package-pipeline/TidyVNC-1.16.80-arm64.dmg`, SHA-256
+`5ce0805d95e166cd644e9df280eca4fde584782fc253e5faa10e75fb9447fc4b`.
+`package-report.json` in the same directory records hashes, dependency edges,
+minimums and signing mode. The final mounted image passes binary/resource/notice/
+identity/signature/symbol checks plus all **36** real CLI cases, then detaches.
+No temporary packaging stage remains. All process handles completed.
+
+Native CI now defines host-floor package assembly and mounted-image inspection;
+its execution remains unverified. Next: clean Release and supported dependency/
+minimum-OS/Intel packages, intended signing identity and installed privacy/Keychain,
+plus every remaining interaction, protocol, physical/performance and parity gate.
+N6.2's local assembly subitem is complete; parent/distribution acceptance stays
+open. The complete original goal remains active. FLTK stays the shipping default.

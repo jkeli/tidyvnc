@@ -1,8 +1,9 @@
 # Native frontend build boundary
 
 Updated 2026-09-22. This records N6.1/N6.3 and the implemented build/test portions
-of N6.2. Native CI jobs are defined; hosted results are not yet verified. Full
-packaging, installed-app acceptance and cutover remain open.
+of N6.2. Local native app/DMG dependency assembly and mounted-image inspection
+are implemented in [PACKAGING.md](PACKAGING.md). Native CI jobs are defined; hosted
+results, production signing, installed-app acceptance and cutover remain open.
 
 ## Selection and ownership
 
@@ -161,9 +162,11 @@ provide a suitable minimum-OS runner; do not remove the gate to make CI green.
 
 The workflow checks the actual architecture, requires all suites, retains failure
 logs/JUnit/summary/rendered fixtures, and archives the development bundle when one
-exists. That ZIP is for inspection, including failed runs; it is not a distribution
-package or release. No deployment, publication, signing credential or secret is
-required. Homebrew dependencies are recorded but remain unbundled.
+exists. That ZIP retains the original development bundle for inspection, including failed
+runs. The packaging follow-up also assembles a DMG with bundled dependencies,
+using the runner OS as its explicit package floor, and inspects its mounted app.
+The DMG/report/inspection log are uploaded too. No deployment, publication,
+signing credential or secret is required; these remain ad hoc inspection artifacts.
 
 No hosted job was run or result inspected in this checkpoint. Workflow YAML and
 its shell steps were parsed locally. Minimum-OS/Intel execution and older Swift
@@ -201,3 +204,17 @@ packaged values, strict development signature and **36** CLI cases. Compiler
 coverage is **139 sources / 1353 sites / 1052 keys**. Both reports remain under
 `build/native-ui-frontend/verification`. Platform/deployment and interactive,
 installed, distribution and hosted-CI limitations above still apply.
+
+## Native dependency and DMG assembly
+
+`build.py --package` and the root `native-package`/`dmg` targets now use one
+packager. It copies the complete Mach-O dylib closure, enforces architecture and
+minimum OS, rewrites load paths, preserves dependency notices, signs nested code
+then the app, audits closure and runs relocated help before atomic publication.
+The DMG has a checked resource/install layout and a reusable mounted-app inspector.
+See [PACKAGING.md](PACKAGING.md) for commands, behavior and limitations.
+
+The current host's libraries fail the default 14.0 package gate (nettle requires
+27.0); local packages explicitly declare 27.0. This does not change the supported
+minimum decision or waive minimum-OS dependency builds. No actual production
+identity, installed service acceptance, Intel or Release package proof is inferred.

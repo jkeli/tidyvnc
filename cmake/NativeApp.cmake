@@ -29,4 +29,18 @@ add_custom_target(vncviewer ALL
   DEPENDS tidyvnc_macos_bridge tidyvnc-ssh-askpass
   USES_TERMINAL VERBATIM)
 add_custom_target(macapp DEPENDS vncviewer)
+set(TIDYVNC_NATIVE_PACKAGE_OUTPUT "${CMAKE_BINARY_DIR}/release/native-${CMAKE_BUILD_TYPE}" CACHE PATH
+  "New native package output directory (existing packages are never overwritten)")
+set(TIDYVNC_NATIVE_PACKAGE_MINIMUM_OS "${CMAKE_OSX_DEPLOYMENT_TARGET}" CACHE STRING
+  "Declared package minimum; every bundled library must support this version")
+set(TIDYVNC_NATIVE_PACKAGE_SIGN_IDENTITY "-" CACHE STRING "Native package signing identity; - means ad hoc")
+add_custom_target(native-package
+  COMMAND ${CMAKE_COMMAND} -E env "DEVELOPER_DIR=${native_developer_dir}"
+    ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/apps/macos/package.py"
+    --app "${native_app_build}/${CMAKE_BUILD_TYPE}/TidyVNC.app"
+    --output "${TIDYVNC_NATIVE_PACKAGE_OUTPUT}"
+    --minimum-os "${TIDYVNC_NATIVE_PACKAGE_MINIMUM_OS}"
+    --sign-identity "${TIDYVNC_NATIVE_PACKAGE_SIGN_IDENTITY}" --dmg
+  DEPENDS vncviewer USES_TERMINAL VERBATIM)
+add_custom_target(dmg DEPENDS native-package)
 message(STATUS "SwiftUI app: ${native_app_build}/${CMAKE_BUILD_TYPE}/TidyVNC.app (development signing)")

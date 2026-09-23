@@ -62,13 +62,21 @@ jobs:
           xcrun swift --version >> build/native-ci/toolchain.txt
           cmake --version >> build/native-ci/toolchain.txt
           brew info --json=v2 cmake ninja pixman jpeg-turbo gnutls nettle googletest > build/native-ci/dependencies.json
-      - name: Build app and verify all automated suites and bundle
+      - name: Build, verify and package for the actual runner OS
         run: |
           set -o pipefail
           python3 apps/macos/build.py --build-dir build/native-ci \
             --developer-dir "$DEVELOPER_DIR" --prefix "$(brew --prefix)" \
-            --configuration "$NATIVE_CONFIGURATION" --parallel 2 --test \
+            --configuration "$NATIVE_CONFIGURATION" --parallel 2 --test --package \
+            --package-minimum-os "$(sw_vers -productVersion)" \
             2>&1 | tee build/native-ci/build.log
+      - name: Inspect packaged app inside the read-only disk image
+        run: |
+          set -o pipefail
+          package="build/native-ci/package/$NATIVE_CONFIGURATION"
+          python3 tests/macos/package-inspect.py --dmg "$package"/*.dmg \
+            --source-app "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
+            --report "$package/package-report.json" 2>&1 | tee build/native-ci/package-inspection.log
       - name: Preserve development bundle for inspection
         if: always()
         run: |
@@ -88,6 +96,9 @@ jobs:
             build/native-ci/dependencies.json
             build/native-ci/build.log
             build/native-ci/NativeDevelopmentApp.zip
+            build/native-ci/package-inspection.log
+            build/native-ci/package/**/*.dmg
+            build/native-ci/package/**/package-report.json
             build/native-ci/verification/**/summary.json
             build/native-ci/verification/**/*.xml
             build/native-ci/verification/**/*.log

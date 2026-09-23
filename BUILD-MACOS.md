@@ -54,8 +54,9 @@ cmake --build build/native-selected --target macapp --parallel 4
 ```
 
 The direct output is `build/native-selected/native-app/Debug/TidyVNC.app`.
-`vncviewer` and `macapp` both build the bundle; there is no SwiftUI DMG/install
-target yet. `TIDYVNC_NATIVE_APP_BUILD_DIR` can select a separate generated Xcode
+`vncviewer` and `macapp` both build the development bundle. `native-package` and
+`dmg` assemble a separate relocatable app and disk image; see below.
+`TIDYVNC_NATIVE_APP_BUILD_DIR` can select a separate generated Xcode
 directory. The SDK and host architecture are selected from the configured
 toolchain; explicit `CMAKE_OSX_SYSROOT`, `CMAKE_OSX_ARCHITECTURES` and
 `CMAKE_OSX_DEPLOYMENT_TARGET` values are supported. Use one `arm64` or `x86_64`
@@ -69,9 +70,34 @@ frontend. Portable unit tests, protocol benchmarks and smoke consumers remain
 available without FLTK. Neither core-only nor SwiftUI builds discover FLTK.
 
 These are ad hoc signed development bundles with Homebrew dependencies. Installed
-privacy/Keychain behavior, minimum-OS and architecture coverage, distribution
-dependency packaging, notarization, interactive parity and cutover remain open.
+privacy/Keychain behavior, minimum-OS and architecture coverage, production signing,
+notarization, interactive parity and cutover remain open.
 See [native build validation](plans/native-ui/BUILD.md) for reproducible checks.
+
+### Native package and DMG
+
+Add `--package` to the convenience build to assemble and verify a self-contained
+app and DMG after the requested tests. Dependencies are copied recursively and
+their load paths rewritten; the input app and dependency installations remain
+unchanged. Output defaults to `build-dir/package/configuration` and must not
+already exist. `--package-output` selects another fresh directory.
+
+The package checks every binary's architecture and minimum macOS version. Current
+Homebrew libraries on this host require macOS 26/27, so packaging them with the
+default 14.0 declaration fails. For local inspection only, explicitly select:
+
+```sh
+python3 apps/macos/build.py --build-dir build/native-ui-frontend \
+  --parallel 2 --test --package --package-minimum-os 27.0 \
+  --package-output build/native-package-pipeline
+```
+
+The resulting package declares macOS 27; it is not a macOS 14 artifact. Build the
+dependencies for the selected minimum before claiming older-OS support. Ad hoc
+signing is the default; `--sign-identity` selects a configured signing identity.
+No notarization or publication occurs. The [packaging contract and inspection
+commands](plans/native-ui/PACKAGING.md) document root CMake targets, dependency
+notices, failure behavior, mounted-DMG checks and remaining installed-app gates.
 
 ## Retained FLTK build (default)
 

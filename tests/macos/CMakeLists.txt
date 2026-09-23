@@ -758,4 +758,7 @@ if(Python3_Interpreter_FOUND)
   add_test(NAME NativeBuild.CompleteTestEvidence
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/verify-build-tests.py)
   set_tests_properties(NativeBuild.CompleteTestEvidence PROPERTIES TIMEOUT 10)
+  add_test(NAME NativePackage.DependencyClosureAndPolicy
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/package-tests.py)
+  set_tests_properties(NativePackage.DependencyClosureAndPolicy PROPERTIES TIMEOUT 15)
 endif()
