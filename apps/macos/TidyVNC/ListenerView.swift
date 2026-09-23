@@ -62,12 +62,13 @@ struct ListenerView: View {
   private var networkControls: some View {
     HStack {
       Text(String(localized:"listener.tcp.port", defaultValue:"TCP port"))
-      TextField("5500",text:$model.port).textFieldStyle(.roundedBorder).frame(width:100)
+      TextField(text:$model.port,prompt:Text(verbatim:"5500")) { Text(String(localized:"listener.tcp.port", defaultValue:"TCP port")) }
+        .labelsHidden().textFieldStyle(.roundedBorder).frame(width:100)
         .accessibilityIdentifier("listener.port").disabled(!model.canStart)
         .accessibilityLabel(String(localized:"listener.tcp.port", defaultValue:"TCP port"))
         .onSubmit { model.start() }
-      Toggle("IPv4",isOn:$model.ipv4).disabled(!model.canStart).accessibilityIdentifier("listener.ipv4")
-      Toggle("IPv6",isOn:$model.ipv6).disabled(!model.canStart).accessibilityIdentifier("listener.ipv6")
+      Toggle(isOn:$model.ipv4) { Text(verbatim:"IPv4") }.disabled(!model.canStart).accessibilityIdentifier("listener.ipv4")
+      Toggle(isOn:$model.ipv6) { Text(verbatim:"IPv6") }.disabled(!model.canStart).accessibilityIdentifier("listener.ipv6")
     }
   }
   @ViewBuilder private var listenAction: some View {

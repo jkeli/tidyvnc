@@ -5365,18 +5365,6 @@
         }
       }
     },
-    "settings.inheritance.value": {
-      "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ (%@)"
-          }
-        }
-      }
-    },
     "settings.input.inherited.modifiers": {
       "comment": "Whole settings message with literal, already-localized label arguments. Arguments may be reordered.",
       "extractionState": "manual",

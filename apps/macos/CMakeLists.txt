@@ -54,6 +54,7 @@ set_target_properties(TidyVNC PROPERTIES
   XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER ${native_bundle_identifier}
   XCODE_ATTRIBUTE_SWIFT_INCLUDE_PATHS "${NATIVE_CORE_BUILD}/platform/macos/modules ${TIDYVNC_SOURCE_DIR}/viewer/bridge ${TIDYVNC_SOURCE_DIR}/platform/macos/KeyMap ${TIDYVNC_SOURCE_DIR}/platform/macos/Tunnel/Askpass"
   XCODE_ATTRIBUTE_SWIFT_STRICT_CONCURRENCY complete
+  XCODE_ATTRIBUTE_SWIFT_EMIT_LOC_STRINGS YES
   XCODE_ATTRIBUTE_SWIFT_TREAT_WARNINGS_AS_ERRORS YES
   XCODE_ATTRIBUTE_SWIFT_COMPILATION_MODE wholemodule
   XCODE_ATTRIBUTE_EXECUTABLE_NAME vncviewer
@@ -64,6 +65,15 @@ set_target_properties(TidyVNC PROPERTIES
   XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME NO
   XCODE_ATTRIBUTE_CLANG_MODULE_CACHE_PATH ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache
   XCODE_ATTRIBUTE_SWIFT_MODULE_CACHE_PATH ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache)
+get_target_property(app_localization_sources TidyVNC SOURCES)
+set(app_localization_manifest "")
+foreach(source IN LISTS app_localization_sources)
+  if(source MATCHES "\\.swift$")
+    get_filename_component(source "${source}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    string(APPEND app_localization_manifest "${source}\n")
+  endif()
+endforeach()
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/LocalizationSources.txt "${app_localization_manifest}")
 add_custom_command(TARGET TidyVNC POST_BUILD
   COMMAND /usr/bin/codesign --force --sign - "$<TARGET_BUNDLE_DIR:TidyVNC>/Contents/MacOS/tidyvnc-ssh-askpass"
   VERBATIM)

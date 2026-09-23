@@ -38,6 +38,9 @@ def main():
         f"-DNATIVE_CORE_BUILD={core}")
     run("xcodebuild", "-project", app / "TidyVNCNativeApp.xcodeproj", "-scheme", "TidyVNC",
         "-configuration", args.configuration, "-derivedDataPath", build / "DerivedData", "build")
+    run("python3", source / "tests/macos/localization-source.py", source / "apps/macos/Localizable.xcstrings",
+        "--module", core / "platform/macos/LocalizationSources.txt", core / "platform/macos/localization",
+        "--module", app / "LocalizationSources.txt", app / "build/TidyVNC.build" / args.configuration)
     print(f"Native app: {app / args.configuration / 'TidyVNC.app'}")
 
 

@@ -118,7 +118,17 @@ set_target_properties(tidyvnc_macos_bridge PROPERTIES
   Swift_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/modules)
 target_compile_options(tidyvnc_macos_bridge PRIVATE
   -swift-version 6 -strict-concurrency=complete -warnings-as-errors -enable-testing
+  -emit-localized-strings -emit-localized-strings-path ${CMAKE_CURRENT_BINARY_DIR}/localization
   -module-cache-path ${CMAKE_CURRENT_BINARY_DIR}/module-cache)
+get_target_property(native_localization_sources tidyvnc_macos_bridge SOURCES)
+set(native_localization_manifest "")
+foreach(source IN LISTS native_localization_sources)
+  if(source MATCHES "\\.swift$")
+    get_filename_component(source "${source}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    string(APPEND native_localization_manifest "${source}\n")
+  endif()
+endforeach()
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/LocalizationSources.txt "${native_localization_manifest}")
 target_include_directories(tidyvnc_macos_bridge INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/modules)
 target_link_libraries(tidyvnc_macos_bridge PUBLIC tidyvnc_viewer_c tidyvnc_macos_keymap tidyvnc_macos_askpass "-lc++")
 

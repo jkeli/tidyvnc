@@ -3,7 +3,7 @@
 For the current implementation checkpoint and restart instructions, see
 [RESUME.md](RESUME.md) (updated 2026-09-22). The
 entire plan remains in scope. Configured SSH gateway authentication and host-key
-review, native Help/About resources, and 1051 English-source UI entries plus 2 system-metadata entries
+review, native Help/About resources, and 1050 English-source UI entries plus 2 system-metadata entries
 are implemented. Actual Help/About interaction and expanded Settings/trust layouts
 now have additional evidence in RESUME.md. Remaining localization, interactive accessibility, physical
 input/display, installed-app and release gates are not yet accepted. Continue the remaining dynamic user-presentation audit and interactive
@@ -30,6 +30,9 @@ checks. The latest full rebuilt native suite passes 86/86; see RESUME/TODO for s
 Native metadata now has a separate compiled InfoPlist catalog. Trust identity
 messages use complete localized sentences over typed values; affected tests pass
 5/5 after the prior full-suite checkpoint. System Finder/privacy acceptance is open.
+The standard app build now verifies compiler localization records for all 139 Swift
+sources (1350 call sites) against the UI catalog. Dynamic text provenance and
+interactive accessibility still need acceptance; see the latest RESUME evidence.
 
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,

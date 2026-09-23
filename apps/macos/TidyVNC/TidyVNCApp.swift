@@ -12,10 +12,10 @@ import TidyVNCNative
 struct TidyVNCApp: App {
   @NSApplicationDelegateAdaptor(AppCoordinator.self) private var coordinator
   var body: some Scene {
-    WindowGroup("TidyVNC", id: "connection") { StartupRoot(coordinator: coordinator) }
+    WindowGroup(Text(verbatim:"TidyVNC"), id: "connection") { StartupRoot(coordinator: coordinator) }
       .defaultSize(width: 960, height: 700)
       .commands { ConnectionCommands(coordinator: coordinator) }
-    WindowGroup("TidyVNC", id: "profile-connection", for: ProfileConnectionRequest.self) { $request in
+    WindowGroup(Text(verbatim:"TidyVNC"), id: "profile-connection", for: ProfileConnectionRequest.self) { $request in
       if let request { ConnectionRoot(coordinator: coordinator, profileID: request.profileID) }
     }.defaultSize(width: 960, height: 700)
     WindowGroup(String(localized:"app.connection.file", defaultValue:"Connection File"), id: "document-connection", for: NativeDocumentOpenRequest.self) { $request in

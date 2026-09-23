@@ -353,3 +353,43 @@ it cannot prove dynamic string provenance or every Swift interpolation/multiline
 case. Finish dynamic presentation/call-site coverage and interactive window/menu/
 file-panel/focus acceptance. N4.16 remains open, with N4.17 and all other unchecked
 gates. No current real OS, VoiceOver or installed-app acceptance is inferred.
+
+
+The standard `python3 apps/macos/build.py` path now performs a compiler-derived
+source audit after the app build. TidyVNCNative emits `.stringsdata` through Swift's
+localization flags; the app uses `SWIFT_EMIT_LOC_STRINGS`. Both CMake targets write
+`LocalizationSources.txt` with their actual Swift source list. The audit requires
+current records for every source, then compares every extracted localization key
+and English default (including typed interpolation placeholders) to the catalog.
+It rejects missing/unused keys, stale/missing compiler output and unexpected tables
+or record formats. No source mutation or catalog generation occurs in this check.
+
+Current result: **139 sources, 1350 call sites, 1050 Localizable keys**. The separate
+**2 InfoPlist keys** remain checked by `localization-bundle.swift`. One unused UI
+entry was removed. TidyVNC/IPv4/IPv6 and the numeric port placeholder now use
+explicit verbatim text, and monitor numbers use `.formatted()` rather than an
+implicit translation key. Empty field-title records have no translatable content;
+those call sites were reviewed for separate localized accessibility labels.
+
+To rerun the source check against an existing Debug app build:
+
+```sh
+python3 tests/macos/localization-source.py apps/macos/Localizable.xcstrings \
+  --module build/native-app/core/platform/macos/LocalizationSources.txt \
+    build/native-app/core/platform/macos/localization \
+  --module build/native-app/app/LocalizationSources.txt \
+    build/native-app/app/build/TidyVNC.build/Debug
+```
+
+The checker has 13 failure/coverage tests (`localization-source-tests.py`), registered
+as `NativeLocalization.CompilerCatalogAudit`. These cover incomplete/stale/wrong-source
+records, missing/orphaned keys, format mismatch and supported compiler edge cases.
+Compiler output sometimes omits locations on synthesized expressions; their
+key/default is still validated. Generated App Shortcuts metadata and removed-source
+records are outside the source manifests and cannot satisfy current-source coverage.
+
+This closes the static call-site/default-format evidence gap from the earlier
+literal scan. It does not identify arbitrary dynamic Strings passed to Text,
+prove visible layout or OS localization, or replace keyboard/VoiceOver acceptance.
+Continue the dynamic provenance review and interactive requirements before marking
+N4.16 or N4.17 complete. No new shipping translations or gettext edits were made.

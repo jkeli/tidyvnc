@@ -4,6 +4,36 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Compiler-checked localization coverage
+
+The standard native app build now emits Swift localization records for the core
+module and app, then audits them against the catalog using CMake's actual source
+lists. The final build passes **139 Swift sources, 1350 localization call sites,
+1050 UI keys**, with matching English defaults and typed interpolation formats.
+Every source must have a current compiler record. Missing keys, stale records,
+unknown tables/formats and orphaned catalog entries fail the build. The separate
+**2 InfoPlist entries** retain their existing runtime packaging checks.
+
+The audit found one unused catalog entry and implicit translation keys for brand,
+protocol labels, the listener port placeholder and numeric monitor labels. The
+unused entry was removed; technical labels now use explicit verbatim text, and
+monitor numbers are locale-formatted. Empty field titles have no translatable
+content; the audited fields have separate accessibility labels. The gate does not
+prove arbitrary dynamic text provenance, layout or interactive accessibility.
+
+All **13** checker failure/coverage tests pass. Integrated audit plus affected
+settings/listener/fullscreen CTests pass **4/4 (38.59 s)**. App build/signature,
+**1050 + 2** packaged values/fallback/interpolation, **32** terminal cases, branding
+baseline **1650** and diff checks pass. The registered native suite now contains
+**87** tests; no fresh full suite or sanitizer run is claimed. The preceding full
+86/86 result remains from the structured-recovery checkpoint.
+
+No CUA request was repeated in this follow-up; the most recent actual-app selection
+failed at the native pipe (UI-ACCEPTANCE.md). Next: finish dynamic presentation
+provenance and keyboard/VoiceOver/window/menu/panel acceptance, plus every unchecked
+parity/core/services/physical/installed/deployment/CI/performance/release gate.
+N4.16/N4.17 remain open. All recorded process handles completed.
+
 ## Latest follow-up (2026-09-22) — Bundle and trust identity localization
 
 The native app now compiles **2 InfoPlist entries** for Local Network purpose and

@@ -750,3 +750,9 @@ target_include_directories(native-presentation-issue-tests PRIVATE support)
 target_link_libraries(native-presentation-issue-tests PRIVATE tidyvnc_macos_bridge native-test-peer)
 add_test(NAME NativePresentation.StructuredRecoveryAndRedaction COMMAND native-presentation-issue-tests)
 set_tests_properties(NativePresentation.StructuredRecoveryAndRedaction PROPERTIES TIMEOUT 40)
+
+if(Python3_Interpreter_FOUND)
+  add_test(NAME NativeLocalization.CompilerCatalogAudit
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/localization-source-tests.py)
+  set_tests_properties(NativeLocalization.CompilerCatalogAudit PROPERTIES TIMEOUT 10)
+endif()

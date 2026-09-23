@@ -15,7 +15,7 @@ struct FullscreenSettingsSheet: View {
     let factor = min((size.width-12)/max(1,bounds.width),(size.height-12)/max(1,bounds.height))
     let chosen = model.chosenDisplays.contains { $0.id == display.id }
     return RoundedRectangle(cornerRadius:4).fill(chosen ? Color.accentColor : Color.secondary.opacity(0.2))
-      .overlay(Text("\(index+1)").font(.headline).foregroundStyle(chosen ? Color.white : Color.primary))
+      .overlay(Text(verbatim:(index+1).formatted()).font(.headline).foregroundStyle(chosen ? Color.white : Color.primary))
       .frame(width:max(2,display.bounds.width*factor-3),height:max(2,display.bounds.height*factor-3))
       .position(x:(size.width-bounds.width*factor)/2+(display.bounds.x-bounds.minX+display.bounds.width/2)*factor,
                 y:(size.height-bounds.height*factor)/2+(display.bounds.y-bounds.minY+display.bounds.height/2)*factor)

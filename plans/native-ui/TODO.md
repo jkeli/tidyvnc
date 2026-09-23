@@ -2,13 +2,13 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. The native app has **1051 UI entries**
-and **2 InfoPlist entries**. Bundle metadata and complete trust identity messages
-now have packaging, policy and expanded-layout evidence. The latest affected suite
-passes **5/5 (33.92 s)**; the preceding full suite passed **86/86 (116.31 s)** before
-this follow-up. Full call-site coverage and actual app/accessibility/physical/
-installed/deployment/CI/performance/release gates remain. CUA selection still fails
-at the native pipe; no app-crash conclusion follows. See the latest evidence below.
+implementation, validation and next steps. The native app has **1050 UI entries**
+and **2 InfoPlist entries**. Standard builds now audit **139 Swift sources / 1350
+localization call sites** against the catalog. The latest affected suite passes
+**4/4 (38.59 s)**, including the checker's 13 failure tests. There are now 87
+registered native tests; the preceding full 86/86 result predates this follow-up.
+Dynamic text provenance and actual app/accessibility/physical/installed/deployment/
+CI/performance/release gates remain. See the latest evidence below.
 **Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
@@ -560,13 +560,15 @@ UI uses, with migration and credential behavior verified independently.
     open. A later CUA session verified topic loading, About identity/credits and
     dismissal; New Profile again closed the native pipe. See UI-ACCEPTANCE.md.
 - [ ] N4.16 Native localization catalog and mapping of structured core errors; preserve retained gettext consumers and translator attribution; test long strings and fallback.
-  - Current source coverage: 1051 Localizable and 2 InfoPlist entries. App menus,
+  - Current source coverage: 1050 Localizable and 2 InfoPlist entries. App menus,
     connection/status, file panels, controller/gateway recovery, CLI/Keychain and
     typed startup/desktop recovery now join the earlier settings/import/trust work.
     System privacy/document-type strings have compiled metadata lookup evidence;
     expected/saved trust identities use complete messages over typed values.
-    Long-text fixtures, fallback and literal interpolation checks pass. Finish the
-    dynamic presentation/call-site audit and actual window/menu/panel acceptance;
+    Compiler extraction now verifies 139 current sources / 1350 localization call
+    sites against the catalog during the standard app build. Long-text fixtures,
+    fallback and literal interpolation checks pass. Finish dynamic text provenance
+    and actual window/menu/panel acceptance;
     fixture coverage is not proof of complete localization or VoiceOver operation.
     See LOCALIZATION.md and the latest evidence log.
   - Credential/password-file status, saved-trust storage notices and the trust
@@ -9275,3 +9277,52 @@ Images: `/tmp/tidyvnc-bundle-trust-renders/`. All recorded process handles compl
 Next: finish use-based dynamic presentation coverage and interactive acceptance;
 all unchecked parity/core/services/physical/deployment/CI/performance/release items
 remain in scope. N4.16 and N4.17 are not complete.
+
+
+### 2026-09-22 — Compiler-derived localization build gate
+
+Enabled Swift localization extraction for TidyVNCNative and the Xcode app. Each
+CMake target writes its current Swift source manifest. apps/macos/build.py invokes
+tests/macos/localization-source.py after Xcode succeeds. The gate requires current
+compiler records for every listed source and checks each extracted key's English
+default, including compiler-selected interpolation types, against the catalog.
+It rejects missing keys, unused entries, stale/missing records, and unexpected
+record formats or tables. Records from removed sources and generated App Shortcuts
+metadata are ignored; they cannot satisfy a current source. Some synthesized
+expressions lack source positions, so those still validate by source/key/value.
+
+The first audit found one orphan (`settings.inheritance.value`) plus implicit
+translation keys for TidyVNC, IPv4/IPv6, 5500, monitor numbers and empty field titles.
+The orphan was removed (**1050 Localizable**, plus **2 InfoPlist**). Product/protocol/
+placeholder values use verbatim Text; monitor labels use locale-formatted numbers.
+Empty placeholder titles carry no text to translate and are excluded by the gate;
+the affected fields retain explicit localized accessibility labels. No dialog
+semantics, persisted values, network routing or credentials changed.
+
+Validation:
+
+- Final standard app build automatically passes **139 Swift sources, 1350 call
+  sites, 1050 keys**, with complete current compiler records and matching defaults.
+- **13** deterministic checker tests cover valid coverage, missing keys/records,
+  stale records, same-basename wrong source, wrong interpolation type, orphan keys,
+  empty manifests/titles, missing synthesized locations, implicit literal keys,
+  unsupported tables/formats and ignored generated/removed-source records.
+- Integrated checker plus affected native settings/listener/fullscreen tests pass
+  **4/4 (38.59 s)**. The registered native suite now has **87** tests. No fresh
+  full-suite or sanitizer run; the prior full 86/86 checkpoint remains historical.
+- Final packaged lookup/fallback/interpolation checks pass **1050 + 2** values;
+  app strict deep signature, **32/32** terminal cases, branding baseline **1650**,
+  Python compilation and diff checks pass. Dependency deployment warnings remain.
+- No new CUA action or actual-app/VoiceOver/physical acceptance is claimed. Latest
+  CUA failure remains the preceding bundle/trust checkpoint.
+
+Evidence: `/tmp/tidyvnc-localization-extraction-{final-build,audit-initial,unit,
+native-build,fullscreen-build,tests,bundle,terminal,branding}.log`.
+This gate verifies calls recognized by Swift localization APIs. It does not prove
+that arbitrary dynamic Strings are localized, that all translated layouts fit, or
+that OS panels and keyboard/VoiceOver behavior work. Continue those acceptance
+requirements and the entire unchecked plan. All recorded process handles completed.
+
+Post-test visual check: fullscreen-settings-render/selected.png and
+/tmp/tidyvnc-listen-ui-images/idle-minimum.png were inspected. Display numbers and
+the listener port/IP labels fit; this is fixture evidence, not user-app acceptance.
