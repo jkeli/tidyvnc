@@ -1,6 +1,63 @@
-# Building the native TidyVNC client on macOS
+# Building TidyVNC on macOS
 
-## Current TidyVNC build (2026-09-18)
+## Experimental SwiftUI build (2026-09-22)
+
+`TIDYVNC_UI=FLTK|SWIFTUI` selects the viewer frontend. **FLTK remains the
+default** until the [native acceptance gates](plans/native-ui/TODO.md) pass.
+SwiftUI requires macOS, full Xcode with Swift 6, CMake 3.29+, Ninja, Python 3
+and the protocol libraries below. Command Line Tools alone can build the native
+bridge/tests, but cannot build the Xcode application. The initial deployment
+target is 14.0; this is not proof that current Homebrew dependencies run on macOS 14.
+
+The convenience command configures one CMake core and uses its `vncviewer` target
+to configure/build the separate Xcode app, then checks compiler localization
+records against the catalog:
+
+```sh
+python3 apps/macos/build.py --configuration Debug
+```
+
+Output: `build/native-app/app/Debug/TidyVNC.app`. Use `--configuration Release`,
+`--build-dir`, `--developer-dir`, `--prefix` or `--deployment-target` to select
+another configuration, directory, Xcode, dependency prefix or deployment floor.
+The script retains its existing output layout. Core and app share the SDK,
+architecture and deployment target; the Xcode project offers only the core's
+configuration, preventing a Release app from linking a Debug core.
+
+For direct CMake use:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+cmake -S . -B build/native-selected -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/homebrew \
+  -DTIDYVNC_UI=SWIFTUI -DBUILD_VIEWER=ON -DBUILD_PLATFORM_APPS=OFF \
+  -DENABLE_NLS=OFF -DENABLE_AUDIO=OFF -DENABLE_H264=OFF \
+  -DENABLE_GNUTLS=ON -DENABLE_NETTLE=ON \
+  -DCMAKE_DISABLE_FIND_PACKAGE_FLTK=TRUE
+cmake --build build/native-selected --target macapp --parallel 4
+```
+
+The direct output is `build/native-selected/native-app/Debug/TidyVNC.app`.
+`vncviewer` and `macapp` both build the bundle; there is no SwiftUI DMG/install
+target yet. `TIDYVNC_NATIVE_APP_BUILD_DIR` can select a separate generated Xcode
+directory. The SDK and host architecture are selected from the configured
+toolchain; explicit `CMAKE_OSX_SYSROOT`, `CMAKE_OSX_ARCHITECTURES` and
+`CMAKE_OSX_DEPLOYMENT_TARGET` values are supported. Use one `arm64` or `x86_64`
+architecture per build directory and matching dependencies. Only the arm64
+development-host result is currently verified; see the [build evidence](plans/native-ui/BUILD.md).
+
+`BUILD_VIEWER=OFF` disables both viewer applications. `BUILD_MACOS_NATIVE=ON`
+remains available independently for bridge/model tests with Command Line Tools.
+The FLTK surface/viewer-state tests and `fbperf` are enabled only for the FLTK
+frontend. Portable unit tests, protocol benchmarks and smoke consumers remain
+available without FLTK. Neither core-only nor SwiftUI builds discover FLTK.
+
+These are ad hoc signed development bundles with Homebrew dependencies. Installed
+privacy/Keychain behavior, minimum-OS and architecture coverage, distribution
+dependency packaging, notarization, interactive parity and cutover remain open.
+See [native build validation](plans/native-ui/BUILD.md) for reproducible checks.
+
+## Retained FLTK build (default)
 
 The commands below supersede the historical commands retained further down.
 Use a separate FLTK 1.4.5 dependency build; the main project never downloads code.

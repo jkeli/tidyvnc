@@ -1,0 +1,50 @@
+# The root graph builds the libraries once; a separate Xcode project owns the app.
+if(NOT CMAKE_GENERATOR STREQUAL "Ninja")
+  message(FATAL_ERROR "TIDYVNC_UI=SWIFTUI requires the single-configuration Ninja generator (-G Ninja)")
+endif()
+if(NOT CMAKE_BUILD_TYPE MATCHES "^(Debug|Release)$")
+  message(FATAL_ERROR "TIDYVNC_UI=SWIFTUI supports CMAKE_BUILD_TYPE=Debug or Release")
+endif()
+if(DEFINED ENV{DEVELOPER_DIR} AND NOT "$ENV{DEVELOPER_DIR}" STREQUAL "")
+  set(native_developer_dir "$ENV{DEVELOPER_DIR}")
+else()
+  execute_process(COMMAND /usr/bin/xcode-select -p
+    OUTPUT_VARIABLE native_developer_dir OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE native_developer_result)
+  if(NOT native_developer_result EQUAL 0)
+    message(FATAL_ERROR "TIDYVNC_UI=SWIFTUI requires full Xcode; select it with DEVELOPER_DIR")
+  endif()
+endif()
+execute_process(COMMAND ${CMAKE_COMMAND} -E env "DEVELOPER_DIR=${native_developer_dir}"
+  /usr/bin/xcrun xcodebuild -version
+  OUTPUT_VARIABLE native_xcode_version ERROR_VARIABLE native_xcode_error
+  RESULT_VARIABLE native_xcode_result)
+if(NOT native_xcode_result EQUAL 0)
+  message(FATAL_ERROR "TIDYVNC_UI=SWIFTUI requires full Xcode, not only Command Line Tools. Set DEVELOPER_DIR to Xcode.app/Contents/Developer. ${native_xcode_error}")
+endif()
+if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET 14.0 CACHE STRING "Minimum macOS version" FORCE)
+elseif(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 14.0)
+  message(FATAL_ERROR "TIDYVNC_UI=SWIFTUI requires a macOS deployment target of 14.0 or later")
+endif()
+if(NOT CMAKE_OSX_ARCHITECTURES)
+  set(CMAKE_OSX_ARCHITECTURES "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "macOS architecture" FORCE)
+endif()
+if(NOT CMAKE_OSX_ARCHITECTURES MATCHES "^(arm64|x86_64)$")
+  message(FATAL_ERROR "TIDYVNC_UI=SWIFTUI requires one architecture (arm64 or x86_64) per build directory")
+endif()
+if(NOT IS_ABSOLUTE "${CMAKE_OSX_SYSROOT}")
+  set(native_sdk_name "${CMAKE_OSX_SYSROOT}")
+  if(NOT native_sdk_name)
+    set(native_sdk_name macosx)
+  endif()
+  execute_process(COMMAND ${CMAKE_COMMAND} -E env "DEVELOPER_DIR=${native_developer_dir}"
+    /usr/bin/xcrun --sdk "${native_sdk_name}" --show-sdk-path
+    OUTPUT_VARIABLE native_sdk OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE native_sdk_result)
+  if(NOT native_sdk_result EQUAL 0)
+    message(FATAL_ERROR "TIDYVNC_UI=SWIFTUI could not resolve SDK '${native_sdk_name}' in the selected Xcode")
+  endif()
+  set(CMAKE_OSX_SYSROOT "${native_sdk}" CACHE PATH "macOS SDK" FORCE)
+endif()
+find_package(Python3 REQUIRED COMPONENTS Interpreter)

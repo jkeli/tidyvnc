@@ -165,7 +165,11 @@ export(TARGETS tidyvnc_macos_bridge tidyvnc_macos_keymap tidyvnc_macos_askpass t
   tidyvnc_viewer_core tidyvnc_viewer_platform rfbclient rfb network rdr core
   NAMESPACE TidyVNC:: FILE ${CMAKE_BINARY_DIR}/NativeTargets.cmake)
 file(WRITE ${CMAKE_BINARY_DIR}/NativeBuild.cmake
-  "set(TIDYVNC_SOURCE_DIR \"${CMAKE_SOURCE_DIR}\")\nset(VERSION \"${VERSION}\")\n")
+  "set(TIDYVNC_SOURCE_DIR \"${CMAKE_SOURCE_DIR}\")\nset(VERSION \"${VERSION}\")\n"
+  "set(TIDYVNC_NATIVE_CONFIGURATION \"${CMAKE_BUILD_TYPE}\")\n"
+  "set(TIDYVNC_NATIVE_SDK \"${CMAKE_OSX_SYSROOT}\")\n"
+  "set(TIDYVNC_NATIVE_ARCHITECTURE \"${native_swift_arch}\")\n"
+  "set(TIDYVNC_NATIVE_DEPLOYMENT_TARGET \"${CMAKE_OSX_DEPLOYMENT_TARGET}\")\n")
 list(LENGTH native_swift_arch native_swift_arch_count)
 if(NOT native_swift_arch_count EQUAL 1)
   message(FATAL_ERROR "The experimental native bridge currently needs one CMAKE_OSX_ARCHITECTURES value per build directory")

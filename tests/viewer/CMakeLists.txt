@@ -1,4 +1,9 @@
 enable_testing()
+find_package(Python3 QUIET COMPONENTS Interpreter)
+if(Python3_Interpreter_FOUND)
+  add_test(NAME ViewerBuild.FrontendSelection
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/frontend-options.py)
+endif()
 add_executable(viewer-core-smoke core-smoke.cxx)
 target_link_libraries(viewer-core-smoke PRIVATE tidyvnc_viewer_core)
 add_test(NAME ViewerCore.HeadlessConsumer COMMAND viewer-core-smoke)

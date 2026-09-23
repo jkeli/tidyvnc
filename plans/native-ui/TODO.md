@@ -2,14 +2,15 @@
 
 Tracker for [PLAN.md](PLAN.md). Baseline: `4e07cc16`, inspected 2026-09-18.
 **Resume here:** [RESUME.md](RESUME.md), updated 2026-09-22, records the current
-implementation, validation and next steps. Encoding reset names/help now use
-localized visible labels rather than raw schema tokens. The native app has **1050
-UI + 2 InfoPlist entries**; its compiler audit passes **139 sources / 1351 call sites**.
-Latest affected tests pass **3/3 (35.78 s)**. The 87-test full suite was not rerun.
-An isolated SwiftUI AX experiment returned no children and supplies no acceptance;
-actual keyboard/VoiceOver and all other unchecked plan requirements remain open.
-See the latest evidence below.
-**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues and N2.3–N2.7 native ownership/app vertical slice. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
+implementation, validation and next steps. Explicit frontend selection and the
+FLTK/native test split now complete **N6.1/N6.3**. Clean SwiftUI and headless
+builds pass, including **756/756** headless unit tests, three viewer tests, ten
+configuration rejection checks and **19/19** retained FLTK surface/state tests.
+The native app has **1050 UI + 2 InfoPlist entries**, with compiler audit coverage
+of **139 sources / 1351 call sites**. The 87-test full native suite was not rerun.
+See [BUILD.md](BUILD.md) and the latest evidence below. The complete migration,
+including interactive/physical/installed/deployment/CI/release gates, remains open.
+**Completed: N0.3 audit, N1.1 headless build boundary, N1.7 window-independent session, N1.8 retained publication contract, N1.10 cancellable authentication prompts, N1.11 real authentication/cancellation proof, N1.12 bounded input/event queues, N2.3–N2.7 native ownership/app vertical slice, and N6.1/N6.3 frontend selection/test separation. N1.2, N1.4, N1.5, N1.6 and N1.13 are in progress.** Check an item only after
 its code and stated validation are complete;
 record commit, commands/results, platform/build and remaining limitations in the
 evidence log. A blocked hardware/signing check stays unchecked, not waived.
@@ -682,9 +683,13 @@ contract. A GPU rewrite is not required unless justified by failed budgets.
 
 ## N6 — Build, integration and macOS cutover
 
-- [ ] N6.1 Add explicit Apple-only SwiftUI frontend selection and retain FLTK as default until gates pass; unsupported/missing toolchain configurations fail clearly.
+- [x] N6.1 Add explicit Apple-only SwiftUI frontend selection and retain FLTK as default until gates pass; unsupported/missing toolchain configurations fail clearly. See [BUILD.md](BUILD.md).
 - [ ] N6.2 Script clean CMake core → Xcode app/test/package builds with pinned configuration and generated dependency inputs; one source for identity/version/resources.
-- [ ] N6.3 Split FLTK surface-dependent tests from GUI-independent tests; core-only and SwiftUI builds neither discover nor link FLTK.
+  - [x] Shared root/convenience CMake → Xcode build, exported core dependencies and
+    checked configuration/SDK/architecture/floor handoff, retaining the release
+    identity source. Clean build and failure paths pass; see [BUILD.md](BUILD.md).
+  - [ ] Complete test/package automation and distribution dependency assembly.
+- [x] N6.3 Split FLTK surface-dependent tests from GUI-independent tests; core-only and SwiftUI builds neither discover nor link FLTK. Clean headless/native graph proof and retained FLTK tests are in [BUILD.md](BUILD.md); other-platform CI remains N6.4.
 - [ ] N6.4 Add native build/model/adapter/UI CI jobs and retain Windows/Linux FLTK jobs; test chosen minimum/current macOS and supported architectures, recording unavailable runners.
 - [ ] N6.5 Run all applicable original unit tests, new contract/ABI/service tests, supported sanitizers and full protocol regression matrix through the native frontend.
 - [ ] N6.6 Validate bad credentials/trust, clipboard, remote resize, reverse/listen, tunnel, peer disappearance and reconnect; protocol tests supplement native presentation/input evidence.
@@ -9360,3 +9365,35 @@ tests,expanded,bundle,terminal,branding}.log`. Unsupported AX experiment:
 `/tmp/tidyvnc-encoding-accessibility-probe{,2,3}.log` (no passing AX evidence).
 All recorded process handles completed. Continue dynamic provenance, actual
 keyboard/VoiceOver acceptance and the entire unchecked plan.
+
+### 2026-09-22 — N6.1/N6.3 frontend selection and dependency boundary
+
+This checkpoint adds the explicit FLTK/SWIFTUI selector, shared root/script native
+build, generated core configuration handoff and FLTK-only test/benchmark guards.
+FLTK remains the default. App/core SDK/architecture/floor mismatches are rejected
+before compiler probing; the Xcode project offers only the core configuration.
+See [BUILD.md](BUILD.md) and [BUILD-MACOS](../../BUILD-MACOS.md) for code mapping,
+commands, output directories and supported configuration constraints.
+
+Clean Debug native build/compiler audit passes (139 sources / 1351 sites / 1050
+keys), as do direct root `macapp` and smoke targets. File API audits cover 168 core
+and 3 app targets with no FLTK inputs. Five policy-test groups and ten actual
+configure rejection checks pass. Clean headless graph/build passes 3/3 viewer
+tests and **756/756** unit tests (21.43 s). Retained FLTK viewer/fbperf/surface/
+viewerstate build and **19/19** affected tests pass (0.32 s). Final selected bundle
+passes **1050 + 2** localized values, strict signing and **32** CLI cases.
+
+Logs: `/tmp/tidyvnc-frontend-{app,root-target,root-final,headless,fltk,fltk-tests,
+graph,smoke,configurations-verified,bundle-final,terminal-final,branding-final}.log`.
+Initial negative-test logs record a system diagnostic expectation mismatch and
+SDK compiler probing before the handoff check; the verified run supersedes them.
+The branding audit found an existing unlisted absolute checkout path in an earlier
+UI acceptance note; making that reference repository-relative restores the audit
+without changing its observation or the **1650** deferred branding baseline.
+
+N6.1/N6.3 are complete; N6.2's full test/package automation, distribution
+dependencies, native CI and other-platform builds remain open. No full 87-test
+native suite, sanitizers, Intel/minimum-OS execution, UI/VoiceOver or installed
+privacy/Keychain acceptance is claimed. Host dylibs still require macOS 26/27;
+the declared 14.0 floor remains provisional. All process handles completed, and
+the entire original plan remains the goal.

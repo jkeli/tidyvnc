@@ -4,6 +4,44 @@ Updated 2026-09-22. Read this first when resuming, then use [TODO.md](TODO.md)
 for the full checklist and historical evidence. The objective remains the entire
 [PLAN.md](PLAN.md); this checkpoint does not establish parity or release readiness.
 
+## Latest follow-up (2026-09-22) — Explicit frontend build selection
+
+`TIDYVNC_UI=FLTK|SWIFTUI` now selects the application; FLTK remains the default.
+SwiftUI requires Apple/full Xcode/Swift 6, Ninja, Debug or Release and one
+architecture. `BUILD_VIEWER=OFF` and independent bridge-only builds remain valid.
+The root viewer/macapp targets and convenience script share one core → Xcode
+build, with generated dependency/configuration metadata and early rejection of
+app/core SDK, architecture or deployment mismatch. FLTK-only tests/benchmark and
+dependency discovery are excluded from native/core-only graphs. See [BUILD.md](BUILD.md).
+N6.1 and N6.3 are complete; N6.2's full test/package workflow remains open.
+
+Clean `build/native-ui-frontend` Debug app succeeds, including the compiler
+localization audit (**139 sources / 1351 sites / 1050 UI keys**). Direct root
+`macapp` and smoke targets pass. Generated graphs contain **168 core / 3 app**
+targets with no FLTK source/compile/link inputs. Five frontend policy groups,
+ten actual configure rejection checks and three viewer CTests pass. The failure
+fixtures caught SDK diagnostic ordering, fixed by checking the handoff before
+compiler probes. Clean headless build/audit passes **3/3** viewer and **756/756**
+unit tests (21.43 s). Retained FLTK viewer/benchmark/surface/state targets build;
+the affected **19/19** tests pass (0.32 s). Bundle localization (**1050 + 2**),
+strict signature and **32** CLI cases pass.
+
+The native suite remains **87** registered tests; no full native/sanitizer run
+or Windows/Linux build is claimed here. macOS 14 and Intel execution are unproven;
+the development Homebrew dependencies still report macOS 26/27 floors. No CUA or
+user-app action was attempted. Next: finish the exhaustive parity/capability
+inventory and remaining service/lifecycle gaps, native CI/test/package automation,
+and every unchecked interactive/physical/installed/performance/release gate.
+The full original objective remains active, with FLTK still the shipping default.
+
+Logs use `/tmp/tidyvnc-frontend-`: app, root-target, root-final, headless, fltk,
+fltk-tests, graph, smoke, configurations-verified, terminal-final, bundle-final and
+branding-final. The earlier
+configuration logs record fixture/diagnostic failures superseded by the verified
+run. The branding check found a pre-existing unlisted absolute checkout path in
+UI-ACCEPTANCE.md; it is now expressed relative to the repository, preserving the
+observation without adding a branding exception. All process handles completed.
+
 ## Latest follow-up (2026-09-22) — Encoding reset names
 
 Dynamic label tracing found that encoding reset buttons exposed raw schema tokens

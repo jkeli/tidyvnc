@@ -34,6 +34,12 @@ The standard app build now verifies compiler localization records for all 139 Sw
 sources (1351 call sites) against the UI catalog. Dynamic text provenance and
 interactive accessibility still need acceptance; see the latest RESUME evidence.
 
+N6.1/N6.3 now provide an explicit Apple-only SwiftUI frontend selector while FLTK
+remains the default. The root viewer target and convenience script share one
+CMake core → Xcode app path with checked configuration/SDK/architecture/floor
+handoff. Clean native/headless and retained FLTK build evidence is in [BUILD.md](BUILD.md).
+Full native CI, deployment/installed-app acceptance, packaging and cutover remain open.
+
 Status: N1.1 headless build boundary, N1.7 window-independent protocol session,
 N1.8 retained frame/cursor contract, N1.10 cancellable authentication prompts,
 N1.11 real authentication/cancellation proof, and N1.12 bounded input/event queues
@@ -733,7 +739,7 @@ CMake-library → xcodebuild app/test/package path, explicit SDK/architecture/
 deployment settings and generated dependency inputs. No hand-copied developer
 build paths or duplicate version/Info.plist sources.
 
-Add a frontend selector scoped to the viewer (proposed `TIDYVNC_UI=FLTK|SWIFTUI`).
+The viewer selector is `TIDYVNC_UI=FLTK|SWIFTUI`; see [BUILD.md](BUILD.md).
 Keep default FLTK until parity gates pass; SwiftUI is Apple-only and missing Swift/
 Xcode must fail clearly when requested. SwiftUI/core-only builds must not discover
 or link FLTK; Linux/Windows FLTK configure/build continues unchanged. Adapt tests

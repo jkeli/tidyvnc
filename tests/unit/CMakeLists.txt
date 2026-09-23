@@ -254,7 +254,7 @@ target_compile_definitions(desktoptransform PRIVATE
 
 # Native bitmap operations can be tested without opening a display on these
 # platforms. X11 surfaces require a server and belong in the GUI matrix.
-if(BUILD_VIEWER AND (APPLE OR WIN32))
+if(BUILD_FLTK_VIEWER AND (APPLE OR WIN32))
   add_executable(surface surface.cxx ../../vncviewer/Surface.cxx)
   target_include_directories(surface SYSTEM BEFORE PRIVATE ${FLTK_INCLUDE_DIRS})
   target_link_libraries(surface tidyvnc_viewer_core ${TIDYVNC_FLTK_TARGET} GTest::gtest_main)
@@ -269,7 +269,7 @@ if(BUILD_VIEWER AND (APPLE OR WIN32))
   gtest_discover_tests(surface)
 endif()
 
-if(BUILD_VIEWER AND NOT WIN32)
+if(BUILD_FLTK_VIEWER AND NOT WIN32)
   add_executable(viewerstate viewerstate.cxx
     ../../vncviewer/parameters.cxx ../../vncviewer/LegacyImport.cxx
     ../../vncviewer/MonitorIndicesParameter.cxx)

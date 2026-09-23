@@ -1,15 +1,31 @@
 # The application is an Xcode target; the portable dependency graph stays in
 # the root CMake build. Use build.py to configure both with the same toolchain.
 cmake_minimum_required(VERSION 3.29)
+if(NOT EXISTS "${NATIVE_CORE_BUILD}/NativeTargets.cmake" OR
+   NOT EXISTS "${NATIVE_CORE_BUILD}/NativeBuild.cmake")
+  message(FATAL_ERROR "NATIVE_CORE_BUILD must name a configured native core build")
+endif()
+# Validate the handoff before project() probes compilers with the wrong SDK or
+# architecture. The root target/script supplies all three settings explicitly.
+include(${NATIVE_CORE_BUILD}/NativeBuild.cmake)
+if(NOT TIDYVNC_NATIVE_CONFIGURATION MATCHES "^(Debug|Release)$")
+  message(FATAL_ERROR "Reconfigure the native core with a Debug or Release configuration")
+endif()
+foreach(pair IN ITEMS "SYSROOT;SDK" "ARCHITECTURES;ARCHITECTURE" "DEPLOYMENT_TARGET;DEPLOYMENT_TARGET")
+  list(GET pair 0 app_setting)
+  list(GET pair 1 core_setting)
+  if(NOT "${CMAKE_OSX_${app_setting}}" STREQUAL "${TIDYVNC_NATIVE_${core_setting}}")
+    message(FATAL_ERROR "App CMAKE_OSX_${app_setting} must match the configured native core; use apps/macos/build.py or the root vncviewer target")
+  endif()
+endforeach()
+# Imported libraries and Swift modules belong to exactly one core configuration.
+# Do not offer a Release app linked to Debug core objects (or the reverse).
+set(CMAKE_CONFIGURATION_TYPES "${TIDYVNC_NATIVE_CONFIGURATION}" CACHE STRING "Native core configuration" FORCE)
 project(TidyVNCNativeApp LANGUAGES CXX Swift)
 if(NOT APPLE OR NOT CMAKE_GENERATOR STREQUAL "Xcode")
   message(FATAL_ERROR "Use the Xcode generator through apps/macos/build.py")
 endif()
-if(NOT EXISTS "${NATIVE_CORE_BUILD}/NativeTargets.cmake")
-  message(FATAL_ERROR "NATIVE_CORE_BUILD must name a configured native core build")
-endif()
 find_package(Threads REQUIRED)
-include(${NATIVE_CORE_BUILD}/NativeBuild.cmake)
 include(${NATIVE_CORE_BUILD}/NativeTargets.cmake)
 set(BUILD 0)
 configure_file(${TIDYVNC_SOURCE_DIR}/release/Info.plist.in ${CMAKE_CURRENT_BINARY_DIR}/BaseInfo.plist @ONLY)

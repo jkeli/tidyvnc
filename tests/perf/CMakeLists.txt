@@ -13,7 +13,7 @@ target_link_libraries(decperf test_util rdr rfb rfbclient)
 add_executable(encperf encperf.cxx)
 target_link_libraries(encperf test_util core rdr rfb rfbclient rfbserver)
 
-if (BUILD_VIEWER)
+if (BUILD_FLTK_VIEWER)
   add_executable(fbperf
     fbperf.cxx
     ${CMAKE_SOURCE_DIR}/vncviewer/PlatformPixelBuffer.cxx

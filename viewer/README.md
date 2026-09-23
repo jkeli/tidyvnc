@@ -73,6 +73,13 @@ disable reusable `rfbserver` protocol code or protocol benchmarks. NLS-disabled
 macOS core builds no longer link Carbon; retained translated builds keep the
 existing bundle-localization behavior.
 
+`TIDYVNC_UI` defaults to `FLTK`. On macOS, explicitly selecting `SWIFTUI` with
+`BUILD_VIEWER=ON` builds the C/Swift bridge and delegates the application to Xcode;
+it excludes FLTK discovery and the FLTK-only surface/viewer-state tests and
+`fbperf`. `BUILD_VIEWER=OFF` still disables both applications. Independently setting
+`BUILD_MACOS_NATIVE=ON` enables the bridge/tests without selecting an app. See
+[macOS build instructions](../BUILD-MACOS.md) for toolchain/configuration limits.
+
 ## Retained frames and cursors (N1.8)
 
 `viewer::FramePublisher` is the session-executor-owned publication boundary.
