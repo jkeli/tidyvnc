@@ -3,10 +3,7 @@
 #include <tidyvnc.h>
 #include <rfb/PixelFormat.h>
 #include <rdr/MemOutStream.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include "test-sockets.h"
 #include <atomic>
 #include <chrono>
 #include <cstring>
@@ -15,6 +12,7 @@
 #include <vector>
 using namespace std::chrono;
 extern "C" void abi_test_fail_after(unsigned);
+extern "C" int abi_test_injection_enabled(void);
 namespace {
 template<class T> T init() { T value{}; value.size = sizeof(T); value.version = TIDYVNC_ABI_VERSION; return value; }
 void require(bool value) { if (!value) throw std::runtime_error("Listener ABI fixture failed"); }
@@ -31,7 +29,7 @@ struct Handle {
 struct FD {
   int value;
   explicit FD(int fd) : value(fd) {}
-  ~FD() { if (value >= 0) ::close(value); }
+  ~FD() { if (value >= 0) testsock::closeSocket(value); }
   FD(const FD&) = delete;
 };
 struct Fixture {
@@ -76,26 +74,25 @@ struct Fixture {
   }
 };
 int connectTo(uint16_t port) {
-  FD fd(::socket(AF_INET,SOCK_STREAM,0)); require(fd.value >= 0);
+  FD fd(testsock::open(AF_INET)); require(fd.value >= 0);
   sockaddr_in address{}; address.sin_family = AF_INET; address.sin_addr.s_addr = htonl(INADDR_LOOPBACK); address.sin_port = htons(port);
   require(::connect(fd.value,reinterpret_cast<sockaddr*>(&address),sizeof(address)) == 0);
-#ifdef SO_NOSIGPIPE
-  int one = 1; require(::setsockopt(fd.value,SOL_SOCKET,SO_NOSIGPIPE,&one,sizeof(one)) == 0);
-#endif
+  testsock::noSigpipe(fd.value);
   int result = fd.value; fd.value = -1; return result;
 }
 void send(int fd,const void* value,size_t length) {
-  require(::send(fd,value,length,0) == static_cast<ssize_t>(length));
+  require(testsock::sendBytes(fd,value,length) == static_cast<long long>(length));
 }
 void readBytes(int fd,void* value,size_t length) {
   for (size_t offset = 0; offset < length;) {
-    pollfd ready{fd,POLLIN,0}; require(::poll(&ready,1,3000) == 1);
-    auto count = ::recv(fd,static_cast<char*>(value)+offset,length-offset,0); require(count > 0); offset += count;
+    require(testsock::readable(fd,3000) == 1);
+    auto count = testsock::recvBytes(fd,static_cast<char*>(value)+offset,length-offset); require(count > 0); offset += static_cast<size_t>(count);
   }
 }
 bool closed(int fd) {
-  pollfd ready{fd,POLLIN,0}; if (::poll(&ready,1,0) <= 0) return false;
-  char value; return ::recv(fd,&value,1,MSG_PEEK) == 0;
+  if (testsock::readable(fd,0) <= 0) return false;
+  // Orderly close reads as 0; Windows may report a reset for unread data.
+  char value; return testsock::recvBytes(fd,&value,1,MSG_PEEK) <= 0;
 }
 void negotiate(int fd,uint8_t security = 1) {
   send(fd,"RFB 003.008\n",12); char version[12]; readBytes(fd,version,12); require(std::memcmp(version,"RFB 003.008\n",12) == 0);
@@ -138,7 +135,7 @@ TEST(ListenerABI, DefaultsValidationAndTypedHandlesPreserveOutputs) {
 TEST(ListenerABI, RejectExpiryAndInvalidAdmissionNeverReadProtocol) {
   Fixture f; f.options.pending_timeout_ms = 150; auto port = f.start();
   FD peer(connectTo(port)); auto id = f.incoming(); send(peer.value,"RFB 003.008\n",12);
-  pollfd readable{peer.value,POLLIN,0}; EXPECT_EQ(::poll(&readable,1,15),0);
+  EXPECT_EQ(testsock::readable(peer.value,15),0);
   auto operation = init<tidyvnc_operation>(); operation.operation = 99;
   EXPECT_EQ(tidyvnc_listener_accept(f.listener.id,id,0,&operation,nullptr),TIDYVNC_INVALID_HANDLE);
   EXPECT_EQ(operation.operation,99u); EXPECT_EQ(f.snapshot().pending,1u);
@@ -188,10 +185,12 @@ TEST(ListenerABI, BusyAndAllocationFailureConsumeClaimedPeerWithoutReplacingSess
   EXPECT_EQ(tidyvnc_listener_accept(f.listener.id,two,f.session.id,&operation,nullptr),TIDYVNC_BUSY);
   EXPECT_EQ(std::memcmp(&operation,&original,sizeof(operation)),0); EXPECT_EQ(f.snapshot().pending,0u);
   EXPECT_TRUE(until([&] { return closed(second.value); }));
-  FD third(connectTo(port)); auto three = f.incoming(); abi_test_fail_after(1);
-  auto status = tidyvnc_listener_accept(f.listener.id,three,f.session.id,&operation,nullptr); abi_test_fail_after(0);
-  EXPECT_EQ(status,TIDYVNC_OUT_OF_MEMORY); EXPECT_EQ(f.snapshot().pending,0u);
-  EXPECT_TRUE(until([&] { return closed(third.value); }));
+  if (abi_test_injection_enabled()) {
+    FD third(connectTo(port)); auto three = f.incoming(); abi_test_fail_after(1);
+    auto status = tidyvnc_listener_accept(f.listener.id,three,f.session.id,&operation,nullptr); abi_test_fail_after(0);
+    EXPECT_EQ(status,TIDYVNC_OUT_OF_MEMORY); EXPECT_EQ(f.snapshot().pending,0u);
+    EXPECT_TRUE(until([&] { return closed(third.value); }));
+  }
   negotiate(first.value); initialize(first.value);
 }
 TEST(ListenerABI, RuntimeShutdownAndFinalReleaseDrainUnclaimedSockets) {

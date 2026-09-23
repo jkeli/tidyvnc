@@ -41,7 +41,13 @@ viewer::Endpoint viewer::Endpoint::parse(const std::string& text,
   Endpoint result;
   result.label = text;
   result.routeID = routeIdentity;
-  if (text.find('/') != std::string::npos) {
+  // Windows Unix-socket paths (DECISIONS.md D18) may use either separator.
+#ifdef _WIN32
+  const bool path = text.find_first_of("/\\") != std::string::npos;
+#else
+  const bool path = text.find('/') != std::string::npos;
+#endif
+  if (path) {
     if (!allowUnixSockets)
       throw EndpointError(EndpointErrorCode::UnsupportedTransport);
     if (text.find('\0') != std::string::npos)

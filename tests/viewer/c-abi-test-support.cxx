@@ -9,8 +9,10 @@ namespace { thread_local unsigned remaining = 0; }
 // an injected failure terminates the process. Injection is off in those builds;
 // MSVC Release (and every other toolchain) runs it.
 extern "C" void abi_test_fail_after(unsigned) {}
+extern "C" int abi_test_injection_enabled(void) { return 0; }
 #else
 extern "C" void abi_test_fail_after(unsigned count) { remaining = count; }
+extern "C" int abi_test_injection_enabled(void) { return 1; }
 #endif
 extern "C" void abi_test_sleep() { std::this_thread::sleep_for(std::chrono::milliseconds(1)); }
 void* operator new(std::size_t size) {

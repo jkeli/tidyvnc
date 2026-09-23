@@ -1,13 +1,13 @@
 /* Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later. */
 // Windows established-socket transport (plans/native-ui-winui/CORE.md §5).
-// One manual-reset network event is associated with the socket through
-// WSAEventSelect(FD_READ | FD_WRITE | FD_CLOSE). Winsock allows one such
-// association per socket, but the worker and the peer-closure observer wait
-// independently, so whichever waiter wakes on the network event "pumps" it
-// (WSAEnumNetworkEvents, which also resets it), records FD_CLOSE as sticky
-// peer closure and fans the change out to both waiters' own events. Readiness
-// itself is always taken level-triggered from a zero-timeout select(), so a
-// record consumed by the other waiter can never hide readable data.
+// The worker waits level-triggered with WSAPoll over the socket and a
+// loopback wake socket, exactly like the POSIX poll + wake pipe. Readiness
+// events (FD_READ/FD_WRITE) are not used for the worker: FD_WRITE is only
+// re-posted after a send fails with WSAEWOULDBLOCK, which the select-guarded
+// FdOutStream never provokes, so a blocked writer would sleep forever.
+// The peer-closure observer uses WSAEventSelect(FD_CLOSE) alone: Winsock
+// signals FD_CLOSE when the FIN arrives, even behind unread bytes, without
+// the observer consuming or peeking at protocol data.
 #include <viewer/platform/SocketTransport.h>
 #include "WinIO.h"
 
@@ -15,20 +15,18 @@
 #include <rdr/FdInStream.h>
 #include <rdr/FdOutStream.h>
 #include <atomic>
-#include <mutex>
 #include <stdexcept>
 
 namespace viewer {
 namespace {
 using Clock = SessionTransport::Clock;
 using TimePoint = SessionTransport::TimePoint;
-using winio::Event;
 using winio::failSocket;
 
 struct State {
   explicit State(std::unique_ptr<network::Socket> socket_)
     : socket(std::move(socket_)), fd(socket ? static_cast<SOCKET>(socket->getFd()) : INVALID_SOCKET),
-      network(true), workerNetwork(true), peerNetwork(true)
+      closeEvent(true)
   {
     if (fd == INVALID_SOCKET) throw std::invalid_argument("Transport requires a socket");
     int type = 0, size = sizeof(type);
@@ -44,12 +42,11 @@ struct State {
     if (!::SetHandleInformation(reinterpret_cast<HANDLE>(fd), HANDLE_FLAG_INHERIT, 0))
       winio::failWin32("transport handle inheritance");
     // Also makes the socket nonblocking, as the POSIX adapter does.
-    if (::WSAEventSelect(fd, network.value, FD_READ | FD_WRITE | FD_CLOSE) == SOCKET_ERROR)
-      failSocket("transport event registration");
+    if (::WSAEventSelect(fd, closeEvent.value, FD_CLOSE) == SOCKET_ERROR)
+      failSocket("transport close registration");
   }
   ~State()
   {
-    // Drop the association before the socket closes with the stream objects.
     ::WSAEventSelect(fd, nullptr, 0);
   }
   void cancel() noexcept
@@ -57,39 +54,15 @@ struct State {
     if (!cancelled.exchange(true)) ::shutdown(fd, SD_BOTH);
     workerWake.signal(); peerWake.signal();
   }
-  // Either waiter; serialised so records are consumed exactly once.
-  void pump()
+  void closed() noexcept
   {
-    std::lock_guard<std::mutex> lock(pumpMutex);
-    WSANETWORKEVENTS events;
-    if (::WSAEnumNetworkEvents(fd, network.value, &events) == SOCKET_ERROR) {
-      if (cancelled.load()) { workerNetwork.signal(); peerNetwork.signal(); return; }
-      failSocket("transport network events");
-    }
-    if (events.lNetworkEvents & FD_CLOSE) peerClosed.store(true);
-    workerNetwork.signal(); peerNetwork.signal();
-  }
-  // Level-triggered readiness; never consumes or peeks at protocol bytes.
-  void level(bool wantWrite, bool& readable, bool& writable, bool& failed)
-  {
-    fd_set read, write, error;
-    FD_ZERO(&read); FD_ZERO(&write); FD_ZERO(&error);
-    FD_SET(fd, &read); FD_SET(fd, &error);
-    if (wantWrite) FD_SET(fd, &write);
-    timeval zero = {0, 0};
-    const int count = ::select(0, &read, wantWrite ? &write : nullptr, &error, &zero);
-    if (count == SOCKET_ERROR) {
-      if (cancelled.load()) { readable = writable = failed = false; return; }
-      failSocket("transport wait");
-    }
-    readable = FD_ISSET(fd, &read) != 0;
-    writable = wantWrite && FD_ISSET(fd, &write) != 0;
-    failed = FD_ISSET(fd, &error) != 0;
+    peerClosed.store(true);
+    workerWake.signal();
   }
   std::unique_ptr<network::Socket> socket;
   const SOCKET fd;
-  Event network, workerNetwork, peerNetwork, workerWake, peerWake;
-  std::mutex pumpMutex;
+  winio::Event closeEvent, peerWake;
+  winio::WakeSocket workerWake;
   std::atomic<bool> cancelled{false};
   std::atomic<bool> peerClosed{false};
 };
@@ -126,31 +99,21 @@ public:
     for (;;) {
       TransportReady result;
       if (state->cancelled.load()) { result.cancelled = true; return result; }
-      // Reset before sampling: a pump by the observer after this point
-      // re-signals it, so the wait below cannot miss a change.
-      state->workerNetwork.reset();
-      bool failed = false;
-      state->level(wantWrite, result.readable, result.writable, failed);
-      result.peerClosed = state->peerClosed.load() || failed;
+      WSAPOLLFD events[] = {{state->fd, static_cast<SHORT>(POLLRDNORM | (wantWrite ? POLLWRNORM : 0)), 0},
+                            {state->workerWake.socket.value, POLLRDNORM, 0}};
+      const int count = ::WSAPoll(events, 2, winio::pollTimeout(deadline));
+      if (count == SOCKET_ERROR) {
+        if (state->cancelled.load()) { result.cancelled = true; return result; }
+        failSocket("transport wait");
+      }
+      if (events[0].revents & POLLNVAL) winio::fail("transport invalid socket", WSAENOTSOCK);
+      result.readable = (events[0].revents & POLLRDNORM) != 0;
+      result.writable = (events[0].revents & POLLWRNORM) != 0;
+      result.peerClosed = state->peerClosed.load() || (events[0].revents & (POLLHUP | POLLERR));
+      if (events[1].revents & POLLRDNORM) { state->workerWake.consume(); result.woken = true; }
       result.cancelled = state->cancelled.load();
-      if (result.readable || result.writable || result.peerClosed || result.cancelled) return result;
-      HANDLE handles[] = {state->network.value, state->workerNetwork.value, state->workerWake.value};
-      const DWORD ready = ::WaitForMultipleObjects(3, handles, FALSE, winio::timeoutMillis(deadline));
-      if (ready == WAIT_OBJECT_0) { state->pump(); continue; }
-      if (ready == WAIT_OBJECT_0 + 1) continue;
-      if (ready == WAIT_OBJECT_0 + 2) {
-        result.woken = true;
-        state->level(wantWrite, result.readable, result.writable, failed);
-        result.peerClosed = state->peerClosed.load() || failed;
-        result.cancelled = state->cancelled.load();
-        return result;
-      }
-      if (ready == WAIT_TIMEOUT) {
-        if (Clock::now() < deadline) continue;
-        result.timedOut = true; result.cancelled = state->cancelled.load();
-        return result;
-      }
-      winio::failWin32("transport wait");
+      result.timedOut = !count && Clock::now() >= deadline;
+      if (count || result.cancelled || result.timedOut) return result;
     }
   }
 
@@ -160,19 +123,22 @@ public:
       TransportReady result;
       if (state->cancelled.load()) { result.cancelled = true; return result; }
       if (state->peerClosed.load()) { result.peerClosed = true; return result; }
-      state->peerNetwork.reset();
-      if (state->peerClosed.load()) { result.peerClosed = true; return result; }
-      HANDLE handles[] = {state->network.value, state->peerNetwork.value, state->peerWake.value};
-      const DWORD ready = ::WaitForMultipleObjects(3, handles, FALSE, winio::timeoutMillis(deadline));
-      if (ready == WAIT_OBJECT_0) state->pump();
-      else if (ready == WAIT_TIMEOUT) {
-        result.cancelled = state->cancelled.load();
-        result.peerClosed = state->peerClosed.load();
-        result.timedOut = !result.cancelled && !result.peerClosed && Clock::now() >= deadline;
-        if (result.cancelled || result.peerClosed || result.timedOut) return result;
-      } else if (ready != WAIT_OBJECT_0 + 1 && ready != WAIT_OBJECT_0 + 2) {
+      HANDLE handles[] = {state->closeEvent.value, state->peerWake.value};
+      const DWORD ready = ::WaitForMultipleObjects(2, handles, FALSE, winio::timeoutMillis(deadline));
+      if (ready == WAIT_OBJECT_0) {
+        WSANETWORKEVENTS events;
+        if (::WSAEnumNetworkEvents(state->fd, state->closeEvent.value, &events) == SOCKET_ERROR) {
+          if (!state->cancelled.load()) failSocket("transport peer events");
+        } else if (events.lNetworkEvents & FD_CLOSE) {
+          state->closed();
+        }
+      } else if (ready != WAIT_OBJECT_0 + 1 && ready != WAIT_TIMEOUT) {
         winio::failWin32("transport peer wait");
       }
+      result.cancelled = state->cancelled.load();
+      result.peerClosed = state->peerClosed.load();
+      result.timedOut = !result.cancelled && !result.peerClosed && Clock::now() >= deadline;
+      if (result.cancelled || result.peerClosed || result.timedOut) return result;
     }
   }
 private:

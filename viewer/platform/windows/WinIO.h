@@ -76,6 +76,45 @@ inline int sharedDescriptor(SOCKET socket)
   return static_cast<int>(socket);
 }
 
+// The Windows counterpart of detail::WakePipe for WSAPoll-based waits: a
+// nonblocking loopback UDP socket connected to itself. Connected UDP sockets
+// only accept datagrams from their peer, so other processes cannot inject
+// wakes, and a full receive buffer coalesces further signals.
+struct WakeSocket {
+  WakeSocket() : socket(openSocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
+    sockaddr_in address{};
+    address.sin_family = AF_INET; address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    int length = sizeof(address);
+    if (::bind(socket.value, reinterpret_cast<sockaddr*>(&address), length) == SOCKET_ERROR ||
+        ::getsockname(socket.value, reinterpret_cast<sockaddr*>(&address), &length) == SOCKET_ERROR ||
+        ::connect(socket.value, reinterpret_cast<sockaddr*>(&address), length) == SOCKET_ERROR)
+      failSocket("wake socket");
+    u_long nonblocking = 1;
+    if (::ioctlsocket(socket.value, FIONBIO, &nonblocking) == SOCKET_ERROR) failSocket("wake socket mode");
+  }
+  void signal() const noexcept {
+    const char byte = 1;
+    ::send(socket.value, &byte, 1, 0); // WSAEWOULDBLOCK coalesces with pending wakes.
+  }
+  void consume() const noexcept {
+    // Bounded, even with producers that keep signalling.
+    char bytes[16];
+    for (int i = 0; i < 1024 && ::recv(socket.value, bytes, sizeof(bytes), 0) > 0; ++i) {}
+  }
+  Socket socket;
+};
+
+inline INT pollTimeout(TimePoint deadline)
+{
+  if (deadline == TimePoint::max()) return -1;
+  const auto now = Clock::now();
+  if (deadline <= now) return 0;
+  const auto left = deadline - now;
+  const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(left);
+  if (millis.count() >= INT_MAX) return INT_MAX;
+  return static_cast<INT>(millis.count()) + (millis < left ? 1 : 0);
+}
+
 inline DWORD timeoutMillis(TimePoint deadline)
 {
   if (deadline == TimePoint::max()) return INFINITE;

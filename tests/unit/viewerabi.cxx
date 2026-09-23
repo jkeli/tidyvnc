@@ -19,10 +19,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include "test-sockets.h"
 using namespace std::chrono;
 namespace {
 template<class T> T init() { T value{}; value.size = sizeof(T); value.version = TIDYVNC_ABI_VERSION; return value; }
@@ -49,14 +46,14 @@ struct Client {
 class Peer {
 public:
   explicit Peer(bool authentication_ = false) : authentication(authentication_) {
-    listener = ::socket(AF_INET,SOCK_STREAM,0); require(listener >= 0);
+    listener = testsock::open(AF_INET); require(listener >= 0);
     sockaddr_in address{}; address.sin_family = AF_INET; address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     require(::bind(listener,reinterpret_cast<sockaddr*>(&address),sizeof(address)) == 0);
-    socklen_t length = sizeof(address); require(::getsockname(listener,reinterpret_cast<sockaddr*>(&address),&length) == 0);
+    testsock::length_t length = sizeof(address); require(::getsockname(listener,reinterpret_cast<sockaddr*>(&address),&length) == 0);
     port = ntohs(address.sin_port); require(::listen(listener,1) == 0);
     thread = std::thread([&] { run(); });
   }
-  ~Peer() { stopping = true; if (thread.joinable()) thread.join(); if (listener >= 0) ::close(listener); }
+  ~Peer() { stopping = true; if (thread.joinable()) thread.join(); if (listener >= 0) testsock::closeSocket(listener); }
   std::string endpoint() const { return "127.0.0.1::" + std::to_string(port); }
   bool contains(const std::vector<uint8_t>& bytes) {
     std::lock_guard<std::mutex> lock(mutex); return std::search(received.begin(),received.end(),bytes.begin(),bytes.end()) != received.end();
@@ -65,25 +62,23 @@ public:
   std::atomic<bool> cursorRequested{false};
 private:
   static void require(bool okay) { if (!okay) throw std::runtime_error("Peer fixture failed"); }
-  bool ready(int fd) { pollfd event{fd,POLLIN,0}; const auto count = ::poll(&event,1,20); return count > 0; }
+  bool ready(int fd) { return testsock::readable(fd,20) > 0; }
   void read(int fd,uint8_t* bytes,size_t length) {
     const auto deadline = steady_clock::now()+seconds(5);
     for (size_t offset = 0; offset < length;) {
       require(!stopping && steady_clock::now()<deadline);
       if (!ready(fd)) continue;
-      const auto count = ::recv(fd,bytes+offset,length-offset,0); require(count>0); offset += count;
+      const auto count = testsock::recvBytes(fd,bytes+offset,length-offset); require(count>0); offset += static_cast<size_t>(count);
     }
   }
-  void send(int fd,const uint8_t* bytes,size_t length) { require(::send(fd,bytes,length,0) == static_cast<ssize_t>(length)); }
+  void send(int fd,const uint8_t* bytes,size_t length) { require(testsock::sendBytes(fd,bytes,length) == static_cast<long long>(length)); }
   void run() {
     int fd = -1;
     try {
       while (!stopping && !ready(listener)) {}
       if (stopping) return;
-      fd = ::accept(listener,nullptr,nullptr); require(fd >= 0);
-#ifdef SO_NOSIGPIPE
-      int one = 1; ::setsockopt(fd,SOL_SOCKET,SO_NOSIGPIPE,&one,sizeof(one));
-#endif
+      fd = static_cast<int>(::accept(listener,nullptr,nullptr)); require(fd >= 0);
+      testsock::noSigpipe(fd);
       send(fd,reinterpret_cast<const uint8_t*>("RFB 003.008\n"),12);
       uint8_t input[16]; read(fd,input,12);
       const uint8_t security[] = {1,static_cast<uint8_t>(authentication ? 2 : 1)}; send(fd,security,2); read(fd,input,1);
@@ -114,11 +109,11 @@ private:
           send(fd,clipboard,sizeof(clipboard));
         }
         if (!ready(fd)) continue;
-        uint8_t bytes[4096]; const auto count = ::recv(fd,bytes,sizeof(bytes),0); if (count <= 0) break;
+        uint8_t bytes[4096]; const auto count = testsock::recvBytes(fd,bytes,sizeof(bytes)); if (count <= 0) break;
         std::lock_guard<std::mutex> lock(mutex); received.insert(received.end(),bytes,bytes+count);
       }
     } catch (...) { if (!stopping) failed = true; }
-    if (fd >= 0) ::close(fd);
+    if (fd >= 0) testsock::closeSocket(fd);
   }
   const bool authentication;
   int listener = -1; uint16_t port = 0;
@@ -838,7 +833,9 @@ TEST(ViewerABI, DamageGeometryUsesSharedHaloRoundingAndPlacement) {
 }
 
 extern "C" void abi_test_fail_after(unsigned);
+extern "C" int abi_test_injection_enabled(void);
 TEST(ViewerABI, CursorSamplerAlphaTilesConcurrencyAndRetainedOwnership) {
+  if (!abi_test_injection_enabled()) GTEST_SKIP() << "Allocation injection is unavailable in MSVC debug-iterator builds";
   Client client; client.create(); Peer peer; auto operation=connect(client.session.id,peer);
   tidyvnc_event event{}; ASSERT_TRUE(completion(client.session.id,operation.operation,event));
   peer.cursorRequested=true;
@@ -959,6 +956,7 @@ TEST(ViewerABI, ShortcutBoundedStateFailureAtomicityAndAllocationFreeSteps)
 }
 TEST(ViewerABI, ShortcutCreateFailureRecoveryAndSerializedConcurrentOwners)
 {
+  if (!abi_test_injection_enabled()) GTEST_SKIP() << "Allocation injection is unavailable in MSVC debug-iterator builds";
   unsigned failures = 0, successes = 0;
   for (unsigned position = 1; position <= 6; ++position) {
     tidyvnc_handle id = 777;
@@ -1227,12 +1225,14 @@ TEST(ViewerABI, PasswordFileRepliesPreserveRawBytesAndWipeEverySubmission)
     block.assign(9,0x55);
     EXPECT_EQ(tidyvnc_session_reply_password_file(client.session.id,info.id,info.generation,{block.data(),9},nullptr),TIDYVNC_INVALID_ARGUMENT);
     EXPECT_TRUE(std::all_of(block.begin(),block.end(),[](uint8_t byte) { return byte==0; }));
-    block=rfb::obfuscate(password.c_str());
-    abi_test_fail_after(1);
-    const auto failed=tidyvnc_session_reply_password_file(client.session.id,info.id,info.generation,{block.data(),8},nullptr);
-    abi_test_fail_after(0);
-    EXPECT_EQ(failed,TIDYVNC_OUT_OF_MEMORY);
-    EXPECT_TRUE(std::all_of(block.begin(),block.end(),[](uint8_t byte) { return byte==0; }));
+    if (abi_test_injection_enabled()) {
+      block=rfb::obfuscate(password.c_str());
+      abi_test_fail_after(1);
+      const auto failed=tidyvnc_session_reply_password_file(client.session.id,info.id,info.generation,{block.data(),8},nullptr);
+      abi_test_fail_after(0);
+      EXPECT_EQ(failed,TIDYVNC_OUT_OF_MEMORY);
+      EXPECT_TRUE(std::all_of(block.begin(),block.end(),[](uint8_t byte) { return byte==0; }));
+    }
     block=rfb::obfuscate(password.c_str());
     ASSERT_EQ(tidyvnc_session_reply_password_file(client.session.id,info.id,info.generation,{block.data(),8},nullptr),TIDYVNC_OK);
     EXPECT_TRUE(std::all_of(block.begin(),block.end(),[](uint8_t byte) { return byte==0; }));

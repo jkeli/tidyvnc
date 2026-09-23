@@ -86,10 +86,64 @@ void inspect(HANDLE file, const PrivateSecurity& security)
                     ::EqualSid(owner, const_cast<uint8_t*>(security.owner.data()))));
 }
 
-// Opens an existing entry without following reparse points. Null when absent.
+// Replaces an entry's DACL with the private, protected one.
+void makePrivate(HANDLE file, const PrivateSecurity& security)
+{
+  BOOL present = FALSE, defaulted = FALSE;
+  PACL dacl = nullptr;
+  require(::GetSecurityDescriptorDacl(security.descriptor.value, &present, &dacl, &defaulted) != 0 && present);
+  require(::SetSecurityInfo(file, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
+                            nullptr, nullptr, dacl, nullptr) == ERROR_SUCCESS);
+}
+
+bool trustedWriter(PSID sid, const PrivateSecurity& security)
+{
+  if (::EqualSid(sid, const_cast<uint8_t*>(security.user.data())) ||
+      ::EqualSid(sid, const_cast<uint8_t*>(security.owner.data())))
+    return true;
+  for (auto kind : {WinLocalSystemSid, WinBuiltinAdministratorsSid, WinCreatorOwnerSid}) {
+    BYTE buffer[SECURITY_MAX_SID_SIZE]; DWORD size = sizeof(buffer);
+    if (::CreateWellKnownSid(kind, nullptr, buffer, &size) && ::EqualSid(sid, buffer)) return true;
+  }
+  return false;
+}
+
+// The Windows form of the POSIX directory rule (not group/world writable
+// unless sticky): other principals may add entries, as in a sticky /tmp, but
+// only this user, SYSTEM and Administrators may delete, rename or
+// re-permission them. Entries others plant are refused by the owner,
+// reparse-point and CREATE_NEW checks. The directory is not a reparse point.
+void checkDirectory(const std::wstring& root, const PrivateSecurity& security)
+{
+  winio::Handle directory(::CreateFileW(root.c_str(), READ_CONTROL | FILE_READ_ATTRIBUTES,
+                                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+                                        OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
+  require(directory.value != INVALID_HANDLE_VALUE);
+  BY_HANDLE_FILE_INFORMATION info;
+  require(::GetFileInformationByHandle(directory.value, &info) != 0);
+  require((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT));
+  PSID owner = nullptr; PACL dacl = nullptr;
+  LocalMemory descriptor;
+  require(::GetSecurityInfo(directory.value, SE_FILE_OBJECT, OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
+                            &owner, nullptr, &dacl, nullptr,
+                            reinterpret_cast<PSECURITY_DESCRIPTOR*>(&descriptor.value)) == ERROR_SUCCESS);
+  require(owner && trustedWriter(owner, security));
+  require(dacl != nullptr); // A null DACL grants everyone everything.
+  const ACCESS_MASK writes = FILE_DELETE_CHILD | WRITE_DAC | WRITE_OWNER | GENERIC_ALL;
+  for (DWORD i = 0; i < dacl->AceCount; ++i) {
+    ACE_HEADER* header = nullptr;
+    require(::GetAce(dacl, i, reinterpret_cast<void**>(&header)) != 0);
+    if (header->AceType != ACCESS_ALLOWED_ACE_TYPE || (header->AceFlags & INHERIT_ONLY_ACE)) continue;
+    auto* ace = reinterpret_cast<ACCESS_ALLOWED_ACE*>(header);
+    if (ace->Mask & writes) require(trustedWriter(reinterpret_cast<PSID>(&ace->SidStart), security));
+  }
+}
+
+// Opens an existing entry without following reparse points, checks it and
+// makes it private. Null when absent.
 HANDLE existing(const std::wstring& path, const PrivateSecurity& security)
 {
-  const HANDLE file = ::CreateFileW(path.c_str(), READ_CONTROL | FILE_READ_ATTRIBUTES,
+  const HANDLE file = ::CreateFileW(path.c_str(), READ_CONTROL | WRITE_DAC | FILE_READ_ATTRIBUTES,
                                     FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
                                     OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
   if (file == INVALID_HANDLE_VALUE) {
@@ -99,6 +153,7 @@ HANDLE existing(const std::wstring& path, const PrivateSecurity& security)
   }
   winio::Handle owned(file);
   inspect(file, security);
+  makePrivate(file, security);
   owned.value = nullptr;
   return file;
 }
@@ -172,14 +227,15 @@ void PrivateFileLogger::initialize() {
   const std::wstring root = winio::widen(directory) + L"\\";
   const std::wstring logPath = root + winio::widen(filename), backupPath = root + winio::widen(backup),
     lockPath = root + winio::widen(lockname);
-  const DWORD attributes = ::GetFileAttributesW(root.c_str()); // Trailing separator: "C:\" is a root.
-  require(attributes != INVALID_FILE_ATTRIBUTES && (attributes & FILE_ATTRIBUTE_DIRECTORY));
+  // Trailing separator: "C:\" is a root; "C:" would be a working directory.
+  checkDirectory(root, security);
 
-  winio::Handle lock(::CreateFileW(lockPath.c_str(), GENERIC_READ | GENERIC_WRITE | READ_CONTROL,
+  winio::Handle lock(::CreateFileW(lockPath.c_str(), GENERIC_READ | GENERIC_WRITE | READ_CONTROL | WRITE_DAC,
                                    FILE_SHARE_READ | FILE_SHARE_WRITE, &security.attributes, OPEN_ALWAYS,
                                    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, nullptr));
   require(lock.value != INVALID_HANDLE_VALUE);
   inspect(lock.value, security);
+  makePrivate(lock.value, security);
   OVERLAPPED region{};
   require(::LockFileEx(lock.value, LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY, 0, 1, 0, &region) != 0);
 

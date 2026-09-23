@@ -8,24 +8,21 @@
 #include <rdr/OutStream.h>
 #include <atomic>
 #include <thread>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include "test-sockets.h"
 using namespace viewer;
 using namespace std::chrono;
 namespace {
 struct Descriptor {
   explicit Descriptor(int value_) : value(value_) {}
-  ~Descriptor() { if (value >= 0) ::close(value); }
+  ~Descriptor() { if (value >= 0) testsock::closeSocket(value); }
   Descriptor(const Descriptor&) = delete;
   Descriptor& operator=(const Descriptor&) = delete;
   int value;
 };
 void require(bool okay) { if (!okay) throw std::runtime_error("Listener fixture failed"); }
 int connectTo(uint16_t port, int family = AF_INET) {
-  Descriptor peer(::socket(family,SOCK_STREAM,0)); require(peer.value >= 0);
-  sockaddr_storage address{}; socklen_t length;
+  Descriptor peer(testsock::open(family)); require(peer.value >= 0);
+  sockaddr_storage address{}; testsock::length_t length;
   if (family == AF_INET) {
     auto& v4 = reinterpret_cast<sockaddr_in&>(address); v4.sin_family = AF_INET;
     v4.sin_port = htons(port); v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK); length = sizeof(v4);
@@ -61,12 +58,12 @@ uint64_t incoming(const std::shared_ptr<ListenerWorker>& listener) {
   return id;
 }
 void exchange(SessionTransport& transport,int peer) {
-  const char value = 'x'; require(::send(peer,&value,1,0) == 1);
+  const char value = 'x'; require(testsock::sendBytes(peer,&value,1) == 1);
   ASSERT_TRUE(transport.wait(steady_clock::now()+seconds(2)).readable);
   ASSERT_TRUE(transport.input().hasData(1)); EXPECT_EQ(transport.input().readU8(),'x');
   transport.output().writeU8('y'); transport.flush();
-  pollfd ready{peer,POLLIN,0}; ASSERT_EQ(::poll(&ready,1,2000),1);
-  char reply = 0; ASSERT_EQ(::recv(peer,&reply,1,0),1); EXPECT_EQ(reply,'y');
+  ASSERT_EQ(testsock::readable(peer,2000),1);
+  char reply = 0; ASSERT_EQ(testsock::recvBytes(peer,&reply,1),1); EXPECT_EQ(reply,'y');
 }
 }
 TEST(SocketListener, NumericIpv4AndIpv6PreserveTransportAndPeerIdentity)
@@ -144,8 +141,8 @@ TEST(SocketListener, ReversePeerEntersSessionOnlyAfterExplicitAcceptanceAndSurvi
   wire.writeU8(1); wire.writeU8(rfb::secTypeNone); wire.writeU32(0);
   wire.writeU16(2); wire.writeU16(2); rfb::PixelFormat(32,24,false,true,255,255,255,16,8,0).write(&wire);
   wire.writeU32(4); wire.writeBytes(reinterpret_cast<const uint8_t*>("peer"),4);
-  ASSERT_EQ(::send(peer.value,wire.data(),wire.length(),0),static_cast<ssize_t>(wire.length()));
-  pollfd ready{peer.value,POLLIN,0}; EXPECT_EQ(::poll(&ready,1,20),0); // No protocol owner before accept.
+  ASSERT_EQ(testsock::sendBytes(peer.value,wire.data(),wire.length()),static_cast<long long>(wire.length()));
+  EXPECT_EQ(testsock::readable(peer.value,20),0); // No protocol owner before accept.
   auto session = listener->accept(id,sessions,rfb::SecurityClient({rfb::secTypeNone})); ASSERT_TRUE(session);
   ASSERT_TRUE(until([&] { return session->events()->snapshot().state == SessionState::Connected; }));
   ASSERT_EQ(listener->closeAndDrain().wait_for(seconds(3)),std::future_status::ready);
@@ -162,8 +159,24 @@ TEST(SocketListener, RuntimeAdmissionFailureClosesConsumedPeerWithoutStoppingLis
   Descriptor peer(connectTo(listener->events()->snapshot().addresses->front().port));
   auto id = incoming(listener); ASSERT_NE(id,0u);
   EXPECT_THROW(listener->accept(id,sessions,rfb::SecurityClient({rfb::secTypeNone})),std::logic_error);
-  pollfd ready{peer.value,POLLIN,0}; ASSERT_EQ(::poll(&ready,1,2000),1);
-  char byte; EXPECT_EQ(::recv(peer.value,&byte,1,0),0);
+  ASSERT_EQ(testsock::readable(peer.value,2000),1);
+  char byte; EXPECT_EQ(testsock::recvBytes(peer.value,&byte,1),0);
   EXPECT_EQ(listener->events()->snapshot().state,ListenerState::Listening);
   EXPECT_EQ(listener->takePeer(id).status,PeerAdmission::NotPending);
 }
+#ifdef _WIN32
+// SO_EXCLUSIVEADDRUSE: another socket cannot take over a listening port even
+// with SO_REUSEADDR, which on Windows would otherwise allow it.
+TEST(SocketListener, WindowsExclusiveAddressRefusesPortHijack)
+{
+  auto source = prepareSocketListener(options()); auto addresses = source->start();
+  const SOCKET other = ::socket(AF_INET,SOCK_STREAM,IPPROTO_TCP); ASSERT_NE(other,INVALID_SOCKET);
+  const BOOL one = TRUE;
+  ::setsockopt(other,SOL_SOCKET,SO_REUSEADDR,reinterpret_cast<const char*>(&one),sizeof(one));
+  sockaddr_in address{}; address.sin_family = AF_INET; address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  address.sin_port = htons(addresses[0].port);
+  EXPECT_EQ(::bind(other,reinterpret_cast<sockaddr*>(&address),sizeof(address)),SOCKET_ERROR);
+  EXPECT_TRUE(::WSAGetLastError() == WSAEACCES || ::WSAGetLastError() == WSAEADDRINUSE);
+  ::closesocket(other);
+}
+#endif
