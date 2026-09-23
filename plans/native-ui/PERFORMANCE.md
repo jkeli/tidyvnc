@@ -1,10 +1,10 @@
 # Viewer workload measurements
 
 Local matched baseline for N0.5/N5.9, recorded 2026-09-23. This is **not** a
-completed performance gate. Native presentation latency, presentation copies,
-damage and a two-view workload are measured below. Not measured: FLTK
-presentation latency, allocation rate, mixed displays and a second machine. All
-results come from one machine.
+completed performance gate. Presentation latency (native and FLTK), native
+presentation copies, damage and a two-view workload are measured below. Not
+measured: allocation rate, mixed displays and a second machine. All results come
+from one machine.
 
 ## Method
 
@@ -116,7 +116,47 @@ Reading:
 - **A second view** of the same session adds its own 14 MiB output copy per full
   frame. That costs about 0.4 CPU s/s, 3–4 ms of draw p50 and 80–100 MiB of RSS.
   It stays at the offered rate.
-- **FLTK not compared.** FLTK has no matching draw hook, so its presentation
-  latency was not measured. Its protocol round trip (about 55 ms at 1080p, above)
-  is a different measurement.
+- **FLTK is compared below**, measured with an injected draw trace rather than a
+  source hook.
 - **Sign-off open.** The N0.5/N5.9 budget decision remains a review item.
+
+## Matched FLTK presentation latency (2026-09-23)
+
+`viewer-workloads.py --fltk <vncviewer> --fltk-trace` measures the retained FLTK
+viewer without changing its source. `tests/perf/draw-trace.c` is compiled and
+injected with `DYLD_INSERT_LIBRARIES`, which works only on local, non-hardened
+builds. It timestamps every `CGContextDrawImage`, the call FLTK's `Surface` uses
+to draw the framebuffer, on the same `CLOCK_UPTIME_RAW` clock. FLTK draws each
+full update as about 144 tiles (mostly 256×256 points), spread over its request
+cycle. Each draw is paired with the latest update sent before it, and an
+update's draw time is its **last** paired draw, i.e. when the whole update has
+been drawn. That matches the native probe, where one `draw(_:)` covers the frame.
+FLTK has no refresh-target split.
+
+Setup: Release `build/hidpi-release` viewer, `-ScalingFactor=100`, 30 updates/s
+offered, 8 s, two runs. The native figures are from the table above; they use fit
+scaling in a 1280×720 window, so the native side does more resampling work per
+frame, not less.
+
+| Workload | FLTK updates/s | FLTK draw p50 / p95 | Native draw p50 / p95 | FLTK CPU s/s | Native CPU s/s |
+| --- | --- | --- | --- | --- | --- |
+| full1080 | 15.1–15.4 | 61.4–62.5 / 95.9–97.9 ms | 15.5–15.8 / 16.7–17.2 ms | 0.99 | 0.65 |
+| full4k | 10.5–10.6 | 59.6–60.5 / 96.5–98.5 ms | 14.3–14.5 / 16.7–18.5 ms | 0.93 | 0.85 |
+| scroll | 15.3 | 55.9–56.0 / 129.8–131.1 ms | 14.1–14.3 / 15.2–16.1 ms | 1.00 | 0.49 |
+| patch | 30.1 | 1.9 / 68.3–68.9 ms | 2.5–3.4 / 5.7–6.1 ms | 0.37–0.38 | 0.12 |
+
+Reading:
+
+- **Full frames.** The native path finishes drawing a full update about 4× sooner
+  (about 15 vs 60 ms p50) with 5–6× lower p95. It does so while presenting twice
+  the update rate of FLTK, at lower CPU.
+- **Small patches.** Median latency is equivalent: FLTK draws the patch directly,
+  in about 1.9 ms against 2.5–3.4 ms native. FLTK's p95 is about 11× worse,
+  because its idle redraw loop (next point) delays some patches.
+- **Idle redraws.** FLTK keeps redrawing an unchanged desktop: 3,951 traced tile
+  draws in 8 s, about 3.4 full-window redraws per second. That accounts for its
+  0.14 CPU s/s idle cost; native draws once and then stays idle (0.015).
+  FLTK's idle first-frame time (901 ms) includes window mapping and is not
+  comparable.
+- **Verdict.** No presentation-latency regression against the retained viewer
+  on this machine. Budget sign-off for N0.5/N5.9 is still a review decision.

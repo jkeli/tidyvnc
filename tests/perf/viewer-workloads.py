@@ -38,6 +38,13 @@ never drawn, because presentation coalesced them, are counted separately. With
 several views, a frame's draw time is when its last view finished. Per drawn
 frame the probe also reports resampled output bytes written (copies), resident
 output bytes and invalidated device pixels (damage).
+
+--fltk-trace measures the retained FLTK viewer the same way without changing it:
+tests/perf/draw-trace.c is compiled and injected with DYLD_INSERT_LIBRARIES
+(local, non-hardened builds only) and timestamps every CGContextDrawImage, which
+is how FLTK's Surface draws the framebuffer. Each draw is paired with the latest
+update sent before it, and an update's draw time is its last paired draw, so
+FLTK reports draw latency and drawn updates (no decode or refresh split).
 """
 import argparse
 import bisect
@@ -207,6 +214,19 @@ def milliseconds(values, fraction):
     return None if value is None else round(value / 1e6, 2)
 
 
+def analyse_draws(sends, draws):
+    """FLTK: an update's draw time is the last traced draw before the next update."""
+    last = {}
+    for at, width, height in draws:
+        index = bisect.bisect_right(sends, at) - 1
+        # The final update has no successor; later draws within 1 s still count.
+        if index >= 0 and (index + 1 < len(sends) or at - sends[index] <= 1e9):
+            last[index] = max(last.get(index, 0), at)
+    latency = [at - sends[index] for index, at in last.items()]
+    return {'updatesSent': len(sends), 'framesDrawn': len(latency), 'tracedDraws': len(draws),
+            'drawP50ms': milliseconds(latency, .5), 'drawP95ms': milliseconds(latency, .95)}
+
+
 def analyse_probe(sends, probe, rate):
     """Pairs probe arrivals with the latest update sent before each one."""
     vsync = sorted(probe['vsync'])
@@ -252,7 +272,7 @@ def analyse_probe(sends, probe, rate):
             'probeScaling': probe.get('scaling')}
 
 
-def run(frontend, target, workload, seconds, work, rate, probe_views=1):
+def run(frontend, target, workload, seconds, work, rate, probe_views=1, fltk_trace=False):
     width, height = WORKLOADS[workload]
     listener = socket.socket(); listener.bind(('127.0.0.1', 0)); listener.listen(1)
     port = listener.getsockname()[1]
@@ -260,8 +280,18 @@ def run(frontend, target, workload, seconds, work, rate, probe_views=1):
             '-RemoteResize=0', '-ReconnectOnError=0', f'127.0.0.1::{port}']
     state = work / f'{frontend}-{workload}'
     probe_report = work / f'probe-{workload}.json'
+    trace = work / f'fltk-draws-{workload}.txt'
     if frontend == 'native':
         process = isolated.launch(target, state, args)['process']
+    elif frontend == 'fltk' and fltk_trace:
+        state.mkdir(parents=True)
+        library = work / 'draw-trace.dylib'
+        if not library.exists():
+            subprocess.run(['xcrun', 'clang', '-dynamiclib', '-O2', '-framework', 'CoreGraphics',
+                            str(ROOT / 'tests/perf/draw-trace.c'), '-o', str(library)], check=True)
+        env = isolated.environment(state)
+        env.update({'DYLD_INSERT_LIBRARIES': str(library), 'TIDYVNC_DRAW_TRACE': str(trace)})
+        process = subprocess.Popen([str(target), *args], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     elif frontend == 'probe':
         state.mkdir(parents=True)
         process = subprocess.Popen([str(target), f'127.0.0.1::{port}', str(probe_report), '--views', str(probe_views)],
@@ -279,6 +309,10 @@ def run(frontend, target, workload, seconds, work, rate, probe_views=1):
             if frontend == 'probe':
                 process.send_signal(signal.SIGTERM); process.wait(10)
                 result.update(analyse_probe(result['_sends'], json.loads(probe_report.read_text()), rate))
+            elif frontend == 'fltk' and fltk_trace:
+                draws = [tuple(float(v) for v in line.split()) for line in trace.read_text().splitlines()] \
+                    if trace.exists() else []
+                result.update(analyse_draws(result['_sends'], draws))
             return result
     finally:
         listener.close()
@@ -295,6 +329,7 @@ def main():
     parser.add_argument('--native', type=Path, help='TidyVNC.app from build/native-ui-frontend')
     parser.add_argument('--fltk', type=Path, help='retained FLTK vncviewer executable')
     parser.add_argument('--probe', type=Path, help='native-presentation-probe from the core build (tests/macos)')
+    parser.add_argument('--fltk-trace', action='store_true', help='time FLTK framebuffer draws with draw-trace.c')
     parser.add_argument('--probe-views', type=int, default=1, choices=range(1, 5), help='views bound to the probe session')
     parser.add_argument('--workload', action='append', choices=sorted(WORKLOADS))
     parser.add_argument('--seconds', type=float, default=8)
@@ -311,7 +346,8 @@ def main():
     with tempfile.TemporaryDirectory(prefix='tidyvnc-workloads-') as temporary:
         for workload in workloads:
             for frontend, target in targets:
-                result = run(frontend, target, workload, args.seconds, Path(temporary), args.rate, args.probe_views)
+                result = run(frontend, target, workload, args.seconds, Path(temporary), args.rate, args.probe_views,
+                             args.fltk_trace)
                 result['frontend'] = frontend
                 result.pop('_sends', None)
                 report['results'].append(result)

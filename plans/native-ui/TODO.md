@@ -54,8 +54,11 @@ This planning update adds no acceptance evidence and changes no completion boxes
     and `viewer-workloads.py --probe [--probe-views 2]`, plus a small-damage `patch`
     workload. Release full-frame draw p50 is 14–16 ms, the patch about 3 ms, and a
     second view adds about 3–4 ms and 0.4 CPU s/s ([PERFORMANCE.md](PERFORMANCE.md)).
-  - [ ] FLTK presentation latency (no matching draw hook), allocation rate, mixed
-    displays, a second machine and sign-off budgets.
+  - [x] Matched FLTK presentation latency without source changes: an injected
+    `CGContextDrawImage` trace (`tests/perf/draw-trace.c`, `--fltk-trace`). Full-
+    frame FLTK draw p50 is about 60 ms against about 15 ms native; patch p50 is
+    equivalent (1.9 vs 2.5–3.4 ms). FLTK redraws about 3.4×/s while idle.
+  - [ ] Allocation rate, mixed displays, a second machine and sign-off budgets.
 - [ ] N0.6 Validate provisional macOS 14 deployment floor, Xcode/Swift/C++ versions, architecture matrix and dependency targets; record final supported configurations.
 - [x] N0.7 Confirm C ABI/module-map/Swift wrapper and CMake-to-Xcode build arrangement; decide CLI app-executable versus launcher behavior without relaying secrets in arguments. Decision (closed 2026-09-23): the app executable is the CLI (same-process bootstrap, no launcher/relaunch); secrets come only from captured `VNC_USERNAME`/`VNC_PASSWORD` or PasswordFile and never enter argv. All 47 parameters, listen and `via` have native adapters (CAPABILITIES.md), with 36 terminal cases on the development and packaged apps; one CMake core → Xcode path (BUILD.md) and the `TidyVNC` module map/Swift wrappers are in use.
   - [x] Shared stateless CLI syntax/catalog, retained lexer reuse, C ABI and Swift
@@ -856,8 +859,9 @@ unchecked parity rows hidden by a visually complete connection screen.
 - [ ] N5.8 Run physical 1×/2× and mixed-density/multi-display tests with recorded OS/hardware; simulation alone does not complete this item.
 - [ ] N5.9 Run matched FLTK/native benchmarks against N0 budgets; record latency/CPU/memory/copy/damage results and resolve or explicitly review regressions before cutover.
   - Partial (2026-09-23): matched CPU/RSS/throughput per PERFORMANCE.md shows no
-    regression on those metrics. Native presentation latency is measured; the FLTK
-    latency comparison, copy/damage measurement and review remain.
+    regression on those metrics. Matched presentation latency (FLTK via injected
+    draw trace) shows no regression: full-frame p50 about 15 ms native vs 60 ms
+    FLTK. Allocation rate, other machines and the budget review remain.
 - [x] N5.10 Stress reconnect, resize, slow consumer and attach/detach cycles; check bounded memory, no stale callbacks and no retained input state. 2026-09-23: `SessionWorker.ReconnectCyclesWithSlowConsumerStayBoundedAndCurrent` runs 50 reconnect cycles with a slow view consumer holding an old lease, a held key at every disconnect and a two-frame (32-byte) publication budget. A fresh frame still publishes after the leases are released (no leaked budget); no event of an earlier generation follows a new connect; held input is not carried into the next attempt; no mailbox wake-ups follow joined drain. Passes on macOS and under Linux ASan+LSan and TSan. Resize and attach/detach cycles: `NativeDesktop.RenderingAndInput` (12 view removals with a server resize in flight), `ProtocolSession` independent-view detach and `FramePublisher.SkippedResizeAndReconnectCannotLoseInvalidation`; the 256-frame decode flood and shutdown under load are under N2.8.
 
 Exit: fidelity and measured responsiveness match the retained native feature

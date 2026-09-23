@@ -38,8 +38,9 @@ Everything still open needs one of:
    N0.8/N5.7/N5.8 mixed displays and Spaces, N6.8–N6.10 installed consent, signing
    identity, Keychain upgrade, sleep/wake, N3.9–N3.12/N3.14 real Keychain).
 3. **Hosted CI** (N6.4): blocked by the owner decision above.
-4. **Measurement still missing** (N0.5/N5.1/N5.9): FLTK presentation latency,
-   allocation rate, mixed displays, a second machine, sign-off budgets. Native
+4. **Measurement still missing** (N0.5/N5.1/N5.9): allocation rate, mixed
+   displays, a second machine, sign-off budgets. Matched FLTK latency is now
+   measured with an injected draw trace (native about 4× faster on full frames). Native
    presentation latency, copies, damage and two views are now measured
    (`viewer-workloads.py --probe`, PERFORMANCE.md). Release full-frame draw is
    14–16 ms p50 and ≤ 18.5 ms p95 at 30 updates/s; small damage draws in about 3 ms.
