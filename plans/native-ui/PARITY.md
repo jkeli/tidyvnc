@@ -369,7 +369,7 @@ TODO.md):
   X509 and all RSA-AES variants (`macos-security-smoke.py`).
 - **Tunnel and reconnect.** SSH tunnel through a loopback sshd, and Retry
   reconnect (`macos-tunnel-smoke.py`, `reconnect`).
-- **Labels.** All 26 reachable screens expose VoiceOver labels
+- **Labels.** All 27 reachable screens expose VoiceOver labels
   (`accessibility-audit.py`).
 
 #### Differences proposed as intentional (owner review pending)

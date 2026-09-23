@@ -773,7 +773,7 @@ UI uses, with migration and credential behavior verified independently.
       licence.
     - The About panel shows "TidyVNC", "Version 1.16.80 (1.16.80)", the
       TigerVNC copyright line and the credits text.
-    - Every Help and About control is labeled (26-screen audit).
+    - Every Help and About control is labeled (27-screen audit).
     - Project and issue links point to the repository remote
       (github.com/jkeli/tidyvnc and /issues).
   - [ ] Keyboard traversal of Help/About and a VoiceOver listening pass.
@@ -822,7 +822,7 @@ UI uses, with migration and credential behavior verified independently.
     gettext files are untouched. Other native UI strings and long-string layout
     acceptance remain open; see [LOCALIZATION.md](LOCALIZATION.md).
 - [ ] N4.17 VoiceOver labels, keyboard focus/tab/escape/default actions, light/dark/high contrast and reduced motion on every screen/sheet. Document remote framebuffer accessibility limits.
-  - [x] Actual-app accessibility-label audit of 26 screens/sheets/sections
+  - [x] Actual-app accessibility-label audit of 27 screens/sheets/sections (26, plus the profile editor added later)
     (`tests/macos/accessibility-audit.py`, AX API only): 0 unlabeled controls
     after labeling six SwiftUI pickers/steppers that exposed no title
     ([UI-ACCEPTANCE.md](UI-ACCEPTANCE.md), 2026-09-23 label audit).

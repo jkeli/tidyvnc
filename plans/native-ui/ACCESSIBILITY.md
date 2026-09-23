@@ -1,7 +1,7 @@
 # Native viewer accessibility and remote-framebuffer limits (N4.17)
 
 Recorded 2026-09-23. Evidence for labels is in
-[UI-ACCEPTANCE.md](UI-ACCEPTANCE.md) (automated label audit of 26 screens); a
+[UI-ACCEPTANCE.md](UI-ACCEPTANCE.md) (automated label audit of 27 screens); a
 VoiceOver listening pass, keyboard traversal and a high-contrast review remain
 open in [TODO.md](TODO.md).
 

@@ -88,7 +88,7 @@ fixtures. They need WindowServer and are not part of `--test`. Replace `APP` wit
 | `python3 tests/integration/macos-security-smoke.py APP [--accept-prompts]` | VncAuth, TLS and CA-trusted X509 against the project's server-side handlers; with `--accept-prompts`, also all RSA-AES variants and Retry reconnect |
 | `python3 tests/integration/macos-tunnel-smoke.py APP` | `-via` through a loopback `sshd` |
 | `python3 tests/integration/macos-rollback-smoke.py APP FLTK-vncviewer` | FLTK and native data stay separate; FLTK opens a native export |
-| `python3 tests/macos/accessibility-audit.py APP` | VoiceOver labels on 26 screens |
+| `python3 tests/macos/accessibility-audit.py APP` | VoiceOver labels on 27 screens |
 | `python3 tests/macos/fltk-baseline.py (FLTK-vncviewer \| APP --native) DIR` | Window-only baseline screenshots |
 | `python3 tests/perf/viewer-workloads.py --native APP --fltk FLTK-vncviewer [--alloc-trace]` | Matched CPU, memory, throughput and allocation rate |
 | `python3 tests/perf/viewer-workloads.py --probe <core>/tests/macos/native-presentation-probe` | Native presentation latency, copies and damage |

@@ -333,7 +333,7 @@ SwiftUI showed their label text visually but exposed no accessibility title for
 them (for steppers the text is a sibling of the incrementor). Each now has an
 explicit `accessibilityLabel`, and the steppers also have an `accessibilityValue`.
 
-**Result.** 26/26 screens pass with 0 unlabeled controls and 0 errors. One
+**Result.** 26/26 screens pass with 0 unlabeled controls and 0 errors. A later run added the Saved Profiles editor (71 controls): 27/27 pass. One
 system-provided element is reported separately: the standard AppKit About
 panel's credits text, which speaks its content and cannot be labeled by the app.
 
