@@ -200,9 +200,18 @@ as offer origin suppresses echoes, including into another session. The wrapper
 publishes callback-driven `NativeClipboardUpdate` values and observable focus;
 terminal state/close/reconnect clears obsolete presentation.
 
+Server bells are counted per attempt in the core snapshot. `NativeSession` calls
+its `bellHandler` on MainActor when the current generation's count advances; a
+burst observed in one delivery turn rings once, and a new attempt starts from zero.
+The app injects `NativeSystemBell` (`NSSound.beep()`, like FLTK's `fl_beep`) through
+the `NativeBellSounding` contract; tests substitute a counter.
+
 `NativePasteboardAccess` is an injected MainActor contract, implemented by
 `NativePasteboard` using NSPasteboard on a dedicated serial dispatch queue. All
-change-count checks, reads and writes are asynchronous to the main actor. The app owns one `NativeClipboardCoordinator`
+change-count checks, reads and writes are asynchronous to the main actor. App-originated
+copies such as redacted connection diagnostics use `copyLocal`, the same serialized
+worker and no remote-provenance marker, so routing treats them like a user copy;
+no app code writes `NSPasteboard.general` directly. The app owns one `NativeClipboardCoordinator`
 and registers each window's session weakly. Only one focused, connected, non-view-only
 desktop in the active app may share clipboard text. Ambiguous focus routes to none.
 Every focus/state/policy transition immediately invalidates queued host work, even

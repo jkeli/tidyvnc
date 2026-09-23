@@ -13,6 +13,8 @@ public enum NativePasteboardContent: Equatable, Sendable {
   func currentChange() async throws -> Int
   func read(expectedChange: Int, maximumBytes: Int) async throws -> NativePasteboardContent
   func writeRemote(_ text: String, maximumBytes: Int) async throws -> Int
+  // Local-origin text written by the app itself (no remote provenance marker).
+  func writeLocal(_ text: String, maximumBytes: Int) async throws -> Int
 }
 // Only this worker queue touches the owned NSPasteboard. @unchecked Sendable
 // covers that queue confinement, not arbitrary concurrent AppKit access.
@@ -91,6 +93,14 @@ private final class PasteboardCancellation: @unchecked Sendable {
       let written = board.changeCount
       guard board.string(forType: Self.remoteType) == origin, board.changeCount == written else { throw NativePasteboardError.changed }
       return written
+    }
+  }
+  public func writeLocal(_ text: String, maximumBytes: Int) async throws -> Int {
+    try await worker.perform { board in
+      try Self.validate(text, maximumBytes: maximumBytes)
+      board.clearContents()
+      guard board.setString(text, forType: .string) else { throw NativePasteboardError.writeFailed }
+      return board.changeCount
     }
   }
 }

@@ -109,6 +109,14 @@ import Foundation
   // Exposed for an event-driven host and deterministic adapter tests. The app
   // uses one cancellable 250 ms observation task while a desktop can send.
   public func poll() { reconcile() }
+  // App-originated copies (for example, redacted diagnostics) use the same
+  // serialized pasteboard worker as remote writes. Routing then treats the new
+  // change like any other local copy, subject to each session's send policy.
+  public func copyLocal(_ text: String) async throws {
+    guard !stopped else { throw NativePasteboardError.unavailable }
+    _ = try await pasteboard.writeLocal(text, maximumBytes: 1 << 20)
+    reconcile()
+  }
   private func pollCurrent() {
     guard let session = active, eligible(session), sendEnabled else { return }
     pollRequested = true

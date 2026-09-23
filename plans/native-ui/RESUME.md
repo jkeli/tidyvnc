@@ -6,35 +6,55 @@ for the full checklist and historical evidence. The objective remains the entire
 
 ## Committed checkpoint and next execution order
 
-Implementation checkpoint: the commit that adds this section (`fix(viewer): resolve
-Linux hostnames, harden shared code under sanitizers and isolate sessions`), on top
-of `8b56c793`. Release was revalidated at `8b56c793` (no later edit reached that
-build); the later changes are validated by the Debug macOS, FLTK and Linux runs
-below. See the matching TODO evidence section for commands, hashes and counts.
+Implementation checkpoint: the commit that adds this section (`feat(macos): sound
+server bells, route app copies through the pasteboard worker and run Apple
+sanitizers`), on top of `c2a6057e`. See the two 2026-09-23 TODO evidence sections.
+N1.5, N1.6, N1.13, N1.14 and N1.15 are now checked; N1.2, N1.3, N1.4, N1.9 and
+N1.16 remain open.
 
-1. Continue the N1 contract audit for the items still open: N1.2 (remaining
-   settings/capability schema), N1.3 (document transactions/remaining groups),
-   N1.5 (remaining command catalog and native service ownership), N1.9 (service
-   contracts other than clipboard), N1.13 (service requests and app-level runtime
-   shutdown), N1.15/N1.16 (record the suites/sanitizers now run and their limits).
-   For each, name the reachable state/contract, owner/thread/lifetime and the test
-   that would close it; do not close parents from narrow coverage.
-2. Run the full crypto-enabled core suite under macOS ASan+UBSan and TSan (the
-   existing Apple sanitizer builds disable crypto and cover 11 focused tests), then
-   the native app/Swift sanitizers where the toolchain allows.
+1. N1.9 service contracts, from the recorded audit: add an access/permission
+   service (Local Network guidance, Accessibility, security-scoped file access)
+   with typed states and a fake; an app-services contract (lifecycle/quit, logging,
+   help/URL resources) replacing the static launch hand-off; route remaining
+   `NSScreen`/`NSApp.isActive`/`NSWorkspace` reads through the display/window
+   contracts; add a document writer fake and a picker service; unify trust errors
+   and stop dropping them with `try?`; add a test that builds the production
+   `AppCoordinator` wiring (or extract it into a testable factory).
+2. Finish the N1.2/N1.3/N1.4 audits: confirm every CAPABILITIES.md parameter's
+   schema lives in portable core (not only Swift), document transactions, then close.
 3. Map existing encoding/security, authentication/trust, clipboard, reverse/listen,
    tunnel and reconnect fixtures to PLAN §12 (N6.6). Extend actual-frontend coverage
    for uncovered paths, keeping wire assertions distinct from visible acceptance.
 4. Resume actual app window/menu/file-panel, keyboard and VoiceOver acceptance
-   through CUA when native access works (see UI-ACCEPTANCE.md and PARITY.md), then
-   matched performance and physical 1×/2×, mixed-display, hotplug/Spaces/IME checks.
-5. Verify minimum-OS/Intel dependencies, hosted CI (including the new Linux
-   sanitizer jobs), installed Finder/network-consent behavior and intended
-   signing/Keychain upgrade access. Complete the full parity and requirement audit
-   before changing the shipping frontend or declaring N6 done.
+   through CUA when native access works (UI-ACCEPTANCE.md, PARITY.md), including
+   an audible/visible bell check; then matched performance and physical 1×/2×,
+   mixed-display, hotplug/Spaces/IME checks.
+5. Verify minimum-OS/Intel dependencies, hosted CI (including the Linux sanitizer
+   jobs), installed Finder/network-consent behavior and intended signing/Keychain
+   upgrade access. Complete the full parity and requirement audit before changing
+   the shipping frontend or declaring N6 done.
 
 These are ordered follow-ups within the original plan, not replacement completion
 criteria. The full goal remains active and FLTK remains the default.
+
+## Latest follow-up (2026-09-23) — Apple sanitizers, server bell, pasteboard routing
+
+The crypto-enabled core suite passes **762/762** under macOS ASan+UBSan and TSan
+(three runs each). The native Swift suite passes all **89** cases under ASan and
+TSan; the long settings-render case needed its limit raised from 40 to 120 s.
+Limitations (uninstrumented frameworks/dependencies, disabled container-overflow
+checks on macOS, no Darwin LSan, no MSan) are listed in TODO.
+
+The N1.9 audit found that the native app never sounded server bells. It now does,
+through an injected `NativeBellSounding` (`NSSound.beep()`), once per delivery turn
+for the current attempt. "Copy Diagnostics" now goes through the clipboard
+coordinator's serialized worker instead of writing `NSPasteboard.general` on the
+main thread. N1.5/N1.13/N1.15 are closed with explicit maps; N1.9 stays open with
+its gap list.
+
+Final macOS Debug: **3/3 viewer, 762/762 unit, 89/89 native**
+(`build/native-ui-frontend/verification/run-s8ryht58`), 140 Swift sources / 1353
+localization call sites. Branding and diff checks pass. FLTK remains the default.
 
 ## Latest follow-up (2026-09-23) — Release revalidation, Linux resolver, sanitizers
 

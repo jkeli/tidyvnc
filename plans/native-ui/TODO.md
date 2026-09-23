@@ -92,9 +92,25 @@ may disappear merely because it is absent from an initial mockup.
     see evidence below. Other audited globals remain open.
   - Encoding snapshots and monotonic bandwidth policy are now session-owned in
     the portable core; FLTK captures legacy settings on host-thread callbacks.
-- [ ] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
+- [x] N1.5 Implement session/listener lifecycle, commands, operation completion and generation-tagged ordered events; test invalid transitions and initial snapshot subscription.
   - Established attempts and reusable sessions now have a production serialized
-    worker and bounded runtime; remaining commands and native integration stay open.
+    worker and bounded runtime.
+  - [x] Command catalog reconciled with PLAN §4.2 (2026-09-23): createSession →
+    `tidyvnc_session_create_with_message_limits`; connect → `session_connect`/
+    `connect_routed`; listen/accept → `listener_create/subscribe/accept/reject/stop`;
+    applyOptions → `apply_encoding`, `set_security`, `set_shared`,
+    `clipboard_policy`, `input_policy`, `view_only`; sendInput → `key`, `pointer`,
+    `focus`, `release_input`; `refresh`; `request_desktop_layout`; respond →
+    `reply_credentials`/`reply_credential_bytes`/`reply_password_file`/`reply_trust`;
+    `cancel_operation`; `disconnect`; closeAndDrain → `close` + `poll_drained`;
+    frames → `take_view`; events → `subscribe`/`snapshot`/`take_event`. Every session,
+    listener and runtime command is called from the native app (the other two
+    `session_create*` exports are narrower overloads). Invalid transitions:
+    `SessionWorker.CommandsRejectInvalidStateAndGenerationWithoutCompletion`;
+    initial snapshots: `SessionEvents.StartsWithOwnedCurrentSnapshot`,
+    `ProtocolSession.EventSubscriptionStartsWithCurrentConnectedSnapshot`,
+    `ListenerWorker.InitialSnapshotOrderedLifecycleAndRetainedEvents`. The sketch's
+    disconnect "reason" is host-side presentation state, not a core parameter.
   - [x] Established-attempt Authenticating/Disconnecting/terminal state ownership,
     typed end reasons and bounded asynchronous refresh/encoding commands with
     reserved completions, generation checks and cancellation before execution.
@@ -137,7 +153,26 @@ may disappear merely because it is absent from an initial mockup.
 - [ ] N1.9 Define and inject PreferencesStore, ProfileHistoryStore, CredentialStore, TrustStore, document/file, clipboard, display/window/input, access, tunnel and app services with typed errors.
   - Clipboard protocol/channel boundary, injected native pasteboard adapter and
     active-session routing are implemented. Visible app-control/activation checks
-    remain N3.15. Other service contracts remain open.
+    remain N3.15. Diagnostics copying now uses the coordinator's `copyLocal`
+    instead of writing `NSPasteboard.general` on the main thread (2026-09-23).
+  - Audit (2026-09-23), per service. **Contract + fake + typed errors:** preferences
+    (`NativePreferencesBacking`/`NativePreferencesStore`, `NativePreferencesError`),
+    profile/history (`NativeAtomicFileBacking`, `NativeStorageError`), credentials
+    (`NativeCredentialBacking`/`NativeSecItemClient`, `NativeCredentialStoreIssue`),
+    clipboard (`NativePasteboardAccess`, `NativePasteboardError`), tunnel
+    (`NativeTunnelOwning`, `NativeTunnelError`), bell (`NativeBellSounding`).
+    **Partial:** trust (two error families; legacy store built with `try?`; foreign
+    errors collapse to `.unavailable`), document/file (no writer fake, inline
+    open/save panels, save issue as `String`; the reader's `CancellationError` is
+    deliberate Swift task cancellation, mapped to `.cancelled` by its callers), display/window/input (direct `NSScreen`/`NSApp.isActive`/
+    `NSWorkspace` reads in fullscreen, startup and desktop code; keyboard capture
+    returns only `Bool`). **Missing:** an access/permission service (Local Network,
+    Accessibility, security-scoped file access repeated inline) and app services
+    (static launch hand-off, static process logging, direct `NSApp` quit/About,
+    `Bundle.main` help resources, `String` startup failures). The production
+    wiring in `AppCoordinator` is not compiled into any test target. Stores take
+    concrete actors; faking happens at the storage layer. Close N1.9 only after
+    those contracts, typed errors and a wiring test exist.
 - [x] N1.10 Bridge synchronous authentication/trust callbacks with the cancellable worker rendezvous; hold no shared locks and never block the main thread. Implemented by `PromptAuthentication`; see evidence below. Real TLS/socket cancellation is verified by N1.11 below.
 - [x] N1.11 Prove real VNC/TLS authentication, prompt cancellation, timeout/peer closure and close/quit while a request is outstanding; reject stale/duplicate responses after reconnect. Loopback TCP/GnuTLS proof at the core/host boundary; see evidence below. Production reactor and native close/quit wiring remain separate items.
 - [x] N1.12 Implement bounded input/event queues, coalescing rules and release-all on focus loss/overflow/disconnect; keep view-only enforcement in core. See input and event evidence below; the full lifecycle/command catalog remains N1.5.
@@ -147,7 +182,7 @@ may disappear merely because it is absent from an initial mockup.
   - [x] Ordered event/completion queues, reserved completion capacity, statistics
     coalescing and terminal overflow rules, integrated with protocol events and
     refresh operations. See the N1.12 event evidence below.
-- [ ] N1.13 Implement disconnect/drain with cancelled IO/prompts/timers/subscriptions and joined decoder work; repeated close and partial construction failure are safe.
+- [x] N1.13 Implement disconnect/drain with cancelled IO/prompts/timers/subscriptions and joined decoder work; repeated close and partial construction failure are safe. Core ownership is complete (subitem below). App integration (2026-09-23 review): `AppCoordinator.requestQuit` stops panels/imports/clipboard/displays, closes every connection model including reverse windows (they register in `windows`), awaits `NativeRuntime.shutdown()`, each model's `close()`, listeners and every store actor's `close()`, then replies to `applicationShouldTerminate`. Acceptance of quit with pending IO/auth/store work remains N6.10; that wiring is not yet under test (see the N1.9 audit).
   - [x] Established-attempt worker/runtime ownership, direct prompt/readiness
     cancellation, nonblocking handle release and completion after joined workers
     and protocol/transport disposal. Endpoint setup now shares cancellation and
@@ -155,7 +190,7 @@ may disappear merely because it is absent from an initial mockup.
     Service requests and native app-level
     runtime shutdown integration remain open.
 - [x] N1.14 Test two simultaneous sessions with different security/settings, one awaiting credentials while the other continues; no secret, modifier, clipboard or option leakage. `SessionWorker.SimultaneousSessionsIsolatePromptSecretInputClipboardAndSettings` (2026-09-23 evidence below) exercises this at the production runtime; `ViewerABI.AnotherSessionProgressesWhileCredentialsAreParked` covers the C boundary. Native multi-window/app-quit isolation remains N6.10.
-- [ ] N1.15 Run existing applicable unit suites plus deterministic core/service tests with fake stores, transport, scheduler and event sink; run supported sanitizers and record limitations.
+- [x] N1.15 Run existing applicable unit suites plus deterministic core/service tests with fake stores, transport, scheduler and event sink; run supported sanitizers and record limitations. 2026-09-23: retained FLTK 782 unit; portable core 762 (macOS) / 759 (Linux) with fake transport, scheduler, event sink and prompt fixtures; 89 native Swift tests with fake preferences/history/credential/trust/pasteboard/tunnel/display backings. Sanitizers: full core suite under Linux ASan+UBSan+LSan and TSan, and macOS ASan+UBSan and TSan, crypto enabled; full native Swift suite under macOS ASan and TSan. Limitations recorded in the evidence section below.
 - [ ] N1.16 Keep the FLTK frontend building and exercising the extracted logic during transition; shared server behavior remains unchanged.
 
 Exit: headless, reusable session engine; lifetime and authentication boundaries
@@ -355,6 +390,10 @@ cancellation; not yet permission to replace the shipping frontend.
     generation/selection and weak view delivery; real host capture passes. Physical
     hotplug, mixed-density and fullscreen/Spaces acceptance remain N5.7/N5.8.
 - [ ] N3.17 Implement window/presentation lifecycle, bell/URL/help and structured redacted diagnostics.
+  - [x] Remote server bell (2026-09-23): previously only counted, never played.
+    `NativeSession.bellHandler` rings once per delivery turn when the current
+    attempt's count advances; the app injects `NativeSystemBell` (`NSSound.beep()`).
+    Loopback test covers bursts, later bells, reconnect reset and close.
 - [ ] N3.18 Implement explicit file access and existing supported tunnel invocation/cancellation without shell-string interpolation; report unsupported features honestly.
   - [x] Prepared local tunnel socket boundary preserves the logical TCP target
     hostname for protocol/TLS, with explicit route identity and ordinary transport
@@ -9785,3 +9824,49 @@ native Debug `build/native-protocol-shared-fixes` (SHA-256 `afaced6b…60d0`) an
 Branding audit (1650 deferred) and `git diff --check` pass. macOS sanitizer runs
 of the full crypto-enabled suite, native app/Swift sanitizers, hosted CI and every
 interactive/physical/installed gate remain open.
+
+### N1.15 / N1.9 / N3.17 Apple sanitizers, bell and pasteboard routing (2026-09-23)
+
+**macOS core sanitizers (crypto on).** New trees `build/macos-core-asan` and
+`build/macos-core-tsan` (Debug `-Werror`, GnuTLS/nettle on, headless graph): both
+pass **3/3 viewer + 762/762 unit** in three consecutive runs (ASan ≈ 9 s, TSan
+≈ 28 s per run). ASan runs with `detect_container_overflow=0`: libc++'s string
+annotations report false container overflows during gtest discovery because
+Homebrew's `libgtest.a` is uninstrumented. Darwin arm64 has no LeakSanitizer
+(leaks are covered by the Linux LSan run).
+
+**Native Swift sanitizers (crypto on).** `build/macos-native-asan` and
+`build/macos-native-tsan` (`-sanitize=address`/`thread` for Swift plus C/C++): 88/88
+native CTest cases pass under each. The remaining case,
+`NativeSettings.DraftRendering`, runs 42–43 s instrumented against its old 40 s
+limit; run directly, it passes with no sanitizer report. Its limit is now 120 s,
+since it already takes about 31 s uninstrumented. Uninstrumented: AppKit/SwiftUI/
+system frameworks, Homebrew GnuTLS/nettle/pixman/jpeg and gtest. No MSan on either
+platform; glibc resolver tests skip under TSan (see above).
+
+**Server bell (N3.17).** The native app counted server bells but never sounded
+them. `NativeSession.bellHandler` now fires on MainActor when the current attempt's
+count advances, at most once per delivery turn. The coordinator injects
+`NativeSystemBell` (`NSSound.beep()`, matching FLTK's `fl_beep`) through
+`NativeBellSounding`. `native-bridge-tests` covers a 5-bell burst (1–5 rings, all 5
+counted), a later single bell (+1), reconnect reset without ringing, the new
+attempt's bell and no ring on close. Passes 6/6 repeated runs.
+
+**Pasteboard routing (N1.9).** "Copy Diagnostics" wrote `NSPasteboard.general` on
+the main thread, outside the serialized pasteboard worker. It now calls
+`NativeClipboardCoordinator.copyLocal`, a new `NativePasteboardAccess.writeLocal`
+without the remote-provenance marker; routing then treats it as a local copy.
+`native-clipboard-tests` verifies on a private named pasteboard that the text is
+written unmarked and sent only to the focused session. No app code writes
+`NSPasteboard.general` directly any more.
+
+**N1.9 audit.** Recorded under N1.9: six services have contracts, fakes and typed
+errors; trust, document/file and display/window/input are partial; access/
+permission and app services are missing, and the production wiring is untested.
+N1.9 stays open.
+
+Final macOS Debug verification after these changes:
+`build/native-ui-frontend/verification/run-s8ryht58` passes **3/3 viewer, 762/762
+unit (22.09 s), 89/89 native (132.99 s)**, graph, configuration, 1052 + 2
+localization values, **140 Swift sources / 1353 call sites**, strict signature and
+CLI stages. Branding (1650) and diff checks pass.

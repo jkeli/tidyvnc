@@ -67,6 +67,7 @@ public:
   std::atomic<uint32_t> patch{0};
   std::atomic<uint32_t> cursor{0};
   std::atomic<bool> clipboardRequested{false};
+  std::atomic<uint32_t> bells{0};
   std::vector<uint8_t> clipboardWire; // protected by mutex, including marker
   uint8_t clipboardMarker = 0;
   bool queueClipboard(const uint8_t* text,uint32_t length) {
@@ -181,6 +182,11 @@ private:
         std::vector<uint8_t> clipboardMessage;
         { std::lock_guard<std::mutex> lock(mutex); clipboardMessage.swap(clipboardWire); }
         if (!clipboardMessage.empty()) send(fd,clipboardMessage.data(),clipboardMessage.size());
+        if (const auto count = bells.exchange(0)) {
+          // One write, so a burst arrives in a single delivery (RFB Bell is type 2).
+          const std::vector<uint8_t> burst(count, 2);
+          send(fd,burst.data(),burst.size());
+        }
         if (clipboardRequested.exchange(false)) {
           const uint8_t cutText[] = {3,0,0,0,0,0,0,6,'c','a','f',0xe9,'\r','\n'};
           send(fd,cutText,sizeof(cutText));
@@ -251,6 +257,7 @@ uint32_t native_test_peer_clipboard_bytes(void* peer,const uint8_t* text,uint32_
   try { return static_cast<Peer*>(peer)->queueClipboard(text,length); } catch (...) { return 0; }
 }
 void native_test_peer_clipboard(void* peer) { static_cast<Peer*>(peer)->clipboardRequested = true; }
+void native_test_peer_bell(void* peer, uint32_t count) { static_cast<Peer*>(peer)->bells = count > 64 ? 64 : count; }
 uint32_t native_test_peer_has_clipboard(void* peer) { return static_cast<Peer*>(peer)->hasClipboard(); }
 uint32_t native_test_peer_count_clipboard(void* peer,const uint8_t* text,uint32_t length) { return static_cast<Peer*>(peer)->clipboardCount(text,length); }
 uint32_t native_test_peer_has_input(void* peer,uint32_t kind,uint32_t value,uint32_t x,uint32_t y) { return static_cast<Peer*>(peer)->inputCount(kind,value,x,y) != 0; }

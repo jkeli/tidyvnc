@@ -58,6 +58,10 @@ public final class NativeSession: ObservableObject {
   }
   private var pending: [UUID: Pending] = [:]
   @Published public private(set) var snapshot: NativeSnapshot
+  // Called on MainActor when the current attempt's server bell count advances.
+  // A burst observed in one delivery turn rings once; other attempts never ring.
+  public var bellHandler: (@MainActor () -> Void)?
+  private var bellMark: (generation: UInt64, count: UInt64) = (0, 0)
   public var information: NativeConnectionInformation? {
     !isClosing && snapshot.generation == generation && snapshot.state == .connected ? snapshot.information : nil
   }
@@ -335,6 +339,12 @@ public final class NativeSession: ObservableObject {
         reason: NativeCommandFailure.Reason(rawValue: event.failure) ?? .none, nativeResult: event.native_result, snapshot: current))
     }
   }
+  private func observeBell(_ value: NativeSnapshot) {
+    // Bell counts are per attempt; a new generation starts from zero.
+    let previous = value.generation == bellMark.generation ? bellMark.count : 0
+    bellMark = (value.generation, value.bells)
+    if value.bells > previous { bellHandler?() }
+  }
   private func receive(subscription id: UInt64, generation deliveredGeneration: UInt64) {
     guard !isClosing, subscription?.raw == id, deliveredGeneration == generation else { return }
     do {
@@ -358,6 +368,7 @@ public final class NativeSession: ObservableObject {
         let next = status == .ok ? NativeConnectionInformation(info) : nil
         let value = NativeSnapshot(status == .ok ? info.snapshot : current, information: next)
         if snapshot != value { snapshot = value }
+        observeBell(value)
         if snapshot.state != .authenticating && prompt != nil { prompt = nil }
       }
       var view = abi(tidyvnc_view_update.self)

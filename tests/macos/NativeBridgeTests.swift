@@ -301,6 +301,33 @@ func ignoreReady(_ context: UnsafeMutableRawPointer?, _ subscription: UInt64, _ 
   try expect(try retained.value(for: .quality).value == "5", "encoding snapshot survives runtime close")
 }
 
+@MainActor final class BellCounter: NativeBellSounding { var rings = 0; func ring() { rings += 1 } }
+@MainActor func waitFor(_ condition: @MainActor () -> Bool) async throws {
+  for _ in 0..<1000 where !condition() { try await Task.sleep(for: .milliseconds(2)) }
+}
+@MainActor func serverBellRingsForCurrentAttemptOnly() async throws {
+  let runtime = try NativeRuntime(); let session = try runtime.makeSession(configuration: configuration(1))
+  let bell = BellCounter(); session.bellHandler = { bell.ring() }
+  let peer = try Peer(); _ = try await session.connect(endpoint: peer.endpoint); _ = await serverFrame(session)
+  try expect(bell.rings == 0, "connecting does not ring")
+  native_test_peer_bell(peer.raw, 5)
+  try await waitFor { session.snapshot.bells == 5 }
+  try expect(session.snapshot.bells == 5, "every server bell is counted")
+  try expect(bell.rings >= 1 && bell.rings <= 5, "a burst rings at least once and never more than its bells")
+  let afterBurst = bell.rings
+  native_test_peer_bell(peer.raw, 1)
+  try await waitFor { session.snapshot.bells == 6 }
+  try expect(bell.rings == afterBurst + 1, "a later single bell rings once")
+  _ = try await session.disconnect()
+  let second = try Peer(); _ = try await session.connect(endpoint: second.endpoint); _ = await serverFrame(session)
+  try expect(bell.rings == afterBurst + 1 && session.snapshot.bells == 0, "a new attempt starts without ringing")
+  native_test_peer_bell(second.raw, 1)
+  try await waitFor { session.snapshot.bells == 1 }
+  try expect(bell.rings == afterBurst + 2, "the new attempt's first bell rings")
+  try await session.close(); try await runtime.shutdown()
+  try expect(bell.rings == afterBurst + 2, "close does not ring")
+}
+
 @main struct NativeBridgeTests {
   @MainActor static func main() async {
     do {
@@ -313,6 +340,7 @@ func ignoreReady(_ context: UnsafeMutableRawPointer?, _ subscription: UInt64, _ 
       try await clipboardOwnershipRoutingAndCommands(); print("PASS clipboard ownership, wire commands, directions, routes and echo suppression")
       try await encodingSchemaOwnershipAndCommands(); print("PASS encoding schema, ownership, typed validation, independent sessions and async commands")
       try await typedValidationAndRejectedAdmission(); print("PASS typed errors, capacity rejection and cancellation before admission")
+      try await serverBellRingsForCurrentAttemptOnly(); print("PASS server bell rings per attempt, coalesced per delivery")
     } catch {
       FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1)
     }

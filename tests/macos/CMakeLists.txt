@@ -69,7 +69,8 @@ target_compile_options(native-settings-tests PRIVATE -swift-version 6 -strict-co
 target_include_directories(native-settings-tests PRIVATE support)
 target_link_libraries(native-settings-tests PRIVATE tidyvnc_macos_bridge native-test-peer)
 add_test(NAME NativeSettings.DraftRendering COMMAND native-settings-tests ${CMAKE_CURRENT_BINARY_DIR}/settings-render)
-set_tests_properties(NativeSettings.DraftRendering PROPERTIES TIMEOUT 40)
+# About 31s unsanitized and 43s under ASan/TSan on arm64; leave CI headroom.
+set_tests_properties(NativeSettings.DraftRendering PROPERTIES TIMEOUT 120)
 add_executable(native-encoding-draft-tests NativeEncodingDraftTests.swift ../../apps/macos/TidyVNC/ConnectionModel.swift support/EncodingTarget.swift)
 set_target_properties(native-encoding-draft-tests PROPERTIES Swift_MODULE_NAME NativeEncodingDraftTests)
 target_compile_options(native-encoding-draft-tests PRIVATE -swift-version 6 -strict-concurrency=complete

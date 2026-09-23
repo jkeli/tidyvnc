@@ -167,6 +167,13 @@ struct ConnectionProblem: Identifiable, Equatable {
   private var suppressConnectionProblem = false
   private var reportedGeneration: UInt64?
   @Published var clipboardMessage: String?
+  // Supplied by the app's clipboard coordinator so app-originated copies share
+  // its serialized pasteboard access; nil leaves copying unavailable.
+  var copyText: (@MainActor (String) async throws -> Void)?
+  func copyToPasteboard(_ text: String) {
+    guard let copyText else { return }
+    Task { @MainActor in try? await copyText(text) }
+  }
   @Published var closing = false
   @Published private(set) var encodingDraft: NativeSessionEncodingDraft?
   private var encodingCleanup: Task<Void, Never>?

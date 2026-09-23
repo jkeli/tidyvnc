@@ -45,6 +45,12 @@ final class Peer {
     changeCount += 1; content = .remote; return changeCount
   }
   func local(_ text: String) { content = .text(text); changeCount += 1 }
+  var localWrites = 0
+  func writeLocal(_ text: String, maximumBytes: Int) throws -> Int {
+    localWrites += 1
+    if let writeError { throw writeError }
+    local(text); return changeCount
+  }
 }
 @MainActor func configuration() -> NativeSessionConfiguration {
   var value = NativeSessionConfiguration(); value.securityTypes = [1]; return value
@@ -120,6 +126,12 @@ final class Peer {
   try await until("second local clipboard wire") { b.count("beta") == 1 }
   let betaChange = try await change()
   try check(a.count("beta") == 0 && betaChange > remoteCount, "new local copy routes to second only")
+  try await coordinator.copyLocal("diagnostics")
+  try await waitForText("diagnostics")
+  let marked = try await worker.perform { $0.availableType(from:[NativePasteboard.remoteType]) != nil }
+  try check(!marked, "app-originated copy carries no remote provenance")
+  coordinator.poll(); try await until("app copy routes like a local copy") { b.count("diagnostics") == 1 }
+  try check(a.count("diagnostics") == 0, "app copy is sent only to the focused session")
   try second.setClipboardPolicy(send: false, receive: true)
   try await local("blocked"); coordinator.poll()
   try await Task.sleep(for: .milliseconds(30)); try check(b.count("blocked") == 0, "send disabled independently")

@@ -167,7 +167,7 @@ struct ConnectionContent: View {
       case .authentication(let request):
         AuthenticationSheet(model: model, session: session, request: request).interactiveDismissDisabled()
       case .information:
-        ConnectionInformationSheet(endpoint: model.endpoint, session: session, dismiss: model.closeInformation)
+        ConnectionInformationSheet(endpoint: model.endpoint, session: session, copy: model.copyToPasteboard, dismiss: model.closeInformation)
       case .input(let draft):
         InputSettingsSheet(model: draft, dismiss: model.closeInput)
       case .scaling(let draft):

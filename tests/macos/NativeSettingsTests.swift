@@ -244,7 +244,7 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
     }
   }
   for dark in [false, true] {
-    try await capture(ConnectionInformationSheet(endpoint: "a-long-hostname.for-the-development-lab.example.internal::5902", session: session, dismiss: {}),
+    try await capture(ConnectionInformationSheet(endpoint: "a-long-hostname.for-the-development-lab.example.internal::5902", session: session, copy: { _ in }, dismiss: {}),
       name: "connection-information" + (dark ? "-dark" : ""), directory: directory, dark: dark, size: NSSize(width: 620,height: 710)) {}
   }
   guard let information = session.information else { throw Failure(message: "Missing overlay fixture information") }
@@ -435,7 +435,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   for dark in [false,true] {
     try await captureViewport(ConnectionContent(model:model,session:session,displays:displays,importAvailability:nil,openImport:{},openHistoryImport:{}),
       name:"connection-window-connected"+(dark ? "-dark" : ""),directory:directory,dark:dark)
-    try await captureViewport(ConnectionInformationSheet(endpoint:"fixture-%@-开发.invalid::5901",session:session,dismiss:{}),
+    try await captureViewport(ConnectionInformationSheet(endpoint:"fixture-%@-开发.invalid::5901",session:session,copy:{ _ in },dismiss:{}),
       name:"connection-details"+(dark ? "-dark" : ""),directory:directory,dark:dark,size:NSSize(width:560,height:650))
     // Statistics have a constrained width and an intrinsic height in fullscreen.
     try await captureViewport(ConnectionStatisticsOverlay(information:session.information!)

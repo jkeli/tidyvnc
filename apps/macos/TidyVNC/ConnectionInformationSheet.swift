@@ -6,6 +6,7 @@ import TidyVNCNative
 struct ConnectionInformationSheet: View {
   let endpoint: String
   @ObservedObject var session: NativeSession
+  let copy: (String) -> Void
   let dismiss: () -> Void
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
@@ -34,8 +35,7 @@ struct ConnectionInformationSheet: View {
       HStack {
         Button(String(localized:"information.copy.diagnostics", defaultValue:"Copy Diagnostics")) {
           guard let info = session.information else { return }
-          NSPasteboard.general.clearContents()
-          NSPasteboard.general.setString(info.redactedDiagnostics, forType: .string)
+          copy(info.redactedDiagnostics)
         }.disabled(session.information == nil).help(String(localized:"information.copies.connection.details.without.the.server.address.or.desktop.name", defaultValue:"Copies connection details without the server address or desktop name."))
           .accessibilityIdentifier("information.copy")
         Spacer(); Button(String(localized:"action.done", defaultValue:"Done"), action: dismiss).keyboardShortcut(.defaultAction).accessibilityIdentifier("information.done")

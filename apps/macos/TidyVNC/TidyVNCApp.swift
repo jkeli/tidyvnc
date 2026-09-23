@@ -47,6 +47,7 @@ struct TidyVNCApp: App {
 @MainActor final class AppCoordinator: NSObject, NSApplicationDelegate, ObservableObject {
   private var runtime: NativeRuntime?
   private let clipboard = NativeClipboardCoordinator()
+  private let bell: any NativeBellSounding = NativeSystemBell()
   let displays = NativeDisplayService()
   private let credentials = NativeCredentialStore()
   private let trustStore: NativeLegacyTrustStore?
@@ -120,6 +121,8 @@ struct TidyVNCApp: App {
       document:document ?? launch?.document,invocation:launch?.invocation,connectOnReady:launch?.connectsOnReady == true,launchCredentials:launch?.credentials,credentialStore: credentials, trustStore: trustStore, savedTrustStore: savedTrust,hostKeyStore: savedHostKeys) { [weak self] session, model in
       model.fullscreen.onActivate = { [weak self, weak model] in if let model { self?.active = model } }
       self?.clipboard.register(session) { [weak model] status in model?.clipboardMessage = status }
+      session.bellHandler = { [weak self] in self?.bell.ring() }
+      model.copyText = { [weak self] text in try await self?.clipboard.copyLocal(text) }
     }
   }
   func showListener() {
@@ -166,6 +169,8 @@ struct TidyVNCApp: App {
     let model = ConnectionModel(runtime:runtime,preferences:preferences,displays:displays,reverse:request) { [weak self] session, model in
       model.fullscreen.onActivate = { [weak self, weak model] in if let model { self?.active = model } }
       self?.clipboard.register(session) { [weak model] status in model?.clipboardMessage = status }
+      session.bellHandler = { [weak self] in self?.bell.ring() }
+      model.copyText = { [weak self] text in try await self?.clipboard.copyLocal(text) }
     }
     let window = NSWindow(contentRect:NSRect(x:0,y:0,width:960,height:700),
       styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
