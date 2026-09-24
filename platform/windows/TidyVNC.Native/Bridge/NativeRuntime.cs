@@ -30,6 +30,13 @@ public sealed class NativeRuntime
     public IUiDispatcher Dispatcher { get; }
     private readonly List<WeakReference<NativeSession>> sessions = [];
     private readonly List<WeakReference<NativeListener>> listeners = [];
+    // Sessions with work in flight and open listeners are rooted here (a static
+    // root, which also keeps their runtime alive). Their deliveries reach them
+    // only through weak references, so otherwise the collector could take an
+    // object, and the code awaiting it, in the middle of a connection: a cycle
+    // that Swift's reference counting keeps alive but .NET collects.
+    private static readonly HashSet<object> Active = [];
+    private static readonly Lock ActiveGate = new();
     private Task? shutdownTask;
 
     public unsafe NativeRuntime(IUiDispatcher dispatcher, uint sessionCapacity = 16)
@@ -46,6 +53,22 @@ public sealed class NativeRuntime
     }
 
     public bool IsShuttingDown => shutdownTask is not null;
+
+    /// <summary>Roots or releases a session or listener.</summary>
+    internal static void SetActive(object owner, bool value)
+    {
+        lock (ActiveGate)
+        {
+            if (value) Active.Add(owner);
+            else Active.Remove(owner);
+        }
+    }
+
+    /// <summary>Whether a session or listener is currently rooted (tests).</summary>
+    internal static bool IsActive(object owner)
+    {
+        lock (ActiveGate) return Active.Contains(owner);
+    }
 
     public NativeSession CreateSession(NativeSessionConfiguration? configuration = null)
     {

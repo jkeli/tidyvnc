@@ -102,6 +102,7 @@ public sealed partial class NativeListener : ObservableObject
             throw new NativeError(error);
         }
         subscription = NativeHandle.Adopt(subscribed);
+        NativeRuntime.SetActive(this, true); // Until closed.
         // Consume queued history first, so the first queued Starting event
         // cannot follow an already-Listening snapshot.
         Receive();
@@ -189,6 +190,7 @@ public sealed partial class NativeListener : ObservableObject
             catch (Exception e) { failure ??= e; }
         }
         if (delivery is not null) await delivery.DrainAsync().ConfigureAwait(true);
+        NativeRuntime.SetActive(this, false);
         if (failure is not null) throw failure;
     }
 

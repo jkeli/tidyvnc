@@ -50,7 +50,8 @@ public sealed class SessionTests
             AnswerPrompts(session);
             var connected = await session.ConnectAsync(peer.Endpoint);
             Assert.AreEqual(session.Generation, connected.Operation.Generation);
-            await Until(() => session.HasFrame);
+            // The first publication can be the black framebuffer before the Raw update.
+            await Until(() => session.Frame is { } shown && shown.BorrowPixels()[1] == 20);
             Assert.AreEqual(NativeSessionState.Connected, session.Snapshot.State);
             Assert.AreEqual(2u, session.Snapshot.Width);
             Assert.IsNotNull(session.Information);
@@ -207,6 +208,44 @@ public sealed class SessionTests
             Assert.IsTrue(listener.IsClosing);
             return true;
         });
+    }
+
+    /// <summary>
+    /// Nothing but the pending operation references the session, its runtime
+    /// and the awaiting code; forced collections must not take them (the
+    /// delivery holds the session weakly, as in Swift, but .NET collects cycles).
+    /// </summary>
+    [TestMethod]
+    public async Task PendingConnectKeepsItsSessionAliveThroughCollection()
+    {
+        using var ui = new SingleThreadDispatcher();
+        await using var peer = new LoopbackPeer(delayServerInit: true);
+        var connect = ui.InvokeAsync(async () =>
+        {
+            var runtime = new NativeRuntime(ui);
+            var session = runtime.CreateSession(new NativeSessionConfiguration { SecurityTypes = [1] });
+            var completion = await session.ConnectAsync(peer.Endpoint);
+            Assert.IsTrue(NativeRuntime.IsActive(session));
+            await Until(() => session.HasFrame);
+            await runtime.ShutdownAsync();
+            Assert.IsFalse(NativeRuntime.IsActive(session));
+            return completion.Operation.Generation;
+        });
+        for (var i = 0; i < 10; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            await Task.Delay(20);
+        }
+        peer.Release();
+        for (var i = 0; i < 10; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            await Task.Delay(5);
+        }
+        var generation = await connect.WaitAsync(TimeSpan.FromSeconds(15));
+        Assert.AreNotEqual(0UL, generation);
     }
 
     /// <summary>

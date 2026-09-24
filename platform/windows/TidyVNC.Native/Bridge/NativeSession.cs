@@ -271,6 +271,7 @@ public sealed partial class NativeSession : ObservableObject
         var completion = new TaskCompletionSource<NativeCompletion>(TaskCreationOptions.RunContinuationsAsynchronously);
         var request = new Pending(new NativeOperation(operation.operation, operation.generation), completion);
         pending[token] = request;
+        UpdateActivity();
         if (cancellation.CanBeCanceled)
         {
             var registration = cancellation.Register(() => Dispatcher.TryEnqueue(() => Cancel(token)));
@@ -600,6 +601,7 @@ public sealed partial class NativeSession : ObservableObject
             if (request.Operation.Id == value.operation && request.Operation.Generation == value.snapshot.generation) { token = key; break; }
         }
         if (token is null || !pending.Remove(token.Value, out var found)) return;
+        UpdateActivity();
         if (found.Cancelled) { found.Completion.TrySetCanceled(); return; }
         var current = NativeSnapshot.From(value.snapshot);
         if (value.result == Tidyvnc.TIDYVNC_OPERATION_SUCCEEDED)
@@ -694,6 +696,7 @@ public sealed partial class NativeSession : ObservableObject
                 Frame = null; Cursor = null; Prompt = null; Clipboard = null;
                 desktopFocusOwner = null; IsFocused = false;
             }
+            UpdateActivity();
         }
         catch (NativeError problem)
         {
@@ -724,8 +727,20 @@ public sealed partial class NativeSession : ObservableObject
                 Snapshot = NativeSnapshot.From(closing, NativeSessionState.Disconnecting);
         }
         var participants = closeParticipants.ToList();
+        NativeRuntime.SetActive(this, true); // Until the close drain finishes.
         closeTask = Close(participants);
         return closeTask;
+    }
+
+    /// <summary>
+    /// A session stays reachable while an operation is pending or the attempt
+    /// is live (see NativeRuntime.SetActive); idle ones may be collected.
+    /// </summary>
+    private void UpdateActivity()
+    {
+        if (closeTask is not null) return;
+        NativeRuntime.SetActive(this, pending.Count > 0 ||
+            Snapshot.State is not (NativeSessionState.Idle or NativeSessionState.Closed or NativeSessionState.Failed));
     }
 
     private async Task Close(List<Func<Task>> participants)
@@ -743,6 +758,7 @@ public sealed partial class NativeSession : ObservableObject
             try { await participant().ConfigureAwait(true); } catch (Exception e) { failure ??= e; }
         }
         PublishFinalSnapshot();
+        NativeRuntime.SetActive(this, false);
         if (failure is not null) throw failure;
     }
 
