@@ -100,7 +100,7 @@ proven through the real app before substantial screen work.
 - [x] W4.3 Trust: TidyVNC trust stores, legacy `x509_known_hosts` adapters for both `%APPDATA%` locations, CA/CRL path handling.
 - [x] W4.4 Documents: common file dialogs, bounded reads, atomic writes, launch routing; file dialog open during exit.
 - [x] W4.5 Registry import sources for defaults and history, read-only, feeding the core projection.
-- [ ] W4.6 Clipboard adapter and coordinator: listener window, contention retry, remote-origin format, focus routing, `CanUploadToCloudClipboard = 0` on every remote-origin write (D21).
+- [x] W4.6 Clipboard adapter and coordinator: listener window, contention retry, remote-origin format, focus routing, `CanUploadToCloudClipboard = 0` on every remote-origin write (D21).
   - [ ] Manual check with cloud clipboard on: remote text appears in local history and never on a second device
 - [ ] W4.7 Display service: `QueryDisplayConfig` topology, stable IDs, friendly names, change notifications.
 - [ ] W4.8 Keyboard capture service: `WH_KEYBOARD_LL` thread, pass-through rules, release triggers, typed failures.
@@ -627,3 +627,60 @@ Add dated entries, newest last, in the macOS format:
   (displays in power save, see W4.2).
 - Open (W5): the document review, export review and monitor mapping screens
   (W5.14) use these services; the gated dialog test runs with the UI suite.
+
+### W4.6 — clipboard — 2026-09-23
+
+- Behaviour: `platform/windows/TidyVNC.Native/Clipboard`.
+  - `NativeWindowsClipboard` owns the clipboard on one worker thread with a
+    message-only window.
+    - `AddClipboardFormatListener` / `WM_CLIPBOARDUPDATE` replace polling;
+      `GetClipboardSequenceNumber` gives the change numbers.
+    - `OpenClipboard` is retried briefly, then reported as `Unavailable`.
+    - Only `CF_UNICODETEXT`, bounded and without NUL.
+    - Remote writes add `TidyVNC.RemoteOrigin` (process, session,
+      generation) and `CanUploadToCloudClipboard` = 0 in the same
+      transaction. If either marker cannot be set, the clipboard is emptied
+      and the write reported, never left unmarked.
+    - Text carrying this process's marker reads as remote and is never
+      offered back.
+    - Deviation from SERVICES.md, which puts the listener window on the UI
+      thread: it lives on the clipboard thread, like the macOS serial
+      worker, so contention retries never block the UI thread.
+  - `NativeClipboardCoordinator` ports the macOS coordinator, driven by
+    change events:
+    - text goes only to the single focused, connected, non-view-only desktop
+      in the active app; ambiguous focus routes nothing;
+    - send and receive policy;
+    - a change made while unfocused is sent when focus returns;
+    - one operation owns all clipboard access; routing changes invalidate
+      pending work;
+    - typed notices per connection.
+  - Two races found by the tests and fixed:
+    - Frame and counter updates of `Snapshot` were treated as routing
+      changes. Only state transitions route now.
+    - A cancelled operation that had not started yet could run newly queued
+      remote text with its cancelled token.
+    - Also, remote text arriving just before a queued focus reconciliation
+      now settles routing first rather than being dropped.
+  - The app creates one clipboard and coordinator, registers each window's
+    session, and reports app activation from window activation.
+- Tests: `TidyVNC.Native.Tests` `ClipboardTests`.
+  - Four coordinator scenarios with real sessions against `LoopbackPeer`
+    and a scripted clipboard:
+    - focus routing: unfocused, refocus, ambiguous, inactive app;
+    - view-only and send policy, which never read the clipboard;
+    - remote text written with provenance, including during a 300-frame
+      flood, never echoed, and never written while unfocused;
+    - read failure notices, with a single read per change.
+  - The gated real-clipboard test ran on this machine while the desktop was
+    idle, restoring the previous text. It checks that remote writes carry
+    `CanUploadToCloudClipboard` = 0 and the origin (pid, session,
+    generation); that the process's own origin reads as remote; that local
+    writes carry neither marker; and the size, change and NUL errors.
+
+  Result: 6 consecutive clean runs. Mutation-checked, 8 mutations, all fail
+  the suite: cloud marker, own-origin check, view-only gate, send-policy
+  gate, ambiguous focus, snapshot-state filter, change dedupe, failure
+  notice.
+- Open: D21's confirmation that remote text never reaches a second device
+  needs a test account with cloud clipboard sync on two devices (owner).

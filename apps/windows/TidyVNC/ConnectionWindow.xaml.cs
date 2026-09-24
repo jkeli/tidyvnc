@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using TidyVNC.Native;
+using TidyVNC.Native.Clipboard;
 
 namespace TidyVNC;
 
@@ -34,7 +35,9 @@ public sealed partial class ConnectionWindow : Window
         AppWindow.Closing += OnClosing;
         Activated += (_, e) =>
         {
-            if (e.WindowActivationState == WindowActivationState.Deactivated) desktop.ReleaseKeys();
+            var active = e.WindowActivationState != WindowActivationState.Deactivated;
+            if (!active) desktop.ReleaseKeys();
+            App.Current.WindowActivationChanged(this, active);
         };
         UpdateState();
         // Dialogs need the loaded content's XamlRoot, so connect once it exists.
@@ -44,6 +47,8 @@ public sealed partial class ConnectionWindow : Window
 
     internal DesktopView Desktop => desktop;
     internal NativeSession? Session => session;
+    /// <summary>The latest clipboard problem for this connection; the W5 status area shows it.</summary>
+    internal NativeClipboardNotice? ClipboardNotice { get; private set; }
 
     private void AddressKeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -69,6 +74,7 @@ public sealed partial class ConnectionWindow : Window
         {
             session = App.Current.Runtime.CreateSession();
             session.PropertyChanged += SessionChanged;
+            App.Current.Clipboard.Register(session, notice => ClipboardNotice = notice);
             desktop.Session = session;
         }
         connecting?.Dispose();
@@ -188,6 +194,7 @@ public sealed partial class ConnectionWindow : Window
         connecting?.Cancel();
         if (session is not null)
         {
+            App.Current.Clipboard.Unregister(session);
             try { await session.CloseAsync(); }
             catch (Exception error) { System.Diagnostics.Trace.TraceError($"Session close failed: {error}"); }
         }

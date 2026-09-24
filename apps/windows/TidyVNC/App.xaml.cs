@@ -2,6 +2,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using TidyVNC.Native;
+using TidyVNC.Native.Clipboard;
 using TidyVNC.Native.Credentials;
 
 namespace TidyVNC;
@@ -45,6 +46,10 @@ public partial class App : Application
     /// connection window claims them (CREDENTIAL-INPUTS.md, SERVICES.md 3).
     /// </summary>
     internal NativeLaunchCredentialInputs? LaunchCredentials { get; private set; }
+    /// <summary>The app-wide clipboard router over the Windows clipboard (SERVICES.md section 6).</summary>
+    internal NativeClipboardCoordinator Clipboard { get; private set; } = null!;
+    private NativeWindowsClipboard? systemClipboard;
+    private readonly HashSet<ConnectionWindow> activeWindows = [];
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
@@ -52,6 +57,8 @@ public partial class App : Application
         Runtime = new NativeRuntime(Dispatcher);
         Keyboard = new KeyboardRouter();
         LaunchCredentials = CaptureLaunchCredentials();
+        systemClipboard = new NativeWindowsClipboard();
+        Clipboard = new NativeClipboardCoordinator(Dispatcher, systemClipboard);
         // vncviewer.exe (D9) signals this to close every window, e.g. on Ctrl+C.
         closeRequest = new EventWaitHandle(false, EventResetMode.ManualReset, $@"Local\TidyVNC-close-{Environment.ProcessId}");
         closeWait = ThreadPool.RegisterWaitForSingleObject(closeRequest, (_, _) => Dispatcher.TryEnqueue(CloseAll), null, -1, true);
@@ -101,6 +108,14 @@ public partial class App : Application
         }
     }
 
+    /// <summary>The app is active while any of its windows is; clipboard routing follows it.</summary>
+    internal void WindowActivationChanged(ConnectionWindow window, bool active)
+    {
+        var wasActive = activeWindows.Count > 0;
+        if (active) activeWindows.Add(window); else activeWindows.Remove(window);
+        if (wasActive != activeWindows.Count > 0) Clipboard.SetApplicationActive(activeWindows.Count > 0);
+    }
+
     private void CloseAll()
     {
         foreach (var window in windows.ToList()) _ = window.CloseGracefully();
@@ -118,8 +133,11 @@ public partial class App : Application
     private async void WindowClosed(ConnectionWindow window)
     {
         windows.Remove(window);
+        WindowActivationChanged(window, false);
         if (windows.Count > 0 || exiting) return;
         exiting = true;
+        await Clipboard.CloseAsync();
+        systemClipboard?.Dispose();
         try { await Runtime.ShutdownAsync(); }
         catch (Exception error) { System.Diagnostics.Trace.TraceError($"Runtime shutdown failed: {error}"); }
         Keyboard.Dispose();

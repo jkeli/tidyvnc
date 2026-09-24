@@ -56,6 +56,15 @@ public sealed class LoopbackPeer : IAsyncDisposable
         lock (received) return received.ToArray().AsSpan().IndexOf(bytes) >= 0;
     }
 
+    public int Occurrences(ReadOnlySpan<byte> bytes)
+    {
+        byte[] all;
+        lock (received) all = received.ToArray();
+        var count = 0;
+        for (var span = all.AsSpan(); span.IndexOf(bytes) is var at && at >= 0; span = span[(at + bytes.Length)..]) count++;
+        return count;
+    }
+
     public async Task SendAsync(byte[] bytes)
     {
         if (stream is null) throw new InvalidOperationException("No client");
