@@ -81,14 +81,14 @@ Exit: CORE.md §8, W2 paragraph.
 
 ## W3 — .NET bridge and vertical slice
 
-- [ ] W3.1 Solution layout (`platform/windows/TidyVNC.Native`, `platform/windows/Native`, `apps/windows/TidyVNC`, `apps/windows/TidyVNC.Cli`, `tests/windows`); central package versions; nullable and warnings-as-errors; CsWin32 configuration; licence list started.
+- [x] W3.1 Solution layout (`platform/windows/TidyVNC.Native`, `platform/windows/Native`, `apps/windows/TidyVNC`, `apps/windows/TidyVNC.Cli`, `tests/windows`); central package versions; nullable and warnings-as-errors; CsWin32 configuration; licence list started.
 - [ ] W3.2 Interop: `LibraryImport` declarations, struct size/offset tests against the C smoke's values, `SafeHandle`s with asynchronous close and drain, the callback dispatcher to `DispatcherQueue`.
   - [x] D7 responsiveness: worst UI-thread tick gap during a pending connect, a raw decode flood and shutdown under load
-- [ ] W3.3 `NativeRuntime`, `NativeSession`, `NativeListener` with prompts, frames, input, clipboard and information; MSTest model tests against real loopback peers.
-- [ ] W3.4 Helper DLL skeleton with its C API: presenter, keyboard translator extracted from `KeyboardWin32.cxx` with the equivalence test harness, display queries.
+- [x] W3.3 `NativeRuntime`, `NativeSession`, `NativeListener` with prompts, frames, input, clipboard and information; MSTest model tests against real loopback peers.
+- [x] W3.4 Helper DLL skeleton with its C API: presenter, keyboard translator extracted from `KeyboardWin32.cxx` with the equivalence test harness, display queries.
 - [ ] W3.5 WinUI shell: `App`, a minimal `ConnectionWindow` (address, Connect, authentication dialog, desktop view, Disconnect); FLTK not linked.
 - [ ] W3.6 Vertical slice against a loopback peer: connect, authenticate, render, type, click, disconnect; close and exit during authentication; two windows at once.
-- [ ] W3.7 `apps/windows/build.py` first version: core and app, Debug and Release, x64.
+- [x] W3.7 `apps/windows/build.py` first version: core and app, Debug and Release, x64.
 
 Exit: the macOS N2 exit, on Windows: lifecycle, cancellation and frame ownership
 proven through the real app before substantial screen work.
@@ -303,3 +303,49 @@ Add dated entries, newest last, in the macOS format:
   load).
 - Remaining: the WinUI DispatcherQueue adapter (W3.5), input commands and
   Native AOT/trim measurements (W0.2) with the app.
+
+### W3.1, W3.3, W3.4, W3.7 and parts of W3.2/W3.5/W3.6 — helper DLL, renderer, app shell — 2026-09-23
+
+- IDs/commits: `135fdaf4`, `d81528e7`, `3ad8db6b`, `ccbd6077`.
+- Behaviour: `platform/windows/Native` builds `tidyvnc_windows.dll`
+  (`tidyvnc_windows.h`): Direct3D 11 composition swap chain presenter for
+  `SwapChainPanel` (persistent BGRA frame texture, dirty-rect presents,
+  readback), the keyboard translator extracted from `KeyboardWin32.cxx` with
+  an explicit AltGr timer, the UI-thread `WH_GETMESSAGE` hook, the
+  `win32.c` low-level capture, HCURSOR creation and `QueryDisplayConfig`
+  topology with SHA-256 display IDs. `TidyVNC.Native` gains the helper interop,
+  `NativeGeometry`, `DesktopRenderer` (per-view render thread, core tiles,
+  damage-limited uploads, merged skipped-frame damage, device-loss recovery),
+  `NativeInvocation`/`NativeInvocationTerminal` and CsWin32. The WinUI app
+  (`apps/windows/TidyVNC`) has `App`, `ConnectionWindow`, `DesktopView`,
+  `KeyboardRouter` and the `DispatcherQueue` adapter; `vncviewer.exe`
+  (`apps/windows/TidyVNC.Cli`) implements D9's terminal and launch paths;
+  `apps/windows/TidyVNC.slnx`; `apps/windows/ThirdParty/README.md` starts the
+  licence list; `build.py --stages core,app` publishes both executables.
+- Fixes found on the way: sessions and listeners were reachable from their
+  core deliveries only weakly, so a session awaited only by its own pending
+  connect could be garbage-collected mid-connect (now rooted while active;
+  `PendingConnectKeepsItsSessionAliveThroughCollection`); the Windows default
+  log path escaped the ABI guard and swallowed allocation failures.
+- Tests (this machine): `build.py --stages core,app --test` Debug and Release:
+  viewer 7/7, unit 722/722 (includes `keyboardtranslator` 10 — the retained
+  translator and the extracted one over scripted and 16,000 random messages on
+  US/German/Japanese/Korean layouts, mutation-checked — and `windowshelper` 7),
+  `TidyVNC.Native.Tests` 20/20 (presenter readback, renderer letterbox, scale
+  change and update flood, key/pointer bytes at a peer, GC regression).
+  Renderer on the Debug core: 30 full 1080p updates in 196 ms at 1x (worst
+  frame 17 ms); 91 ms worst frame at 1.5x bilinear. `vncviewer.exe`: version
+  exit 0, help exit 1, syntax errors `vncviewer: Argument N: ...` exit 1.
+- W0.2 (partial): `dotnet publish` Release x64 self-contained — untrimmed
+  231 MB; trimmed 137 MB with 2 IL2104 warnings (Microsoft.Windows.SDK.NET,
+  WinRT.Runtime); Native AOT 147 MB, 6.0 MB native `TidyVNC.exe`, 0 warnings
+  (the ILCompiler needs the VS Installer directory on PATH for `vswhere`).
+  40 MB of the payload is `onnxruntime.dll`/`DirectML.dll` from the Windows
+  App SDK metapackage's AI components, to be excluded in W7.1.
+- Not yet run: the WinUI app on screen. The FlaUI vertical-slice suite
+  (`tests/windows/TidyVNC.UITests`: connect/authenticate/render/type/click/
+  disconnect, close during authentication, two windows) takes the foreground
+  and injects input, so it runs only with `TIDYVNC_UI_TESTS=1` on an idle
+  desktop; the owner was using this machine, so W3.2 (DispatcherQueue path),
+  W3.5, W3.6 and W0.2 startup timing stay open until it runs.
+
