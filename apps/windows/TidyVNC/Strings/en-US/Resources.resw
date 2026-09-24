@@ -7,6 +7,10 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="about_action" xml:space="preserve"><value>About TidyVNC…</value></data>
+  <data name="about_licences" xml:space="preserve"><value>Licence, acknowledgements and third-party notices</value></data>
+  <data name="about_summary" xml:space="preserve"><value>TidyVNC is a VNC viewer derived from TigerVNC, distributed under the GNU General Public License, version 2 or later.</value></data>
+  <data name="about_title" xml:space="preserve"><value>About TidyVNC</value></data>
+  <data name="about_version" xml:space="preserve"><value>Version {0} ({1})</value></data>
   <data name="action_apply" xml:space="preserve"><value>Apply</value></data>
   <data name="action_cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="action_discard_edits_reload" xml:space="preserve"><value>Discard edits and reload</value></data>
@@ -44,6 +48,7 @@
   <data name="app_menu_connection" xml:space="preserve"><value>Connection</value></data>
   <data name="app_menu_file" xml:space="preserve"><value>File</value></data>
   <data name="app_menu_help" xml:space="preserve"><value>Help</value></data>
+  <data name="app_menu_help_contents" xml:space="preserve"><value>TidyVNC help</value></data>
   <data name="app_menu_settings" xml:space="preserve"><value>Settings</value></data>
   <data name="app_no_active_connection" xml:space="preserve"><value>No active connection</value></data>
   <data name="app_ok" xml:space="preserve"><value>OK</value></data>
@@ -389,6 +394,7 @@
   <data name="help_topic_guide" xml:space="preserve"><value>Getting started</value></data>
   <data name="help_topic_label" xml:space="preserve"><value>Help topic</value></data>
   <data name="help_topic_licence" xml:space="preserve"><value>Licence</value></data>
+  <data name="help_topic_thirdParty" xml:space="preserve"><value>Third-party notices</value></data>
   <data name="history_access_to_recent_connections_was_denied_check_the_native_storage_folder_s" xml:space="preserve"><value>Access to recent connections was denied. Check the native storage folder’s access and try again.</value></data>
   <data name="history_another_operation_is_updating_saved_connections_try_again" xml:space="preserve"><value>Another operation is updating saved connections. Try again.</value></data>
   <data name="history_choose_an_address_then_select_connect" xml:space="preserve"><value>Choose an address, then select Connect.</value></data>

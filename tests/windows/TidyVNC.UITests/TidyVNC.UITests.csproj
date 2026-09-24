@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="MSTest" />
     <PackageReference Include="FlaUI.UIA3" />
+    <PackageReference Include="Axe.Windows" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\RfbTestServer.cs" Link="RfbTestServer.cs" />

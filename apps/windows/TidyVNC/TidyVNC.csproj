@@ -34,5 +34,9 @@
     <!-- Window and title bar icons, loaded from the app folder. -->
     <Content Include="$(RepoRoot)media\icons\tidyvnc_32.png" Link="Assets\tidyvnc_32.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(RepoRoot)media\icons\tidyvnc.ico" Link="Assets\tidyvnc.ico" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Help (H02): the licence, acknowledgements and third-party notices ship with the app. -->
+    <Content Include="$(RepoRoot)LICENCE.TXT" Link="Documents\LICENCE.TXT" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(RepoRoot)README.rst" Link="Documents\README.rst" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(RepoRoot)apps\windows\ThirdParty\README.md" Link="Documents\ThirdParty.md" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

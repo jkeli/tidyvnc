@@ -165,7 +165,7 @@ public sealed partial class ConnectionWindow : Window
     private void SessionChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(NativeSession.Snapshot) or nameof(NativeSession.HasFrame) or nameof(NativeSession.ClipboardSendEnabled)
-            or nameof(NativeSession.ClipboardReceiveEnabled)) Update();
+            or nameof(NativeSession.ClipboardReceiveEnabled) or nameof(NativeSession.Information)) Update();
         if (e.PropertyName is nameof(NativeSession.Prompt) or nameof(NativeSession.Snapshot)) dialogs.Update();
         if (e.PropertyName == nameof(NativeSession.Snapshot) && session?.Snapshot.State == NativeSessionState.Connected && session.HasFrame is false)
             desktop.Focus(FocusState.Programmatic);
@@ -256,6 +256,8 @@ public sealed partial class ConnectionWindow : Window
         ClipboardStatus.Text = ClipboardNotice is { } clipboard ? Strings.Resolve(NativeTexts.Clipboard(clipboard)) : "";
         ClipboardStatus.Visibility = ClipboardNotice is null ? Visibility.Collapsed : Visibility.Visible;
         fullscreen.Refresh();
+        var statistics = controller.ShowsStatistics && session?.Snapshot.State == NativeSessionState.Connected ? session.Information : null;
+        foreach (var view in fullscreen.Views.Append(desktop).Distinct()) view.ShowStatistics(statistics);
         FullscreenStatus.Text = fullscreen.State.Message is { } fullscreenNotice ? Strings.Resolve(fullscreenNotice) : "";
         FullscreenStatus.Visibility = FullscreenStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         ResizeStatus.Text = controller.RemoteResize.Message is { } resizeNotice ? Strings.Resolve(resizeNotice) : "";
@@ -343,6 +345,8 @@ public sealed partial class ConnectionWindow : Window
             NativeRemoteResizePolicyDraft policy => () => RemoteResizePolicyDialog.Create(policy),
             NativeRemoteResizeDraft resize => () => RemoteResizeDialog.Create(resize),
             NativeFullscreenDraft displays => () => FullscreenDialog.Create(displays),
+            AboutRequest => () => AboutDialog.Create(() => App.Current.OpenHelp("licence")),
+            ConnectionInformationRequest when session is { } current => () => ConnectionInformationDialog.Create(current, Controller.Endpoint),
             _ => null,
         };
         return create is null ? null : new DialogRequest(key, create, _ => Controller.EndEditor(editor), () => Controller.EndEditor(editor));
@@ -372,6 +376,15 @@ public sealed partial class ConnectionWindow : Window
     }
 
     internal bool IsFullscreen => fullscreen.IsFullscreen;
+
+    internal bool CanOpenInformation => CanOpenConnectedEditor;
+
+    /// <summary>Connection information (Q01): read-only, in the editor slot so it follows the connection.</summary>
+    internal void OpenInformation()
+    {
+        if (!CanOpenInformation) return;
+        if (Controller.BeginEditor(new ConnectionInformationRequest(Guid.NewGuid()), NativeEditorScope.Connected, () => Task.CompletedTask)) dialogs.Update();
+    }
 
     internal bool CanToggleFullscreen => fullscreen.IsFullscreen || (session?.Snapshot.State == NativeSessionState.Connected && Controller.EditorsIdle);
 
@@ -478,6 +491,12 @@ public sealed partial class ConnectionWindow : Window
     private void NewConnectionClick(object sender, RoutedEventArgs e) => App.Current.OpenWindow();
     private void OpenFileClick(object sender, RoutedEventArgs e) => App.Current.OpenConnectionFile(this);
     private void SettingsClick(object sender, RoutedEventArgs e) => App.Current.OpenSettings();
+    private void HelpClick(object sender, RoutedEventArgs e) => App.Current.OpenHelp();
+
+    private void AboutClick(object sender, RoutedEventArgs e)
+    {
+        if (Controller.EditorsIdle && Controller.BeginEditor(new AboutRequest(Guid.NewGuid()), NativeEditorScope.Any, () => Task.CompletedTask)) dialogs.Update();
+    }
     private void ListenClick(object sender, RoutedEventArgs e) => App.Current.OpenListener();
     private void ProfilesClick(object sender, RoutedEventArgs e) => App.Current.OpenProfiles();
     private void CloseWindowClick(object sender, RoutedEventArgs e) => _ = CloseGracefully();

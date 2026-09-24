@@ -1143,3 +1143,29 @@ Add dated entries, newest last, in the macOS format:
   - Connection information (W5.15) is not yet in the Connection menu.
   - The connection bar and multi-surface Minimize need physical checks (display awake; a second monitor for
     all/selected displays).
+
+### W5.15, W5.17, W5.19 (progress) — information, statistics, help, about, Axe.Windows — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Behaviour delivered:
+  - W5.15:
+    - Connection information (Q01) is a read-only dialog in the editor slot, with live values;
+    - Copy diagnostics (Q02) copies `RedactedDiagnostics` through `NativeClipboardCoordinator.CopyLocalAsync`,
+      so the entry is local and not marked as remote content;
+    - the statistics overlay (Q03/Q04) is part of `DesktopView`, so it shows on the window and on every
+      full-screen surface;
+    - the menu entry is Connection > Connection information.
+  - W5.17 Help and About:
+    - Help > TidyVNC help (F1) opens the guide and the bundled README (acknowledgements), LICENCE.TXT and the
+      Windows third-party notices (`apps/windows/ThirdParty/README.md`), copied as `Documents\*` beside the
+      app;
+    - project and issue links;
+    - Help > About TidyVNC shows the version and the processor architecture, with a link to the licence topic.
+  - W5.19: `AccessibilityTests` runs Axe.Windows (the package pinned in the plan, build-time only) over every
+    window of the running app: the connection window, Settings, Saved profiles, the listener and Help.
+- Tests (gated UI tests, idle desktop):
+  - ConnectionInformationAndStatistics, HelpAndAbout and EveryWindowPassesAxeWindows pass. The Axe scan
+    reports no errors.
+  - Strings audit clean.
+- Remaining: Narrator, keyboard-only and contrast-theme passes (W5.19); the desktop view's automation peer
+  with the Scroll pattern; the 225% text-size check.

@@ -373,6 +373,23 @@ public partial class App : Application
 
     private SettingsWindow? settings;
     private ProfilesWindow? profiles;
+    private HelpWindow? help;
+
+    /// <summary>TidyVNC help (H03): one window, brought forward at a topic when asked again.</summary>
+    internal void OpenHelp(string? topic = null)
+    {
+        if (exiting) return;
+        if (help is { } open)
+        {
+            if (topic is not null) open.ShowTopic(topic);
+            open.Activate();
+            return;
+        }
+        var window = new HelpWindow(topic);
+        help = window;
+        window.Closed += (_, _) => { if (ReferenceEquals(help, window)) help = null; };
+        window.Activate();
+    }
 
     /// <summary>Saved profiles: one window, brought forward when asked again.</summary>
     internal void OpenProfiles()
@@ -410,6 +427,7 @@ public partial class App : Application
         exiting = true;
         settings?.Close();
         profiles?.Close();
+        help?.Close();
         Documents?.Stop();
         await Clipboard.CloseAsync();
         await History.CloseAsync();

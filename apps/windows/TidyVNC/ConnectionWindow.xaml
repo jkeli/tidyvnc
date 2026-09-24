@@ -63,8 +63,16 @@
                     </MenuBarItem>
                     <MenuBarItem x:Name="ConnectionMenuItem" Title="{local:Str Key=app.menu.connection}" AccessKey="C" AutomationProperties.AutomationId="menu.connection" />
                     <MenuBarItem x:Name="HelpMenu" Title="{local:Str Key=app.menu.help}" AccessKey="H" AutomationProperties.AutomationId="menu.help">
+                        <MenuFlyoutItem Text="{local:Str Key=app.menu.help.contents}" Click="HelpClick" AutomationProperties.AutomationId="menu.helpContents">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Key="F1" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator />
                         <MenuFlyoutItem Text="{local:Str Key=help.project}" Click="ProjectLinkClick" AutomationProperties.AutomationId="menu.project" />
                         <MenuFlyoutItem Text="{local:Str Key=help.issue}" Click="IssueLinkClick" AutomationProperties.AutomationId="menu.issue" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem Text="{local:Str Key=about.action}" Click="AboutClick" AutomationProperties.AutomationId="menu.about" />
                     </MenuBarItem>
                 </MenuBar>
             </TitleBar.Content>

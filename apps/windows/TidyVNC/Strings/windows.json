@@ -57,7 +57,13 @@
     "profiles.ssh.windows.client.missing": "Install the OpenSSH Client in Settings > System > Optional features to use an SSH gateway.",
     "document.files.certificates": "Certificate files",
     "app.menu.settings": "Settings",
-    "desktop.bar.pin": "Keep the connection bar open"
+    "desktop.bar.pin": "Keep the connection bar open",
+    "help.topic.thirdParty": "Third-party notices",
+    "about.title": "About TidyVNC",
+    "about.version": "Version {0} ({1})",
+    "about.summary": "TidyVNC is a VNC viewer derived from TigerVNC, distributed under the GNU General Public License, version 2 or later.",
+    "about.licences": "Licence, acknowledgements and third-party notices",
+    "app.menu.help.contents": "TidyVNC help"
   },
   "reviewed": [
     "help.guide.input.title",

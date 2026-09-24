@@ -123,9 +123,11 @@ public sealed class VerticalSliceTests
             var bar = ById(window, menu);
             try
             {
-                // Expanding an open menu can close it; only a collapsed one is opened.
-                if (bar.Patterns.ExpandCollapse.Pattern.ExpandCollapseState.Value != FlaUI.Core.Definitions.ExpandCollapseState.Expanded)
-                    bar.Patterns.ExpandCollapse.Pattern.Expand();
+                // Expanding an open menu can close it: open a collapsed one; a menu that reports
+                // itself open without the item (it closed after the last command) is collapsed first.
+                var pattern = bar.Patterns.ExpandCollapse.Pattern;
+                if (pattern.ExpandCollapseState.Value == FlaUI.Core.Definitions.ExpandCollapseState.Expanded) pattern.Collapse();
+                else pattern.Expand();
             }
             catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException
                                               or System.ComponentModel.Win32Exception) { return null; }
@@ -506,7 +508,7 @@ public sealed class VerticalSliceTests
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.KEY_M);
             var hold = WaitFor(() => automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId("desktop.holdControl")), "the context menu");
             Assert.IsFalse(server.Keys.Any(k => k.KeySym is 0x6d or 0x4d), "M stays local");
-            hold.AsMenuItem().Invoke();
+            hold.Patterns.Toggle.Pattern.Toggle(); // A toggle menu item.
             Until(() => server.Keys.Contains(new RfbTestServer.KeyRecord(true, 0xffe3)), "Ctrl held on the server");
 
             MenuItem(window, automation, "menu.connection", "desktop.controlAltDelete").Invoke();
@@ -565,6 +567,79 @@ public sealed class VerticalSliceTests
             ById(listener, "listener.stop").AsButton().Invoke();
             Until(() => ById(listener, "listener.status").Name == "Listener stopped", "stopped");
             Assert.IsTrue(Connected(), "the connection stays");
+            foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.15 / Q01, Q03: Connection information shows the server and live
+    /// values; Show connection statistics puts the statistics over the desktop
+    /// and takes them away again.
+    /// </summary>
+    [TestMethod]
+    public async Task ConnectionInformationAndStatistics()
+    {
+        await using var server = new RfbTestServer();
+        using var app = Launch(server.Endpoint, commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            Until(() => server.AuthenticatedClients == 1, "the connection");
+            MenuItem(window, automation, "menu.connection", "desktop.information").Invoke();
+            var dialog = ById(window, "information.dialog");
+            Until(() => dialog.FindFirstDescendant(cf => cf.ByName(server.Endpoint)) is not null, "the server row");
+            Until(() => dialog.FindFirstDescendant(cf => cf.ByName("RFB 3.8")) is not null, "the protocol row");
+            ById(window, "CloseButton").AsButton().Invoke();
+            Until(() => window.FindFirstDescendant(cf => cf.ByAutomationId("information.dialog")) is null, "the dialog closed");
+
+            MenuItem(window, automation, "menu.connection", "desktop.statistics").Patterns.Toggle.Pattern.Toggle();
+            Until(() => window.FindFirstDescendant(cf => cf.ByAutomationId("connection.statistics")) is { IsOffscreen: false }, "statistics shown");
+            MenuItem(window, automation, "menu.connection", "desktop.statistics").Patterns.Toggle.Pattern.Toggle();
+            Until(() => window.FindFirstDescendant(cf => cf.ByAutomationId("connection.statistics")) is null or { IsOffscreen: true }, "statistics hidden");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.17 / H01-H03: Help shows the guide and the bundled licence; About
+    /// shows the version and architecture and links to the licence.
+    /// </summary>
+    [TestMethod]
+    public void HelpAndAbout()
+    {
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            MenuItem(window, automation, "menu.help", "menu.helpContents").Invoke();
+            var help = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "TidyVNC help"), "the help window");
+            ById(help, "help.topic.licence").Patterns.SelectionItem.Pattern.Select();
+            Until(() => ById(help, "help.document").Name.Contains("GNU GENERAL PUBLIC LICENSE", StringComparison.Ordinal), "the licence text");
+            help.Close();
+
+            MenuItem(window, automation, "menu.help", "menu.about").Invoke();
+            var version = ById(window, "about.version");
+            var architecture = System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64 ? "ARM64" : "x64";
+            StringAssert.Contains(version.Name, architecture);
+            ById(window, "about.licences").Patterns.Invoke.Pattern.Invoke();
+            var licence = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "TidyVNC help"), "help at the licence");
+            Until(() => ById(licence, "help.document").Name.Contains("GNU GENERAL PUBLIC LICENSE", StringComparison.Ordinal), "the licence from About");
             foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
             Exits(app);
         }

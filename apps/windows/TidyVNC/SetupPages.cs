@@ -288,6 +288,7 @@ internal static class ConnectionMenu
             window.Commands.ControlSelected, window.Commands.AltSelected, window.Commands.CanSendKeys, window.KeyboardCaptured,
             window.CanCaptureKeyboard, !controller.Closing && connected, window.CanOpenFullscreenSettings, window.CanOpenConnectedEditor,
             window.CanOpenAnyEditor, window.CanOpenDisconnectedEditor, controller.ShowsStatistics, controller.CanToggleStatistics,
+            window.CanOpenInformation,
         ];
         return string.Concat(flags.Select(f => f ? '1' : '0'));
     }
@@ -339,6 +340,7 @@ internal static class ConnectionMenu
         settings.Items.Add(Item("desktop.security", "desktop.security", window.CanOpenDisconnectedEditor, window.OpenSecurity));
         settings.Items.Add(Item("desktop.encoding", "desktop.encoding", window.CanOpenConnectedEditor, window.OpenEncoding));
         items.Add(settings);
+        items.Add(Item("desktop.connection.information", "desktop.information", window.CanOpenInformation, window.OpenInformation));
         items.Add(Toggle("desktop.show.connection.statistics", "desktop.statistics", controller.ShowsStatistics, controller.CanToggleStatistics,
             controller.ToggleStatistics));
     }

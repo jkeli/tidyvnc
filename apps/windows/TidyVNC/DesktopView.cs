@@ -23,6 +23,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     // SwapChainPanel takes no Background; the host grid is black and hit-testable.
     private readonly SwapChainPanel panel = new();
     private readonly Grid host = new() { Background = new SolidColorBrush(Colors.Black) };
+    private readonly StatisticsOverlay statistics = new();
     private readonly DesktopRenderer renderer;
     private readonly NativeKeyboard keyboard = new();
     private readonly NativeShortcutRouter shortcuts = new();
@@ -48,6 +49,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(this, "desktop.view");
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(this, "Remote desktop");
         host.Children.Add(panel);
+        host.Children.Add(statistics);
         Content = host;
         renderer = new DesktopRenderer(App.Current.Dispatcher, AttachPresenter);
         renderer.Failed += error => RenderFailed?.Invoke(error);
@@ -199,6 +201,9 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
             ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels, pan.X, pan.Y, canvas)
             : null;
     }
+
+    /// <summary>Connection statistics over this view (Q03), or none.</summary>
+    public void ShowStatistics(NativeConnectionInformation? information) => statistics.Show(information);
 
     // ---- Commands (Connection menu) ------------------------------------------------------
 
