@@ -71,6 +71,51 @@ public sealed class ConformanceTests
         Assert.IsGreaterThanOrEqualTo(15, errors);
     }
 
+    [TestMethod]
+    public void ExportLossCorpus()
+    {
+        using var document = JsonDocument.Parse(File.ReadAllBytes(Corpus("export-loss.json")));
+        var names = Enum.GetValues<NativeExportLoss>().Where(l => l != NativeExportLoss.None)
+            .ToDictionary(l => JsonNamingPolicy.CamelCase.ConvertName(l.ToString()));
+        var parameters = NativeExportLosses.Parameters();
+        foreach (var item in document.RootElement.GetProperty("catalog").EnumerateArray())
+            Assert.AreEqual(item.GetProperty("parameters").GetString(), string.Join(',', parameters[names[item.GetProperty("name").GetString()!]]));
+        foreach (var entry in document.RootElement.GetProperty("cases").EnumerateArray())
+        {
+            bool Flag(string name) => entry.TryGetProperty(name, out var value) && value.GetBoolean();
+            var priority = entry.TryGetProperty("tlsPriority", out var p) ? p.GetString()! : "";
+            if (entry.TryGetProperty("error", out _))
+            {
+                Assert.ThrowsExactly<NativeExportRefused>(() => NativeExportLosses.For(Flag("selectedDisplays"), Flag("ignoredInput"), Flag("sshGateway"), priority));
+                continue;
+            }
+            var expected = entry.GetProperty("expect").EnumerateArray().Aggregate(NativeExportLoss.None, (all, name) => all | names[name.GetString()!]);
+            Assert.AreEqual(expected, NativeExportLosses.For(Flag("selectedDisplays"), Flag("ignoredInput"), Flag("sshGateway"), priority),
+                entry.GetProperty("name").GetString());
+        }
+    }
+
+    [TestMethod]
+    public void LegacyMonitorNumberingCorpus()
+    {
+        using var document = JsonDocument.Parse(File.ReadAllBytes(Corpus("legacy-monitor-numbering.json")));
+        foreach (var entry in document.RootElement.GetProperty("cases").EnumerateArray())
+        {
+            var name = entry.GetProperty("name").GetString()!;
+            var monitors = entry.GetProperty("monitors").EnumerateArray()
+                .Select(m => new NativeMonitorOrigin(m.GetProperty("id").GetUInt32(), m.GetProperty("x").GetInt32(), m.GetProperty("y").GetInt32()))
+                .ToList();
+            if (entry.TryGetProperty("error", out var error))
+            {
+                var failure = Assert.ThrowsExactly<NativeMonitorNumberingFailure>(() => NativeMonitorNumbering.Order(monitors), name);
+                Assert.AreEqual(error.GetString(), JsonNamingPolicy.CamelCase.ConvertName(failure.Reason.ToString()), name);
+                continue;
+            }
+            CollectionAssert.AreEqual(entry.GetProperty("expect").EnumerateArray().Select(e => e.GetUInt32()).ToArray(),
+                NativeMonitorNumbering.Order(monitors), name);
+        }
+    }
+
     /// <summary>
     /// A certificate made by .NET: the core's SPKI equals .NET's export, and
     /// legacy g0 and SHA-256 c0 records match (TODO W2.5, W4.3).

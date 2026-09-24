@@ -30,6 +30,8 @@ public static class Tidyvnc
     public const ulong TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY = 140737488355328UL;
     public const ulong TIDYVNC_FEATURE_IDENTITY_DIGEST = 281474976710656UL;
     public const ulong TIDYVNC_FEATURE_KNOWN_HOSTS = 562949953421312UL;
+    public const ulong TIDYVNC_FEATURE_MONITOR_NUMBERING = 1125899906842624UL;
+    public const ulong TIDYVNC_FEATURE_EXPORT_LOSS = 2251799813685248UL;
     public const uint TIDYVNC_OK = 0U;
     public const uint TIDYVNC_NO_CHANGE = 1U;
     public const uint TIDYVNC_PENDING = 2U;
@@ -65,6 +67,8 @@ public static class Tidyvnc
     public const uint TIDYVNC_DOMAIN_LOGGING = 10U;
     public const uint TIDYVNC_DOMAIN_IDENTITY = 11U;
     public const uint TIDYVNC_DOMAIN_KNOWN_HOSTS = 12U;
+    public const uint TIDYVNC_DOMAIN_MONITORS = 13U;
+    public const uint TIDYVNC_DOMAIN_EXPORT = 14U;
     public const uint TIDYVNC_ENDPOINT_TOO_LONG = 1U;
     public const uint TIDYVNC_ENDPOINT_INVALID_HOST = 2U;
     public const uint TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3U;
@@ -315,6 +319,20 @@ public static class Tidyvnc
     public const uint TIDYVNC_KNOWN_HOSTS_CORRUPT = 2U;
     public const uint TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_FORMAT = 3U;
     public const uint TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_DIGEST = 4U;
+    public const uint TIDYVNC_MONITORS_EMPTY = 1U;
+    public const uint TIDYVNC_MONITORS_TOO_MANY = 2U;
+    public const uint TIDYVNC_MONITORS_DUPLICATE_ID = 3U;
+    public const uint TIDYVNC_MONITORS_AMBIGUOUS_ORIGIN = 4U;
+    public const uint TIDYVNC_EXPORT_FAILURE_ALERTS = 1U;
+    public const uint TIDYVNC_EXPORT_REMOTE_RESIZE = 2U;
+    public const uint TIDYVNC_EXPORT_NETWORK_FAMILIES = 4U;
+    public const uint TIDYVNC_EXPORT_POINTER_TIMING = 8U;
+    public const uint TIDYVNC_EXPORT_CLIPBOARD_LIMIT = 16U;
+    public const uint TIDYVNC_EXPORT_WINDOW_PLACEMENT = 32U;
+    public const uint TIDYVNC_EXPORT_DISPLAY_IDENTITY = 64U;
+    public const uint TIDYVNC_EXPORT_IGNORED_INPUT = 128U;
+    public const uint TIDYVNC_EXPORT_SSH_GATEWAY = 256U;
+    public const uint TIDYVNC_EXPORT_SECURITY_POLICY = 1U;
     public const uint TIDYVNC_SSH_GATEWAY_USER = 1U;
     public const uint TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT = 2U;
     public const uint TIDYVNC_DESKTOP_SIZE_LEGACY = 1U;
@@ -1129,6 +1147,29 @@ public unsafe partial struct tidyvnc_known_hosts_match
 }
 
 [StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_export_request
+{
+    public uint size;
+    public uint version;
+    public uint selected_displays;
+    public uint ignored_input;
+    public uint ssh_gateway;
+    public uint reserved;
+    public tidyvnc_bytes tls_priority;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_export_loss_info
+{
+    public uint size;
+    public uint version;
+    public uint loss;
+    public uint reserved;
+    public fixed byte name[32];
+    public fixed byte parameters[96];
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public unsafe partial struct tidyvnc_ssh_gateway_info
 {
     public uint size;
@@ -1410,6 +1451,18 @@ public static unsafe partial class NativeMethods
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
     public static partial uint tidyvnc_identity_digest(tidyvnc_identity_request* p0, tidyvnc_identity* p1, tidyvnc_error* p2);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_legacy_monitor_order(tidyvnc_display_monitor* monitors, uint count, uint* ids, tidyvnc_error* p3);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_export_losses(tidyvnc_export_request* p0, uint* losses, tidyvnc_error* p2);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_export_loss_at(uint index, tidyvnc_export_loss_info* p1, tidyvnc_error* p2);
 
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]

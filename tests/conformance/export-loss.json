@@ -1,0 +1,120 @@
+{
+ "format": "tidyvnc-conformance-v1",
+ "module": "ExportLoss",
+ "about": [
+  "Shared cases for the core (tests/unit/exportloss.cxx) and the macOS",
+  "NativeDocumentExport losses (NativeDocumentExportLoss cases)."
+ ],
+ "catalog": [
+  {
+   "name": "failureAlerts",
+   "parameters": "AlertOnFatalError"
+  },
+  {
+   "name": "remoteResize",
+   "parameters": "RemoteResize"
+  },
+  {
+   "name": "networkFamilies",
+   "parameters": "UseIPv4,UseIPv6"
+  },
+  {
+   "name": "pointerTiming",
+   "parameters": "PointerEventInterval"
+  },
+  {
+   "name": "clipboardLimit",
+   "parameters": "MaxCutText"
+  },
+  {
+   "name": "windowPlacement",
+   "parameters": "geometry,Maximize"
+  },
+  {
+   "name": "displayIdentity",
+   "parameters": "FullScreenSelectedMonitors"
+  },
+  {
+   "name": "ignoredInput",
+   "parameters": ""
+  },
+  {
+   "name": "sshGateway",
+   "parameters": "via"
+  }
+ ],
+ "cases": [
+  {
+   "name": "every-export",
+   "expect": [
+    "failureAlerts",
+    "remoteResize",
+    "networkFamilies",
+    "pointerTiming",
+    "clipboardLimit",
+    "windowPlacement"
+   ]
+  },
+  {
+   "name": "selected-displays",
+   "selectedDisplays": true,
+   "expect": [
+    "failureAlerts",
+    "remoteResize",
+    "networkFamilies",
+    "pointerTiming",
+    "clipboardLimit",
+    "windowPlacement",
+    "displayIdentity"
+   ]
+  },
+  {
+   "name": "ignored-input",
+   "ignoredInput": true,
+   "expect": [
+    "failureAlerts",
+    "remoteResize",
+    "networkFamilies",
+    "pointerTiming",
+    "clipboardLimit",
+    "windowPlacement",
+    "ignoredInput"
+   ]
+  },
+  {
+   "name": "ssh-gateway",
+   "sshGateway": true,
+   "expect": [
+    "failureAlerts",
+    "remoteResize",
+    "networkFamilies",
+    "pointerTiming",
+    "clipboardLimit",
+    "windowPlacement",
+    "sshGateway"
+   ]
+  },
+  {
+   "name": "all",
+   "selectedDisplays": true,
+   "ignoredInput": true,
+   "sshGateway": true,
+   "expect": [
+    "failureAlerts",
+    "remoteResize",
+    "networkFamilies",
+    "pointerTiming",
+    "clipboardLimit",
+    "windowPlacement",
+    "displayIdentity",
+    "ignoredInput",
+    "sshGateway"
+   ]
+  },
+  {
+   "name": "tls-priority-refused",
+   "tlsPriority": "NORMAL",
+   "error": "securityPolicy"
+  }
+ ]
+}

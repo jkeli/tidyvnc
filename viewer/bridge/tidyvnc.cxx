@@ -7,6 +7,8 @@
 #include <viewer/core/SSHGateway.h>
 #include <viewer/core/IdentityDigest.h>
 #include <viewer/core/LegacyKnownHosts.h>
+#include <viewer/core/LegacyMonitorNumbering.h>
+#include <viewer/core/ExportLoss.h>
 #include <viewer/core/StartupLogging.h>
 #include <core/Logger_file.h>
 #include "tidyvnc.h"
@@ -70,7 +72,8 @@ constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATU
 #ifdef HAVE_GNUTLS
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
 #endif
-  | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY | TIDYVNC_FEATURE_IDENTITY_DIGEST | TIDYVNC_FEATURE_KNOWN_HOSTS
+  | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY | TIDYVNC_FEATURE_IDENTITY_DIGEST | TIDYVNC_FEATURE_KNOWN_HOSTS | TIDYVNC_FEATURE_MONITOR_NUMBERING
+  | TIDYVNC_FEATURE_EXPORT_LOSS
   | TIDYVNC_FEATURE_CREDENTIAL_BYTES | TIDYVNC_FEATURE_PASSWORD_FILE_REPLY | TIDYVNC_FEATURE_CONNECTION_INFO | TIDYVNC_FEATURE_ENDPOINT_IDENTITY | TIDYVNC_FEATURE_PROMPT_SECURITY | TIDYVNC_FEATURE_CERTIFICATE_POLICY | TIDYVNC_FEATURE_HOST_KEY_ENCODING | TIDYVNC_FEATURE_REQUIRED_TLS_FILES | TIDYVNC_FEATURE_SECURITY_SELECTION | TIDYVNC_FEATURE_TLS_PRIORITY_VALIDATION | TIDYVNC_FEATURE_SECURITY_RECONFIGURATION | TIDYVNC_FEATURE_SHARED_SESSION | TIDYVNC_FEATURE_DESKTOP_LAYOUT | TIDYVNC_FEATURE_DISPLAY_LAYOUT | TIDYVNC_FEATURE_CANVAS_GEOMETRY | TIDYVNC_FEATURE_CONNECTION_DOCUMENT | TIDYVNC_FEATURE_DOCUMENT_OPTIONS | TIDYVNC_FEATURE_INVOCATION_SYNTAX | TIDYVNC_FEATURE_INVOCATION_VALUES | TIDYVNC_FEATURE_INPUT_TIMING | TIDYVNC_FEATURE_MESSAGE_LIMITS | TIDYVNC_FEATURE_WINDOW_GEOMETRY
 #ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_PROCESS_LOGGING | TIDYVNC_FEATURE_FILE_LOGGING
@@ -226,6 +229,13 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
     return TIDYVNC_INVALID_ARGUMENT;
   } catch (const InvocationError& problem) {
     const auto fault = invocationFault(problem); if (writable) errorValue(error,fault); return fault.status;
+  } catch (const ExportError& problem) {
+    if (writable) errorValue(error,Fault(TIDYVNC_INVALID_ARGUMENT,TIDYVNC_DOMAIN_EXPORT,static_cast<uint32_t>(problem.problem)+1));
+    return TIDYVNC_INVALID_ARGUMENT;
+  } catch (const MonitorNumberingError& problem) {
+    const auto status = problem.problem == MonitorNumberingProblem::TooMany ? TIDYVNC_RESOURCE_LIMIT : TIDYVNC_INVALID_ARGUMENT;
+    if (writable) errorValue(error,Fault(status,TIDYVNC_DOMAIN_MONITORS,static_cast<uint32_t>(problem.problem)+1));
+    return status;
   } catch (const KnownHostsError& problem) {
     const auto status = problem.problem == KnownHostsProblem::TooLarge ? TIDYVNC_RESOURCE_LIMIT :
       problem.problem == KnownHostsProblem::UnsupportedDigest ? TIDYVNC_UNSUPPORTED : TIDYVNC_INVALID_ARGUMENT;
@@ -1883,6 +1893,47 @@ tidyvnc_status tidyvnc_certificate_key_digest(tidyvnc_handle id,uint32_t algorit
 }
 static_assert(static_cast<unsigned>(KnownHostsProblem::TooLarge)+1 == TIDYVNC_KNOWN_HOSTS_TOO_LARGE &&
   static_cast<unsigned>(KnownHostsProblem::UnsupportedDigest)+1 == TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_DIGEST, "Known hosts IDs changed");
+static_assert(static_cast<unsigned>(MonitorNumberingProblem::Empty)+1 == TIDYVNC_MONITORS_EMPTY &&
+  static_cast<unsigned>(MonitorNumberingProblem::AmbiguousOrigin)+1 == TIDYVNC_MONITORS_AMBIGUOUS_ORIGIN, "Monitor IDs changed");
+static_assert(static_cast<uint32_t>(ExportLoss::FailureAlerts) == TIDYVNC_EXPORT_FAILURE_ALERTS &&
+  static_cast<uint32_t>(ExportLoss::SshGateway) == TIDYVNC_EXPORT_SSH_GATEWAY &&
+  static_cast<uint32_t>(ExportLoss::WindowPlacement) == TIDYVNC_EXPORT_WINDOW_PLACEMENT, "Export loss bits changed");
+tidyvnc_status tidyvnc_export_losses(const tidyvnc_export_request* request,uint32_t* losses,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(request); require(losses != nullptr);
+    ExportRequest value;
+    value.selectedDisplays = request->selected_displays != 0; value.ignoredInput = request->ignored_input != 0;
+    value.sshGateway = request->ssh_gateway != 0;
+    require(request->tls_priority.data || !request->tls_priority.length);
+    require(request->tls_priority.length <= 4096,TIDYVNC_RESOURCE_LIMIT);
+    if (request->tls_priority.length)
+      value.tlsPriority.assign(reinterpret_cast<const char*>(request->tls_priority.data),static_cast<size_t>(request->tls_priority.length));
+    *losses = exportLosses(value); return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_export_loss_at(uint32_t index,tidyvnc_export_loss_info* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out);
+    const auto& catalog = exportLossCatalog();
+    if (index >= catalog.size()) return TIDYVNC_NO_CHANGE;
+    auto value = output<tidyvnc_export_loss_info>();
+    value.loss = static_cast<uint32_t>(catalog[index].loss);
+    require(std::strlen(catalog[index].name) < sizeof(value.name) && std::strlen(catalog[index].parameters) < sizeof(value.parameters),TIDYVNC_INTERNAL);
+    std::strcpy(value.name,catalog[index].name); std::strcpy(value.parameters,catalog[index].parameters);
+    *out = value; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_legacy_monitor_order(const tidyvnc_display_monitor* monitors,uint32_t count,uint32_t* ids,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    require(ids && (monitors || !count));
+    if (count > 64) throw MonitorNumberingError(MonitorNumberingProblem::TooMany);
+    std::vector<LegacyMonitor> input;
+    for (uint32_t i = 0; i < count; ++i) input.push_back({monitors[i].id,monitors[i].x,monitors[i].y});
+    const auto order = legacyMonitorOrder(input);
+    std::copy(order.begin(),order.end(),ids);
+    return TIDYVNC_OK;
+  });
+}
 tidyvnc_status tidyvnc_known_hosts_lookup(tidyvnc_bytes file,tidyvnc_bytes host,tidyvnc_bytes spki,tidyvnc_handle certificateKey,
                                           uint64_t now,tidyvnc_known_hosts_match* out,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t {

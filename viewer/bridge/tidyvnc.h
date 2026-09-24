@@ -56,7 +56,8 @@ enum { TIDYVNC_DOMAIN_BRIDGE = 1, TIDYVNC_DOMAIN_ENDPOINT = 2,
        TIDYVNC_DOMAIN_OPERATION = 3, TIDYVNC_DOMAIN_INPUT = 4,
        TIDYVNC_DOMAIN_AUTHENTICATION = 5, TIDYVNC_DOMAIN_ENCODING = 6, TIDYVNC_DOMAIN_SECURITY = 7,
        TIDYVNC_DOMAIN_DOCUMENT = 8, TIDYVNC_DOMAIN_INVOCATION = 9, TIDYVNC_DOMAIN_LOGGING = 10,
-       TIDYVNC_DOMAIN_IDENTITY = 11, TIDYVNC_DOMAIN_KNOWN_HOSTS = 12 };
+       TIDYVNC_DOMAIN_IDENTITY = 11, TIDYVNC_DOMAIN_KNOWN_HOSTS = 12, TIDYVNC_DOMAIN_MONITORS = 13,
+       TIDYVNC_DOMAIN_EXPORT = 14 };
 enum { TIDYVNC_ENDPOINT_TOO_LONG = 1, TIDYVNC_ENDPOINT_INVALID_HOST = 2,
        TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3, TIDYVNC_ENDPOINT_INVALID_PORT = 4,
        TIDYVNC_ENDPOINT_INVALID_PATH = 5, TIDYVNC_ENDPOINT_INVALID_ROUTE = 6,
@@ -91,6 +92,8 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 #define TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY 140737488355328ULL
 #define TIDYVNC_FEATURE_IDENTITY_DIGEST 281474976710656ULL
 #define TIDYVNC_FEATURE_KNOWN_HOSTS 562949953421312ULL
+#define TIDYVNC_FEATURE_MONITOR_NUMBERING 1125899906842624ULL
+#define TIDYVNC_FEATURE_EXPORT_LOSS 2251799813685248ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -772,6 +775,37 @@ typedef struct {
   char received[100];       /* SHA-256 of the presented SPKI, "AB:CD:..." */
   tidyvnc_known_hosts_identity expected[16];
 } tidyvnc_known_hosts_match;
+/* MONITOR_NUMBERING: the retained viewer's monitor numbers for connection-file
+ * FullScreenSelectedMonitors (MonitorIndicesParameter): ascending x, then y of
+ * each display's top-left origin; ids[n-1] receives the id of monitor n. Two
+ * displays with the same origin (mirrors included) cannot be numbered by that
+ * rule and are rejected rather than mapped arbitrarily. 1..64 monitors with
+ * distinct ids; only id, x and y are used. Output untouched on failure. */
+enum { TIDYVNC_MONITORS_EMPTY = 1, TIDYVNC_MONITORS_TOO_MANY = 2, TIDYVNC_MONITORS_DUPLICATE_ID = 3,
+       TIDYVNC_MONITORS_AMBIGUOUS_ORIGIN = 4 };
+TIDYVNC_API tidyvnc_status tidyvnc_legacy_monitor_order(const tidyvnc_display_monitor* monitors, uint32_t count,
+  uint32_t* ids, tidyvnc_error*);
+/* EXPORT_LOSS: what a compatibility connection file cannot carry from a native
+ * configuration (the macOS NativeDocumentExport review). Every export loses
+ * the first six (the format has no field for them); the request adds display
+ * identity, ignored input and the SSH gateway. A custom TLS priority cannot be
+ * preserved: the export is refused (DOMAIN_EXPORT SECURITY_POLICY). The
+ * catalog names each loss and its canonical parameters (NO_CHANGE past the
+ * end); frontends localize the explanations. Stateless; no IO. */
+enum { TIDYVNC_EXPORT_FAILURE_ALERTS = 1, TIDYVNC_EXPORT_REMOTE_RESIZE = 2, TIDYVNC_EXPORT_NETWORK_FAMILIES = 4,
+       TIDYVNC_EXPORT_POINTER_TIMING = 8, TIDYVNC_EXPORT_CLIPBOARD_LIMIT = 16, TIDYVNC_EXPORT_WINDOW_PLACEMENT = 32,
+       TIDYVNC_EXPORT_DISPLAY_IDENTITY = 64, TIDYVNC_EXPORT_IGNORED_INPUT = 128, TIDYVNC_EXPORT_SSH_GATEWAY = 256 };
+enum { TIDYVNC_EXPORT_SECURITY_POLICY = 1 };
+typedef struct {
+  uint32_t size, version, selected_displays, ignored_input, ssh_gateway, reserved;
+  tidyvnc_bytes tls_priority;
+} tidyvnc_export_request;
+typedef struct {
+  uint32_t size, version, loss, reserved;
+  char name[32], parameters[96]; /* NUL-terminated ASCII */
+} tidyvnc_export_loss_info;
+TIDYVNC_API tidyvnc_status tidyvnc_export_losses(const tidyvnc_export_request*, uint32_t* losses, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_export_loss_at(uint32_t index, tidyvnc_export_loss_info*, tidyvnc_error*);
 TIDYVNC_API tidyvnc_status tidyvnc_known_hosts_lookup(tidyvnc_bytes file, tidyvnc_bytes host, tidyvnc_bytes spki,
   tidyvnc_handle certificate_key, uint64_t now, tidyvnc_known_hosts_match*, tidyvnc_error*);
 /* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most
