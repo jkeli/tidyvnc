@@ -76,8 +76,8 @@ internal sealed partial class ListenerWindow : Window
             else Refresh();
         };
         if (model.Preparation is { } preparation) preparation.PropertyChanged += (_, _) => Refresh();
-        Activated += (_, _) => model.StartLaunchIfNeeded();
-        AppWindow.Closing += (_, _) => { closing = true; model.RequestClose(); };
+        this.OnActivated((_, _) => model.StartLaunchIfNeeded());
+        this.OnAppWindowClosing((_, _) => { closing = true; model.RequestClose(); });
         Refresh();
     }
 

@@ -74,8 +74,8 @@ internal sealed partial class TrustLibraryWindow : Window
 
         model.PropertyChanged += (_, _) => Refresh();
         var loaded = false;
-        Activated += (_, _) => { if (!loaded) { loaded = true; model.Reload(); } };
-        Closed += (_, _) => _ = model.CloseAsync();
+        this.OnActivated((_, _) => { if (!loaded) { loaded = true; model.Reload(); } });
+        this.OnClosed(() => _ = model.CloseAsync());
         Refresh();
     }
 

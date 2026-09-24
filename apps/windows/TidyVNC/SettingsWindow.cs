@@ -100,12 +100,12 @@ internal sealed partial class SettingsWindow : Window
         Strings.Localize(this);
 
         draft.PropertyChanged += (_, _) => Refresh();
-        Activated += (_, e) =>
+        this.OnActivated((_, e) =>
         {
             // Returning to the window picks up another process's save unless there are edits.
             if (e.WindowActivationState != WindowActivationState.Deactivated && !draft.IsBusy && !draft.HasChanges) draft.Reload();
-        };
-        Closed += (_, _) => draft.Stop();
+        });
+        this.OnClosed(draft.Stop);
         var start = initialSection ?? "clipboard";
         navigation.SelectedItem = navigation.MenuItems.OfType<NavigationViewItem>()
             .SelectMany(i => i.MenuItems.OfType<NavigationViewItem>().Prepend(i)).First(i => (string)i.Tag == start);

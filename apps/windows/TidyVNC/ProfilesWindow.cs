@@ -136,8 +136,8 @@ internal sealed partial class ProfilesWindow : Window
         Strings.Localize(this);
 
         library.PropertyChanged += (_, _) => Refresh();
-        Activated += (_, e) => { if (e.WindowActivationState != WindowActivationState.Deactivated) library.RefreshIfClean(); };
-        Closed += (_, _) => library.Stop();
+        this.OnActivated((_, e) => { if (e.WindowActivationState != WindowActivationState.Deactivated) library.RefreshIfClean(); });
+        this.OnClosed(library.Stop);
         sectionBar.SelectedItem = sectionBar.Items[0];
         Refresh();
     }

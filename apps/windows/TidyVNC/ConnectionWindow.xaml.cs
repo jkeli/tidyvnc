@@ -46,6 +46,10 @@ public sealed partial class ConnectionWindow : Window
 
     internal ConnectionWindow(NativeConnectionController controller)
     {
+#if DEBUG
+        LiveObjects.Track(this);
+        LiveObjects.Track(controller);
+#endif
         InitializeComponent();
         Strings.Localize(this);
         Controller = controller;
@@ -115,14 +119,22 @@ public sealed partial class ConnectionWindow : Window
         controller.RemoteResize.PropertyChanged += (_, _) => Update();
         if (controller.History is { } history)
         {
-            history.PropertyChanged += (_, _) => Update();
+            // The recent-connections history is shared by every window: release it when this one closes,
+            // or the app keeps every closed window (and its XAML and composition resources) alive.
+            PropertyChangedEventHandler historyChanged = (_, _) => Update();
+            history.PropertyChanged += historyChanged;
             RecentPanel.History = history;
+            this.OnClosed(() =>
+            {
+                history.PropertyChanged -= historyChanged;
+                RecentPanel.History = null;
+            });
         }
         if (controller.Session is { } ready) Attach(ready);
 
-        AppWindow.Closing += OnClosing;
-        AppWindow.Changed += PlacementChanged;
-        Activated += (_, e) =>
+        this.OnAppWindowClosing(OnClosing);
+        this.OnAppWindowChanged(PlacementChanged);
+        this.OnActivated((_, e) =>
         {
             if (!shown && restoredFrame is null && !Maximized) restoredFrame = Frame;
             shown = true;
@@ -130,10 +142,10 @@ public sealed partial class ConnectionWindow : Window
             if (active && fullscreen.State.AutomaticEntryPending) DispatcherQueue.TryEnqueue(TryAutomaticFullscreen);
             if (!active) desktop.ReleaseKeys();
             App.Current.WindowActivationChanged(this, active);
-        };
+        });
         Root.Loaded += (_, _) => { dialogs.Update(); Address.Focus(FocusState.Programmatic); };
         App.Current.ImportOfferChanged += UpdateImportOffer;
-        Closed += (_, _) => App.Current.ImportOfferChanged -= UpdateImportOffer;
+        this.OnClosed(() => App.Current.ImportOfferChanged -= UpdateImportOffer);
         UpdateImportOffer();
         Update();
     }
@@ -1017,6 +1029,10 @@ public sealed partial class ConnectionWindow : Window
         Controller.Dispose();
         scalingCheck.Dispose();
         desktop.Dispose();
+        // A TitleBar that still holds interactive content (the menu bar) when its window closes keeps the
+        // whole window alive through the XAML reference tracker, once the window has been up long enough to
+        // lay out; every closed connection window stayed in memory (W6.11). Detached first, it is released.
+        AppTitleBar.Content = null;
         Close();
     }
 }

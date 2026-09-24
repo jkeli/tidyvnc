@@ -29,10 +29,10 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     private readonly DesktopRenderer renderer;
     private readonly NativeKeyboard keyboard = new();
     private readonly NativeShortcutRouter shortcuts = new();
-    private readonly DispatcherQueueTimer altGrTimer;
+    private readonly UiTimer altGrTimer;
     // Touch gestures (DESKTOP.md section 6) and the buttons they hold; wheel remainders (section 4).
     private readonly NativeTouch touch = new();
-    private readonly DispatcherQueueTimer touchTimer;
+    private readonly UiTimer touchTimer;
     private readonly NativeWheelAccumulator wheel = new();
     private uint touchButtons;
     /// <summary>A synthetic key identity for the pinch gesture's Ctrl, clear of real scan codes.</summary>
@@ -52,6 +52,9 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
 
     public DesktopView(IntPtr window)
     {
+#if DEBUG
+        LiveObjects.Track(this);
+#endif
         WindowHandle = window;
         IsTabStop = true;
         UseSystemFocusVisuals = false;
@@ -64,6 +67,10 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         host.Children.Add(statistics);
         Content = host;
         renderer = new DesktopRenderer(App.Current.Dispatcher, AttachPresenter);
+#if DEBUG
+        LiveObjects.Track(renderer);
+        LiveObjects.Track(panel);
+#endif
         renderer.Failed += error => RenderFailed?.Invoke(error);
         AttachPresenter(renderer.Presenter);
         panel.SizeChanged += (_, _) => UpdateViewport();
@@ -83,12 +90,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         };
         GotFocus += (_, _) => SetKeyboardFocus(true);
         LostFocus += (_, _) => SetKeyboardFocus(false);
-        altGrTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        altGrTimer.IsRepeating = false;
-        altGrTimer.Tick += (_, _) => Send(keyboard.Timeout().Events);
-        touchTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        touchTimer.IsRepeating = false;
-        touchTimer.Tick += (_, _) => Apply(touch.Timeout());
+        altGrTimer = new UiTimer(() => Send(keyboard.Timeout().Events));
+        touchTimer = new UiTimer(() => Apply(touch.Timeout()));
         systemKeys = new NativeWindowsKeyboardCapture(window);
         Capture = new NativeKeyboardCaptureController(systemKeys, () => keyboardFocused && !disposed && session is not null, ReleaseKeys);
     }
@@ -667,8 +670,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         systemKeys.Dispose();
         disposed = true;
         Session = null;
-        altGrTimer.Stop();
-        touchTimer.Stop();
+        altGrTimer.Dispose();
+        touchTimer.Dispose();
         UseSoftwareCursor(null);
         cursorHandle?.Dispose();
         cursorHandle = null;

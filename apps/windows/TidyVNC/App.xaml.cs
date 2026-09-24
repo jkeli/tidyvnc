@@ -102,6 +102,13 @@ public partial class App : Application
             collectWait = ThreadPool.RegisterWaitForSingleObject(collectRequest, (_, _) => Dispatcher.TryEnqueue(() =>
             {
                 for (var i = 0; i < 3; i++) { GC.Collect(); GC.WaitForPendingFinalizers(); }
+                try
+                {
+                    var root = TidyVNC.Native.Storage.NativeStateRoot.Directory;
+                    Directory.CreateDirectory(root);
+                    File.WriteAllText(Path.Combine(root, "live-objects.txt"), LiveObjects.Report());
+                }
+                catch (IOException) { }
                 collectDone!.Set();
             }), null, -1, false);
         }
@@ -364,7 +371,7 @@ public partial class App : Application
         // Only a lone window returns to the saved place; others keep the system's cascade.
         if (windows.Count == 0) window.RestorePlacement();
         windows.Add(window);
-        window.Closed += (_, _) => WindowClosed(window);
+        window.OnClosed(() => WindowClosed(window));
         window.Activate();
         return window;
     }
@@ -398,13 +405,13 @@ public partial class App : Application
         }, credentials);
         var window = new ListenerWindow(model);
         listeners.Add(window);
-        window.Closed += async (_, _) =>
+        window.OnClosed(async () =>
         {
             listeners.Remove(window);
             await model.CloseAsync();
             if (windows.Count > 0 || listeners.Count > 0 || exiting) return;
             await ShutdownAsync();
-        };
+        });
         window.Activate();
     }
 
@@ -422,7 +429,7 @@ public partial class App : Application
         if (importDefaults is { } open) { open.Activate(); return; }
         var window = new ImportWindow(new NativeDefaultsImport(Preferences, () => { Displays.Refresh(); return Displays.Snapshot; }));
         importDefaults = window;
-        window.Closed += (_, _) => { if (ReferenceEquals(importDefaults, window)) importDefaults = null; RefreshImportOffer(); };
+        window.OnClosed(() => { if (ReferenceEquals(importDefaults, window)) importDefaults = null; RefreshImportOffer(); });
         window.Activate();
     }
 
@@ -433,7 +440,7 @@ public partial class App : Application
         if (importHistory is { } open) { open.Activate(); return; }
         var window = new ImportWindow(new NativeHistoryImport(Profiles));
         importHistory = window;
-        window.Closed += (_, _) => { if (ReferenceEquals(importHistory, window)) importHistory = null; History.Reload(); RefreshImportOffer(); };
+        window.OnClosed(() => { if (ReferenceEquals(importHistory, window)) importHistory = null; History.Reload(); RefreshImportOffer(); });
         window.Activate();
     }
 
@@ -486,7 +493,7 @@ public partial class App : Application
         }
         var window = new HelpWindow(topic);
         help = window;
-        window.Closed += (_, _) => { if (ReferenceEquals(help, window)) help = null; };
+        window.OnClosed(() => { if (ReferenceEquals(help, window)) help = null; });
         window.Activate();
     }
 
@@ -498,7 +505,7 @@ public partial class App : Application
         if ((kind == NativeTrustKind.Certificate ? certificateTrust : hostKeyTrust) is not { } store) return;
         var window = new TrustLibraryWindow(new NativeTrustLibrary(Dispatcher, store));
         trustLibraries[kind] = window;
-        window.Closed += (_, _) => { if (trustLibraries.TryGetValue(kind, out var current) && ReferenceEquals(current, window)) trustLibraries.Remove(kind); };
+        window.OnClosed(() => { if (trustLibraries.TryGetValue(kind, out var current) && ReferenceEquals(current, window)) trustLibraries.Remove(kind); });
         window.Activate();
     }
 
@@ -509,7 +516,7 @@ public partial class App : Application
         if (about is { } open) { open.Activate(); return; }
         var window = new AboutWindow();
         about = window;
-        window.Closed += (_, _) => { if (ReferenceEquals(about, window)) about = null; };
+        window.OnClosed(() => { if (ReferenceEquals(about, window)) about = null; });
         window.Activate();
     }
 
@@ -521,7 +528,7 @@ public partial class App : Application
         var library = new NativeProfileLibrary(Profiles, Preferences);
         var window = new ProfilesWindow(library);
         profiles = window;
-        window.Closed += (_, _) => { if (ReferenceEquals(profiles, window)) profiles = null; };
+        window.OnClosed(() => { if (ReferenceEquals(profiles, window)) profiles = null; });
         window.Activate();
         library.Reload();
     }
@@ -539,7 +546,7 @@ public partial class App : Application
         var draft = new NativePreferencesDraft(Preferences);
         var window = new SettingsWindow(draft, section);
         settings = window;
-        window.Closed += (_, _) => { if (ReferenceEquals(settings, window)) settings = null; };
+        window.OnClosed(() => { if (ReferenceEquals(settings, window)) settings = null; });
         window.Activate();
         draft.Reload();
     }

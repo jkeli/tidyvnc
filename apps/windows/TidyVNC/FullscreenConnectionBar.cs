@@ -1,5 +1,4 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -22,14 +21,12 @@ internal sealed partial class FullscreenConnectionBar : UserControl
     private readonly TextBlock title = new() { VerticalAlignment = VerticalAlignment.Center, MaxWidth = 320, TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly ToggleButton statistics, pin;
     private readonly MenuFlyout menu = new();
-    private readonly DispatcherQueueTimer reveal;
+    // A UiTimer, not a DispatcherQueueTimer: that keeps a waitable timer and a thread-pool wait after it is
+    // released, two handles for every full-screen entry and every connection window (W6.11).
+    private readonly UiTimer reveal;
     private bool menuOpen, over;
 
-    /// <param name="reveal">
-    /// The owner's reveal timer, lent to each bar. A DispatcherQueueTimer holds a waitable timer and a
-    /// thread-pool wait that are not released with the bar, so one per full-screen entry leaked two handles.
-    /// </param>
-    public FullscreenConnectionBar(ConnectionWindow window, DispatcherQueueTimer reveal)
+    public FullscreenConnectionBar(ConnectionWindow window)
     {
         this.window = window;
         HorizontalAlignment = HorizontalAlignment.Center;
@@ -62,8 +59,7 @@ internal sealed partial class FullscreenConnectionBar : UserControl
         PointerEntered += (_, _) => over = true;
         PointerExited += (_, _) => { over = false; HideUnlessNeeded(); };
 
-        this.reveal = reveal;
-        reveal.Tick += RevealTick;
+        reveal = new UiTimer(Show) { Interval = TimeSpan.FromMilliseconds(500) };
     }
 
     private static Button Icon(string glyph, string key, string id)
@@ -114,12 +110,9 @@ internal sealed partial class FullscreenConnectionBar : UserControl
         statistics.IsEnabled = window.Controller.CanToggleStatistics;
     }
 
-    private void RevealTick(DispatcherQueueTimer sender, object args) => Show();
-
     public void Stop()
     {
-        reveal.Stop();
-        reveal.Tick -= RevealTick;
+        reveal.Dispose();
         menu.Hide();
         Visibility = Visibility.Collapsed;
     }

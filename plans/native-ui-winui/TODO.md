@@ -2096,3 +2096,57 @@ Add dated entries, newest last, in the macOS format:
   covers it. The full-screen test passed its pixel check because its window covers the display.
 - W6.11 is complete: reconnect, resize and session attach cycles, presenter attach cycles with device
   loss, and full-screen round trips, all without per-cycle growth.
+
+### W6.11 (follow-up) — closed connection and About windows are released — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- New gated UI tests `ConnectionWindowsOpenAndCloseWithoutLeaks` and `AboutWindowsAreReleased`. Each
+  window stays up for a second (laid out and rendered) and is closed with `WM_CLOSE` through Win32, so the
+  test's UI Automation client holds none of its elements; the test also releases its automation objects
+  before each measurement.
+  - A Debug-only `LiveObjects` registry (windows, controllers, desktop views, renderers, swap-chain panels)
+    is written to `live-objects.txt` in the test state root by the collect hook, so the tests assert which
+    objects survived, not only handle counts.
+- Found: every closed connection window stayed in memory with its XAML tree, controller, session and
+  desktop view (23 of 24 alive after 23 windows).
+  - A heap dump (`MiniDumpWriteDump`) read with ClrMD from the Windows SDK debugger's SOS folder showed no
+    strong root: the windows were kept only through the XAML reference tracker (their CCWs at reference
+    count 0).
+  - Bisection by Debug switches, one gated run per step, narrowed it to the window being up long enough
+    to lay out, then to the title bar: the WinUI `TitleBar` holding interactive content (the menu bar)
+    when its window closes keeps the whole window alive. With the menu bar outside the `TitleBar`, or with
+    `AppTitleBar.Content = null` before `Close()`, every window is released. Access keys and keyboard
+    accelerators on the menu made no difference. (Earlier steps only seemed to matter because they
+    changed how long a window stayed open: a placement save created the private state root, preferences
+    then loaded, a session was created, and closing waited for it to drain.)
+  - Fix: `ConnectionWindow.CloseGracefully` detaches the title bar's content before `Close()`.
+- Also fixed on the way:
+  - Handlers on a window's own events that capture the window (`Closed`, `Activated`,
+    `AppWindow.Closing`/`Changed`) now remove themselves when it closes (`WindowEvents`); the About window
+    was kept alive by one. Every window uses them.
+  - The recent-history handler and the recent panel's history binding are released when a connection
+    window closes (the history is shared by all windows).
+  - The desktop view's AltGr and touch timers and the full-screen bar's reveal timer are `UiTimer`s
+    (`System.Threading.Timer` posting to the UI thread), disposed with their owner. A
+    `DispatcherQueueTimer` keeps a waitable timer and a thread-pool wait after release; this replaces the
+    shared per-connection reveal timer from `3c41d5cf`.
+- Remaining, not the app's: Windows App SDK 1.8 (1.8.260804001) leaves about 50 handles behind for every
+  closed window that extends its content into the title bar, mostly Section and DxgkCompositionObject
+  (plus Composition, about 2 Events and 1 thread-pool wait), even when the window object itself is
+  collected. Reproduced with the About window alone: 10 plain About windows +52 handles, 10 with
+  `ExtendsContentIntoTitleBar` +981.
+  - The test therefore compares connection windows with About windows that extend into the title bar
+    (Debug-only `TIDYVNC_TEST_ABOUT_TITLE_BAR`, isolated test roots only) in the same process:
+    20 About windows with the extended title bar left +1037 handles (Section +459, DxgkCompositionObject
+    +418, Event +91, Composition +41, WaitCompletionPacket +20, others within ±3); 20 connection windows
+    left +991 (Section +448, DxgkCompositionObject +398, Event +78, Composition +41, WaitCompletionPacket
+    +20, others within ±3), and only the open window was alive. The test passes (growth within the baseline
+    plus 40).
+  - Owner decision: keep the extended title bar (UX.md section 1, W08) and accept the platform cost, or
+    use the standard title bar until the SDK is fixed. Recorded for the W7.11 review.
+- Regression runs: 23 of 27 gated UI tests passed. `FullScreenCyclesDoNotLeak` passed on a rerun.
+  `ConnectAuthenticateRenderTypeClickAndDisconnect`, `LargeRemoteCursorsAreDrawnOverTheDesktop` and
+  `ConnectionMenuCommandsReachTheServer` time out waiting for keyboard focus or on-screen results, and fail
+  the same way on `98a13fd4` with this work stashed. This machine's `ForegroundLockTimeout` is infinite and
+  another app held the foreground, so they stay environmental until rerun on a displayed session with the
+  test in front. Debug and Release builds pass.

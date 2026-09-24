@@ -37,6 +37,9 @@ internal sealed partial class HelpWindow : Window
 
     public HelpWindow(string? topic = null)
     {
+#if DEBUG
+        LiveObjects.Track(this);
+#endif
         Title = Strings.Get("help.title");
         SystemBackdrop = new MicaBackdrop();
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));
@@ -148,6 +151,13 @@ internal sealed partial class AboutWindow : Window
 
     public AboutWindow()
     {
+#if DEBUG
+        LiveObjects.Track(this);
+        // Leak tests (W6.11): the handle baseline for a window that extends into the title bar, as connection
+        // windows do. Windows App SDK 1.8 leaves composition resources behind for every such window closed.
+        if (TidyVNC.Native.Storage.NativeStateRoot.IsIsolated && Environment.GetEnvironmentVariable("TIDYVNC_TEST_ABOUT_TITLE_BAR") == "1")
+            ExtendsContentIntoTitleBar = true;
+#endif
         Title = Strings.Get("about.title");
         SystemBackdrop = new MicaBackdrop();
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));

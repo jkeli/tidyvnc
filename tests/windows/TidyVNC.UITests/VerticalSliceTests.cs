@@ -74,7 +74,7 @@ public sealed class VerticalSliceTests
     private static readonly string StateRoot = Path.Combine(Path.GetTempPath(), "tidyvnc-ui-" + Guid.NewGuid().ToString("N"));
 
     private static LaunchedApp Launch(string arguments, bool commandLine = false, string? stateRoot = null, string? language = null,
-                                      string? windowsBuild = null)
+                                      string? windowsBuild = null, (string Name, string Value)[]? environment = null)
     {
         if (!File.Exists(AppPath)) Assert.Inconclusive($"Build the app first: {AppPath}");
         var start = new ProcessStartInfo(AppPath, arguments) { WorkingDirectory = Path.GetDirectoryName(AppPath)!, UseShellExecute = false };
@@ -83,6 +83,7 @@ public sealed class VerticalSliceTests
         if (commandLine) start.Environment["TIDYVNC_COMMAND_LINE"] = "1";
         if (language is not null) start.Environment["TIDYVNC_UI_LANGUAGE"] = language;
         if (windowsBuild is not null) start.Environment["TIDYVNC_TEST_WINDOWS_BUILD"] = windowsBuild;
+        foreach (var (name, value) in environment ?? []) start.Environment[name] = value;
         return new LaunchedApp(Process.Start(start)!);
     }
 
@@ -910,6 +911,141 @@ public sealed class VerticalSliceTests
         }
     }
 
+    /// <summary>
+    /// W6.11: connection windows (each with its desktop view, timers and presenter) opened and closed
+    /// repeatedly release what they held. Every closed window's objects must be collected, and the handles
+    /// left behind are compared with About windows opened and closed in the same process with the same
+    /// title bar: Windows App SDK 1.8 leaves composition resources behind for every closed window that
+    /// extends its content into the title bar (about 50 handles, mostly Section and DxgkCompositionObject,
+    /// reproduced with the About window alone), which the app cannot release.
+    /// </summary>
+    [TestMethod]
+    public void ConnectionWindowsOpenAndCloseWithoutLeaks()
+    {
+        using var app = Launch("", environment: [("TIDYVNC_TEST_ABOUT_TITLE_BAR", "1")]);
+        var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            var handle = window.Properties.NativeWindowHandle.Value;
+            IntPtr Second() => NativeMethods.TopLevelWindows((uint)app.Process.Id).FirstOrDefault(w => w != handle && NativeMethods.Title(w) == "TidyVNC");
+            IntPtr About() => NativeMethods.FindWindow(null, "About TidyVNC");
+            void OpenAndClose(string menu, string item, Func<IntPtr> find, string what)
+            {
+                window.Focus();
+                MenuItem(window, automation, menu, item).Invoke();
+                // Found and closed through Win32, not UI Automation, so the test holds none of its elements.
+                Until(() => find() != IntPtr.Zero, what);
+                // Up long enough to lay out and render: a window closed at once never reached the state that leaked.
+                Thread.Sleep(1000);
+                NativeMethods.PostMessage(find(), 0x0010, 0, 0); // WM_CLOSE
+                Until(() => find() == IntPtr.Zero, what + " closed");
+            }
+            Dictionary<string, int> Settled()
+            {
+                _ = LiveAfterReleasingAutomation(app, ref automation);
+                // Released XAML and composition objects free their native resources on later dispatcher turns.
+                _ = LiveAfterReleasingAutomation(app, ref automation);
+                window = app.Application.GetMainWindow(automation, Patience)!;
+                return NativeMethods.HandleCounts(app.Process.Id);
+            }
+            for (var i = 0; i < 3; i++) OpenAndClose("menu.file", "menu.newConnection", Second, $"window {i}");
+            OpenAndClose("menu.help", "menu.about", About, "About");
+            var start = Settled();
+            const int Windows = 20;
+            for (var i = 0; i < Windows; i++) OpenAndClose("menu.help", "menu.about", About, $"About {i}");
+            var afterAbout = Settled();
+            for (var i = 0; i < Windows; i++) OpenAndClose("menu.file", "menu.newConnection", Second, $"window {i}");
+            var afterConnections = Settled();
+            var live = LiveAfterReleasingAutomation(app, ref automation);
+            static string Detail(Dictionary<string, int> from, Dictionary<string, int> to) =>
+                string.Join(" ", to.Keys.Union(from.Keys).Select(key => (key, Delta: to.GetValueOrDefault(key) - from.GetValueOrDefault(key)))
+                    .Where(e => e.Delta != 0).OrderByDescending(e => e.Delta).Select(e => $"{e.key}{e.Delta:+#;-#}"));
+            var baseline = afterAbout.Values.Sum() - start.Values.Sum();
+            var growth = afterConnections.Values.Sum() - afterAbout.Values.Sum();
+            var report = $"{Windows} About windows: {baseline:+#;-#;0} ({Detail(start, afterAbout)}); " +
+                         $"{Windows} connection windows: {growth:+#;-#;0} ({Detail(afterAbout, afterConnections)}); live {live}";
+            TestContext.WriteLine(report);
+            StringAssert.Contains(live, "ConnectionWindow: 1", $"closed windows are released: {live}");
+            Assert.IsTrue(growth <= Math.Max(baseline, 0) + 40, $"connection windows left more handles than About windows: {report}");
+            CloseThroughEvent(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+        finally
+        {
+            automation.Dispose();
+        }
+    }
+
+    /// <summary>W6.11: the About window opened and closed repeatedly is released each time.</summary>
+    [TestMethod]
+    public void AboutWindowsAreReleased()
+    {
+        using var app = Launch("");
+        var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            for (var i = 0; i < 10; i++)
+            {
+                window.Focus();
+                MenuItem(window, automation, "menu.help", "menu.about").Invoke();
+                // Found and closed through Win32, not UI Automation: an automation client keeps the providers
+                // of the elements it has touched (and so the window) alive in the app.
+                Until(() => NativeMethods.FindWindow(null, "About TidyVNC") != IntPtr.Zero, $"About {i}");
+                Thread.Sleep(1000); // Laid out and rendered before it closes.
+                var about = NativeMethods.FindWindow(null, "About TidyVNC");
+                NativeMethods.PostMessage(about, 0x0010, 0, 0); // WM_CLOSE
+                Until(() => NativeMethods.FindWindow(null, "About TidyVNC") == IntPtr.Zero, $"About {i} closed");
+            }
+            var live = LiveAfterReleasingAutomation(app, ref automation);
+            Assert.IsFalse(live.Contains("AboutWindow", StringComparison.Ordinal), $"closed About windows are released: {live}");
+            CloseThroughEvent(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+        finally
+        {
+            automation.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// The Debug app's live objects after a collection. UI Automation clients hold references to the app's
+    /// automation providers (and so to elements and windows) until they release them, so the test's own
+    /// automation objects are released and collected first; a new automation object is returned.
+    /// </summary>
+    private static string LiveAfterReleasingAutomation(LaunchedApp app, ref UIA3Automation automation)
+    {
+        automation.Dispose();
+        for (var i = 0; i < 3; i++) { GC.Collect(); GC.WaitForPendingFinalizers(); }
+        Thread.Sleep(2000);
+        using (var collect = EventWaitHandle.OpenExisting($@"Local\TidyVNC-collect-{app.Process.Id}"))
+        using (var collected = EventWaitHandle.OpenExisting($@"Local\TidyVNC-collected-{app.Process.Id}"))
+        {
+            collect.Set();
+            Assert.IsTrue(collected.WaitOne(TimeSpan.FromSeconds(30)), "the app collected");
+        }
+        automation = new UIA3Automation();
+        return File.ReadAllText(Path.Combine(StateRoot, "live-objects.txt"));
+    }
+
+    /// <summary>Closes every window through the app's close event (the launcher's Ctrl+C route) and waits for exit.</summary>
+    private static void CloseThroughEvent(LaunchedApp app)
+    {
+        using (var close = EventWaitHandle.OpenExisting($@"Local\TidyVNC-close-{app.Process.Id}")) close.Set();
+        Exits(app);
+    }
+
     /// <summary>C08: About closes from the keyboard (Esc), and opening it again brings back one window.</summary>
     [TestMethod]
     public void AboutClosesWithEscape()
@@ -1254,6 +1390,101 @@ public sealed class VerticalSliceTests
 
 internal static partial class NativeMethods
 {
+    private delegate bool EnumWindowsCallback(IntPtr window, IntPtr parameter);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsCallback callback, IntPtr parameter);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static partial bool IsWindowVisible(IntPtr window);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll", EntryPoint = "GetWindowTextW")]
+    private static unsafe partial int GetWindowText(IntPtr window, char* text, int length);
+
+    /// <summary>Visible top-level windows of a process.</summary>
+    internal static List<IntPtr> TopLevelWindows(uint process)
+    {
+        var found = new List<IntPtr>();
+        EnumWindows((window, _) =>
+        {
+            if (IsWindowVisible(window) && GetWindowThreadProcessId(window, out var owner) != 0 && owner == process) found.Add(window);
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
+
+    internal static unsafe string Title(IntPtr window)
+    {
+        var text = stackalloc char[256];
+        var length = GetWindowText(window, text, 256);
+        return length > 0 ? new string(text, 0, length) : "";
+    }
+
+    [System.Runtime.InteropServices.LibraryImport("ntdll.dll")]
+    private static unsafe partial int NtQuerySystemInformation(int informationClass, void* buffer, int length, out int needed);
+
+    [System.Runtime.InteropServices.LibraryImport("ntdll.dll")]
+    private static unsafe partial int NtQueryObject(IntPtr handle, int informationClass, void* buffer, int length, out int needed);
+
+    /// <summary>A process's open handles counted by kernel object type (leak tests).</summary>
+    internal static unsafe Dictionary<string, int> HandleCounts(int processId)
+    {
+        // ObjectTypesInformation (3): a count, then OBJECT_TYPE_INFORMATION records, each followed by its name.
+        var names = new Dictionary<int, string>();
+        for (var size = 1 << 16; ; size *= 2)
+        {
+            var types = new byte[size];
+            fixed (byte* data = types)
+            {
+                if (NtQueryObject(IntPtr.Zero, 3, data, size, out _) != 0)
+                {
+                    if (size >= 1 << 24) throw new InvalidOperationException("object types");
+                    continue;
+                }
+                var count = *(uint*)data;
+                var offset = IntPtr.Size;
+                for (var i = 0; i < count; i++)
+                {
+                    var length = *(ushort*)(data + offset);
+                    var maximum = *(ushort*)(data + offset + 2);
+                    var name = *(char**)(data + offset + 8);
+                    names[data[offset + 0x5A]] = name is null ? "?" : new string(name, 0, length / 2);
+                    offset += 0x68 + ((maximum + 7) & ~7);
+                }
+            }
+            break;
+        }
+        // SystemExtendedHandleInformation (64): a count, then 40-byte entries (x64).
+        for (var size = 1 << 22; ; size *= 2)
+        {
+            var handles = new byte[size];
+            fixed (byte* data = handles)
+            {
+                var status = NtQuerySystemInformation(64, data, size, out var needed);
+                if (status == unchecked((int)0xC0000004)) { size = Math.Max(size, needed); continue; } // STATUS_INFO_LENGTH_MISMATCH
+                if (status != 0) throw new InvalidOperationException($"handles {status:x8}");
+                var counts = new Dictionary<string, int>();
+                var total = (long)*(nuint*)data;
+                for (long i = 0; i < total; i++)
+                {
+                    var entry = data + 16 + i * 40;
+                    if ((long)*(nuint*)(entry + 8) != processId) continue;
+                    var type = names.GetValueOrDefault(*(ushort*)(entry + 30), "?");
+                    counts[type] = counts.GetValueOrDefault(type) + 1;
+                }
+                return counts;
+            }
+        }
+    }
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll", EntryPoint = "FindWindowW", StringMarshalling = System.Runtime.InteropServices.StringMarshalling.Utf16)]
+    internal static partial IntPtr FindWindow(string? className, string title);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll", EntryPoint = "PostMessageW")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    internal static partial bool PostMessage(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
+
     [System.Runtime.InteropServices.LibraryImport("user32.dll")]
     internal static partial IntPtr GetForegroundWindow();
 

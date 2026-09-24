@@ -51,7 +51,7 @@ internal sealed partial class ImportWindow : Window
     {
         defaults = model;
         model.PropertyChanged += (_, _) => Refresh();
-        Closed += (_, _) => _ = model.CloseAsync();
+        this.OnClosed(() => _ = model.CloseAsync());
         Refresh();
     }
 
@@ -60,7 +60,7 @@ internal sealed partial class ImportWindow : Window
     {
         history = model;
         model.PropertyChanged += (_, _) => Refresh();
-        Closed += (_, _) => _ = model.CloseAsync();
+        this.OnClosed(() => _ = model.CloseAsync());
         Refresh();
     }
 
