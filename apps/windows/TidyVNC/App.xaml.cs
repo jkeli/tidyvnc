@@ -152,7 +152,16 @@ public partial class App : Application
         {
             var launch = NativeListenerModel.Launch(invocation, Environment.CurrentDirectory);
             // An invalid port or family was reported by vncviewer.exe; the window lets the user fix it.
-            OpenListener(launch.Invalid || launch.Document is not null ? null : launch.Options, invocation.Value("AlertOnFatalError") != "off");
+            if (launch is { Invalid: false, Document: { } document, Options: { } options })
+            {
+                // A listener file: reviewed first, then its settings apply to every accepted connection.
+                var preparation = new NativeSessionDefaults(Runtime, Preferences, invocation: new NativeInvocationLayer(invocation, "", Environment.CurrentDirectory),
+                    document: new NativeDocumentOpenRequest(Guid.NewGuid(), document, Environment.CurrentDirectory), documentReader: Services.DocumentReader,
+                    displays: Services.Displays, purpose: NativeSessionDefaultsPurpose.Listener);
+                OpenListener(options, invocation.Value("AlertOnFatalError") != "off", preparation, LaunchCredentials);
+                return;
+            }
+            OpenListener(launch.Invalid ? null : launch.Options, invocation.Value("AlertOnFatalError") != "off");
             return;
         }
         if (request.Kind == NativeActivationKind.Document)
@@ -355,7 +364,8 @@ public partial class App : Application
     /// accepted connection opens its own connection window. A -listen launch
     /// starts listening when the window first appears.
     /// </summary>
-    internal void OpenListener(NativeListenOptions? launch = null, bool alertOnFatalError = true)
+    internal void OpenListener(NativeListenOptions? launch = null, bool alertOnFatalError = true, NativeSessionDefaults? preparation = null,
+                               NativeLaunchCredentialInputs? credentials = null)
     {
         if (exiting) return;
         var model = new NativeListenerModel(Runtime, request =>
@@ -363,7 +373,11 @@ public partial class App : Application
             if (exiting) return false;
             OpenWindow(new NativeConnectionRequest { Reverse = request });
             return true;
-        }, launch, alertOnFatalError);
+        }, launch, alertOnFatalError, preparation, () =>
+        {
+            Displays.Refresh();
+            return Displays.Snapshot.Error is null ? Displays.Snapshot.Displays.Select(d => d.Id).ToHashSet() : null;
+        }, credentials);
         var window = new ListenerWindow(model);
         listeners.Add(window);
         window.Closed += async (_, _) =>

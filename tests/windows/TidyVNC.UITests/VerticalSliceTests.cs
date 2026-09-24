@@ -589,6 +589,54 @@ public sealed class VerticalSliceTests
     }
 
     /// <summary>
+    /// W5.12 / L07, F01: vncviewer -listen &lt;file&gt; reviews the file in the listener
+    /// window before anything binds; accepting listens on the file's ServerName
+    /// port, and the accepted connection is made with the file's settings.
+    /// </summary>
+    [TestMethod]
+    public async Task ListenWithAFileReviewsItFirst()
+    {
+        await using var server = new RfbTestServer();
+        var probe = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        probe.Start();
+        var free = ((System.Net.IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        var folder = Path.Combine(Path.GetTempPath(), "tidyvnc-ui-listen-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(folder);
+        var file = Path.Combine(folder, "listen.tidyvnc");
+        File.WriteAllText(file, $"TidyVNC Configuration file Version 1.0\nServerName={free}\nShared=off\nFuture=1\n");
+        using var app = Launch($"-listen \"{file}\"", commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var listener = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "Listen for connections"),
+                "the listener window");
+            ById(listener, "document.review.title");
+            Assert.IsTrue(listener.FindFirstDescendant(cf => cf.ByAutomationId("listener.status")) is null or { IsOffscreen: true },
+                "the listener controls wait for the review");
+            ById(listener, "document.accept").AsButton().Invoke();
+            Until(() => ById(listener, "listener.status").Name == "Listening for connections", "listening");
+            await server.ConnectReverseAsync(free);
+            var accept = WaitFor(() => listener.FindAllDescendants().FirstOrDefault(e =>
+                e.Properties.AutomationId.ValueOrDefault?.StartsWith("listener.accept.", StringComparison.Ordinal) == true), "the incoming connection");
+            accept.AsButton().Invoke();
+            Until(() => server.AuthenticatedClients == 1, "the accepted connection");
+            foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+        finally
+        {
+            try { Directory.Delete(folder, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        }
+    }
+
+    /// <summary>
     /// W5.15 / Q01, Q03: Connection information shows the server and live
     /// values; Show connection statistics puts the statistics over the desktop
     /// and takes them away again.

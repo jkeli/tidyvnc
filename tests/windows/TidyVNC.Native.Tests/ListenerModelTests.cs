@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using TidyVNC.Native.Documents;
+using TidyVNC.Native.Storage;
 
 namespace TidyVNC.Native.Tests;
 
@@ -133,6 +136,78 @@ public sealed class ListenerModelTests
         finally
         {
             busy.Stop();
+        }
+    }
+
+    private sealed class FileReader(string text) : INativeDocumentReader
+    {
+        public Task<byte[]> ReadAsync(string path, CancellationToken cancellation) =>
+            Task.FromResult(Encoding.UTF8.GetBytes("TidyVNC Configuration file Version 1.0\n" + text));
+    }
+
+    /// <summary>
+    /// vncviewer -listen &lt;file&gt; (macOS ListenerModel preparation): the file is reviewed before
+    /// anything binds, its ServerName is the listen port, and its settings reach every accepted
+    /// connection. Cancelling the review leaves the window unable to listen.
+    /// </summary>
+    [TestMethod]
+    public async Task AListenerFileIsReviewedAndItsSettingsReachAcceptedConnections()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "tidyvnc-listen-file-" + Guid.NewGuid().ToString("N"));
+        using var ui = new SingleThreadDispatcher();
+        try
+        {
+            await ui.InvokeAsync(async () =>
+            {
+                var runtime = new NativeRuntime(ui);
+                using var store = new NativePreferencesStore(Path.Combine(root, "state"));
+                NativeSessionDefaults Prepare() => new(runtime, store,
+                    document: new NativeDocumentOpenRequest(Guid.NewGuid(), Path.Combine(root, "listen.tidyvnc"), root),
+                    documentReader: new FileReader("ServerName=0\nShared=off\nFuture=1"), purpose: NativeSessionDefaultsPurpose.Listener);
+                var opened = new List<NativeReverseRequest>();
+                var preparation = Prepare();
+                var model = new NativeListenerModel(runtime, request => { opened.Add(request); return true; },
+                    new NativeListenOptions { Port = 5500, Ipv4 = true, Ipv6 = false }, preparation: preparation);
+                using var client = new TcpClient();
+                try
+                {
+                    Assert.IsFalse(model.CanStart, "nothing binds before the review");
+                    model.StartLaunchIfNeeded();
+                    await Until(() => preparation.DocumentReview is not null, "the review");
+                    Assert.AreEqual(NativeListenerPhase.Idle, model.Phase);
+                    Assert.AreEqual(1, preparation.DocumentReview!.Setup.Notices.Count, "the unknown field is listed");
+                    model.AcceptDocument(preparation.DocumentReview.Id);
+                    Assert.AreEqual("0", model.Port, "the file's ServerName is the port");
+                    await Until(() => model.Phase == NativeListenerPhase.Listening, "listening");
+                    await client.ConnectAsync(IPAddress.Loopback, (int)model.Addresses.First().Port);
+                    await Until(() => model.Incoming.Length == 1, "the peer");
+                    model.Accept(model.Incoming[0]);
+                    Assert.IsNotNull(opened.Single().Prepared, "the reviewed settings go with the connection");
+                    Assert.IsFalse(opened.Single().Prepared!.Configuration.Shared);
+                }
+                finally { await model.CloseAsync(); }
+
+                var cancelled = Prepare();
+                var other = new NativeListenerModel(runtime, _ => true, new NativeListenOptions { Port = 5500 }, preparation: cancelled);
+                try
+                {
+                    other.StartLaunchIfNeeded();
+                    await Until(() => cancelled.DocumentReview is not null, "the second review");
+                    other.CancelDocument(cancelled.DocumentReview!.Id);
+                    Assert.IsTrue(other.PreparationCancelled);
+                    Assert.IsFalse(other.CanStart);
+                    other.Start();
+                    Assert.AreEqual(NativeListenerPhase.Idle, other.Phase, "a cancelled file never listens");
+                }
+                finally { await other.CloseAsync(); }
+                await store.CloseAsync();
+                await runtime.ShutdownAsync();
+                return true;
+            });
+        }
+        finally
+        {
+            try { Directory.Delete(root, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
         }
     }
 }

@@ -1474,3 +1474,28 @@ Add dated entries, newest last, in the macOS format:
   - With criteria that allow one-off steps like that, the default and soak runs both pass.
 - Remaining: attach cycles of the app's Direct3D presenter and swap chains, meaning desktop views
   detaching and reattaching and full-screen surfaces. These need the display on, through the UI suite.
+
+### W5.12 (progress) — vncviewer -listen <file> — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Before: a listener file on the command line was ignored, and the window listened with defaults.
+- Now `NativeListenerModel` takes a `NativeSessionDefaults` of purpose Listener, following macOS
+  `ListenerModel`:
+  - Nothing binds until the file is reviewed. The window shows the review, the monitor mapping, a file
+    problem with *Reload connection file*, a defaults failure with *Retry* and *Use built-in defaults*,
+    or *Loading listener settings…*.
+  - Accepting listens on the file's ServerName port.
+  - Cancelling marks the launch cancelled, and that window never listens.
+  - Every accepted connection gets the reviewed settings (`NativeReverseRequest.Prepared`).
+  - An accepted connection is refused with the macOS text when a reviewed selected display has
+    disconnected.
+  - Launch credentials go to the first accepted connection only, and are cleared on close or cancel.
+- Tests:
+  - `ListenerModelTests.AListenerFileIsReviewedAndItsSettingsReachAcceptedConnections`:
+    - no bind before the review;
+    - the unknown field is listed;
+    - the port comes from ServerName;
+    - the accepted request carries `Shared=off`;
+    - cancel blocks Start.
+  - Gated UI test `ListenWithAFileReviewsItFirst`: review, accept, listening, and a reverse connection
+    accepted. Passes, and `ListenAcceptsAReverseConnection` still passes.

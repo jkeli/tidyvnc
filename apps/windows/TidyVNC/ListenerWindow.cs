@@ -25,6 +25,9 @@ internal sealed partial class ListenerWindow : Window
     private readonly StackPanel addresses = new() { Spacing = 2 };
     private readonly StackPanel incoming = new() { Spacing = 8 };
     private readonly TextBlock issue = Ui.Text("", "listener.issue");
+    // A listener file (-listen <file>): its review, display mapping or problem, shown until it is accepted.
+    private readonly ContentControl preparationHost = new() { HorizontalContentAlignment = HorizontalAlignment.Stretch };
+    private StackPanel listening = null!;
     private bool updating, closing;
 
     public ListenerWindow(NativeListenerModel model)
@@ -47,12 +50,12 @@ internal sealed partial class ListenerWindow : Window
         var families = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16, Children = { ipv4, ipv6 } };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { start, stop } };
         AutomationProperties.SetAutomationId(incoming, "listener.incoming");
-        var panel = Ui.Stack(12,
-            Ui.Title(Strings.Get("listener.listen.for.connections"), "listener.title"),
+        listening = Ui.Stack(12,
             Ui.Caption(Strings.Get("listener.start.a.listener.then.ask.the.remote.vnc.server.to.connect.to")),
             port, families, buttons, status, addresses, issue,
             Ui.Heading(Strings.Get("listener.incoming.connections")), incoming,
             Ui.Caption(Strings.Get("listener.waiting.connections.expire.after.30.seconds.stopping.the.listener.leaves.accepted.connections")));
+        var panel = Ui.Stack(12, Ui.Title(Strings.Get("listener.listen.for.connections"), "listener.title"), preparationHost, listening);
         panel.Padding = new Thickness(24);
         Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Disabled };
         Strings.Localize(this);
@@ -62,6 +65,7 @@ internal sealed partial class ListenerWindow : Window
             if (e.PropertyName == nameof(NativeListenerModel.ClosesAfterFailure) && model.ClosesAfterFailure) Close();
             else Refresh();
         };
+        if (model.Preparation is { } preparation) preparation.PropertyChanged += (_, _) => Refresh();
         Activated += (_, _) => model.StartLaunchIfNeeded();
         AppWindow.Closing += (_, _) => { closing = true; model.RequestClose(); };
         Refresh();
@@ -77,12 +81,44 @@ internal sealed partial class ListenerWindow : Window
         NativeListenerIssue.StartFailed => "listener.the.listener.could.not.start.check.its.port.and.network.settings.then",
         NativeListenerIssue.Unavailable => "listener.this.incoming.connection.is.no.longer.available",
         NativeListenerIssue.OpenFailed => "listener.a.connection.window.could.not.be.opened.try.again.or.reject.the",
+        NativeListenerIssue.DisplayDisconnected => "listener.a.reviewed.display.is.disconnected.reconnect.it.or.close.this.listener.and",
         _ => "listener.the.listener.stopped.because.it.could.not.receive.incoming.connections.start.it",
     });
+
+    /// <summary>The listener file's preparation (macOS ListenerPreparationView), or null once it is ready.</summary>
+    private FrameworkElement? Preparation()
+    {
+        if (model.Preparation is not { } preparation || (preparation.IsReady && !model.PreparationCancelled)) return null;
+        if (model.PreparationCancelled)
+            return Ui.Text(Strings.Get("listener.listener.launch.cancelled.close.this.window.and.reopen.the.file.to.try"), "listener.document.cancelled");
+        if (preparation.MonitorMapping is { } mapping)
+            return SetupPages.Mapping(mapping, preparation.DocumentIssue, "", assignments => preparation.ResolveMapping(mapping.Id, assignments),
+                () => model.CancelDocument(mapping.Id, mapping: true));
+        if (preparation.DocumentReview is { } review)
+            return SetupPages.Review(review, () => preparation.EditDocumentMapping(review.Id), () => model.AcceptDocument(review.Id),
+                () => model.CancelDocument(review.Id), listening: true);
+        if ((preparation.DocumentIssue ?? preparation.InvocationIssue) is { } problem)
+        {
+            var text = Ui.Text(problem, "listener.document.error");
+            Ui.SetTone(text, Tone.Error);
+            return Ui.Stack(8, text, Ui.Button(Strings.Get("listener.reload.connection.file"), (_, _) => preparation.Load(), "listener.document.reload"));
+        }
+        if (preparation.Error is not null)
+            return Ui.Stack(8, Ui.Text(Strings.Get("listener.saved.defaults.could.not.be.loaded.retry.or.review.the.file.using")),
+                Ui.Button(Strings.Get("listener.retry.defaults"), (_, _) => preparation.Load(), "listener.document.retry"),
+                Ui.Button(Strings.Get("settings.inheritance.use.builtin.defaults"), (_, _) => preparation.UseBuiltInDefaults(), "listener.document.builtIn"));
+        return Ui.Text(Strings.Get("listener.loading.listener.settings"), "listener.document.loading");
+    }
 
     private void Refresh()
     {
         if (closing) return;
+        var preparing = Preparation();
+        // Keep the same page (and its focus) while its request is unchanged, as the connection window does.
+        if (!(preparationHost.Content is FrameworkElement current && preparing is not null && current.Tag is { } key && Equals(key, preparing.Tag)))
+            preparationHost.Content = preparing;
+        preparationHost.Visibility = preparing is null ? Visibility.Collapsed : Visibility.Visible;
+        listening.Visibility = preparing is null ? Visibility.Visible : Visibility.Collapsed;
         updating = true;
         try
         {
