@@ -6,7 +6,10 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="about_acknowledgements" xml:space="preserve"><value>Acknowledgements</value></data>
   <data name="about_action" xml:space="preserve"><value>About TidyVNC…</value></data>
+  <data name="about_copyright" xml:space="preserve"><value>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</value></data>
+  <data name="about_credits" xml:space="preserve"><value>TidyVNC builds on the work of the TigerVNC, TightVNC, RealVNC and many other contributors, and on the libraries listed in the acknowledgements and third-party notices.</value></data>
   <data name="about_licences" xml:space="preserve"><value>Licence, acknowledgements and third-party notices</value></data>
   <data name="about_summary" xml:space="preserve"><value>TidyVNC is a VNC viewer derived from TigerVNC, distributed under the GNU General Public License, version 2 or later.</value></data>
   <data name="about_title" xml:space="preserve"><value>About TidyVNC</value></data>

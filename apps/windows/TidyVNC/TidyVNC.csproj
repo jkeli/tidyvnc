@@ -45,6 +45,8 @@
     <!-- Window and title bar icons, loaded from the app folder. -->
     <Content Include="$(RepoRoot)media\icons\tidyvnc_32.png" Link="Assets\tidyvnc_32.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(RepoRoot)media\icons\tidyvnc.ico" Link="Assets\tidyvnc.ico" CopyToOutputDirectory="PreserveNewest" />
+    <!-- About (H01): the app icon at 128 pixels. -->
+    <Content Include="$(RepoRoot)media\icons\tidyvnc_128.png" Link="Assets\tidyvnc_128.png" CopyToOutputDirectory="PreserveNewest" />
     <!-- Help (H02): the licence, acknowledgements and third-party notices ship with the app. -->
     <Content Include="$(RepoRoot)LICENCE.TXT" Link="Documents\LICENCE.TXT" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(RepoRoot)README.rst" Link="Documents\README.rst" CopyToOutputDirectory="PreserveNewest" />

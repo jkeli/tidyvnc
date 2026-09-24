@@ -765,13 +765,51 @@ public sealed class VerticalSliceTests
             Until(() => ById(help, "help.document").Name.Contains("GNU GENERAL PUBLIC LICENSE", StringComparison.Ordinal), "the licence text");
             help.Close();
 
-            MenuItem(window, automation, "menu.help", "menu.about").Invoke();
-            var version = ById(window, "about.version");
+            // About (C08, H01): its own window, selectable text, closed with Esc, and a link to the licence.
+            Window About()
+            {
+                MenuItem(window, automation, "menu.help", "menu.about").Invoke();
+                return WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "About TidyVNC"), "the About window");
+            }
+            var about = About();
+            var version = ById(about, "about.version");
             var architecture = System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64 ? "ARM64" : "x64";
             StringAssert.Contains(version.Name, architecture);
-            ById(window, "about.licences").Patterns.Invoke.Pattern.Invoke();
+            Assert.IsTrue(version.Patterns.Text.IsSupported, "the version is selectable text");
+            StringAssert.Contains(ById(about, "about.copyright").Name, "Copyright");
+            Assert.IsNotNull(ById(about, "about.credits"));
+            ById(about, "about.licences").Patterns.Invoke.Pattern.Invoke();
             var licence = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "TidyVNC help"), "help at the licence");
             Until(() => ById(licence, "help.document").Name.Contains("GNU GENERAL PUBLIC LICENSE", StringComparison.Ordinal), "the licence from About");
+            foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>C08: About closes from the keyboard (Esc), and opening it again brings back one window.</summary>
+    [TestMethod]
+    public void AboutClosesWithEscape()
+    {
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            MenuItem(window, automation, "menu.help", "menu.about").Invoke();
+            var about = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "About TidyVNC"), "the About window");
+            RequireForeground(about);
+            Keyboard.Type(VirtualKeyShort.ESCAPE);
+            Until(() => !app.Application.GetAllTopLevelWindows(automation).Any(w => w.Title == "About TidyVNC"), "Esc closes About");
+            window.Focus();
+            MenuItem(window, automation, "menu.help", "menu.about").Invoke();
+            MenuItem(window, automation, "menu.help", "menu.about").Invoke();
+            Until(() => app.Application.GetAllTopLevelWindows(automation).Count(w => w.Title == "About TidyVNC") == 1, "one About window");
             foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
             Exits(app);
         }

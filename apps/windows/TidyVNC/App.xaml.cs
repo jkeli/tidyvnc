@@ -393,6 +393,7 @@ public partial class App : Application
     private SettingsWindow? settings;
     private ProfilesWindow? profiles;
     private HelpWindow? help;
+    private AboutWindow? about;
     private ImportWindow? importDefaults, importHistory;
 
     /// <summary>File > Import connection defaults (F09-F12): one window.</summary>
@@ -467,6 +468,17 @@ public partial class App : Application
         window.Activate();
     }
 
+    /// <summary>About TidyVNC (H01): one window, brought forward when asked again.</summary>
+    internal void OpenAbout()
+    {
+        if (exiting) return;
+        if (about is { } open) { open.Activate(); return; }
+        var window = new AboutWindow();
+        about = window;
+        window.Closed += (_, _) => { if (ReferenceEquals(about, window)) about = null; };
+        window.Activate();
+    }
+
     /// <summary>Saved profiles: one window, brought forward when asked again.</summary>
     internal void OpenProfiles()
     {
@@ -504,6 +516,7 @@ public partial class App : Application
         settings?.Close();
         profiles?.Close();
         help?.Close();
+        about?.Close();
         importDefaults?.Close();
         importHistory?.Close();
         Documents?.Stop();

@@ -127,31 +127,83 @@ internal sealed partial class HelpWindow : Window
     }
 }
 
-/// <summary>The editor-slot request for About TidyVNC.</summary>
-internal sealed record AboutRequest(Guid Id);
-
-/// <summary>About TidyVNC (PARITY H01): the version and the processor architecture of this build.</summary>
-internal static class AboutDialog
+/// <summary>
+/// About TidyVNC (UX.md section 2, PARITY C08 and H01): a small window that cannot be resized, with the
+/// icon, name, version and processor architecture, copyright, credits and links. Its text is
+/// selectable, and Esc or Done closes it. It is one window for the app, so any connection window can
+/// open it whatever that window is doing.
+/// </summary>
+internal sealed partial class AboutWindow : Window
 {
     public static string Version =>
-        typeof(AboutDialog).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
-        ?? typeof(AboutDialog).Assembly.GetName().Version?.ToString(3) ?? "";
+        typeof(AboutWindow).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
+        ?? typeof(AboutWindow).Assembly.GetName().Version?.ToString(3) ?? "";
 
-    public static ContentDialog Create(Action openLicence)
+    public static string Architecture => RuntimeInformation.ProcessArchitecture switch
     {
-        var architecture = RuntimeInformation.ProcessArchitecture switch
+        System.Runtime.InteropServices.Architecture.Arm64 => "ARM64",
+        System.Runtime.InteropServices.Architecture.X64 => "x64",
+        var other => other.ToString(),
+    };
+
+    public AboutWindow()
+    {
+        Title = Strings.Get("about.title");
+        SystemBackdrop = new MicaBackdrop();
+        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));
+        WindowSizes.Apply(AppWindow, 480, 560, 480, 560);
+        if (AppWindow.Overlapped() is { } presenter)
         {
-            Architecture.Arm64 => "ARM64",
-            Architecture.X64 => "x64",
-            var other => other.ToString(),
+            presenter.IsResizable = false; presenter.IsMaximizable = false; presenter.IsMinimizable = false;
+        }
+
+        var icon = new Image
+        {
+            Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc_128.png"))),
+            Width = 96, Height = 96, HorizontalAlignment = HorizontalAlignment.Center,
         };
-        var version = Ui.Text(Strings.Format("about.version", Version, architecture), "about.version");
-        var licences = new HyperlinkButton { Content = Strings.Get("about.licences") };
-        AutomationProperties.SetAutomationId(licences, "about.licences");
-        var dialog = Ui.Dialog(Strings.Get("about.title"), Ui.Stack(12, version, Ui.Caption(Strings.Get("about.summary")), licences), 440);
-        licences.Click += (_, _) => { dialog.Hide(); openLicence(); };
-        dialog.CloseButtonText = Strings.Get("action.done");
-        AutomationProperties.SetAutomationId(dialog, "about.dialog");
-        return dialog;
+        AutomationProperties.SetAccessibilityView(icon, AccessibilityView.Raw);
+        var name = Ui.Title("TidyVNC", "about.name");
+        name.HorizontalAlignment = HorizontalAlignment.Center;
+        AutomationProperties.SetHeadingLevel(name, AutomationHeadingLevel.Level1);
+        var version = Ui.Text(Strings.Format("about.version", Version, Architecture), "about.version", selectable: true);
+        var copyright = Ui.Text(Strings.Get("about.copyright"), "about.copyright", selectable: true);
+        var summary = Ui.Text(Strings.Get("about.summary"), "about.summary", selectable: true);
+        var credits = Ui.Text(Strings.Get("about.credits"), "about.credits", selectable: true);
+        foreach (var text in new[] { version, copyright, summary, credits })
+        {
+            text.TextWrapping = TextWrapping.Wrap;
+            text.HorizontalAlignment = HorizontalAlignment.Center;
+            text.TextAlignment = TextAlignment.Center;
+        }
+
+        HyperlinkButton Link(string key, string id, Action open)
+        {
+            var link = new HyperlinkButton { Content = Strings.Get(key), HorizontalAlignment = HorizontalAlignment.Center };
+            AutomationProperties.SetAutomationId(link, id);
+            link.Click += (_, _) => open();
+            return link;
+        }
+        var links = Ui.Stack(0,
+            Link("about.acknowledgements", "about.acknowledgements", () => App.Current.OpenHelp("acknowledgements")),
+            Link("about.licences", "about.licences", () => App.Current.OpenHelp("licence")),
+            Link("help.project", "about.project", () => App.OpenLink(NativeHelpLink.Project)),
+            Link("help.issue", "about.issue", () => App.OpenLink(NativeHelpLink.Issues)));
+
+        var done = Ui.Button(Strings.Get("action.done"), (_, _) => Close(), "about.done", accent: true);
+        done.HorizontalAlignment = HorizontalAlignment.Right;
+        var body = Ui.Stack(12, icon, name, version, copyright, summary, credits, links);
+        var root = new Grid { Padding = new Thickness(24), RowSpacing = 12 };
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var scroll = new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Disabled };
+        Grid.SetRow(done, 1);
+        root.Children.Add(scroll); root.Children.Add(done);
+        var escape = new Microsoft.UI.Xaml.Input.KeyboardAccelerator { Key = Windows.System.VirtualKey.Escape };
+        escape.Invoked += (_, e) => { e.Handled = true; Close(); };
+        root.KeyboardAccelerators.Add(escape);
+        AutomationProperties.SetAutomationId(root, "about.window");
+        Content = root;
+        root.Loaded += (_, _) => done.Focus(FocusState.Programmatic);
     }
 }

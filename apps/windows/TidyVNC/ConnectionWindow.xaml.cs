@@ -393,7 +393,6 @@ public sealed partial class ConnectionWindow : Window
             NativeRemoteResizePolicyDraft policy => () => RemoteResizePolicyDialog.Create(policy),
             NativeRemoteResizeDraft resize => () => RemoteResizeDialog.Create(resize),
             NativeFullscreenDraft displays => () => FullscreenDialog.Create(displays),
-            AboutRequest => () => AboutDialog.Create(() => App.Current.OpenHelp("licence")),
             ConnectionInformationRequest when session is { } current => () => ConnectionInformationDialog.Create(current, Controller.Endpoint),
             _ => null,
         };
@@ -650,7 +649,7 @@ public sealed partial class ConnectionWindow : Window
 
     private void AboutClick(object sender, RoutedEventArgs e)
     {
-        if (Controller.EditorsIdle && Controller.BeginEditor(new AboutRequest(Guid.NewGuid()), NativeEditorScope.Any, () => Task.CompletedTask)) dialogs.Update();
+        App.Current.OpenAbout();
     }
     private void ListenClick(object sender, RoutedEventArgs e) => App.Current.OpenListener();
     private void ProfilesClick(object sender, RoutedEventArgs e) => App.Current.OpenProfiles();
@@ -821,13 +820,18 @@ public sealed partial class ConnectionWindow : Window
         AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(x, y, target.Width, target.Height));
     }
 
-    /// <summary>The Connection menu at a point in a desktop view (the viewer chord + M).</summary>
+    /// <summary>
+    /// The Connection menu for the viewer chord + M (K04, UX.md section 7): at the pointer when it is over
+    /// the desktop, otherwise (keyboard-only use) at the centre of the view.
+    /// </summary>
     private void ShowContextMenu(DesktopView view)
     {
         var menu = new MenuFlyout();
         ConnectionMenu.Fill(menu.Items, this);
         var (width, height) = view.ViewSize;
-        menu.ShowAt(view, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions { Position = new Windows.Foundation.Point(width / 2, height / 2) });
+        var at = view.PointerPosition is { } pointer && pointer.X >= 0 && pointer.Y >= 0 && pointer.X < width && pointer.Y < height
+            ? pointer : new Windows.Foundation.Point(width / 2, height / 2);
+        menu.ShowAt(view, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions { Position = at });
     }
 
     // ---- Full screen (DESKTOP.md section 7) ------------------------------------------

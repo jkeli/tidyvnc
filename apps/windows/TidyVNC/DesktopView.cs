@@ -146,6 +146,9 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     private readonly Dictionary<NativePixelRect, Image> softwareTiles = new();
     /// <summary>The mouse or pen over the view, logical units in the panel; null when it is elsewhere.</summary>
     private Windows.Foundation.Point? pointer;
+
+    /// <summary>Where the mouse or pen is over this view, in its logical units; null when it is elsewhere.</summary>
+    internal Windows.Foundation.Point? PointerPosition => pointer;
     private NativeCursorFallback cursorFallback = NativeCursorFallback.Hidden;
 
     /// <summary>What a blank remote cursor becomes (AlwaysCursor/CursorType): nothing, the dot or the system arrow.</summary>

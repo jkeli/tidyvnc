@@ -1982,3 +1982,27 @@ Add dated entries, newest last, in the macOS format:
     taken while the session was not displayed. Only runs in the same session state should be
     compared; the FLTK comparison must match that too.
 - Still open for W6.10: the FLTK side (test account), present timing (PresentMon/ETW) and the 10% gate.
+
+### C08/H01, K04 — About as its own window; the Connection menu at the pointer — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Found by a PARITY audit of the Windows code: About was a `ContentDialog` in the connection window's
+  editor slot. It had non-selectable text and no icon, copyright or credits, and it did nothing while
+  another per-connection dialog was open. Chord + M opened the Connection menu at the centre of the
+  view instead of at the pointer.
+- About is now `AboutWindow` (UX.md section 2): one window for the app, 480×560, not resizable,
+  minimizable or maximizable. It has:
+  - the 128-pixel icon (now in the payload) and the name;
+  - selectable version and architecture, the copyright line of the macOS Info.plist, and the summary
+    and credits;
+  - links to the acknowledgements and licence in Help, the project and issues;
+  - Done, and Esc to close.
+  - New strings `about.copyright`, `about.credits` and `about.acknowledgements` (`windowsOnly`); the
+    strings audit passes with 1095 strings.
+- K04: the menu opens at the pointer when it is over the desktop, and at the centre otherwise
+  (keyboard-only use).
+- Tests (gated UI):
+  - `HelpAndAbout` now opens the About window and checks the architecture, selectable version text,
+    copyright, credits and the licence link.
+  - The new `AboutClosesWithEscape` checks that Esc closes it and that asking twice gives one window.
+  - Both pass. K04's pointer placement needs input on screen and is left to the hands-on keyboard pass.
