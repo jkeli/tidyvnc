@@ -252,6 +252,43 @@ public sealed class ConnectionTests
         });
     }
 
+    /// <summary>
+    /// W5.16 / E01, E02: a name that does not resolve and a server that disappears mid-session end the
+    /// attempt with their own typed problem, each with its message, and Retry where reconnecting helps.
+    /// </summary>
+    [TestMethod]
+    public async Task NameFailuresAndVanishingServersAreTypedProblems()
+    {
+        await using var f = await Create();
+        await using var peer = new LoopbackPeer();
+        await f.Ui.InvokeAsync(async () =>
+        {
+            using var unresolved = new NativeConnectionController(f.Services());
+            await Until(() => unresolved.Defaults.IsReady, "defaults");
+            unresolved.Endpoint = "no-such-host.invalid::1";
+            unresolved.Connect();
+            await Until(() => !unresolved.Busy && unresolved.ConnectionProblem is not null, "the resolution failure", 30);
+            Assert.IsTrue(unresolved.ConnectionProblem!.Issue is NativeConnectionIssue.Resolution or NativeConnectionIssue.ResolutionTimeout,
+                $"issue {unresolved.ConnectionProblem.Issue}");
+            StringAssert.StartsWith(unresolved.ConnectionProblem.Issue.Message().Key, "connection.issue.resolution");
+            await unresolved.CloseAsync();
+
+            using var vanishing = new NativeConnectionController(f.Services());
+            await Until(() => vanishing.Defaults.IsReady, "defaults");
+            vanishing.Endpoint = peer.Endpoint;
+            vanishing.Connect();
+            await Until(() => vanishing.Session?.Snapshot.State == NativeSessionState.Connected, "connected");
+            peer.Drop();
+            await Until(() => vanishing.ConnectionProblem is not null, "the dropped connection");
+            var problem = vanishing.ConnectionProblem!;
+            Assert.IsTrue(problem.Issue is NativeConnectionIssue.PeerClosed or NativeConnectionIssue.Transport or NativeConnectionIssue.Connection,
+                $"issue {problem.Issue}");
+            Assert.IsTrue(vanishing.OffersRetry(problem), "a vanished server can be retried");
+            StringAssert.StartsWith(problem.Issue.Message().Key, "connection.issue.");
+            await vanishing.CloseAsync();
+        });
+    }
+
     /// <summary>A stand-in tunnel whose relay is a loopback peer (the routed connect accepts a loopback TCP relay).</summary>
     private sealed class FailingTunnel(NativeSshTunnelError error, string relay) : INativeTunnel
     {

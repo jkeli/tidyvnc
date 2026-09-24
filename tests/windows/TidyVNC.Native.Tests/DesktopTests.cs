@@ -128,6 +128,50 @@ public sealed class DesktopTests
                               $"full {outcome.latest.FullRedraws}, worst {outcome.latest.WorstFrame.TotalMilliseconds:F2} ms");
     }
 
+    /// <summary>
+    /// W6.1 / E05 (DESKTOP.md section 1): a removed or reset Direct3D device is recreated with its swap
+    /// chain, reattached to the panel and the full frame is redrawn; updates continue on the new device.
+    /// A failure that recovery cannot handle is reported with the desktop presentation text.
+    /// </summary>
+    [TestMethod]
+    public async Task DeviceLossRecreatesThePresenterAndRedrawsTheFrame()
+    {
+        using var ui = new SingleThreadDispatcher();
+        await using var peer = new LoopbackPeer();
+        var outcome = await ui.InvokeAsync(async () =>
+        {
+            var runtime = new NativeRuntime(ui);
+            var session = runtime.CreateSession(new NativeSessionConfiguration { SecurityTypes = [1] });
+            var attached = new List<NativePresenter>();
+            using var renderer = new DesktopRenderer(ui, attached.Add);
+            Exception? failure = null;
+            renderer.Failed += error => failure = error;
+            session.FrameUpdated += renderer.Submit;
+            renderer.Resize(new DesktopViewport(100, 50, 100, 50, 1.0, Filter: NativeScalingFilter.Nearest));
+            await session.ConnectAsync(peer.Endpoint);
+            await Until(() => Pixel(renderer.Presenter, 50, 25) == 0xff0a141e);
+            var original = renderer.Presenter;
+
+            renderer.SimulateDeviceLoss();
+            await Until(() => renderer.Statistics.DeviceResets == 1 && !ReferenceEquals(renderer.Presenter, original));
+            await Until(() => Pixel(renderer.Presenter, 50, 25) == 0xff0a141e && Pixel(renderer.Presenter, 10, 25) == 0xff000000);
+            var reattached = attached.Count != 0 && ReferenceEquals(attached[^1], renderer.Presenter);
+
+            await peer.FloodAsync(3);
+            var last = unchecked((byte)(2 * 7));
+            await Until(() => (Pixel(renderer.Presenter, 50, 25) & 0xff0000) >> 16 == last);
+            session.FrameUpdated -= renderer.Submit;
+            await session.CloseAsync();
+            await runtime.ShutdownAsync();
+            return (reattached, failure, resets: renderer.Statistics.DeviceResets);
+        });
+        Assert.IsTrue(outcome.reattached, "the new presenter is attached to the panel");
+        Assert.IsNull(outcome.failure, "recovery is silent");
+        Assert.AreEqual(1, outcome.resets);
+        var text = NativePresentationIssues.From(new WindowsHelperException(WindowsResult.DeviceRemoved, "Presenting"), NativePresentationContext.Desktop);
+        Assert.AreEqual(NativePresentationIssue.DesktopUnavailable, text, "an unrecoverable presenter failure has the desktop recovery text");
+    }
+
     /// <summary>W0.5 measurement: 30 full 1080p updates rendered at identity and at 1.5x.</summary>
     [TestMethod]
     [DataRow(1.0)]

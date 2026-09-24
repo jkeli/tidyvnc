@@ -1617,3 +1617,26 @@ Add dated entries, newest last, in the macOS format:
     display on.
   - Large cursors as a software overlay.
   - Density changes checked on mixed-DPI hardware.
+
+### W6.1 (progress), W5.16 (progress) — device loss and error rows — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- W6.1 / E05: `DesktopRenderer.SimulateDeviceLoss` (internal, for tests) makes the next render report
+  `DXGI_ERROR_DEVICE_REMOVED`. That drives the real recovery path; Direct3D 11 cannot remove a device on
+  request.
+- `DesktopTests.DeviceLossRecreatesThePresenterAndRedrawsTheFrame` checks that recovery:
+  - creates a new device and swap chain, and attaches the new presenter to the panel;
+  - redraws the frame in full, with the letterbox black;
+  - carries on with later updates on the new device;
+  - stays silent (no Failed event) and counts one device reset.
+  - An unrecoverable presenter error maps to the desktop presentation text.
+  - Desktop tests 6/6.
+- W5.16 / E01, E02: `ConnectionTests.NameFailuresAndVanishingServersAreTypedProblems`:
+  - `no-such-host.invalid` ends with the resolution problem and its message.
+  - A connected server that drops the socket ends with a peer-closed or transport problem that offers
+    Retry.
+  - Together with `ProblemsOfferRetryOnlyWhenAllowed` (refused, retry scoping, ReconnectOnError off,
+    silent close with AlertOnFatalError off, which covers E01, E03 and E06), E02's rejected password
+    (`SessionTests.WrongPasswordEndsTheAttemptWithAuthenticationRejected`) and the security smokes, each
+    automatable E row now has a test. E04 does not apply on Windows.
+- Remaining: seeing each alert on screen (display on), and a real driver reset.

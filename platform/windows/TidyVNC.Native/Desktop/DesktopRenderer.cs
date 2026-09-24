@@ -201,8 +201,22 @@ public sealed unsafe class DesktopRenderer : IDisposable
         wake.Set();
     }
 
+    private volatile bool simulateDeviceLoss;
+
+    /// <summary>Tests: the next render reports DXGI_ERROR_DEVICE_REMOVED, as a driver reset or GPU removal would.</summary>
+    internal void SimulateDeviceLoss()
+    {
+        simulateDeviceLoss = true;
+        wake.Set();
+    }
+
     private void Render(bool haveFrame, Pending? frame, DesktopViewport? resize)
     {
+        if (simulateDeviceLoss)
+        {
+            simulateDeviceLoss = false;
+            throw new WindowsHelperException(WindowsResult.DeviceRemoved, "Presenting (simulated device loss)");
+        }
         var started = Stopwatch.GetTimestamp();
         var full = false;
         if (resize is not null && resize != viewport)
