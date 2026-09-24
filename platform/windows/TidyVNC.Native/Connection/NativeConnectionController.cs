@@ -583,6 +583,17 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         if (CanRetry(problem)) Connect();
     }
 
+    /// <summary>
+    /// New security settings replace what earlier prompts relied on: the
+    /// session password, pending trust work and any Retry for the old settings.
+    /// </summary>
+    public void SecurityApplied()
+    {
+        UiThread.Require(Dispatcher);
+        Credentials.Clear(); Trust.Cancel();
+        ConnectionProblem = null; retryProblem = null;
+    }
+
     // ---- Statistics --------------------------------------------------------------------------
 
     public bool CanToggleStatistics => ShowsStatistics || (!Closing && !Busy && Session?.Information is not null);

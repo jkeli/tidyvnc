@@ -52,7 +52,8 @@
     "document.files.tidyvnc": "TidyVNC connection files",
     "document.files.tigervnc": "TigerVNC connection files",
     "document.files.all": "All files",
-    "profiles.ssh.windows.client.missing": "Install the OpenSSH Client in Settings > System > Optional features to use an SSH gateway."
+    "profiles.ssh.windows.client.missing": "Install the OpenSSH Client in Settings > System > Optional features to use an SSH gateway.",
+    "document.files.certificates": "Certificate files"
   },
   "reviewed": [
     "help.guide.input.title",

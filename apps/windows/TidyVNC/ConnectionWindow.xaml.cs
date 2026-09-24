@@ -279,6 +279,7 @@ public sealed partial class ConnectionWindow : Window
         Func<ContentDialog>? create = editor switch
         {
             NativeSessionEncodingDraft encoding => () => EncodingDialog.Create(encoding),
+            NativeSessionSecurityDraft security => () => SecurityDialog.Create(security, this),
             _ => null,
         };
         return create is null ? null : new DialogRequest(key, create, _ => Controller.EndEditor(editor), () => Controller.EndEditor(editor));
@@ -287,6 +288,24 @@ public sealed partial class ConnectionWindow : Window
     // ---- Settings dialogs (only one editor at a time; see NativeConnectionController.BeginEditor) ----
 
     internal bool CanOpenConnectedEditor => Controller.EditorsIdle && session?.Snapshot.State == NativeSessionState.Connected;
+
+    internal bool CanOpenDisconnectedEditor => Controller.EditorsIdle &&
+        session?.Snapshot.State is NativeSessionState.Idle or NativeSessionState.Closed or NativeSessionState.Failed;
+
+    internal void OpenSecurity()
+    {
+        if (!CanOpenDisconnectedEditor || session is null) return;
+        NativeSessionSecurityDraft draft;
+        try { draft = new NativeSessionSecurityDraft(session, Controller.SecurityApplied); }
+        catch (NativeError)
+        {
+            Controller.ReportFatal(new NativeText("connection.recovery.security.settings.are.unavailable.for.this.connection"));
+            return;
+        }
+        if (!Controller.BeginEditor(draft, NativeEditorScope.Disconnected, async () => { await draft.CloseAsync(); draft.Dispose(); })) { draft.Dispose(); return; }
+        draft.Reload();
+        dialogs.Update();
+    }
 
     internal void OpenEncoding()
     {
