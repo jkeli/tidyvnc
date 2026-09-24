@@ -458,7 +458,7 @@ public sealed class VerticalSliceTests
             var bounds = desktop.BoundingRectangle;
             ClickAt(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
             Until(() => server.Pointers.Any(p => p.Buttons == 1), "the desktop focused");
-            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.RETURN);
+            NativeMethods.PressTogether((0xA2, 0x1D), (0xA4, 0x38), (0x0D, 0x1C)); // Left Ctrl + left Alt + Enter
             Until(() => NativeMethods.WindowRect(handle) != NativeMethods.MonitorRect(handle), "the window restored");
             Until(() => ById(window, "menu.file") is { IsOffscreen: false }, "the menu bar back");
             Assert.IsFalse(server.Keys.Any(k => k.KeySym is 0xff0d or 0xff8d), "Enter stays local");
@@ -603,9 +603,12 @@ public sealed class VerticalSliceTests
             Until(() => server.Keys.Contains(new RfbTestServer.KeyRecord(true, 0x6e)), "n reaches the server");
             Assert.AreEqual(1, app.Application.GetAllTopLevelWindows(automation).Length, "no new window from inside the desktop");
 
-            // The chord + M opens the Connection menu; M stays local. Left Ctrl and left Alt: FlaUI sends ALT
-            // as the extended (right) Alt, which with Ctrl is AltGr, not the chord.
-            Keyboard.TypeSimultaneously(VirtualKeyShort.LCONTROL, VirtualKeyShort.LMENU, VirtualKeyShort.KEY_M);
+            // The chord + M opens the Connection menu; M stays local. Left Ctrl and left Alt, sent here: FlaUI
+            // sends every Alt as the extended (right) Alt, which with Ctrl is AltGr, not the chord. Another
+            // program's global Ctrl+Alt+M hotkey takes the key press before any window sees it.
+            if (!NativeMethods.HotKeyFree(0x0001 | 0x0002, 0x4D))
+                Assert.Inconclusive("Another program has registered Ctrl+Alt+M as a global hotkey on this machine");
+            NativeMethods.PressTogether((0xA2, 0x1D), (0xA4, 0x38), (0x4D, 0x32));
             var hold = WaitFor(() => automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId("desktop.holdControl")), "the context menu");
             Assert.IsFalse(server.Keys.Any(k => k.KeySym is 0x6d or 0x4d), "M stays local");
             hold.Patterns.Toggle.Pattern.Toggle(); // A toggle menu item.
@@ -891,10 +894,10 @@ public sealed class VerticalSliceTests
             }
             void RoundTrip(int index)
             {
-                Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.RETURN);
+                NativeMethods.PressTogether((0xA2, 0x1D), (0xA4, 0x38), (0x0D, 0x1C)); // Left Ctrl + left Alt + Enter
                 Until(() => NativeMethods.WindowRect(handle) == NativeMethods.MonitorRect(handle), $"full screen {index}");
                 Thread.Sleep(300);
-                Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.RETURN);
+                NativeMethods.PressTogether((0xA2, 0x1D), (0xA4, 0x38), (0x0D, 0x1C)); // Left Ctrl + left Alt + Enter
                 Until(() => NativeMethods.WindowRect(handle) != NativeMethods.MonitorRect(handle), $"restored {index}");
                 Thread.Sleep(300);
             }
@@ -1528,6 +1531,40 @@ internal static partial class NativeMethods
             _ = SendInput(1, input, 40);
             Thread.Sleep(15);
         }
+    }
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static partial bool RegisterHotKey(IntPtr window, int id, uint modifiers, uint key);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static partial bool UnregisterHotKey(IntPtr window, int id);
+
+    /// <summary>Whether no program holds this global hotkey (MOD_ALT 1, MOD_CONTROL 2): registered and released at once.</summary>
+    internal static bool HotKeyFree(uint modifiers, uint key)
+    {
+        if (!RegisterHotKey(IntPtr.Zero, 0x7101, modifiers | 0x4000, key)) return false; // MOD_NOREPEAT
+        UnregisterHotKey(IntPtr.Zero, 0x7101);
+        return true;
+    }
+
+    /// <summary>Presses the keys (virtual key, scan code) in order and releases them in reverse, none extended.</summary>
+    internal static unsafe void PressTogether(params (ushort Key, ushort Scan)[] keys)
+    {
+        var input = stackalloc byte[40]; // INPUT (x64): type, then KEYBDINPUT at offset 8
+        void Send(ushort key, ushort scan, bool up)
+        {
+            new Span<byte>(input, 40).Clear();
+            *(uint*)input = 1; // INPUT_KEYBOARD
+            *(ushort*)(input + 8) = key;
+            *(ushort*)(input + 10) = scan;
+            *(uint*)(input + 12) = up ? 0x0002u : 0u; // KEYEVENTF_KEYUP
+            _ = SendInput(1, input, 40);
+            Thread.Sleep(30);
+        }
+        foreach (var (key, scan) in keys) Send(key, scan, false);
+        for (var i = keys.Length - 1; i >= 0; i--) Send(keys[i].Key, keys[i].Scan, true);
     }
 
     internal static unsafe System.Drawing.Point CursorPosition()

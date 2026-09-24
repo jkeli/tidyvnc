@@ -87,7 +87,7 @@ Exit: CORE.md §8, W2 paragraph.
 - [x] W3.3 `NativeRuntime`, `NativeSession`, `NativeListener` with prompts, frames, input, clipboard and information; MSTest model tests against real loopback peers.
 - [x] W3.4 Helper DLL skeleton with its C API: presenter, keyboard translator extracted from `KeyboardWin32.cxx` with the equivalence test harness, display queries.
 - [x] W3.5 WinUI shell: `App`, a minimal `ConnectionWindow` (address, Connect, authentication dialog, desktop view, Disconnect); FLTK not linked.
-- [ ] W3.6 Vertical slice against a loopback peer: connect, authenticate, render, type, click, disconnect; close and exit during authentication; two windows at once.
+- [x] W3.6 Vertical slice against a loopback peer: connect, authenticate, render, type, click, disconnect; close and exit during authentication; two windows at once.
 - [x] W3.7 `apps/windows/build.py` first version: core and app, Debug and Release, x64.
 
 Exit: the macOS N2 exit, on Windows: lifecycle, cancellation and frame ownership
@@ -172,7 +172,7 @@ Exit: the macOS N5 exit on Windows, including the matched performance budget.
 - [ ] W7.9 Documentation: `BUILDING.txt` Windows section, a Windows build guide beside `BUILD-MACOS.md`, Help content, handoff status.
 - [ ] W7.10 Rollback: WinUI and FLTK installed side by side; uninstalling WinUI leaves FLTK and its data untouched.
 - [ ] W7.11 Owner review of remaining differences (audio loss versus FLTK is already accepted, D19).
-- [ ] W7.13 Move to Windows App SDK 2.5.1 (D24): packages and component exclusions, builds, suites, smokes, package audit and MSI, Native AOT, and the W6.11 title-bar leak measured on 2.x.
+- [x] W7.13 Move to Windows App SDK 2.5.1 (D24): packages and component exclusions, builds, suites, smokes, package audit and MSI, Native AOT, and the W6.11 title-bar leak measured on 2.x.
 - [ ] W7.12 Cutover: the Windows 11 release ships the WinUI app; the FLTK Windows build remains available for Windows 10 and older, and buildable until the owner removes it.
 
 Exit: PLAN.md §12 completion statement.
@@ -2263,3 +2263,22 @@ Add dated entries, newest last, in the macOS format:
   inside the RDP window (or the console session); `LargeRemoteCursorsAreDrawnOverTheDesktop` now reports
   where the cursor really was.
 - W7.13 stays open for those four tests.
+
+### W3.6, W7.13 — the vertical slice on screen; Windows App SDK 2.5.1 complete — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Vertical-slice class on 2.5.1, RDP session displayed with the local pointer inside and still: 25 passed and
+  1 inconclusive, 0 failed. Earlier on 2.5.1: the Axe.Windows scan passes.
+  - W3.6: `ConnectAuthenticateRenderTypeClickAndDisconnect` (connect, authenticate, render, type, click,
+    disconnect, checked on screen), `ClosingDuringAuthenticationExitsCleanly` and `TwoWindowsConnectAtOnce`
+    pass.
+  - `ConnectionMenuCommandsReachTheServer` is inconclusive on this machine: another program has registered
+    Ctrl+Alt+M as a global hotkey (`RegisterHotKey` reports it taken), so Windows takes the key press before
+    any window sees it; the key trace showed the M key-down never reached the app's hook while its key-up did.
+    The test now checks for that and says so. Ctrl+Alt+G and Ctrl+Alt+Enter are free.
+- Test input fixes: every Ctrl+Alt chord in the suite is sent as left Ctrl and left Alt (`PressTogether`);
+  FlaUI sends every Alt as the extended right Alt, which with Ctrl is AltGr. `FullScreenCyclesDoNotLeak`
+  failed on "restored" in full-class runs for that reason and now passes.
+- W7.13 is complete against D24's confirmation: builds, native suite, gated UI suite, the five smokes, the
+  package audit and MSI, Native AOT, and the W6.11 leak tests pass on 2.5.1; the title-bar leak is measured
+  and unchanged.

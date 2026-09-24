@@ -39,9 +39,11 @@ Checked or decided so far:
   App SDK's leak of about 50 handles per closed window that extends into the title bar (the same on 1.8
   and 2.5.1), until the SDK fixes it. The leak test bounds it against an About window with the same
   title bar.
-- D24 (owner, 2026-09-24): Windows App SDK 2.5.1 (1.8 left servicing on 2026-09-09). Builds, package,
-  smokes and Native AOT pass on it; the title-bar leak is unchanged. W7.13 waits for the
-  display-dependent UI tests with the display on.
+- D24 (owner, 2026-09-24): Windows App SDK 2.5.1 (1.8 left servicing on 2026-09-09); W7.13 is done.
+  Builds, package, smokes, Native AOT and the UI suite pass on it; the title-bar leak is unchanged.
+- W3.6: the vertical slice passes on screen. On a remote session, keep the local pointer inside the RDP
+  window and still while the UI suite runs: the RDP client otherwise moves the remote cursor under the tests.
+  Ctrl+Alt+M is another program's global hotkey on this machine, so the menu-chord test reports inconclusive.
 - W6.12 tunnel smoke passes, with MSYS2's openssh (installed with approval on 2026-09-24): a
   localhost-only sshd that runs as this user only during the test. The machine also runs the Windows
   `sshd` service (Automatic, since 2026-09-19); the smoke does not use it.
