@@ -78,4 +78,10 @@ public static class NativeStateRoot
 
     /// <summary>The log file for the "file" target when isolated; null keeps the core's Windows default.</summary>
     public static string? LogFile => Override is { } root ? Path.Combine(root, "vncviewer.log") : null;
+
+    /// <summary>
+    /// When isolated, the SSH gateway reads <c>ssh\config</c> and <c>ssh\known_hosts</c> here instead of
+    /// %USERPROFILE%\.ssh (the tunnel smoke); null keeps the user's own files.
+    /// </summary>
+    public static string? SshDirectory => Override is { } root ? Path.Combine(root, "ssh") : null;
 }

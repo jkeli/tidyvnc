@@ -2142,11 +2142,45 @@ Add dated entries, newest last, in the macOS format:
     left +991 (Section +448, DxgkCompositionObject +398, Event +78, Composition +41, WaitCompletionPacket
     +20, others within ±3), and only the open window was alive. The test passes (growth within the baseline
     plus 40).
-  - Owner decision: keep the extended title bar (UX.md section 1, W08) and accept the platform cost, or
-    use the standard title bar until the SDK is fixed. Recorded for the W7.11 review.
+  - Owner decision (2026-09-24): keep the extended title bar (UX.md section 1, W08) and accept the
+    platform cost until the SDK fixes it.
 - Regression runs: 23 of 27 gated UI tests passed. `FullScreenCyclesDoNotLeak` passed on a rerun.
   `ConnectAuthenticateRenderTypeClickAndDisconnect`, `LargeRemoteCursorsAreDrawnOverTheDesktop` and
   `ConnectionMenuCommandsReachTheServer` time out waiting for keyboard focus or on-screen results, and fail
   the same way on `98a13fd4` with this work stashed. This machine's `ForegroundLockTimeout` is infinite and
   another app held the foreground, so they stay environmental until rerun on a displayed session with the
   test in front. Debug and Release builds pass.
+
+### W6.12 (progress) — SSH tunnel smoke on Windows; stress test one-off step — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Approved by the owner: MSYS2's openssh package (OpenSSH 10.5p1) was installed for the test server.
+- `tests/integration/windows-tunnel-smoke.py` ports the macOS tunnel smoke:
+  - MSYS2's sshd runs as the current user on 127.0.0.1 with fresh ed25519 host and client keys: public
+    key only, local forwarding only, this user only. It stops with the test.
+  - native-security-peer (VncAuth) is the VNC server. The viewer runs through `vncviewer.exe` with an
+    isolated state root and `-via ssh://user@127.0.0.1:<port>`, through Windows' own ssh.exe (`-W`).
+  - The state root is created private (owner and SYSTEM only), as the app requires. `icacls` removing
+    inheritance left the parent's Administrators entry behind as an explicit one; the helper removes it
+    and asserts the result.
+- App: with an isolated state root (Debug and measurement builds only), the SSH gateway reads
+  `ssh\config` and `ssh\known_hosts` under it (`NativeStateRoot.SshDirectory`) instead of
+  %USERPROFILE%\.ssh, so the smoke never reads or writes the user's SSH files. Release builds are
+  unchanged.
+- Result: PASS. VncAuth through sshd authenticated, the viewer requested a framebuffer update, and sshd
+  logged `Accepted publickey`. No sshd, peer or viewer processes were left.
+- W6.12 stays open for the FLTK side of the comparison (test account or VM).
+- The Windows `sshd` service on this machine (Automatic, running since 2026-09-19) is not used or changed.
+- `StressTests.ReconnectResizeAndAttachCyclesDoNotLeak` failed in the full native suite (+110 handles, the
+  same at 60 and 200 cycles) and passed alone.
+  - Per-type counts showed a one-off step, not a leak: Semaphore +28, EtwRegistration +12, Event +9,
+    Key +8, WaitCompletionPacket +5, TpWorkerFactory +1. A Windows component started its own thread pool
+    after the warm-up.
+  - The test now runs 120 cycles, holds the second half of the run to the old bound (40, or 0.25 per
+    cycle) and allows one step overall (200).
+  - Native suite: 215 total, 213 passed and 2 gated skips, twice in a row.
+- Display-dependent UI tests rerun with the desktop idle and nothing in front:
+  `ConnectAuthenticateRenderTypeClickAndDisconnect`, `LargeRemoteCursorsAreDrawnOverTheDesktop` and
+  `ConnectionMenuCommandsReachTheServer` still fail. The click and keys reached the test server, but the
+  screen kept showing the first frame, as a session that is not displayed does. They wait for the RDP
+  window to be visible.

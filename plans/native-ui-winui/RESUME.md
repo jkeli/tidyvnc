@@ -18,9 +18,9 @@ their remaining checks run. These are mostly the following, and each item lists 
 
 - display-dependent UI tests. The desktop is an active RDP session that was not on screen during this
   work; these tests need it displayed (the RDP window visible, not minimized) or the console session.
-  Tests that type or click into the desktop view also need to take the foreground: this machine's
-  `ForegroundLockTimeout` is infinite, so they fail while another app keeps it (they fail the same way on
-  the commit before the W6.11 leak fix);
+  Three of them (typing, the large cursor, the context menu) still failed on 2026-09-24 with the desktop
+  idle and nothing in front: input reached the test server, but the screen kept showing the first frame,
+  as a session that is not displayed does. They fail the same way on the commit before the W6.11 fix;
 - hands-on keyboard, Narrator and contrast passes;
 - hardware: mixed-DPI, touch, pen, ARM64;
 - a clean VM or test account: installing, FLTK comparisons, relocated GUI start;
@@ -35,6 +35,12 @@ Checked or decided so far:
 - W7.8 (Native AOT not adopted yet; see DECISIONS.md D1);
 - W6.11 follow-up: closed connection and About windows are released. A WinUI `TitleBar` holding the menu
   bar kept every closed connection window alive; the window now detaches it before closing.
+- Owner decision (2026-09-24): keep the extended title bar (UX.md section 1, W08) and accept Windows App
+  SDK 1.8's leak of about 50 handles per closed window that extends into the title bar, until the SDK
+  fixes it. The leak test bounds it against an About window with the same title bar.
+- W6.12 tunnel smoke passes, with MSYS2's openssh (installed with approval on 2026-09-24): a
+  localhost-only sshd that runs as this user only during the test. The machine also runs the Windows
+  `sshd` service (Automatic, since 2026-09-19); the smoke does not use it.
 
 Native AOT status (D1): the earlier hang was a .NET runtime deadlock in Debug AOT builds only. After an
 AOT-only presenter fix, Release AOT matches JIT on every automated check. It saves about 190 ms of
@@ -47,11 +53,6 @@ startup. Adopting it waits only for the full UI suite with the display on.
 - Signing identity (D23).
 - VMs or a test account for installed-app acceptance (W7.3–W7.7, W7.10).
 - W0.13 and W7.11 reviews.
-- The extended title bar (UX.md section 1, W08): Windows App SDK 1.8 leaves about 50 handles behind for
-  every closed window that extends into the title bar, even when the window itself is collected
-  (reproduced with the About window). Keep it and accept that, or use the standard title bar until the
-  SDK is fixed. The leak test bounds it against an About window with the same title bar.
-- An SSH server for the tunnel smoke. None is installed, and installing one needs approval.
 
 ## Commands
 
@@ -73,6 +74,7 @@ rem UI automation and smokes: only with TIDYVNC_UI_TESTS=1 and an idle desktop (
 dotnet test --project tests\windows\TidyVNC.UITests -c Debug -p:Platform=x64
 python tests\integration\windows-scaling-smoke.py build\winui\app-x64-debug\vncviewer.exe
 python tests\integration\windows-security-smoke.py build\winui\app-x64-debug\vncviewer.exe --accept-prompts
+python tests\integration\windows-tunnel-smoke.py build\winui\app-x64-debug\vncviewer.exe
 python tests\integration\windows-invocation-terminal.py build\winui\app-x64-debug\vncviewer.exe
 python tests\integration\windows-console-smoke.py build\winui\app-x64-debug\vncviewer.exe
 python tests\perf\windows-viewer-workloads.py --winui build\winui\app-x64-debug\vncviewer.exe

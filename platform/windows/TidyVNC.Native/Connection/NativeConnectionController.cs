@@ -404,6 +404,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
             host = identity.Host; port = identity.Port;
         }
         var options = new NativeSshTunnelOptions { Ipv4 = configuration.Ipv4, Ipv6 = configuration.Ipv6 };
+        if (NativeStateRoot.SshDirectory is { } ssh)
+            options = options with { ConfigurationFile = Path.Combine(ssh, "config"), KnownHostsFile = Path.Combine(ssh, "known_hosts") };
         return new SshTunnel(await NativeSshTunnel.StartAsync(gateway, host, (int)port, interaction, options, cancellation: token));
     }
 

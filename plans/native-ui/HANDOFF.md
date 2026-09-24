@@ -279,7 +279,7 @@ the open notes that used to be listed here. Contract tests are in
 - Protocol baseline: `tests/integration/macos-scaling-smoke.py` drives an actual
   executable against a scripted RFB peer. The Windows port is
   `tests/integration/windows-scaling-smoke.py` (through `vncviewer.exe` with an
-  isolated state root), with `windows-security-smoke.py` beside it.
+  isolated state root), with `windows-security-smoke.py` and `windows-tunnel-smoke.py` beside it.
 
 A WinUI plan should start by making `headless.py` pass on Windows with MSVC,
 implement the Windows transport/connector/listener adapters, and run the unit
