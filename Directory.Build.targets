@@ -1,0 +1,11 @@
+<Project>
+  <!-- Evaluated after each project, when Configuration and Platform are set. -->
+  <PropertyGroup>
+    <TidyVncArchitecture Condition="'$(Platform)' == 'ARM64' or '$(RuntimeIdentifier)' == 'win-arm64'">arm64</TidyVncArchitecture>
+    <TidyVncArchitecture Condition="'$(TidyVncArchitecture)' == ''">x64</TidyVncArchitecture>
+    <!-- Native core build output with tidyvnc_viewer.dll, the helper DLL and
+         their dependencies (apps/windows/build.py). Override with
+         /p:TidyVncNativeBin=... -->
+    <TidyVncNativeBin Condition="'$(TidyVncNativeBin)' == ''">$(RepoRoot)build\winui\$(TidyVncArchitecture)-$(Configuration.ToLowerInvariant())\bin</TidyVncNativeBin>
+  </PropertyGroup>
+</Project>

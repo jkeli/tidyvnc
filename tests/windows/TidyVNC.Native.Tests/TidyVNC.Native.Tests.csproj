@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- MSTest suite for TidyVNC.Native (plans/native-ui-winui TESTING.md
+       section 1: Interop and Library layers). Runs against the core build
+       selected by TidyVncNativeBin (default build/winui/x64-debug/bin). -->
+  <PropertyGroup>
+    <TargetFramework>$(TidyVncTargetFramework)</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA1062;CA2007;CA1031;CA1849;CA2000;CA5394;CA1861;CA1812;CA1001;CA1063;CA1816;CA1822;MSTEST0037</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MSTest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(TidyVncNativeBin)\tidyvnc-abi-layout.exe" CopyToOutputDirectory="PreserveNewest" Visible="false"
+          Link="tidyvnc-abi-layout.exe" Condition="Exists('$(TidyVncNativeBin)\tidyvnc-abi-layout.exe')" />
+  </ItemGroup>
+</Project>

@@ -25,6 +25,10 @@ if(TARGET tidyvnc_viewer_shared)
   add_dependencies(viewer-c-abi-dll-load tidyvnc_viewer_shared)
   add_test(NAME ViewerABI.DLLLoadsAtRunTime
     COMMAND viewer-c-abi-dll-load $<TARGET_FILE:tidyvnc_viewer_shared>)
+  # C layout of every tidyvnc.h struct for the C# interop tests
+  # (platform/windows/TidyVNC.Native/Bridge/generate-interop.py).
+  add_executable(tidyvnc-abi-layout ${CMAKE_SOURCE_DIR}/platform/windows/TidyVNC.Native/Bridge/abi-layout.g.c)
+  target_include_directories(tidyvnc-abi-layout PRIVATE ${CMAKE_SOURCE_DIR}/viewer/bridge)
   if(GNUTLS_FOUND)
     # W1.13: VncAuth and X509Vnc sessions end to end through the DLL only.
     add_executable(viewer-dll-end-to-end dll-end-to-end.cxx)

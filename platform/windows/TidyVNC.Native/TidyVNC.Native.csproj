@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Windows counterpart of the Swift TidyVNCNative module
+       (plans/native-ui-winui PLAN.md sections 3 and 5): interop with
+       tidyvnc_viewer.dll, owned handles, UI-thread delivery, sessions,
+       stores and platform services. No WinUI dependency, so it is testable
+       with MSTest and usable from the console launcher. -->
+  <PropertyGroup>
+    <TargetFramework>$(TidyVncTargetFramework)</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <RootNamespace>TidyVNC.Native</RootNamespace>
+    <!-- Interop names follow tidyvnc.h (snake_case) on purpose. -->
+    <NoWarn>$(NoWarn);CA1707;CA1711;CA1716;CA1720;CA1051;CA1034;CA1815;CA1028;CA1008;CA2201;CA1062;CA1031;CA1710</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="TidyVNC.Native.Tests" />
+    <InternalsVisibleTo Include="TidyVNC" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The core DLL and its dependency closure travel with every consumer. -->
+    <None Include="$(TidyVncNativeBin)\tidyvnc_*.dll;$(TidyVncNativeBin)\lib*.dll;$(TidyVncNativeBin)\zlib1.dll"
+          CopyToOutputDirectory="PreserveNewest" Visible="false" Link="%(Filename)%(Extension)" Condition="Exists('$(TidyVncNativeBin)')" />
+  </ItemGroup>
+</Project>

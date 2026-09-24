@@ -20,3 +20,10 @@ install_manifest.txt
 
 # Python validation helpers
 __pycache__/
+
+# .NET build output (Windows frontend)
+bin/
+obj/
+*.user
+.vs/
+TestResults/

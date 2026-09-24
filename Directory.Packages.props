@@ -1,0 +1,18 @@
+<Project>
+  <!-- Central, pinned package versions (PLAN.md section 4). Adding a package
+       also needs its licence text under apps/windows/ThirdParty (W7.2). -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Windows App SDK: the stable 1.x servicing line (1.8), pinned in W0. -->
+    <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.260804001" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.335" />
+    <PackageVersion Include="MSTest" Version="4.4.1" />
+    <PackageVersion Include="FlaUI.UIA3" Version="5.0.0" />
+    <PackageVersion Include="Axe.Windows" Version="2.4.2" />
+  </ItemGroup>
+</Project>
