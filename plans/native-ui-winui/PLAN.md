@@ -93,6 +93,7 @@ The headline decisions (full records, alternatives and confirming spikes are in
 | D21 | Remote clipboard text is excluded from Windows cloud clipboard sync (owner) |
 | D22 | No automatic updater for now (owner) |
 | D23 | Unsigned builds for now; the pipeline keeps a signing step for later (owner) |
+| D24 | Windows App SDK 2.x, pinned at 2.5.1: 1.8 left servicing on 2026-09-09 (owner) |
 
 ## 2. Starting point
 
@@ -164,7 +165,7 @@ table point at matching files.
 
 | Layer | Choice | Notes |
 | --- | --- | --- |
-| UI framework | WinUI 3 from the Windows App SDK (current stable 1.x line, pinned in W0) | XAML, Fluent controls, `AppWindow`, `SwapChainPanel` |
+| UI framework | WinUI 3 from the Windows App SDK (the 2.x line, pinned at 2.5.1; D24) | XAML, Fluent controls, `AppWindow`, `SwapChainPanel` |
 | Language/runtime | C# on .NET 10 LTS, trimmed, self-contained; Native AOT if the W0 spike passes | `LibraryImport` source-generated interop, `System.Text.Json` source generation |
 | MVVM | CommunityToolkit.Mvvm | Source generators; AOT-safe |
 | Settings controls | CommunityToolkit.WinUI.Controls.SettingsControls | `SettingsCard`/`SettingsExpander` for Windows 11-style settings pages |

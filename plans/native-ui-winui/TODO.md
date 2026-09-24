@@ -172,6 +172,7 @@ Exit: the macOS N5 exit on Windows, including the matched performance budget.
 - [ ] W7.9 Documentation: `BUILDING.txt` Windows section, a Windows build guide beside `BUILD-MACOS.md`, Help content, handoff status.
 - [ ] W7.10 Rollback: WinUI and FLTK installed side by side; uninstalling WinUI leaves FLTK and its data untouched.
 - [ ] W7.11 Owner review of remaining differences (audio loss versus FLTK is already accepted, D19).
+- [ ] W7.13 Move to Windows App SDK 2.5.1 (D24): packages and component exclusions, builds, suites, smokes, package audit and MSI, Native AOT, and the W6.11 title-bar leak measured on 2.x.
 - [ ] W7.12 Cutover: the Windows 11 release ships the WinUI app; the FLTK Windows build remains available for Windows 10 and older, and buildable until the owner removes it.
 
 Exit: PLAN.md §12 completion statement.

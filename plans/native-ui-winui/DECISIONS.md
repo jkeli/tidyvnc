@@ -538,3 +538,34 @@ signing identity. The packaging pipeline still has a signing step (PACKAGING.md
 
 When signing is added, the owner chooses the Authenticode identity (for example
 an Azure Artifact Signing account or an OV certificate) and where its keys live.
+
+## D24 — Windows App SDK 2.x *(owner-decided)*
+
+**Decision (2026-09-24).** Move from Windows App SDK 1.8 (1.8.260804001) to the 2.x line, pinned at
+2.5.1, the current stable release. Later 2.x patches are taken as they ship. 3.0, the next
+side-by-side release, is a new decision.
+
+**Why.**
+- 1.8 reached the end of servicing on 2026-09-09 (Microsoft's lifecycle table). Microsoft supports only
+  the latest patch of a serviced version, so staying on 1.8 means no fixes and no support.
+- 2.0 is the Current release, serviced until at least 2027-04-29. It has WinUI reliability fixes around
+  closing windows, popups and UI Automation teardown.
+- No 2.x release note mentions the title-bar handle leak measured in W6.11 (about 50 handles per closed
+  window that extends into the title bar). The W6.11 leak test measures it on each version.
+
+**Costs.**
+- 2.0 changed the package layout. The ML runtime moved into `Microsoft.Windows.AI.MachineLearning`, and
+  a `Search` component was added. The components the viewer does not use (AI, ML and its runtime,
+  Search, Widgets, and the Runtime package's framework MSIX) are re-pinned and excluded again, and the
+  payload audit and third-party notices follow the new component set.
+- 2.1 changed `DISABLE_XAML_GENERATED_MAIN`: the generated `Main` is renamed, not removed. The app's own
+  `Program.Main` is unaffected.
+- 2.0 changed `FileSavePicker` so it no longer creates the file. The viewer uses its own Win32 file
+  dialogs, so this does not apply.
+- Everything checked on 1.8 is checked again on 2.5.1: builds, the native and UI suites, the smokes, the
+  package stage and audit, Native AOT (D1), and the W6.11 leak tests.
+
+**Confirm (W7.13).** Debug and Release build with no new warnings. The native suite, the gated UI suite
+(its display-dependent tests still need the display on), the scaling, security, tunnel, invocation and
+console smokes, the package audit and MSI build, and the W6.11 leak tests pass. The title-bar leak is
+measured and recorded.
