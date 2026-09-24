@@ -14,11 +14,11 @@ public static class NativeEndpoint
 {
     public static unsafe void Validate(string address, bool allowUnixSockets = true)
     {
-        var bytes = NativeText.Utf8(address);
+        var bytes = AbiText.Utf8(address);
         if (bytes.Length > 4097) bytes = bytes[..4097];
         var error = Abi.Init<tidyvnc_error>();
         fixed (byte* p = bytes)
-            Abi.Check(NativeMethods.tidyvnc_endpoint_validate(NativeText.Span(p, bytes.Length), allowUnixSockets ? 1u : 0u, &error), &error);
+            Abi.Check(NativeMethods.tidyvnc_endpoint_validate(AbiText.Span(p, bytes.Length), allowUnixSockets ? 1u : 0u, &error), &error);
     }
 
     /// <summary>The problem with an address, or null when valid. Blank requires entry (Connect is disabled).</summary>
@@ -36,11 +36,11 @@ public static class NativeEndpoint
     /// <summary>Strict decimal port 0..65535.</summary>
     public static unsafe uint? ParsePort(string text)
     {
-        var bytes = NativeText.Utf8(text);
+        var bytes = AbiText.Utf8(text);
         if (bytes.Length > 16) return null;
         uint port = 0;
         fixed (byte* p = bytes)
-            return NativeMethods.tidyvnc_port_parse(NativeText.Span(p, bytes.Length), &port, null) == Tidyvnc.TIDYVNC_OK ? port : null;
+            return NativeMethods.tidyvnc_port_parse(AbiText.Span(p, bytes.Length), &port, null) == Tidyvnc.TIDYVNC_OK ? port : null;
     }
 }
 
@@ -65,18 +65,18 @@ public sealed class NativeEndpointIdentity : IDisposable
         var error = Abi.Init<tidyvnc_error>();
         Abi.Check(NativeMethods.tidyvnc_endpoint_get(handle.Raw, &info, &error), &error);
         Kind = (NativeEndpointKind)info.transport; Port = info.port;
-        Host = NativeText.Decode(info.host); Scope = NativeText.Decode(info.scope);
-        Path = NativeText.Decode(info.path); Route = NativeText.Decode(info.route);
+        Host = AbiText.Decode(info.host); Scope = AbiText.Decode(info.scope);
+        Path = AbiText.Decode(info.path); Route = AbiText.Decode(info.route);
     }
 
     public static unsafe NativeEndpointIdentity Create(string endpoint, string route = "", bool allowUnixSockets = false)
     {
-        var e = NativeText.Utf8(endpoint);
-        var r = NativeText.Utf8(route);
+        var e = AbiText.Utf8(endpoint);
+        var r = AbiText.Utf8(route);
         var error = Abi.Init<tidyvnc_error>();
         ulong raw = 0;
         fixed (byte* ep = e) fixed (byte* rp = r)
-            Abi.Check(NativeMethods.tidyvnc_endpoint_create(NativeText.Span(ep, e.Length), NativeText.Span(rp, r.Length),
+            Abi.Check(NativeMethods.tidyvnc_endpoint_create(AbiText.Span(ep, e.Length), AbiText.Span(rp, r.Length),
                 allowUnixSockets ? 1u : 0u, &raw, &error), &error);
         return new NativeEndpointIdentity(NativeHandle.Adopt(raw));
     }

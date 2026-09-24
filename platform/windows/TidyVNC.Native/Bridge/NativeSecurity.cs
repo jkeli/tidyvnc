@@ -19,16 +19,16 @@ public sealed record NativeSecuritySelection
     /// <summary>Null is the compiled default; "" explicitly denies every method.</summary>
     public unsafe NativeSecuritySelection(string? text = null)
     {
-        var bytes = NativeText.Utf8(text ?? "");
+        var bytes = AbiText.Utf8(text ?? "");
         if (bytes.Length > 1024) throw new NativeError(NativeStatus.ResourceLimit, "Security selection is too long");
         var result = Abi.Init<tidyvnc_security_selection>();
         var error = Abi.Init<tidyvnc_error>();
         fixed (byte* p = bytes)
-            Abi.Check(NativeMethods.tidyvnc_security_resolve(NativeText.Span(p, bytes.Length), text is null ? 1u : 0u, &result, &error), &error);
+            Abi.Check(NativeMethods.tidyvnc_security_resolve(AbiText.Span(p, bytes.Length), text is null ? 1u : 0u, &result, &error), &error);
         if (result.count > 32) throw new NativeError(NativeStatus.InternalFailure, "Invalid security selection count");
         var types = new uint[result.count];
         for (var i = 0; i < types.Length; i++) types[i] = result.types[i];
-        Types = types; Canonical = NativeText.Fixed(result.canonical, 1025);
+        Types = types; Canonical = AbiText.Fixed(result.canonical, 1025);
     }
 
     public bool Equals(NativeSecuritySelection? other) => other is not null && Canonical == other.Canonical && Types.SequenceEqual(other.Types);
@@ -46,7 +46,7 @@ public sealed record NativeSecuritySelection
             if (!Enum.IsDefined((NativeSecurityChoice.ProtectionKind)value.protection) ||
                 !Enum.IsDefined((NativeSecurityChoice.CredentialKind)value.credentials))
                 throw new NativeError(NativeStatus.Unsupported, "Unknown security metadata");
-            result.Add(new NativeSecurityChoice(value.type, NativeText.Fixed(value.name, 32), value.available != 0,
+            result.Add(new NativeSecurityChoice(value.type, AbiText.Fixed(value.name, 32), value.available != 0,
                 (NativeSecurityChoice.ProtectionKind)value.protection, (NativeSecurityChoice.CredentialKind)value.credentials, value.aes_bits));
         }
         throw new NativeError(NativeStatus.ResourceLimit, "Security catalog exceeds its limit");
@@ -58,10 +58,10 @@ public static class NativeTlsPriority
 {
     public static unsafe void Validate(string text)
     {
-        var bytes = NativeText.Utf8(text);
+        var bytes = AbiText.Utf8(text);
         if (bytes.Length > 4096) throw new NativeError(NativeStatus.ResourceLimit, "TLS priority is too long");
         var error = Abi.Init<tidyvnc_error>();
         fixed (byte* p = bytes)
-            Abi.Check(NativeMethods.tidyvnc_tls_priority_validate(NativeText.Span(p, bytes.Length), &error), &error);
+            Abi.Check(NativeMethods.tidyvnc_tls_priority_validate(AbiText.Span(p, bytes.Length), &error), &error);
     }
 }

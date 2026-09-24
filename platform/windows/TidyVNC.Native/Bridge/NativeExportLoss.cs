@@ -28,7 +28,7 @@ public static unsafe class NativeExportLosses
         uint losses = 0, status;
         fixed (byte* p = priority)
         {
-            request.tls_priority = NativeText.Span(p, priority.Length);
+            request.tls_priority = AbiText.Span(p, priority.Length);
             status = NativeMethods.tidyvnc_export_losses(&request, &losses, &error);
         }
         if (status != Tidyvnc.TIDYVNC_OK)
@@ -50,7 +50,7 @@ public static unsafe class NativeExportLosses
             var info = Abi.Init<tidyvnc_export_loss_info>();
             if (Abi.Check(NativeMethods.tidyvnc_export_loss_at(i, &info, &error), &error, NativeStatus.Ok, NativeStatus.NoChange) != NativeStatus.Ok)
                 return result;
-            result[(NativeExportLoss)info.loss] = NativeText.Fixed(info.parameters, 96).Split(',', StringSplitOptions.RemoveEmptyEntries);
+            result[(NativeExportLoss)info.loss] = AbiText.Fixed(info.parameters, 96).Split(',', StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

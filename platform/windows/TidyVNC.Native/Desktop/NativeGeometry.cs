@@ -51,7 +51,7 @@ public sealed unsafe class NativeGeometry
         var error = Abi.Init<tidyvnc_error>();
         fixed (byte* text = scaling)
         {
-            input.scaling = NativeText.Span(text, scaling.Length);
+            input.scaling = AbiText.Span(text, scaling.Length);
             Abi.Check(NativeMethods.tidyvnc_desktop_geometry(&input, pointX, pointY, &output, &error), &error);
         }
         return output;
@@ -75,7 +75,7 @@ public sealed unsafe class NativeGeometry
         var error = Abi.Init<tidyvnc_error>();
         fixed (byte* text = scaling)
         {
-            input.scaling = NativeText.Span(text, scaling.Length);
+            input.scaling = AbiText.Span(text, scaling.Length);
             Abi.Check(NativeMethods.tidyvnc_desktop_damage(&input, &region, &result, &error), &error);
         }
         return (result.x, result.y, result.width, result.height);

@@ -20,6 +20,11 @@
       <_Parameter1>TidyVncAskpass</_Parameter1>
       <_Parameter2>$(RepoRoot)apps\windows\TidyVNC.SshAskpass\bin\$(Platform)\$(Configuration)\$(TidyVncTargetFramework)\win-$(Platform.ToLowerInvariant())\tidyvnc-ssh-askpass.exe</_Parameter2>
     </AssemblyAttribute>
+    <!-- The generated Windows string catalog, checked against the keys models produce. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>TidyVncStrings</_Parameter1>
+      <_Parameter2>$(RepoRoot)apps\windows\TidyVNC\Strings\en-US\Resources.resw</_Parameter2>
+    </AssemblyAttribute>
     <!-- The shared conformance corpus (tests/conformance), read in place. -->
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>TidyVncConformance</_Parameter1>

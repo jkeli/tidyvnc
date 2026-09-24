@@ -37,8 +37,8 @@ public sealed class NativeEncodingOptions : IDisposable
                                               NativeOptionSource source)
     {
         if (patch.Count > 256) throw new NativeError(NativeStatus.ResourceLimit, "Too many encoding assignments");
-        var names = patch.Select(item => NativeText.Utf8(item.Name)).ToArray();
-        var values = patch.Select(item => NativeText.Utf8(item.Value)).ToArray();
+        var names = patch.Select(item => AbiText.Utf8(item.Name)).ToArray();
+        var values = patch.Select(item => AbiText.Utf8(item.Value)).ToArray();
         if (names.Any(n => n.Length > 128) || values.Any(v => v.Length > 128))
             throw new NativeError(NativeStatus.ResourceLimit, "Encoding assignment exceeds its byte limit");
         var handles = new System.Runtime.InteropServices.GCHandle[names.Length * 2];
@@ -49,8 +49,8 @@ public sealed class NativeEncodingOptions : IDisposable
             {
                 handles[2 * i] = System.Runtime.InteropServices.GCHandle.Alloc(names[i], System.Runtime.InteropServices.GCHandleType.Pinned);
                 handles[2 * i + 1] = System.Runtime.InteropServices.GCHandle.Alloc(values[i], System.Runtime.InteropServices.GCHandleType.Pinned);
-                assignments[i].name = NativeText.Span((byte*)handles[2 * i].AddrOfPinnedObject(), names[i].Length);
-                assignments[i].value = NativeText.Span((byte*)handles[2 * i + 1].AddrOfPinnedObject(), values[i].Length);
+                assignments[i].name = AbiText.Span((byte*)handles[2 * i].AddrOfPinnedObject(), names[i].Length);
+                assignments[i].value = AbiText.Span((byte*)handles[2 * i + 1].AddrOfPinnedObject(), values[i].Length);
             }
             var error = Abi.Init<tidyvnc_error>();
             ulong raw = 0;
@@ -74,7 +74,7 @@ public sealed class NativeEncodingOptions : IDisposable
         var error = Abi.Init<tidyvnc_error>();
         Abi.Check(NativeMethods.tidyvnc_encoding_get(Handle.Raw, (uint)option, &result, &error), &error);
         if (!Enum.IsDefined((NativeOptionSource)result.source)) throw new NativeError(NativeStatus.Unsupported, "Unknown option source");
-        return new NativeEncodingValue(NativeText.Fixed(result.value, 32), (NativeOptionSource)result.source);
+        return new NativeEncodingValue(AbiText.Fixed(result.value, 32), (NativeOptionSource)result.source);
     }
 
     public static unsafe IReadOnlyList<NativeEncodingSchema> Schema()
@@ -89,7 +89,7 @@ public sealed class NativeEncodingOptions : IDisposable
             if (!Enum.IsDefined((NativeEncodingOption)value.id) || !Enum.IsDefined((NativeEncodingSchema.SchemaKind)value.type))
                 throw new NativeError(NativeStatus.Unsupported, "Unknown encoding schema entry");
             result.Add(new NativeEncodingSchema((NativeEncodingOption)value.id, (NativeEncodingSchema.SchemaKind)value.type,
-                NativeText.Fixed(value.name, 32), NativeText.Fixed(value.alias, 32), NativeText.Fixed(value.default_value, 32),
+                AbiText.Fixed(value.name, 32), AbiText.Fixed(value.alias, 32), AbiText.Fixed(value.default_value, 32),
                 value.minimum, value.maximum, value.persistent != 0, value.live != 0));
         }
         throw new NativeError(NativeStatus.ResourceLimit, "Encoding schema exceeds its entry limit");
@@ -104,7 +104,7 @@ public sealed class NativeEncodingOptions : IDisposable
             var value = Abi.Init<tidyvnc_encoding_choice>();
             if (Abi.Check(NativeMethods.tidyvnc_encoding_choice_at(index, &value, &error), &error, NativeStatus.Ok, NativeStatus.NoChange) == NativeStatus.NoChange)
                 return result;
-            result.Add(new NativeEncodingChoice(NativeText.Fixed(value.name, 32), value.wire_encoding, value.available != 0));
+            result.Add(new NativeEncodingChoice(AbiText.Fixed(value.name, 32), value.wire_encoding, value.available != 0));
         }
         throw new NativeError(NativeStatus.ResourceLimit, "Encoding choices exceed their entry limit");
     }

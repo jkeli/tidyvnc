@@ -40,9 +40,9 @@ public sealed record NativeConnectionInformation(
         => new(value.snapshot.generation, value.snapshot.frames, value.bits_per_second, value.snapshot.width, value.snapshot.height,
                value.protocol_major, value.protocol_minor, value.security_type, value.credentials_secure != 0, value.name_truncated != 0,
                value.requested_encoding, value.last_encoding,
-               NativeText.Fixed(value.desktop_name, 1025), NativeText.Fixed(value.pixel_format, 128),
-               NativeText.Fixed(value.security_name, 64), NativeText.Fixed(value.requested_encoding_name, 32),
-               NativeText.Fixed(value.last_encoding_name, 32));
+               AbiText.Fixed(value.desktop_name, 1025), AbiText.Fixed(value.pixel_format, 128),
+               AbiText.Fixed(value.security_name, 64), AbiText.Fixed(value.requested_encoding_name, 32),
+               AbiText.Fixed(value.last_encoding_name, 32));
 
     /// <summary>Diagnostics safe to copy: no remote names, endpoints, paths or authentication data.</summary>
     public string RedactedDiagnostics =>
@@ -172,8 +172,8 @@ public sealed record NativePrompt(
         Abi.Check(NativeMethods.tidyvnc_prompt_security_type(owner.Raw, &securityType, &error), &error);
         if (!Enum.IsDefined((PromptKind)info.kind)) throw new NativeError(NativeStatus.Unsupported, "Unsupported authentication prompt");
         return new NativePrompt(info.id, info.generation, (PromptKind)info.kind, info.secure != 0, securityType,
-            info.username_required != 0, info.certificate_status, NativeText.Decode(info.server_name),
-            NativeText.Decode(info.fingerprint), NativeText.Copy(info.identity));
+            info.username_required != 0, info.certificate_status, AbiText.Decode(info.server_name),
+            AbiText.Decode(info.fingerprint), AbiText.Copy(info.identity));
     }
 
     /// <summary>SHA-256 of the raw identity, upper-case hex pairs separated by colons.</summary>

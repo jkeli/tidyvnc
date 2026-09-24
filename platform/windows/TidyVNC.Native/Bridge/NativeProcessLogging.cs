@@ -15,9 +15,9 @@ public static unsafe class NativeProcessLogging
 
     public static void Validate(string policy)
     {
-        var bytes = NativeText.Utf8(policy);
+        var bytes = AbiText.Utf8(policy);
         var error = Abi.Init<tidyvnc_error>();
-        fixed (byte* p = bytes) Abi.Check(NativeMethods.tidyvnc_logging_validate(NativeText.Span(p, bytes.Length), &error), &error);
+        fixed (byte* p = bytes) Abi.Check(NativeMethods.tidyvnc_logging_validate(AbiText.Span(p, bytes.Length), &error), &error);
     }
 
     /// <summary>The effective policy: every Log value is validated, the last one wins.</summary>
@@ -40,19 +40,19 @@ public static unsafe class NativeProcessLogging
     /// <summary>Commits the policy for this process; later calls fail (the core freezes it at the first runtime).</summary>
     public static void Configure(string policy)
     {
-        var bytes = NativeText.Utf8(policy);
+        var bytes = AbiText.Utf8(policy);
         var error = Abi.Init<tidyvnc_error>();
-        fixed (byte* p = bytes) Abi.Check(NativeMethods.tidyvnc_logging_configure(NativeText.Span(p, bytes.Length), &error), &error);
+        fixed (byte* p = bytes) Abi.Check(NativeMethods.tidyvnc_logging_configure(AbiText.Span(p, bytes.Length), &error), &error);
     }
 
     /// <summary>The same, with the "file" target at an explicit absolute path (isolated test roots).</summary>
     public static void Configure(string policy, string file)
     {
-        var bytes = NativeText.Utf8(policy);
-        var path = NativeText.Utf8(file);
+        var bytes = AbiText.Utf8(policy);
+        var path = AbiText.Utf8(file);
         var error = Abi.Init<tidyvnc_error>();
         fixed (byte* p = bytes) fixed (byte* f = path)
-            Abi.Check(NativeMethods.tidyvnc_logging_configure_with_file(NativeText.Span(p, bytes.Length), NativeText.Span(f, path.Length), &error), &error);
+            Abi.Check(NativeMethods.tidyvnc_logging_configure_with_file(AbiText.Span(p, bytes.Length), AbiText.Span(f, path.Length), &error), &error);
     }
 
     /// <summary>

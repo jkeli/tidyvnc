@@ -65,8 +65,8 @@ public static unsafe class NativeImport
                 pins.Add(name); pins.Add(value);
                 input[i] = new tidyvnc_import_value
                 {
-                    name = NativeText.Span((byte*)name.AddrOfPinnedObject(), encoded[i].Item1.Length),
-                    value = NativeText.Span((byte*)value.AddrOfPinnedObject(), encoded[i].Item2.Length),
+                    name = AbiText.Span((byte*)name.AddrOfPinnedObject(), encoded[i].Item1.Length),
+                    value = AbiText.Span((byte*)value.AddrOfPinnedObject(), encoded[i].Item2.Length),
                 };
             }
             var error = Abi.Init<tidyvnc_error>();
@@ -74,7 +74,7 @@ public static unsafe class NativeImport
             byte empty = 0;
             fixed (byte* f = file) fixed (tidyvnc_import_value* v = input)
             {
-                var source = fromFile ? NativeText.Span(f == null ? &empty : f, file.Length) : default;
+                var source = fromFile ? AbiText.Span(f == null ? &empty : f, file.Length) : default;
                 Check(NativeMethods.tidyvnc_import_defaults(source, v, (uint)input.Length, &raw, &error), &error);
             }
             using var owner = NativeHandle.Adopt(raw);
@@ -85,7 +85,7 @@ public static unsafe class NativeImport
             {
                 var value = Abi.Init<tidyvnc_import_assignment>();
                 Abi.Check(NativeMethods.tidyvnc_import_assignment_at(owner.Raw, i, &value, &error), &error);
-                assignments.Add(new NativeImportAssignment(NativeText.Fixed(value.name, 64), Text(value.value), value.line));
+                assignments.Add(new NativeImportAssignment(AbiText.Fixed(value.name, 64), Text(value.value), value.line));
             }
             var notices = new List<NativeImportNotice>();
             for (var i = 0u; i < info.notice_count; i++)
@@ -109,13 +109,13 @@ public static unsafe class NativeImport
         try
         {
             var input = new tidyvnc_bytes[encoded.Length];
-            for (var i = 0; i < input.Length; i++) input[i] = NativeText.Span((byte*)pins[i].AddrOfPinnedObject(), encoded[i].Length);
+            for (var i = 0; i < input.Length; i++) input[i] = AbiText.Span((byte*)pins[i].AddrOfPinnedObject(), encoded[i].Length);
             var error = Abi.Init<tidyvnc_error>();
             ulong raw = 0;
             byte empty = 0;
             fixed (byte* f = file) fixed (tidyvnc_bytes* v = input)
             {
-                var source = fromFile ? NativeText.Span(f == null ? &empty : f, file.Length) : default;
+                var source = fromFile ? AbiText.Span(f == null ? &empty : f, file.Length) : default;
                 Check(NativeMethods.tidyvnc_import_history(source, v, (uint)input.Length, &raw, &error), &error);
             }
             using var owner = NativeHandle.Adopt(raw);

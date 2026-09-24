@@ -80,7 +80,7 @@ public sealed partial class ClipboardTests
 
     private static async Task<NativeSession> Connect(Scenario s, LoopbackPeer peer, bool viewOnly = false)
     {
-        var session = s.Runtime.CreateSession(new NativeSessionConfiguration { SecurityTypes = [1], ViewOnly = viewOnly });
+        var session = s.Runtime.CreateSession(new NativeSessionConfiguration { SecurityTypes = [1], Input = new NativeInputSettings(ViewOnly: viewOnly) });
         s.Coordinator.Register(session, notice => s.Notices.Add((session, notice)));
         await session.ConnectAsync(peer.Endpoint);
         await Until(() => peer.Established && session.Snapshot.State == NativeSessionState.Connected);

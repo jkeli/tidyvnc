@@ -20,7 +20,7 @@ public sealed class NativeListenOptions
 public readonly record struct NativeListenerAddress(string Host, uint Port)
 {
     internal static unsafe NativeListenerAddress From(tidyvnc_listener_address value)
-        => new(NativeText.Fixed(value.host, 64), value.port);
+        => new(AbiText.Fixed(value.host, 64), value.port);
 
     /// <summary>True for addresses reachable only from this computer (no firewall prompt).</summary>
     public bool IsLoopback => Host is "127.0.0.1" or "::1" || Host.StartsWith("127.", StringComparison.Ordinal);
@@ -79,11 +79,11 @@ public sealed partial class NativeListener : ObservableObject
         config.port = options.Port; config.ipv4 = options.Ipv4 ? 1u : 0u; config.ipv6 = options.Ipv6 ? 1u : 0u;
         config.backlog = options.Backlog; config.pending_capacity = options.PendingCapacity;
         config.event_capacity = options.EventCapacity; config.pending_timeout_ms = options.PendingTimeoutMilliseconds;
-        var address = NativeText.Utf8(options.Address);
+        var address = AbiText.Utf8(options.Address);
         ulong raw = 0;
         fixed (byte* p = address)
         {
-            config.address = NativeText.Span(p, address.Length);
+            config.address = AbiText.Span(p, address.Length);
             Abi.Check(NativeMethods.tidyvnc_listener_create(runtime.Handle.Raw, &config, &raw, &error), &error);
         }
         handle = NativeHandle.Adopt(raw);

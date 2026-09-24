@@ -34,7 +34,7 @@ public sealed class NativeClipboardText : IDisposable
         var value = Abi.Init<tidyvnc_clipboard_info>();
         var error = Abi.Init<tidyvnc_error>();
         Abi.Check(NativeMethods.tidyvnc_clipboard_get(owner.Raw, &value, &error), &error);
-        try { Text = new System.Text.UTF8Encoding(false, true).GetString(NativeText.Copy(value.text)); }
+        try { Text = new System.Text.UTF8Encoding(false, true).GetString(AbiText.Copy(value.text)); }
         catch (System.Text.DecoderFallbackException) { owner.Dispose(); throw new NativeError(NativeStatus.InvalidArgument, "Invalid clipboard text encoding"); }
         FromRemote = value.from_remote != 0; Route = NativeClipboardRoute.From(value.route); Handle = owner;
     }

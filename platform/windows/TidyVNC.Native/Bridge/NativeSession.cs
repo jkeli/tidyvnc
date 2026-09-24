@@ -24,10 +24,19 @@ public sealed class NativeSessionConfiguration
     public bool ReconnectOnError { get; set; } = true;
     public NativeOptionSource SharedSource { get; set; } = NativeOptionSource.Compiled;
     public NativeOptionSource ReconnectSource { get; set; } = NativeOptionSource.Compiled;
-    public bool ViewOnly { get; set; }
-    public bool EmulateMiddleButton { get; set; }
-    public NativeOptionSource ViewOnlySource { get; set; } = NativeOptionSource.Compiled;
-    public NativeOptionSource MiddleButtonSource { get; set; } = NativeOptionSource.Compiled;
+    /// <summary>Network families (UseIPv4/UseIPv6) and where each value came from.</summary>
+    public Dictionary<NativeNetworkOption, NativeOptionSource> NetworkSources { get; set; } = [];
+    public NativeInputSettings Input { get; set; } = NativeInputSettings.BuiltIn;
+    public Dictionary<NativeInputOption, NativeOptionSource> InputSources { get; set; } = [];
+    /// <summary>Null keeps the desktop host's built-in scaling.</summary>
+    public NativeScaling? Scaling { get; set; }
+    public Dictionary<NativeScalingOption, NativeOptionSource> ScalingSources { get; set; } = [];
+    public NativeFullscreenPolicy FullscreenPolicy { get; set; } = NativeFullscreenPolicy.BuiltIn;
+    public Dictionary<NativeFullscreenOption, NativeOptionSource> FullscreenSources { get; set; } = [];
+    public NativeRemoteResizePolicy ResizePolicy { get; set; } = NativeRemoteResizePolicy.BuiltIn;
+    public Dictionary<NativeResizeOption, NativeOptionSource> ResizeSources { get; set; } = [];
+    public NativeWindowStartupPolicy WindowStartupPolicy { get; set; } = NativeWindowStartupPolicy.BuiltIn;
+    public Dictionary<NativeWindowStartupOption, NativeOptionSource> WindowStartupSources { get; set; } = [];
     public NativeEncodingOptions? Encoding { get; set; }
     /// <summary>Null snapshots the compiled defaults; empty explicitly denies every type.</summary>
     public IReadOnlyList<uint>? SecurityTypes { get; set; }
@@ -97,6 +106,22 @@ public sealed partial class NativeSession : ObservableObject
     public NativeOptionSource ViewOnlySource { get; private set; }
     public NativeOptionSource MiddleButtonSource { get; private set; }
     private NativeOptionSource sharedSource, reconnectSource;
+    public IReadOnlyDictionary<NativeNetworkOption, NativeOptionSource> NetworkSources { get; }
+    // Frontend policies captured at creation (macOS initialInput, initialScaling, ...).
+    public NativeInputSettings InitialInput { get; }
+    public IReadOnlyDictionary<NativeInputOption, NativeOptionSource> InitialInputSources { get; }
+    public NativeScaling? InitialScaling { get; }
+    public IReadOnlyDictionary<NativeScalingOption, NativeOptionSource> InitialScalingSources { get; }
+    public NativeFullscreenPolicy InitialFullscreenPolicy { get; }
+    public IReadOnlyDictionary<NativeFullscreenOption, NativeOptionSource> InitialFullscreenSources { get; }
+    public NativeWindowStartupPolicy InitialWindowStartupPolicy { get; }
+    public IReadOnlyDictionary<NativeWindowStartupOption, NativeOptionSource> InitialWindowStartupSources { get; }
+    public NativeRemoteResizePolicy InitialResizePolicy { get; }
+    /// <summary>The live remote resize policy; changes bump <see cref="ResizePolicyRevision"/>.</summary>
+    [ObservableProperty] public partial NativeRemoteResizePolicy ResizePolicy { get; private set; }
+    public IReadOnlyDictionary<NativeResizeOption, NativeOptionSource> ResizeSources => resizeSources;
+    private Dictionary<NativeResizeOption, NativeOptionSource> resizeSources = [];
+    public Guid ResizePolicyRevision { get; private set; } = Guid.NewGuid();
     public bool ReconnectOnErrorEnabled { get; private set; }
 
     [ObservableProperty] public partial NativeSnapshot Snapshot { get; private set; }
@@ -177,7 +202,17 @@ public sealed partial class NativeSession : ObservableObject
         InitialShared = configuration.Shared; InitialReconnectOnError = configuration.ReconnectOnError;
         ReconnectOnErrorEnabled = configuration.ReconnectOnError;
         sharedSource = configuration.SharedSource; reconnectSource = configuration.ReconnectSource;
-        ViewOnlySource = configuration.ViewOnlySource; MiddleButtonSource = configuration.MiddleButtonSource;
+        ViewOnlySource = configuration.InputSources.GetValueOrDefault(NativeInputOption.ViewOnly);
+        MiddleButtonSource = configuration.InputSources.GetValueOrDefault(NativeInputOption.EmulateMiddle);
+        NetworkSources = new Dictionary<NativeNetworkOption, NativeOptionSource>(configuration.NetworkSources);
+        InitialInput = configuration.Input; InitialInputSources = new Dictionary<NativeInputOption, NativeOptionSource>(configuration.InputSources);
+        InitialScaling = configuration.Scaling; InitialScalingSources = new Dictionary<NativeScalingOption, NativeOptionSource>(configuration.ScalingSources);
+        InitialFullscreenPolicy = configuration.FullscreenPolicy;
+        InitialFullscreenSources = new Dictionary<NativeFullscreenOption, NativeOptionSource>(configuration.FullscreenSources);
+        InitialResizePolicy = ResizePolicy = configuration.ResizePolicy;
+        resizeSources = new Dictionary<NativeResizeOption, NativeOptionSource>(configuration.ResizeSources);
+        InitialWindowStartupPolicy = configuration.WindowStartupPolicy;
+        InitialWindowStartupSources = new Dictionary<NativeWindowStartupOption, NativeOptionSource>(configuration.WindowStartupSources);
         InitialCaFile = configuration.CaFile; InitialCrlFile = configuration.CrlFile;
 
         var options = Abi.Init<tidyvnc_session_options>();
@@ -202,15 +237,15 @@ public sealed partial class NativeSession : ObservableObject
         options.framebuffer_bytes = configuration.FramebufferBytes;
         options.publication_bytes = configuration.PublicationBytes;
 
-        var priority = NativeText.Utf8(configuration.TlsPriority);
-        var ca = NativeText.Utf8(configuration.CaFile);
-        var crl = NativeText.Utf8(configuration.CrlFile);
+        var priority = AbiText.Utf8(configuration.TlsPriority);
+        var ca = AbiText.Utf8(configuration.CaFile);
+        var crl = AbiText.Utf8(configuration.CrlFile);
         ulong raw = 0;
         fixed (byte* p = priority) fixed (byte* c = ca) fixed (byte* r = crl)
         {
-            options.tls_priority = NativeText.Span(p, priority.Length);
-            options.ca_file = NativeText.Span(c, ca.Length);
-            options.crl_file = NativeText.Span(r, crl.Length);
+            options.tls_priority = AbiText.Span(p, priority.Length);
+            options.ca_file = AbiText.Span(c, ca.Length);
+            options.crl_file = AbiText.Span(r, crl.Length);
             Abi.Check(NativeMethods.tidyvnc_session_create_with_message_limits(runtime.Handle.Raw, &options,
                 configuration.Encoding?.Handle.Raw ?? 0, &timing, &limits, &raw, &error), &error);
         }
@@ -229,9 +264,9 @@ public sealed partial class NativeSession : ObservableObject
         }
         ClipboardSendEnabled = configuration.ClipboardSend;
         ClipboardReceiveEnabled = configuration.ClipboardReceive;
-        Abi.Check(NativeMethods.tidyvnc_session_input_policy(handle.Raw, configuration.ViewOnly ? 1u : 0u,
-            configuration.EmulateMiddleButton ? 1u : 0u, &error), &error);
-        IsViewOnly = configuration.ViewOnly; EmulatesMiddleButton = configuration.EmulateMiddleButton;
+        Abi.Check(NativeMethods.tidyvnc_session_input_policy(handle.Raw, configuration.Input.ViewOnly ? 1u : 0u,
+            configuration.Input.EmulateMiddle ? 1u : 0u, &error), &error);
+        IsViewOnly = configuration.Input.ViewOnly; EmulatesMiddleButton = configuration.Input.EmulateMiddle;
 
         var weak = new WeakReference<NativeSession>(this);
         delivery = new NativeDelivery(runtime.Dispatcher, (id, generation) =>
@@ -298,7 +333,7 @@ public sealed partial class NativeSession : ObservableObject
 
     public unsafe Task<NativeCompletion> ConnectAsync(string endpoint, CancellationToken cancellation = default)
     {
-        var bytes = NativeText.Utf8(endpoint);
+        var bytes = AbiText.Utf8(endpoint);
         return SubmitAsync((operation, error) =>
         {
             var options = Abi.Init<tidyvnc_connect_options>();
@@ -307,7 +342,7 @@ public sealed partial class NativeSession : ObservableObject
             options.ipv4 = Ipv4 ? 1u : 0u; options.ipv6 = Ipv6 ? 1u : 0u;
             fixed (byte* p = bytes)
             {
-                options.endpoint = NativeText.Span(p, bytes.Length);
+                options.endpoint = AbiText.Span(p, bytes.Length);
                 return NativeMethods.tidyvnc_session_connect(handle.Raw, &options, operation, error);
             }
         }, advancesGeneration: true, cancellation);
@@ -322,7 +357,7 @@ public sealed partial class NativeSession : ObservableObject
                                                       CancellationToken cancellation = default)
     {
         var target = NativeEndpointIdentity.Create(endpoint, routeIdentity);
-        var local = NativeText.Utf8(localEndpoint);
+        var local = AbiText.Utf8(localEndpoint);
         var task = SubmitAsync((operation, error) =>
         {
             var options = Abi.Init<tidyvnc_connect_options>();
@@ -331,7 +366,7 @@ public sealed partial class NativeSession : ObservableObject
             options.ipv4 = Ipv4 ? 1u : 0u; options.ipv6 = Ipv6 ? 1u : 0u;
             fixed (byte* p = local)
             {
-                options.endpoint = NativeText.Span(p, local.Length);
+                options.endpoint = AbiText.Span(p, local.Length);
                 return NativeMethods.tidyvnc_session_connect_routed(handle.Raw, target.Raw, &options, operation, error);
             }
         }, advancesGeneration: true, cancellation);
@@ -385,12 +420,12 @@ public sealed partial class NativeSession : ObservableObject
     public unsafe Task<NativeCompletion> OfferClipboardAsync(string text, NativeClipboardText? origin = null, ulong changeId = 0,
                                                             ulong? expectedGeneration = null)
     {
-        var bytes = NativeText.Utf8(text);
+        var bytes = AbiText.Utf8(text);
         return SubmitAsync((operation, error) =>
         {
             fixed (byte* p = bytes)
                 return NativeMethods.tidyvnc_session_clipboard_offer(handle.Raw, expectedGeneration ?? Generation,
-                    NativeText.Span(p, bytes.Length), origin?.Handle.Raw ?? 0, changeId, operation, error);
+                    AbiText.Span(p, bytes.Length), origin?.Handle.Raw ?? 0, changeId, operation, error);
         });
     }
 
@@ -440,7 +475,7 @@ public sealed partial class NativeSession : ObservableObject
         var error = Abi.Init<tidyvnc_error>();
         Abi.Check(NativeMethods.tidyvnc_session_security(handle.Raw, &value, &error), &error);
         return new NativeSessionSecurity(value.revision, value.generation, value.editable != 0,
-            NativeText.Fixed(value.types, 1025),
+            AbiText.Fixed(value.types, 1025),
             Encoding.UTF8.GetString(value.tls_priority, (int)Math.Min(value.tls_priority_length, 4096)),
             Encoding.UTF8.GetString(value.ca_file, (int)Math.Min(value.ca_file_length, 4096)),
             Encoding.UTF8.GetString(value.crl_file, (int)Math.Min(value.crl_file_length, 4096)));
@@ -450,15 +485,15 @@ public sealed partial class NativeSession : ObservableObject
     public unsafe void SetSecurity(string types, string tlsPriority, string caFile, string crlFile, NativeSessionSecurity expected)
     {
         if (IsClosing) throw new NativeError(NativeStatus.Closing, "Session closing");
-        var t = NativeText.Utf8(types); var p = NativeText.Utf8(tlsPriority);
-        var c = NativeText.Utf8(caFile); var r = NativeText.Utf8(crlFile);
+        var t = AbiText.Utf8(types); var p = AbiText.Utf8(tlsPriority);
+        var c = AbiText.Utf8(caFile); var r = AbiText.Utf8(crlFile);
         var error = Abi.Init<tidyvnc_error>();
         ulong revision = 0;
         fixed (byte* tp = t) fixed (byte* pp = p) fixed (byte* cp = c) fixed (byte* rp = r)
         {
             var update = Abi.Init<tidyvnc_security_update>();
-            update.types = NativeText.Span(tp, t.Length); update.tls_priority = NativeText.Span(pp, p.Length);
-            update.ca_file = NativeText.Span(cp, c.Length); update.crl_file = NativeText.Span(rp, r.Length);
+            update.types = AbiText.Span(tp, t.Length); update.tls_priority = AbiText.Span(pp, p.Length);
+            update.ca_file = AbiText.Span(cp, c.Length); update.crl_file = AbiText.Span(rp, r.Length);
             Abi.Check(NativeMethods.tidyvnc_session_set_security(handle.Raw, expected.Generation, expected.Revision, &update,
                 &revision, &error), &error);
         }
@@ -510,6 +545,18 @@ public sealed partial class NativeSession : ObservableObject
         if (EmulatesMiddleButton != emulateMiddle) { MiddleButtonSource = NativeOptionSource.Session; EmulatesMiddleButton = emulateMiddle; }
     }
 
+    /// <summary>Changes the live remote resize policy (macOS setResizePolicy); stale drafts get Stale.</summary>
+    public void SetResizePolicy(NativeRemoteResizePolicy value, Guid expected)
+    {
+        UiThread.Require(Dispatcher);
+        if (IsClosing) throw new NativeError(NativeStatus.Closing, "Session is closing");
+        if (expected != ResizePolicyRevision) throw new NativeError(NativeStatus.Stale, "Resize settings changed");
+        if (value.Enabled != ResizePolicy.Enabled) resizeSources[NativeResizeOption.Enabled] = NativeOptionSource.Session;
+        if (value.InitialSize != ResizePolicy.InitialSize) resizeSources[NativeResizeOption.InitialSize] = NativeOptionSource.Session;
+        ResizePolicyRevision = Guid.NewGuid();
+        ResizePolicy = value;
+    }
+
     public unsafe void SendKey(uint id, uint keysym, uint keycode, bool down)
     {
         var error = Abi.Init<tidyvnc_error>();
@@ -548,7 +595,7 @@ public sealed partial class NativeSession : ObservableObject
             }
             if (Prompt?.Id == request.Id) Prompt = null;
         }
-        finally { NativeText.Wipe(username); NativeText.Wipe(password); }
+        finally { AbiText.Wipe(username); AbiText.Wipe(password); }
     }
 
     /// <summary>Captured legacy bytes (VNC_PASSWORD etc.) need not be UTF-8.</summary>
@@ -565,7 +612,7 @@ public sealed partial class NativeSession : ObservableObject
             }
             if (Prompt?.Id == request.Id) Prompt = null;
         }
-        finally { NativeText.Wipe(username); NativeText.Wipe(password); }
+        finally { AbiText.Wipe(username); AbiText.Wipe(password); }
     }
 
     /// <summary>The core decodes one legacy PasswordFile block; no plaintext is introduced here.</summary>
@@ -581,7 +628,7 @@ public sealed partial class NativeSession : ObservableObject
             }
             if (Prompt?.Id == request.Id) Prompt = null;
         }
-        finally { NativeText.Wipe(block); }
+        finally { AbiText.Wipe(block); }
     }
 
     public unsafe void ReplyTrust(NativePrompt request, bool allowed)

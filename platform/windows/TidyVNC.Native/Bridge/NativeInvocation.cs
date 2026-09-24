@@ -84,7 +84,7 @@ public sealed class NativeInvocation
             for (var i = 0; i < encoded.Length; i++)
             {
                 handles[i] = System.Runtime.InteropServices.GCHandle.Alloc(encoded[i], System.Runtime.InteropServices.GCHandleType.Pinned);
-                spans[i] = NativeText.Span((byte*)handles[i].AddrOfPinnedObject(), encoded[i].Length);
+                spans[i] = AbiText.Span((byte*)handles[i].AddrOfPinnedObject(), encoded[i].Length);
             }
             var error = Abi.Init<tidyvnc_error>();
             ulong parsed = 0, validated = 0;
@@ -104,7 +104,7 @@ public sealed class NativeInvocation
                 var value = Abi.Init<tidyvnc_invocation_assignment>();
                 Abi.Check(NativeMethods.tidyvnc_invocation_assignment_at(owner.Raw, i, &value, &error), &error);
                 assignments.Add(new NativeInvocationAssignment(value.category, value.argument, value.value_argument,
-                    NativeText.Fixed(value.name, 64),
+                    AbiText.Fixed(value.name, 64),
                     value.value.data == null ? "" : Encoding.UTF8.GetString(value.value.data, checked((int)value.value.length))));
             }
             return new NativeInvocation((NativeInvocationAction)info.action, operand, info.operand_argument, assignments);
@@ -134,7 +134,7 @@ public sealed class NativeInvocation
             if (Abi.Check(NativeMethods.tidyvnc_invocation_option_at(i, &option, &error), &error, NativeStatus.Ok, NativeStatus.NoChange) != NativeStatus.Ok)
                 return options;
             options.Add(new NativeInvocationOption(option.category, option.boolean != 0, option.available != 0,
-                NativeText.Fixed(option.name, 64), NativeText.Fixed(option.alias, 64)));
+                AbiText.Fixed(option.name, 64), AbiText.Fixed(option.alias, 64)));
         }
     }
 }

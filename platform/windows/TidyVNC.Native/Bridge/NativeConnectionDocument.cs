@@ -62,7 +62,7 @@ public sealed unsafe class NativeConnectionDocument : IDisposable
         catch (DecoderFallbackException) { throw new NativeDocumentFailure(NativeDocumentProblem.InvalidText, 0); }
         var error = Abi.Init<tidyvnc_error>();
         ulong raw = 0;
-        fixed (byte* bytes = data) Call(NativeMethods.tidyvnc_document_parse(NativeText.Span(bytes, data.Length), &raw, &error), &error);
+        fixed (byte* bytes = data) Call(NativeMethods.tidyvnc_document_parse(AbiText.Span(bytes, data.Length), &raw, &error), &error);
         handle = NativeHandle.Adopt(raw);
         try
         {
@@ -130,8 +130,8 @@ public sealed unsafe class NativeConnectionDocument : IDisposable
                 handles.Add(value);
                 assignments[i] = new tidyvnc_document_assignment
                 {
-                    name = NativeText.Span((byte*)name.AddrOfPinnedObject(), names[i].Length),
-                    value = NativeText.Span((byte*)value.AddrOfPinnedObject(), values[i].Length),
+                    name = AbiText.Span((byte*)name.AddrOfPinnedObject(), names[i].Length),
+                    value = AbiText.Span((byte*)value.AddrOfPinnedObject(), values[i].Length),
                 };
             }
             var error = Abi.Init<tidyvnc_error>();

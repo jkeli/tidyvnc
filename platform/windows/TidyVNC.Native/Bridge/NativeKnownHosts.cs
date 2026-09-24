@@ -15,7 +15,7 @@ public sealed unsafe class NativeCertificateKey : IDisposable
         var error = Abi.Init<tidyvnc_error>();
         ulong raw = 0;
         fixed (byte* data = certificate)
-            Abi.Check(NativeMethods.tidyvnc_certificate_key_create(NativeText.Span(data, certificate.Length), &raw, &error), &error);
+            Abi.Check(NativeMethods.tidyvnc_certificate_key_create(AbiText.Span(data, certificate.Length), &raw, &error), &error);
         Handle = NativeHandle.Adopt(raw);
         var info = Abi.Init<tidyvnc_certificate_key_info>();
         Abi.Check(NativeMethods.tidyvnc_certificate_key_get(Handle.Raw, &info, &error), &error);
@@ -67,7 +67,7 @@ public static unsafe class NativeKnownHosts
         var error = Abi.Init<tidyvnc_error>();
         uint status;
         fixed (byte* f = file) fixed (byte* h = hostBytes)
-            status = NativeMethods.tidyvnc_known_hosts_lookup(NativeText.Span(f, file.Length), NativeText.Span(h, hostBytes.Length),
+            status = NativeMethods.tidyvnc_known_hosts_lookup(AbiText.Span(f, file.Length), AbiText.Span(h, hostBytes.Length),
                 default, key.Handle.Raw, (ulong)Math.Max(0, now.ToUnixTimeSeconds()), &output, &error);
         if (status != Tidyvnc.TIDYVNC_OK)
         {
@@ -80,9 +80,9 @@ public static unsafe class NativeKnownHosts
         {
             ref var entry = ref output.expected[i];
             fixed (byte* text = entry.text)
-                expected[i] = new NativeKnownHostsIdentity(entry.kind == Tidyvnc.TIDYVNC_KNOWN_HOSTS_COMMITMENT, entry.algorithm, NativeText.Fixed(text, 132));
+                expected[i] = new NativeKnownHostsIdentity(entry.kind == Tidyvnc.TIDYVNC_KNOWN_HOSTS_COMMITMENT, entry.algorithm, AbiText.Fixed(text, 132));
         }
         return new NativeKnownHostsMatch((NativeKnownHostsState)output.state, expected, output.has_more != 0, output.wildcard != 0,
-            NativeText.Fixed(output.received, 100));
+            AbiText.Fixed(output.received, 100));
     }
 }

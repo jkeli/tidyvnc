@@ -28,7 +28,7 @@ public sealed class NativeError : Exception
         Status = status; Domain = Tidyvnc.TIDYVNC_DOMAIN_BRIDGE;
     }
 
-    internal unsafe NativeError(tidyvnc_error value) : base(NativeText.Fixed(value.message, 160))
+    internal unsafe NativeError(tidyvnc_error value) : base(AbiText.Fixed(value.message, 160))
     {
         Status = Enum.IsDefined((NativeStatus)value.code) ? (NativeStatus)value.code : NativeStatus.InternalFailure;
         Domain = value.domain; Detail = value.detail; NativeCode = value.native_error;
@@ -65,7 +65,7 @@ internal static unsafe class Abi
 }
 
 /// <summary>UTF-8 conversions at the ABI boundary.</summary>
-internal static unsafe class NativeText
+internal static unsafe class AbiText
 {
     /// <summary>A NUL-terminated fixed char array, decoded as UTF-8 (invalid bytes replaced).</summary>
     public static string Fixed(byte* bytes, int capacity)

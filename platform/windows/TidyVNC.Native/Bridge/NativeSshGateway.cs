@@ -17,7 +17,7 @@ public sealed record NativeSshGateway(string Host, string Scope, string? User, u
         var error = Abi.Init<tidyvnc_error>();
         ulong raw = 0;
         fixed (byte* data = bytes)
-            Abi.Check(NativeMethods.tidyvnc_ssh_gateway_create(NativeText.Span(data, bytes.Length), &raw, &error), &error);
+            Abi.Check(NativeMethods.tidyvnc_ssh_gateway_create(AbiText.Span(data, bytes.Length), &raw, &error), &error);
         using var owner = NativeHandle.Adopt(raw);
         var info = Abi.Init<tidyvnc_ssh_gateway_info>();
         Abi.Check(NativeMethods.tidyvnc_ssh_gateway_get(owner.Raw, &info, &error), &error);

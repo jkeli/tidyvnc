@@ -44,7 +44,7 @@ public sealed class NativeHostKey
         uint bits = 0;
         var error = Abi.Init<tidyvnc_error>();
         fixed (byte* p = identity)
-            Abi.Check(NativeMethods.tidyvnc_host_key_validate(NativeText.Span(p, identity.Length), &bits, &error), &error);
+            Abi.Check(NativeMethods.tidyvnc_host_key_validate(AbiText.Span(p, identity.Length), &bits, &error), &error);
         Bits = bits; Identity = identity;
     }
 

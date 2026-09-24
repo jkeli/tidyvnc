@@ -25,9 +25,10 @@ InvocationCapabilities InvocationCapabilities::compiled() {
 #if !defined(WIN32) && !defined(__APPLE__)
   result.x11 = true;
 #endif
-#ifndef WIN32
+  // Native frontends own the SSH tunnel: macOS through ssh ControlMaster and
+  // Windows through `ssh -W` (plans/native-ui-winui DECISIONS.md D17). The
+  // retained FLTK viewer does not use this schema.
   result.tunnel = true;
-#endif
   return result;
 }
 

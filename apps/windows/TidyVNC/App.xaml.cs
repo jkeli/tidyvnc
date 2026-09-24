@@ -66,6 +66,7 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         Dispatcher = new UiDispatcher(DispatcherQueue.GetForCurrentThread());
+        NativeText.SetResolver(Strings.Resolve);
         ConfigureLogging();
         Runtime = new NativeRuntime(Dispatcher);
         Bell = new NativeBell(Dispatcher);

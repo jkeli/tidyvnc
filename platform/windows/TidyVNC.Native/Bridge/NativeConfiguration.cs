@@ -53,8 +53,8 @@ public static unsafe class NativeConfiguration
                 pins.Add(name); pins.Add(value);
                 input[i] = new tidyvnc_config_assignment
                 {
-                    name = NativeText.Span((byte*)name.AddrOfPinnedObject(), encoded[i].Item1.Length),
-                    value = NativeText.Span((byte*)value.AddrOfPinnedObject(), encoded[i].Item2.Length),
+                    name = AbiText.Span((byte*)name.AddrOfPinnedObject(), encoded[i].Item1.Length),
+                    value = AbiText.Span((byte*)value.AddrOfPinnedObject(), encoded[i].Item2.Length),
                     source = (uint)assignments[i].Source, position = assignments[i].Position,
                 };
             }
@@ -76,7 +76,7 @@ public static unsafe class NativeConfiguration
             {
                 var value = Abi.Init<tidyvnc_config_value>();
                 Abi.Check(NativeMethods.tidyvnc_config_value_at(owner.Raw, i, &value, &error), &error);
-                values.Add(new NativeConfigValue(NativeText.Fixed(value.name, 64),
+                values.Add(new NativeConfigValue(AbiText.Fixed(value.name, 64),
                     value.value.length == 0 ? "" : Encoding.UTF8.GetString(value.value.data, checked((int)value.value.length)),
                     (NativeOptionSource)value.source, value.position, value.dormant != 0));
             }
@@ -85,7 +85,7 @@ public static unsafe class NativeConfiguration
             {
                 var note = Abi.Init<tidyvnc_config_note>();
                 Abi.Check(NativeMethods.tidyvnc_config_note_at(owner.Raw, i, &note, &error), &error);
-                notes.Add(new NativeConfigNote((NativeConfigNoteKind)note.kind, NativeText.Fixed(note.parameter, 64), (NativeOptionSource)note.source, note.position));
+                notes.Add(new NativeConfigNote((NativeConfigNoteKind)note.kind, AbiText.Fixed(note.parameter, 64), (NativeOptionSource)note.source, note.position));
             }
             return new NativeConfigResolution(values, notes);
         }

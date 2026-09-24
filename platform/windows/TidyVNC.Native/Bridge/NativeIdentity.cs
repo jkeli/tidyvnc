@@ -69,8 +69,8 @@ public static unsafe class NativeIdentity
         uint status;
         fixed (byte* pe = e) fixed (byte* pr = r) fixed (byte* pu = u) fixed (byte* pa = a)
         {
-            request.endpoint = NativeText.Span(pe, e.Length); request.route = NativeText.Span(pr, r.Length);
-            request.username = NativeText.Span(pu, u.Length); request.host_key_alias = NativeText.Span(pa, a.Length);
+            request.endpoint = AbiText.Span(pe, e.Length); request.route = AbiText.Span(pr, r.Length);
+            request.username = AbiText.Span(pu, u.Length); request.host_key_alias = AbiText.Span(pa, a.Length);
             status = NativeMethods.tidyvnc_identity_digest(&request, &output, &error);
         }
         if (status != Tidyvnc.TIDYVNC_OK)
@@ -78,6 +78,6 @@ public static unsafe class NativeIdentity
             if (error.domain == Tidyvnc.TIDYVNC_DOMAIN_IDENTITY) throw new NativeIdentityFailure((NativeIdentityFailure.Problem)error.detail);
             throw new NativeError(error);
         }
-        return NativeText.Fixed(output.text, 80);
+        return AbiText.Fixed(output.text, 80);
     }
 }
