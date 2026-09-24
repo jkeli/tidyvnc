@@ -1433,3 +1433,22 @@ Add dated entries, newest last, in the macOS format:
   - gated UI tests DesktopViewScrolls, ConnectionInformation and ClosingDuringAuthentication pass.
 - Remaining: touch, pen and precision-touchpad hands-on checks need that hardware, and the touch keyboard
   from the full-screen connection bar is not done yet.
+
+### W6.5 (progress) — release-all — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Wiring (from W3–W5, reviewed here): every trigger ends in `DesktopView.ReleaseKeys()`, which calls
+  `NativeSession.ReleaseInput()` (the core input queue's release barrier). The triggers are:
+  - keyboard focus loss (`SetKeyboardFocus(false)`);
+  - connection-window deactivation;
+  - deactivation of a full-screen surface, and full-screen entry and exit;
+  - keyboard-capture revocation (`NativeKeyboardCaptureController`);
+  - session lock and suspend (`NativeSessionEvents` → `App.SessionChanged`, which also releases capture).
+  - Disconnect and close end the generation, and the core drops queued input.
+  - The touch-held buttons and wheel remainders now reset too (W6.6/W6.7).
+- New test `SessionTests.ReleaseAllLiftsHeldKeysAndButtons`: with Control_L and two buttons held at a
+  loopback server, `ReleaseInput` sends the key-up and a pointer event with no buttons. Passes.
+- Also rechecked after the MinGW test-peer change: the FLTK MinGW build builds, and its unit tests are
+  655/659 with the same 4 known failures (DocumentABI allocation injection and three GDI Surface
+  timeouts).
+- Remaining: hands-on lock, sleep and Alt+Tab checks with a held key on a real server.

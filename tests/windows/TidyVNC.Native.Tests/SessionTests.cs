@@ -208,6 +208,42 @@ public sealed class SessionTests
         });
     }
 
+    /// <summary>
+    /// W6.5 / W06: focus loss, deactivation, capture loss, lock, suspend and full-screen
+    /// transitions all call ReleaseInput; it must lift every key and button still held remotely.
+    /// </summary>
+    [TestMethod]
+    public async Task ReleaseAllLiftsHeldKeysAndButtons()
+    {
+        using var ui = new SingleThreadDispatcher();
+        await using var peer = new LoopbackPeer();
+        await OnUi(ui, async () =>
+        {
+            var runtime = new NativeRuntime(ui);
+            var session = runtime.CreateSession(new NativeSessionConfiguration { SecurityTypes = [1], PointerEventIntervalMilliseconds = 0 });
+            try
+            {
+                await session.ConnectAsync(peer.Endpoint);
+                await Until(() => peer.Established && session.Snapshot.State == NativeSessionState.Connected);
+                session.SetFocused(true);
+                session.SendKey(0x1d, 0xffe3, 0x1d, true);  // Control_L held
+                session.SendPointer(1, 1, 1 | 4);           // left and right held (the peer is 2x2)
+                await Until(() => peer.Received([4, 1, 0, 0, 0, 0, 0xff, 0xe3]));
+                await Until(() => peer.Received([5, 5, 0, 1, 0, 1]));
+                session.ReleaseInput();
+                // KeyEvent up for Control_L and a PointerEvent with no buttons at the last position.
+                await Until(() => peer.Received([4, 0, 0, 0, 0, 0, 0xff, 0xe3]));
+                await Until(() => peer.Received([5, 0, 0, 1, 0, 1]));
+            }
+            finally
+            {
+                await session.CloseAsync();
+                await runtime.ShutdownAsync();
+            }
+            return true;
+        });
+    }
+
     [TestMethod]
     public async Task ListenerAcceptsAReverseConnectionIntoASession()
     {
