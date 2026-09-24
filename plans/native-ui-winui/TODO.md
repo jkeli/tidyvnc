@@ -98,8 +98,8 @@ proven through the real app before substantial screen work.
 - [x] W4.1 Stores: preferences, profiles/history, window state; schema, revision, `LockFileEx`, atomic replace, ACL check, sharing-violation retry, corruption and newer-schema recovery (D16).
 - [x] W4.2 Credentials: Credential Manager store, retention controller (use once / session / remember), replace/forget, launch credentials with Windows path rules (D15).
 - [x] W4.3 Trust: TidyVNC trust stores, legacy `x509_known_hosts` adapters for both `%APPDATA%` locations, CA/CRL path handling.
-- [ ] W4.4 Documents: common file dialogs, bounded reads, atomic writes, launch routing; file dialog open during exit.
-- [ ] W4.5 Registry import sources for defaults and history, read-only, feeding the core projection.
+- [x] W4.4 Documents: common file dialogs, bounded reads, atomic writes, launch routing; file dialog open during exit.
+- [x] W4.5 Registry import sources for defaults and history, read-only, feeding the core projection.
 - [ ] W4.6 Clipboard adapter and coordinator: listener window, contention retry, remote-origin format, focus routing, `CanUploadToCloudClipboard = 0` on every remote-origin write (D21).
   - [ ] Manual check with cloud clipboard on: remote text appears in local history and never on a second device
 - [ ] W4.7 Display service: `QueryDisplayConfig` topology, stable IDs, friendly names, change notifications.
@@ -555,3 +555,75 @@ Add dated entries, newest last, in the macOS format:
   nothing, because CommitAsync checks the same revision under the writer lock.
 - Not in W4.3: the trust dialog and the two library windows (W5) bind these
   models.
+
+### W4.4, W4.5 — documents and registry import — 2026-09-23
+
+- Behaviour:
+  - `Bridge/NativeConnectionDocument.cs`: the shared connection-file codec
+    through the C ABI. Parse, decoded values, validated options, and
+    canonical serialization; invalid UTF-8 is rejected, never replaced.
+  - `Documents/NativeDocumentFiles.cs`:
+    - Bounded reads: a regular disk file only, opened without following
+      reparse points, 1 MiB maximum, with a before/after identity check.
+    - Atomic saves:
+      - `.tidyvnc` in an existing, non-redirected folder;
+      - an existing destination must be a writable single-link regular file;
+      - a per-folder named-mutex writer lock (`Busy`);
+      - the file and folder identity are rechecked before and immediately
+        after writing a write-through, flushed temporary file;
+      - `ReplaceFileW`, or a no-replace `MoveFileExW` for a new file;
+      - a failure after the replace is `CommittedUncertain`, never reported
+        as the old file surviving.
+    - `NativeDocumentLaunchRouter`: bounded, validated batches, queued
+      until the window action is installed, with a new ID for every open.
+  - `Documents/NativeFileDialogs.cs`: the Common Item Dialog through
+    CsWin32 COM. It uses the owner HWND and gives plain file-system paths,
+    an OK label (Review), overwrite prompt, the `.tidyvnc` default
+    extension and filters. `CancelActive` closes an open dialog as
+    cancelled, for exit and session end during a dialog.
+  - `Storage/NativeRegistryImport.cs` (W4.5): read-only sources under
+    `HKCU\Software\{TidyVNC,TigerVNC}\vncviewer`.
+    - Values are read as parameters.cxx writes them: DWORDs as signed
+      integers; strings decoded with the exact `decodeValue` escape rules,
+      up to 255 bytes. The core document line limit (254) is too small for
+      registry values, so the decoder is mirrored rather than routed through
+      a synthetic document.
+    - History is read as `"0".."n"` until the first gap.
+    - Everything goes through the core import projection, which excludes
+      passwords, CA/CRL, security types and tunnels.
+    - Unrepresentable values are listed, never imported; nothing is written.
+- Tests:
+  - `DocumentTests`, 7 cases: codec, reads, saves, invalid destinations
+    (extension, relative path, missing folder, folder named `.tidyvnc`, hard
+    link, junction, read-only), races injected between write and replace,
+    failures before and after commit, folder lock contention, launch
+    routing.
+  - `RegistryImportTests`, 5 cases, on disposable
+    `HKCU\Software\TidyVNC-test-*` keys: decoding, discovery of both
+    sources, projection with exclusions and skipped values, history order
+    and gap, and no writes.
+  - `FileDialogTests` shows real dialogs, so it is gated like the UI suite:
+    a timer inside the dialog's modal loop checks that a second dialog is
+    refused and then closes the open one as cancelled.
+
+  Mutations:
+  11 mutations, all fail the suite:
+  - the pre-replace recheck;
+  - the single-link check;
+  - overwrite confirmation;
+  - the folder lock;
+  - destination ownership;
+  - the committed-uncertain report;
+  - the read size bound;
+  - the special-file check;
+  - the router batch bound;
+  - the history gap;
+  - the escape decoder.
+  
+  The gated dialog test passed on this machine while the desktop was idle.
+  The first attempt showed that IFileDialog::Close is ignored outside dialog
+  event callbacks, so CancelActive also posts IDCANCEL to the dialog window.
+  Full native suite: 78 passed, 1 skipped (gated), 1 environmental failure
+  (displays in power save, see W4.2).
+- Open (W5): the document review, export review and monitor mapping screens
+  (W5.14) use these services; the gated dialog test runs with the UI suite.

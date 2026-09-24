@@ -15,3 +15,15 @@ FILE_BASIC_INFO
 FILE_STANDARD_INFO
 WIN32_ERROR
 GetFileInformationByHandle
+ReplaceFileW
+MoveFileExW
+CoCreateInstance
+CoTaskMemFree
+SHCreateItemFromParsingName
+IFileDialog
+IFileOpenDialog
+IFileSaveDialog
+IShellItem
+COMDLG_FILTERSPEC
+IOleWindow
+PostMessageW
