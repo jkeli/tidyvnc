@@ -16,11 +16,8 @@ The WinUI 3 viewer (`apps/windows/TidyVNC`) runs on the MSVC-built core
 The W7 package stage produces an audited per-user MSI. Items stay unchecked in TODO.md until
 their remaining checks run. These are mostly the following, and each item lists its own:
 
-- display-dependent UI tests. The desktop is an active RDP session that was not on screen during this
-  work; these tests need it displayed (the RDP window visible, not minimized) or the console session.
-  Three of them (typing, the large cursor, the context menu) still failed on 2026-09-24 with the desktop
-  idle and nothing in front: input reached the test server, but the screen kept showing the first frame,
-  as a session that is not displayed does. They fail the same way on the commit before the W6.11 fix;
+- display-dependent UI tests need the RDP window visible (not minimized) or the console session, with the
+  local pointer inside the RDP window and still. With that, the whole vertical-slice class passes (2026-09-24);
 - hands-on keyboard, Narrator and contrast passes;
 - hardware: mixed-DPI, touch, pen, ARM64;
 - a clean VM or test account: installing, FLTK comparisons, relocated GUI start;
