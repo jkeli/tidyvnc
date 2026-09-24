@@ -2244,3 +2244,22 @@ Add dated entries, newest last, in the macOS format:
 - `LargeRemoteCursorsAreDrawnOverTheDesktop` and `ConnectionMenuCommandsReachTheServer` failed because
   another app's window covered the test window: the test's pointer moves and one click landed on it. They
   are rerun with the test area clear.
+
+### W7.13, W3.6 (progress) — UI test input on a remote session — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- On 2.5.1 with the RDP session displayed, the vertical-slice class passes 22 of 26: every test except the
+  four that move the real mouse pointer over the desktop view.
+- Test input fixes:
+  - FlaUI's `Mouse.MoveTo` places the cursor without mouse input, and WinUI reports no pointer movement for
+    it, so hover never reached the view. The tests now move with absolute `SendInput` (`MovePointer`) and
+    click through `ClickAt`. With the local pointer still, `LargeRemoteCursorsAreDrawnOverTheDesktop` passed.
+  - FlaUI sends `VirtualKeyShort.ALT` as the extended (right) Alt; with Ctrl that is AltGr, so the viewer
+    chord never formed and M's key-down never reached the shortcut router (traced). The test now sends left
+    Ctrl and left Alt.
+- The four pointer tests still fail while the owner's RDP client moves the remote cursor: its local pointer
+  over the window, or leaving it at an edge (the cursor held at 1799,345), overrides the tests' moves. A
+  standalone probe confirmed injected moves work otherwise. These four need the local mouse still and
+  inside the RDP window (or the console session); `LargeRemoteCursorsAreDrawnOverTheDesktop` now reports
+  where the cursor really was.
+- W7.13 stays open for those four tests.

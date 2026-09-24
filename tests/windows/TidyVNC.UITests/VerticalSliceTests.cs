@@ -154,6 +154,14 @@ public sealed class VerticalSliceTests
     }, "the menu to open");
 
     /// <summary>Input is injected only while our window is in the foreground.</summary>
+    /// <summary>A left click there, reached with real mouse movement (see NativeMethods.MovePointer).</summary>
+    private static void ClickAt(System.Drawing.Point point)
+    {
+        NativeMethods.MovePointer(point);
+        Thread.Sleep(100);
+        Mouse.Click();
+    }
+
     private static void RequireForeground(Window window)
     {
         var process = window.Properties.ProcessId.Value;
@@ -293,7 +301,7 @@ public sealed class VerticalSliceTests
             // Click: focus and a left press/release near the remote centre.
             RequireForeground(window);
             var bounds = desktop.BoundingRectangle;
-            Mouse.Click(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            ClickAt(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
             Until(() => server.Pointers.Any(p => p.Buttons == 1), "a left button press");
             var press = server.Pointers.First(p => p.Buttons == 1);
             Assert.IsTrue(Math.Abs(press.X - 512) < 16 && Math.Abs(press.Y - 384) < 16, $"pointer at {press.X},{press.Y}");
@@ -345,8 +353,8 @@ public sealed class VerticalSliceTests
             // The pointer at the centre: the cursor's top-left (its hotspot) is there, drawn down and right.
             var bounds = desktop.BoundingRectangle;
             var centre = new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
-            Mouse.MoveTo(new System.Drawing.Point(centre.X - 20, centre.Y - 20));
-            Mouse.MoveTo(centre);
+            NativeMethods.MovePointer(new System.Drawing.Point(centre.X - 20, centre.Y - 20));
+            NativeMethods.MovePointer(centre);
             // Where the cursor really is: over a remote session, the client's own pointer can move it back.
             var placed = NativeMethods.CursorPosition();
             Until(() => Near(PixelAt(desktop, 0.55, 0.55), red),
@@ -357,7 +365,7 @@ public sealed class VerticalSliceTests
             Assert.IsTrue(bar is { R: < 8, G: < 8, B: < 8 }, $"letterbox beside the cursor {bar}");
 
             // Leaving the view removes it.
-            Mouse.MoveTo(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y - 40));
+            NativeMethods.MovePointer(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y - 40));
             Until(() => Near(PixelAt(desktop, 0.55, 0.55), RfbTestServer.Background), "the cursor gone with the pointer");
             window.Close();
             Exits(app);
@@ -448,7 +456,7 @@ public sealed class VerticalSliceTests
 
             RequireForeground(window);
             var bounds = desktop.BoundingRectangle;
-            Mouse.Click(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            ClickAt(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
             Until(() => server.Pointers.Any(p => p.Buttons == 1), "the desktop focused");
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.RETURN);
             Until(() => NativeMethods.WindowRect(handle) != NativeMethods.MonitorRect(handle), "the window restored");
@@ -587,7 +595,7 @@ public sealed class VerticalSliceTests
             var desktop = ById(window, "desktop.view");
             RequireForeground(window);
             var bounds = desktop.BoundingRectangle;
-            Mouse.Click(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            ClickAt(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
             Until(() => server.Pointers.Any(p => p.Buttons == 1), "the desktop focused");
 
             // Ctrl+N inside the desktop is remote input.
@@ -595,8 +603,9 @@ public sealed class VerticalSliceTests
             Until(() => server.Keys.Contains(new RfbTestServer.KeyRecord(true, 0x6e)), "n reaches the server");
             Assert.AreEqual(1, app.Application.GetAllTopLevelWindows(automation).Length, "no new window from inside the desktop");
 
-            // The chord + M opens the Connection menu; M stays local.
-            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.KEY_M);
+            // The chord + M opens the Connection menu; M stays local. Left Ctrl and left Alt: FlaUI sends ALT
+            // as the extended (right) Alt, which with Ctrl is AltGr, not the chord.
+            Keyboard.TypeSimultaneously(VirtualKeyShort.LCONTROL, VirtualKeyShort.LMENU, VirtualKeyShort.KEY_M);
             var hold = WaitFor(() => automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId("desktop.holdControl")), "the context menu");
             Assert.IsFalse(server.Keys.Any(k => k.KeySym is 0x6d or 0x4d), "M stays local");
             hold.Patterns.Toggle.Pattern.Toggle(); // A toggle menu item.
@@ -865,7 +874,7 @@ public sealed class VerticalSliceTests
             var desktop = ById(window, "desktop.view");
             RequireForeground(window);
             var bounds = desktop.BoundingRectangle;
-            Mouse.Click(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            ClickAt(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
             Until(() => server.Pointers.Any(p => p.Buttons == 1), "the desktop focused");
             (int Handles, int Threads) Usage()
             {
@@ -1491,6 +1500,35 @@ internal static partial class NativeMethods
     [System.Runtime.InteropServices.LibraryImport("user32.dll")]
     [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
     private static unsafe partial bool GetCursorPos(int* point);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    private static unsafe partial uint SendInput(uint count, void* inputs, int size);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    private static partial int GetSystemMetrics(int index);
+
+    /// <summary>
+    /// Moves the pointer there in a few steps with absolute mouse input. FlaUI's Mouse.MoveTo places the
+    /// cursor without mouse input, which WinUI's pointer events do not report, so hover never happens.
+    /// </summary>
+    internal static unsafe void MovePointer(System.Drawing.Point target)
+    {
+        var start = CursorPosition();
+        int left = GetSystemMetrics(76), top = GetSystemMetrics(77), width = GetSystemMetrics(78), height = GetSystemMetrics(79);
+        var input = stackalloc byte[40]; // INPUT (x64): type, then MOUSEINPUT at offset 8
+        for (var step = 1; step <= 8; step++)
+        {
+            var x = start.X + (target.X - start.X) * step / 8;
+            var y = start.Y + (target.Y - start.Y) * step / 8;
+            new Span<byte>(input, 40).Clear();
+            *(uint*)input = 0; // INPUT_MOUSE
+            *(int*)(input + 8) = (int)(((long)(x - left) * 65535 + width / 2) / (width - 1));
+            *(int*)(input + 12) = (int)(((long)(y - top) * 65535 + height / 2) / (height - 1));
+            *(uint*)(input + 20) = 0x0001 | 0x8000 | 0x4000; // MOVE | ABSOLUTE | VIRTUALDESK
+            _ = SendInput(1, input, 40);
+            Thread.Sleep(15);
+        }
+    }
 
     internal static unsafe System.Drawing.Point CursorPosition()
     {
