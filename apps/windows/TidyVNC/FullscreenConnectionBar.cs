@@ -13,7 +13,7 @@ namespace TidyVNC;
 /// centre of the primary surface, shown when the pointer rests at the top
 /// edge for half a second and hidden again when the pointer leaves it unless
 /// pinned or one of its menus is open. It carries the server name, the
-/// Connection menu, statistics, Minimize, Exit full screen and the pin. The
+/// Connection menu, statistics, the touch keyboard, Minimize, Exit full screen and the pin. The
 /// Windows counterpart of the macOS menu bar at the top edge in full screen.
 /// </summary>
 internal sealed partial class FullscreenConnectionBar : UserControl
@@ -43,11 +43,13 @@ internal sealed partial class FullscreenConnectionBar : UserControl
         minimize.Click += (_, _) => window.MinimizeWindow();
         var exit = Icon("", "desktop.exit.full.screen", "fullscreen.bar.exit");
         exit.Click += (_, _) => window.ToggleFullscreen();
+        var keyboard = Icon("", "desktop.bar.touch.keyboard", "fullscreen.bar.keyboard");
+        keyboard.Click += (_, _) => window.ShowTouchKeyboard();
         pin = Toggle("", "desktop.bar.pin", "fullscreen.bar.pin");
         pin.Click += (_, _) => HideUnlessNeeded();
 
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-        foreach (var child in new UIElement[] { title, connection, statistics, minimize, exit, pin }) row.Children.Add(child);
+        foreach (var child in new UIElement[] { title, connection, statistics, keyboard, minimize, exit, pin }) row.Children.Add(child);
         title.Margin = new Thickness(8, 0, 8, 0);
         Content = Ui.Surface(new Border
         {

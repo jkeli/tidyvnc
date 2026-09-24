@@ -1652,3 +1652,19 @@ Add dated entries, newest last, in the macOS format:
   is implemented on Windows. They point to the WinUI plan and the Windows smokes.
 - W7.9 now has all four parts: the build guide, the BUILDING.txt section, Help content and the status.
   The item stays open until W7 finishes, because the handoff status must describe the released state.
+
+### W6.7 (progress) — touch keyboard from the full-screen bar — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- DESKTOP.md §6 requires the touch keyboard to be reachable from the full-screen connection bar.
+  `FullscreenConnectionBar` now has a "Show touch keyboard" button (automation ID
+  `fullscreen.bar.keyboard`, glyph E765, string `desktop.bar.touch.keyboard` in `windows.json`).
+  - `ConnectionWindow.ShowTouchKeyboard` first focuses the active desktop view, so the keyboard's
+    `VK_PACKET` and key input reaches the remote computer through the W6.4 translator.
+  - It then calls `InputPaneInterop.GetForWindow(hwnd).TryShow()` for the view's window. A missing
+    input pane (no touch keyboard service) is logged and ignored.
+- Build: the app builds with analyzers as errors. `strings.py generate`, `pseudo` and `audit` pass
+  (1092 strings).
+- Remaining for W6.7:
+  - pressing the button with the display on (the full-screen UI tests fail while the display is off);
+  - hands-on touch, pen and touch-keyboard checks on touch hardware.

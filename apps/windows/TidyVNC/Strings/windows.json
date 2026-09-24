@@ -63,6 +63,7 @@
     "document.files.certificates": "Certificate files",
     "app.menu.settings": "Settings",
     "desktop.bar.pin": "Keep the connection bar open",
+    "desktop.bar.touch.keyboard": "Show touch keyboard",
     "help.topic.thirdParty": "Third-party notices",
     "about.title": "About TidyVNC",
     "about.version": "Version {0} ({1})",

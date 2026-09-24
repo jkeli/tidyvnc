@@ -739,6 +739,26 @@ public sealed partial class ConnectionWindow : Window
     internal void HoldAlt() => Run(Commands.ToggleAlt);
     internal void SendControlAltDelete() => Run(Commands.SendControlAltDelete);
 
+    /// <summary>
+    /// The touch keyboard for the desktop (DESKTOP.md section 6): the active view takes keyboard focus, so
+    /// the keyboard's keys go to the remote computer, then Windows shows the keyboard for its window.
+    /// </summary>
+    internal void ShowTouchKeyboard()
+    {
+        var view = ActiveView;
+        if (!Connected || !view.FocusForCommand()) return;
+        try
+        {
+            var window = view.XamlRoot?.ContentIslandEnvironment?.AppWindowId is { } id
+                ? Microsoft.UI.Win32Interop.GetWindowFromWindowId(id) : Handle;
+            Windows.UI.ViewManagement.InputPaneInterop.GetForWindow(window).TryShow();
+        }
+        catch (Exception error) when (error is System.Runtime.InteropServices.COMException or InvalidOperationException)
+        {
+            System.Diagnostics.Trace.TraceWarning($"Touch keyboard unavailable: {error.HResult:x8}");
+        }
+    }
+
     internal bool CanPan(NativeDesktopPan direction) => Connected && ActiveView.CanPan(direction);
     internal void PanDesktop(NativeDesktopPan direction) => ActiveView.Pan(direction);
 

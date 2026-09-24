@@ -191,6 +191,7 @@
   <data name="credentials_the_server_rejected_the_saved_password_retry_to_enter_a_replacement_or" xml:space="preserve"><value>The server rejected the saved password. Retry to enter a replacement or explicitly forget it; the saved entry has not been deleted.</value></data>
   <data name="credentials_this_authentication_request_is_no_longer_available" xml:space="preserve"><value>This authentication request is no longer available.</value></data>
   <data name="desktop_bar_pin" xml:space="preserve"><value>Keep the connection bar open</value></data>
+  <data name="desktop_bar_touch_keyboard" xml:space="preserve"><value>Show touch keyboard</value></data>
   <data name="desktop_capture_keyboard" xml:space="preserve"><value>Capture keyboard</value></data>
   <data name="desktop_change_scaling_settings_for_the_shared_desktop_canvas" xml:space="preserve"><value>Change Scaling settings for the shared desktop canvas.</value></data>
   <data name="desktop_click_to_focus_keyboard_and_pointer_input_control_the_connected_computer" xml:space="preserve"><value>Click to focus. Keyboard and pointer input control the connected computer.</value></data>
