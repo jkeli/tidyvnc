@@ -70,6 +70,41 @@ struct tvw_presenter {
 
 namespace {
 
+// One Direct3D device for every presenter in the process. Each device that has
+// had a composition swap chain keeps two process handles in the driver after it
+// is released (measured on this machine's NVIDIA driver; bare devices and swap
+// chains on a kept device release fully), so a desktop view reattaching or
+// moving to a full-screen surface leaked with a device per presenter. The
+// device lives for the process and is replaced only after it has been lost;
+// presenters keep their own references, and every context call names its
+// resources, so presenters on different render threads can share it (the
+// device is multithread-protected).
+std::mutex sharedLock;
+ComPtr<ID3D11Device> sharedDevice;
+ComPtr<ID3D11DeviceContext1> sharedContext;
+
+HRESULT createDevice(tvw_presenter& presenter);
+
+HRESULT acquireDevice(tvw_presenter& presenter)
+{
+  std::lock_guard<std::mutex> lock(sharedLock);
+  if (sharedDevice && sharedDevice->GetDeviceRemovedReason() != S_OK) {
+    sharedDevice.Reset();
+    sharedContext.Reset();
+  }
+  if (!sharedDevice) {
+    HRESULT hr = createDevice(presenter);
+    if (FAILED(hr))
+      return hr;
+    sharedDevice = presenter.device;
+    sharedContext = presenter.context;
+    return S_OK;
+  }
+  presenter.device = sharedDevice;
+  presenter.context = sharedContext;
+  return S_OK;
+}
+
 HRESULT createDevice(tvw_presenter& presenter)
 {
   const D3D_FEATURE_LEVEL levels[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1,
@@ -167,7 +202,7 @@ int32_t tvw_presenter_create(tvw_presenter** out)
   auto* presenter = new (std::nothrow) tvw_presenter();
   if (!presenter)
     return E_OUTOFMEMORY;
-  HRESULT hr = createDevice(*presenter);
+  HRESULT hr = acquireDevice(*presenter);
   if (SUCCEEDED(hr))
     hr = createSwapChain(*presenter);
   if (FAILED(hr)) {
@@ -330,10 +365,12 @@ void tvw_presenter_destroy(tvw_presenter* presenter)
     return;
   {
     std::lock_guard<std::mutex> lock(presenter->lock);
-    if (presenter->context) {
-      presenter->context->ClearState();
+    // The context is shared: finish this presenter's work without resetting others' state.
+    presenter->frameView.Reset();
+    presenter->frame.Reset();
+    presenter->swapChain.Reset();
+    if (presenter->context)
       presenter->context->Flush();
-    }
   }
   delete presenter;
 }
