@@ -82,11 +82,11 @@ Exit: CORE.md §8, W2 paragraph.
 ## W3 — .NET bridge and vertical slice
 
 - [x] W3.1 Solution layout (`platform/windows/TidyVNC.Native`, `platform/windows/Native`, `apps/windows/TidyVNC`, `apps/windows/TidyVNC.Cli`, `tests/windows`); central package versions; nullable and warnings-as-errors; CsWin32 configuration; licence list started.
-- [ ] W3.2 Interop: `LibraryImport` declarations, struct size/offset tests against the C smoke's values, `SafeHandle`s with asynchronous close and drain, the callback dispatcher to `DispatcherQueue`.
+- [x] W3.2 Interop: `LibraryImport` declarations, struct size/offset tests against the C smoke's values, `SafeHandle`s with asynchronous close and drain, the callback dispatcher to `DispatcherQueue`.
   - [x] D7 responsiveness: worst UI-thread tick gap during a pending connect, a raw decode flood and shutdown under load
 - [x] W3.3 `NativeRuntime`, `NativeSession`, `NativeListener` with prompts, frames, input, clipboard and information; MSTest model tests against real loopback peers.
 - [x] W3.4 Helper DLL skeleton with its C API: presenter, keyboard translator extracted from `KeyboardWin32.cxx` with the equivalence test harness, display queries.
-- [ ] W3.5 WinUI shell: `App`, a minimal `ConnectionWindow` (address, Connect, authentication dialog, desktop view, Disconnect); FLTK not linked.
+- [x] W3.5 WinUI shell: `App`, a minimal `ConnectionWindow` (address, Connect, authentication dialog, desktop view, Disconnect); FLTK not linked.
 - [ ] W3.6 Vertical slice against a loopback peer: connect, authenticate, render, type, click, disconnect; close and exit during authentication; two windows at once.
 - [x] W3.7 `apps/windows/build.py` first version: core and app, Debug and Release, x64.
 
@@ -1925,3 +1925,22 @@ Add dated entries, newest last, in the macOS format:
   did not connect within 60 s, and screen captures were black. The display-dependent UI tests need
   that session on screen (the RDP client window visible and not minimized) or the console session,
   not just a monitor that is powered on.
+
+### W3.2, W3.5 — the WinUI shell and the DispatcherQueue path through the app — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Both items were open only because the app had not yet run under UI automation (W3.1–W3.7 evidence of
+  2026-09-23). The gated suite has run many times since.
+- New UI test `AuthenticateAndDisconnect`: address typed, Connect, the authentication dialog answered
+  (VncAuth), the connected title and desktop view, Disconnect, "Disconnected", window closed, process
+  exited. It uses no screen capture, so it runs with the display off.
+- On this machine it passes together with `TwoWindowsConnectAtOnce` (address and Connect in a second
+  window; both connect) and `ClosingDuringAuthenticationExitsCleanly` (3/3).
+- W3.5: App and ConnectionWindow; address, Connect, authentication dialog, desktop view and Disconnect
+  pass under UI automation. The package audit (W7.2) shows FLTK is not linked.
+- W3.2: `LibraryImport` interop and struct layouts (`InteropTests`); SafeHandles with asynchronous close
+  and drain (session, listener and renderer tests). The callback dispatcher to `DispatcherQueue` is the
+  path every connected UI test goes through (connect, authenticate, frames, listener, two windows),
+  and D7's responsiveness was measured.
+- W3.6 stays open: rendering, typing and clicking are checked on screen, which needs the session
+  displayed.

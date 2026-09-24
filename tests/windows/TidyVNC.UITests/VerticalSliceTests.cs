@@ -363,6 +363,38 @@ public sealed class VerticalSliceTests
         }
     }
 
+    /// <summary>
+    /// W3.5: the shell's address, Connect, authentication dialog and Disconnect, without screen
+    /// capture (the render and input half is ConnectAuthenticateRenderTypeClickAndDisconnect, W3.6).
+    /// </summary>
+    [TestMethod]
+    public async Task AuthenticateAndDisconnect()
+    {
+        await using var server = new RfbTestServer(password: "secret");
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            ById(window, "connection.endpoint").AsTextBox().Text = server.Endpoint;
+            ById(window, "connection.connect").AsButton().Invoke();
+            Answer(window, "secret");
+            Until(() => server.AuthenticatedClients == 1, "authentication");
+            Until(() => window.Title.Contains(server.Name, StringComparison.Ordinal), "the connected title");
+            Assert.IsNotNull(ById(window, "desktop.view"), "the desktop view");
+            ById(window, "connection.disconnect").AsButton().Invoke();
+            Until(() => ById(window, "connection.status").Name == "Disconnected", "Disconnected");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
     [TestMethod]
     public async Task ClosingDuringAuthenticationExitsCleanly()
     {
