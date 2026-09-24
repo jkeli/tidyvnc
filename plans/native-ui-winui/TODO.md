@@ -35,7 +35,7 @@ Rules (the macOS rules, unchanged):
 - [ ] W0.7 D14 spike: per-monitor borderless surfaces and `FullScreenPresenter`; enter/exit, minimize/restore, focus, topology change. Needs two monitors; stays open until run.
 - [ ] W0.8 D15 spike: Credential Manager create/read/replace/delete/enumerate with disposable targets; error mapping; survival across an app reinstall.
 - [ ] W0.9 D4/D5 prototype: self-contained app runs from a copied folder on a clean Windows 11 VM; a prototype per-user MSI installs, upgrades, repairs and uninstalls it as a standard user without a UAC prompt, and refuses to install below Windows 11.
-- [ ] W0.10 D8/D9 spike: `AppInstance` redirection for file and plain activations; command-line processes neither redirect nor receive redirects; `vncviewer.exe` console launcher output, exit codes and Ctrl+C in cmd.exe and PowerShell.
+- [x] W0.10 D8/D9 spike: `AppInstance` redirection for file and plain activations; command-line processes neither redirect nor receive redirects; `vncviewer.exe` console launcher output, exit codes and Ctrl+C in cmd.exe and PowerShell.
 - [ ] W0.11 D17 spike: Windows OpenSSH `-W` and `-L` forwarding, `SSH_ASKPASS` with `SSH_ASKPASS_REQUIRE=force`, host-key prompts, `ssh -G`, the `ssh-agent` service, Job Object cleanup; choose the forwarding shape.
 - [ ] W0.12 FLTK Windows baseline on this machine: MinGW build of the retained viewer; window-only screenshots of the five BASELINE states at 100% and 150%, light and dark; workload measurements; notes on keyboard behaviour (Alt+F4, Alt, F10, AltGr) for W0.4.
 - [ ] W0.13 Owner review of [UX.md §12](UX.md) differences and the Windows-only rows in [PARITY.md](PARITY.md).
@@ -1895,3 +1895,33 @@ Add dated entries, newest last, in the macOS format:
     powershell and pwsh. All pass, with no state, files or GUI process created.
 - Remaining for W0.10: Ctrl+C in cmd.exe and PowerShell (`windows-console-smoke.py`, next), and D8's
   Explorer file open through the installed association (W7).
+
+### W0.10 — Ctrl+C in cmd.exe and PowerShell — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `tests/integration/windows-console-smoke.py` covers cmd.exe, Windows PowerShell and PowerShell 7.
+  - A helper with its own hidden console starts `vncviewer.exe` through the shell against a loopback
+    RFB server.
+  - Once the viewer has connected and asked for a frame, the helper sends Ctrl+C to its console.
+  - Checked: the viewer's connection closes, no TidyVNC.exe remains, and the launcher's status comes
+    back through the shell. For PowerShell it is read in a `finally` block, because Ctrl+C stops a
+    PowerShell script, whose own status would be 1.
+  - Result on the Debug publish: all three pass. Ctrl+C closes the viewer in about 0.17 s and the
+    status is 0.
+- A test-harness pitfall, recorded because it looked like a product bug: processes started by a tool
+  runner can inherit "Ctrl+C disabled". Every child then ignores Ctrl+C: a probe's `sleep` ran its
+  full 40 s, and the first smoke run saw the viewer close only when the server dropped. The helper
+  now re-enables Ctrl+C (`SetConsoleCtrlHandler(NULL, FALSE)`) before starting the shell. The
+  launcher's own route was confirmed separately: setting the GUI's close event closed two test GUIs
+  within 8 s.
+- W0.10 is complete:
+  - `AppInstance` redirection for file and plain activations, and command-line processes that neither
+    redirect nor receive redirects: W4.10's `ShellLaunchesRedirectToThePrimaryAndCommandLineLaunchesDoNot`.
+  - Console output and exit codes: `windows-invocation-terminal.py`, 136 runs.
+  - Ctrl+C in cmd.exe and PowerShell: this smoke.
+  - D8's Explorer file open through the installed association stays with W7.
+- Observation about the "display off" failures: this machine's desktop is an active RDP session
+  (`query session`: `rdp-tcp#0 Active`). Windows launched while the session was not being displayed
+  did not connect within 60 s, and screen captures were black. The display-dependent UI tests need
+  that session on screen (the RDP client window visible and not minimized) or the console session,
+  not just a monitor that is powered on.
