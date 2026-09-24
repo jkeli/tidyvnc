@@ -5,6 +5,10 @@ namespace TidyVNC.Native.Storage;
 public enum NativeStorageError
 {
     Corrupt, FutureSchema, UnsupportedFields, TooLarge, Conflict, Unavailable, Denied, IOFailure, Cancelled, Closed, ResourceLimit,
+    /// <summary>The profile or history entry named by an operation no longer exists.</summary>
+    NotFound,
+    /// <summary>A value an operation was given cannot be stored (empty name, invalid address or gateway target).</summary>
+    Invalid,
 }
 
 /// <summary>

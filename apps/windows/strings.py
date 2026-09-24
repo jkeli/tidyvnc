@@ -244,7 +244,8 @@ def main() -> int:
             print(f"{path.relative_to(ROOT)}: {len(strings)} strings")
         return 0
     failed = False
-    if not OUTPUT.exists() or OUTPUT.read_text(encoding="utf-8") != text:
+    # Compare content, not the line endings a checkout may have converted.
+    if not OUTPUT.exists() or OUTPUT.read_text(encoding="utf-8").replace("\r\n", "\n") != text:
         print(f"{OUTPUT.relative_to(ROOT)} is stale; run `python apps/windows/strings.py generate`", file=sys.stderr)
         failed = True
     used = references()

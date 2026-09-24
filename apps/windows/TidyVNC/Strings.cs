@@ -43,7 +43,7 @@ internal static class Strings
     };
 }
 
-/// <summary>XAML access to the catalog: <c>{local:Str Key=connection.connect}</c>.</summary>
+/// <summary>XAML access to the catalog: <c>{local:Str Key=history.recent.connections.title}</c>.</summary>
 [MarkupExtensionReturnType(ReturnType = typeof(string))]
 public sealed partial class Str : MarkupExtension
 {

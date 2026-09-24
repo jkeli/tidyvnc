@@ -215,10 +215,10 @@ TEST(SocketConnector, RefusedPortHasTypedConnectionErrorWithoutEndpointText)
   Listener reserved(AF_INET, false);
   const auto port = reserved.port;
   ::closesocket(reserved.fd.value); reserved.fd.value = INVALID_SOCKET;
-  // Windows retries a refused SYN before reporting WSAECONNREFUSED, so the
-  // per-address budget is longer than the default here.
-  SocketConnectOptions options; options.addressTimeout = milliseconds(8000); options.connectTimeout = milliseconds(10000);
-  auto attempt = prepareSocketConnection(Endpoint::parse("127.0.0.1::" + std::to_string(port)), options);
+  // Windows retries a refused SYN for about two seconds before reporting
+  // WSAECONNREFUSED; the only address may use the whole connect budget, so
+  // the default options report a refusal rather than a timeout.
+  auto attempt = prepareSocketConnection(Endpoint::parse("127.0.0.1::" + std::to_string(port)));
   try { attempt->run({}); FAIL() << "Expected refused connection"; }
   catch (const ConnectionError& error) {
     EXPECT_EQ(error.code, ConnectionErrorCode::Connection); EXPECT_EQ(error.phase, ConnectionPhase::Connecting);
@@ -259,8 +259,9 @@ TEST(SocketConnector, ValidatesFamilyAndTimeoutPolicy)
 
 // Windows keeps a refused loopback SYN pending while it retries, which gives
 // a real pending connect to time out and cancel (macOS uses a bound socket).
-TEST(SocketConnector, PendingLocalConnectHonorsMonotonicAddressDeadline)
+TEST(SocketConnector, PendingLocalConnectHonorsTheMonotonicConnectDeadline)
 {
+  // The only address is also the last one: it waits for the connect budget.
   Listener reserved(AF_INET, false);
   SocketConnectOptions options;
   options.addressTimeout = milliseconds(25); options.connectTimeout = milliseconds(100);
@@ -271,7 +272,7 @@ TEST(SocketConnector, PendingLocalConnectHonorsMonotonicAddressDeadline)
     EXPECT_EQ(error.code, ConnectionErrorCode::TimedOut); EXPECT_EQ(error.nativeError, WSAETIMEDOUT);
     EXPECT_EQ(error.phase, ConnectionPhase::Connecting);
   }
-  EXPECT_GE(steady_clock::now() - before, milliseconds(25));
+  EXPECT_GE(steady_clock::now() - before, milliseconds(100));
   EXPECT_LT(steady_clock::now() - before, seconds(2));
 }
 

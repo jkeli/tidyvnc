@@ -43,7 +43,9 @@
     "presentation.issue.preferencesUnavailable": "TidyVNC could not open its settings store. Reopen the app and check that your Windows account can access its AppData folder.",
     "presentation.issue.keyboardCaptureFailed": "Keyboard capture could not start. Try again, or exit and reopen TidyVNC if it keeps failing."
   },
-  "windowsOnly": {},
+  "windowsOnly": {
+    "tunnel.error.windows.client.missing": "The Windows OpenSSH Client is not installed. Add it in Settings > System > Optional features, then connect again."
+  },
   "reviewed": [
     "help.guide.input.title",
     "desktop.return.to.top.left",

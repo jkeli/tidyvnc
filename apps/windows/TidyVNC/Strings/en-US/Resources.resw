@@ -1084,4 +1084,5 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="tunnel_error_the_ssh_gateway_or_forwarding_request_is_invalid" xml:space="preserve"><value>The SSH gateway or forwarding request is invalid.</value></data>
   <data name="tunnel_error_the_ssh_process_could_not_be_started" xml:space="preserve"><value>The SSH process could not be started.</value></data>
   <data name="tunnel_error_the_ssh_tunnel_is_closed" xml:space="preserve"><value>The SSH tunnel is closed.</value></data>
+  <data name="tunnel_error_windows_client_missing" xml:space="preserve"><value>The Windows OpenSSH Client is not installed. Add it in Settings &gt; System &gt; Optional features, then connect again.</value></data>
 </root>

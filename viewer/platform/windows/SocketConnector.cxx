@@ -241,7 +241,12 @@ public:
         if (::connect(socket.value, reinterpret_cast<const sockaddr*>(&address.storage), address.length) == SOCKET_ERROR)
           error = ::WSAGetLastError();
         if (error == WSAEWOULDBLOCK) {
-          try { state->wait(connected.value, std::min(deadline, Clock::now() + options.addressTimeout), phase); }
+          // Windows retries a SYN answered by RST for about two seconds before
+          // reporting WSAECONNREFUSED. The per-address budget only exists to
+          // move on to the next address, so the last one may use the whole
+          // connect budget and a stopped server is reported as refused.
+          const bool last = i + 1 == addresses.count;
+          try { state->wait(connected.value, last ? deadline : std::min(deadline, Clock::now() + options.addressTimeout), phase); }
           catch (const ConnectionError& waitError) {
             if (waitError.code != ConnectionErrorCode::TimedOut) throw;
             lastError = WSAETIMEDOUT; continue;
