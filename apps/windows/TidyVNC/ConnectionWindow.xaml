@@ -93,7 +93,7 @@
         </TitleBar>
 
         <!-- Address row -->
-        <Grid Grid.Row="1" Padding="14,10,14,6" ColumnSpacing="12">
+        <Grid x:Name="AddressArea" Grid.Row="1" Padding="14,10,14,6" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -186,7 +186,7 @@
         </CommandBar>
 
         <!-- Gateway and notices -->
-        <StackPanel Grid.Row="3" Padding="14,4,14,8" Spacing="6">
+        <StackPanel x:Name="NoticeArea" Grid.Row="3" Padding="14,4,14,8" Spacing="6">
             <TextBox x:Name="Gateway" PlaceholderText="{local:Str Key=profiles.ssh.gateway.optional}" AutomationProperties.AutomationId="connection.sshGateway"
                      AutomationProperties.Name="{local:Str Key=profiles.ssh.gateway.optional}" TextChanged="GatewayChanged" KeyDown="AddressKeyDown"
                      ToolTipService.ToolTip="{local:Str Key=profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a}" IsSpellCheckEnabled="False">

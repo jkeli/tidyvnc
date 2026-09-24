@@ -8,6 +8,14 @@
   <ItemGroup>
     <!-- Windows App SDK: the stable 1.x servicing line (1.8), pinned in W0. -->
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.8.260804001" />
+    <!-- Components of that metapackage the viewer does not use; referenced only to exclude their
+         assets (about 40 MB of AI and ML runtime, W0.2/W7.1). Without the Runtime package's
+         framework MSIX, self-contained builds assemble the payload and WinRT registrations from
+         the components actually referenced. Versions are the metapackage's pins. -->
+    <PackageVersion Include="Microsoft.WindowsAppSDK.AI" Version="1.8.79" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK.ML" Version="1.8.2197" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK.Widgets" Version="1.8.251231004" />
+    <PackageVersion Include="Microsoft.WindowsAppSDK.Runtime" Version="1.8.260804001" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.335" />

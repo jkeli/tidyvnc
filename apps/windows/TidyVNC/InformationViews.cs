@@ -64,12 +64,11 @@ internal sealed partial class StatisticsOverlay : UserControl
         AutomationProperties.SetAutomationId(this, "connection.statistics");
         AutomationProperties.SetName(this, Strings.Get("information.connection.statistics"));
         AutomationProperties.SetHelpText(this, Strings.Get("information.use.show.connection.statistics.in.the.connection.menu.to.hide.these.statistics"));
-        Content = new Border
+        Content = Ui.Surface(new Border
         {
             Padding = new Thickness(12), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1),
-            Background = Ui.Brush("AcrylicInAppFillColorDefaultBrush"), BorderBrush = Ui.Brush("SurfaceStrokeColorDefaultBrush"),
             Child = Ui.Stack(8, Ui.Heading(Strings.Get("information.connection.statistics")), rows),
-        };
+        }, "TidyOverlaySurface");
     }
 
     /// <summary>Shows the latest values, or hides the overlay with null.</summary>

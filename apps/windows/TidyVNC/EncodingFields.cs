@@ -191,7 +191,7 @@ internal static class EncodingDialog
     {
         var fields = new EncodingFields(draft.SetEncoding, liveOnly: true);
         var error = Ui.Text("", "encoding.error");
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         var reload = Ui.Button("", (_, _) => draft.Reload(), "encoding.reload");
         var applied = Ui.Caption(Strings.Get("settings.encoding.session.settings.applied.to.this.connection.image.quality.can.change.as.updates.arrive"));
         var busy = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };

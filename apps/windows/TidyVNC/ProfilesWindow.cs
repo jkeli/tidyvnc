@@ -25,9 +25,9 @@ internal sealed partial class ProfilesWindow : Window
     private readonly Button create;
     private readonly TextBox name = new() { Header = Strings.Get("profiles.profile.name") };
     private readonly TextBox endpoint = new() { Header = Strings.Get("profiles.server.address"), IsSpellCheckEnabled = false };
-    private readonly TextBlock endpointIssue = Ui.Caption("", Ui.Error);
+    private readonly TextBlock endpointIssue = Ui.Caption("", Tone.Error);
     private readonly TextBox gateway = new() { Header = Strings.Get("profiles.ssh.gateway.optional"), IsSpellCheckEnabled = false };
-    private readonly TextBlock gatewayIssue = Ui.Caption("", Ui.Error);
+    private readonly TextBlock gatewayIssue = Ui.Caption("", Tone.Error);
     private readonly TextBlock gatewayHelp = Ui.Caption(Strings.Get("profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are"));
     private readonly SelectorBar sectionBar = new();
     private readonly ContentControl sectionPage = new() { HorizontalContentAlignment = HorizontalAlignment.Stretch };
@@ -89,7 +89,7 @@ internal sealed partial class ProfilesWindow : Window
                                        HorizontalScrollMode = ScrollMode.Disabled };
 
         // Footer.
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         busy.Children.Add(new ProgressRing { IsActive = true, Width = 16, Height = 16 });
         busy.Children.Add(Ui.Caption(Strings.Get("profiles.updating.profiles")));
         reload = Ui.Button("", (_, _) => library.Reload(), "profiles.reload");
@@ -121,7 +121,7 @@ internal sealed partial class ProfilesWindow : Window
         middle.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         middle.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         middle.ColumnDefinitions.Add(new ColumnDefinition());
-        var divider = new Border { Width = 1, Background = Ui.Brush("DividerStrokeColorDefaultBrush") };
+        var divider = Ui.Surface(new Border { Width = 1 }, "TidyDivider");
         Grid.SetColumn(divider, 1); Grid.SetColumn(right, 2);
         middle.Children.Add(left); middle.Children.Add(divider); middle.Children.Add(right);
         var root = new Grid { Padding = new Thickness(24, 16, 24, 16), RowSpacing = 12 };

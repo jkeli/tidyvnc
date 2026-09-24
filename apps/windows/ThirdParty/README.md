@@ -9,20 +9,22 @@ with a text. Started in W3.1; versions are those pinned by `vcpkg.json`,
 CLANGARM64) and recorded in `build/winui/deps/<arch>/deps.json`.
 
 Licence text source: **MSYS2** means `apps/windows/deps.py` copies it from the
-package's `share/licenses`. **Missing** means the MSYS2 package ships none, so
-W7.2 must add the upstream text to this directory (open item in TODO W7.2).
+package's `share/licenses`. **Repository** means the MSYS2 package ships none, so
+this directory keeps the texts the upstream distribution names
+(`ThirdParty/<package>/`, with a README.txt saying where each came from);
+`deps.py` copies them instead.
 
 ## Native libraries (MSYS2, dynamically linked by `tidyvnc_viewer.dll`)
 
 | Component | Version (x64) | Binaries | Licence | Text |
 | --- | --- | --- | --- | --- |
-| GnuTLS | 3.8.13 | `libgnutls-30.dll` | LGPL-2.1-or-later | Missing |
-| Nettle | 4.0 | `libnettle-9.dll`, `libhogweed-7.dll` | LGPL-3.0-or-later or GPL-2.0-or-later | Missing |
-| GMP | 6.3.0 | `libgmp-10.dll` | LGPL-3.0-or-later or GPL-2.0-or-later | Missing |
+| GnuTLS | 3.8.13 | `libgnutls-30.dll` | LGPL-2.1-or-later | Repository |
+| Nettle | 4.0 | `libnettle-9.dll`, `libhogweed-7.dll` | LGPL-3.0-or-later or GPL-2.0-or-later | Repository |
+| GMP | 6.3.0 | `libgmp-10.dll` | LGPL-3.0-or-later or GPL-2.0-or-later | Repository |
 | libtasn1 | 4.21.0 | `libtasn1-6.dll` | LGPL-2.1-or-later | MSYS2 |
-| p11-kit | 0.26.5 | `libp11-kit-0.dll` | BSD-3-Clause | Missing |
+| p11-kit | 0.26.5 | `libp11-kit-0.dll` | BSD-3-Clause | Repository |
 | libffi | 3.8.0 | `libffi-8.dll` | MIT | MSYS2 |
-| libidn2 | 2.3.8 | `libidn2-0.dll` | LGPL-3.0-or-later or GPL-2.0-or-later | Missing |
+| libidn2 | 2.3.8 | `libidn2-0.dll` | LGPL-3.0-or-later or GPL-2.0-or-later | Repository |
 | libunistring | 1.4.2 | `libunistring-5.dll` | LGPL-3.0-or-later or GPL-2.0-or-later | MSYS2 |
 | libiconv | 1.19 | `libiconv-2.dll` | LGPL-2.1-or-later | MSYS2 |
 | gettext runtime | 1.0 | `libintl-8.dll` | LGPL-2.1-or-later | MSYS2 |

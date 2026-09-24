@@ -151,13 +151,13 @@ internal static class SetupPages
         if (issue is not null)
         {
             var text = Ui.Text(issue);
-            text.Foreground = Ui.Error;
+            Ui.SetTone(text, Tone.Error);
             panel.Children.Add(text);
         }
         else if (displays.Snapshot.Error is not null || displays.Snapshot.Displays.IsEmpty)
         {
             var text = Ui.Text(Strings.Get("document.display.information.is.unavailable.connect.a.display.and.refresh.before.continuing"));
-            text.Foreground = Ui.Warning;
+            Ui.SetTone(text, Tone.Warning);
             panel.Children.Add(text);
         }
         panel.Children.Add(Ui.Button(Strings.Get("document.refresh.displays"), (_, _) => { displays.Refresh(); Build(); }, prefix + ".mapping.refresh"));
@@ -191,7 +191,7 @@ public sealed partial class RecentConnectionsPanel : UserControl
 
     public RecentConnectionsPanel()
     {
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         busy.Children.Add(new ProgressRing { IsActive = true, Width = 16, Height = 16 });
         busy.Children.Add(Ui.Caption(Strings.Get("history.updating.recent.connections")));
         reload = Ui.Button(Strings.Get("trust.library.ui.reload"), (_, _) => history?.Reload(), "history.reload");

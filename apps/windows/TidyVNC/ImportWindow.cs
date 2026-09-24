@@ -32,7 +32,7 @@ internal sealed partial class ImportWindow : Window
         SystemBackdrop = new MicaBackdrop();
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));
         WindowSizes.Apply(AppWindow, 640, 600, 480, 400);
-        issue.Foreground = Ui.Error;
+        Ui.SetTone(issue, Tone.Error);
         busy.Children.Add(new ProgressRing { IsActive = true, Width = 16, Height = 16 });
         busy.Children.Add(Ui.Caption(""));
         var title = Ui.Title(Strings.Get(titleKey), "import.title");
@@ -159,7 +159,7 @@ internal sealed partial class ImportWindow : Window
             return;
         }
         var panel = Ui.Stack(12, Ui.Caption(Strings.Format("import.registry.reviewing", SourceName(review.Source))));
-        if (review.ReplacesExisting) panel.Children.Add(Ui.Caption(Strings.Get("import.registry.replaces"), Ui.Warning));
+        if (review.ReplacesExisting) panel.Children.Add(Ui.Caption(Strings.Get("import.registry.replaces"), Tone.Warning));
         panel.Children.Add(Ui.Heading(Strings.Get("import.defaults.settings.to.import")));
         if (review.Imported.Count == 0 && review.Settings.FullscreenDisplays.IsEmpty)
             panel.Children.Add(Ui.Caption(Strings.Get("import.defaults.this.file.contains.no.supported.ordinary.settings.to.import")));

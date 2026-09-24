@@ -117,7 +117,7 @@ internal static class ExportDialog
             if (issue is not null)
             {
                 var text = Ui.Text(issue, "document.export.mapping.issue");
-                text.Foreground = Ui.Error;
+                Ui.SetTone(text, Tone.Error);
                 panel.Children.Add(text);
             }
             body.Content = panel;

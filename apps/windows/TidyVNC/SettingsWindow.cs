@@ -64,7 +64,7 @@ internal sealed partial class SettingsWindow : Window
         };
         AutomationProperties.SetAutomationId(navigation, "preferences.section");
 
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         busy.Children.Add(new ProgressRing { IsActive = true, Width = 16, Height = 16 });
         busy.Children.Add(Ui.Caption(Strings.Get("settings.defaults.updating.defaults")));
         restore = Ui.Button(Strings.Get("settings.defaults.restore.built.in.defaults"), (_, _) => draft.RestoreBuiltInDefaults(), "preferences.restore");

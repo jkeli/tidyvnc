@@ -75,6 +75,13 @@ public sealed partial class ConnectionWindow : Window
         var fullscreenKey = new KeyboardAccelerator { Key = Windows.System.VirtualKey.F11 };
         fullscreenKey.Invoked += (_, e) => { e.Handled = true; if (CanToggleFullscreen) ToggleFullscreen(); };
         Root.KeyboardAccelerators.Add(fullscreenKey);
+        // F6 and Shift+F6 move between the window's areas (UX.md section 10).
+        foreach (var backward in new[] { false, true })
+        {
+            var areaKey = new KeyboardAccelerator { Key = Windows.System.VirtualKey.F6, Modifiers = backward ? Windows.System.VirtualKeyModifiers.Shift : Windows.System.VirtualKeyModifiers.None };
+            areaKey.Invoked += (_, e) => { e.Handled = true; CycleArea(backward); };
+            Root.KeyboardAccelerators.Add(areaKey);
+        }
         desktop.ViewportChanged += _ => ReportViewport();
         fullscreen = new FullscreenHost(this, new NativeFullscreenState(), App.Current.Displays);
         fullscreen.State.PropertyChanged += (_, _) => Update();
@@ -338,6 +345,33 @@ public sealed partial class ConnectionWindow : Window
     }
 
     private void ShowFatal(NativeText text) => Controller.ReportFatal(text);
+
+    /// <summary>
+    /// F6 / Shift+F6: the address row, the toolbar, the open notices, then the
+    /// desktop (or the pre-session page), skipping areas with nothing to focus.
+    /// The desktop keeps F6 for the remote computer while it has focus.
+    /// </summary>
+    private void CycleArea(bool backward)
+    {
+        static bool FocusFirst(DependencyObject? area) =>
+            area is not null && FocusManager.FindFirstFocusableElement(area) is Control control && control.Focus(FocusState.Keyboard);
+        var areas = new Func<bool>[]
+        {
+            () => FocusFirst(AddressArea),
+            () => FocusFirst(Toolbar),
+            () => FocusFirst(NoticeArea is { } notices && notices.Children.OfType<InfoBar>().FirstOrDefault(n => n.IsOpen) is { } open ? open : null),
+            () => SetupPage.Visibility == Visibility.Visible ? FocusFirst(SetupContent) : desktop.Session is not null && desktop.Focus(FocusState.Keyboard),
+        };
+        var focused = Content?.XamlRoot is { } root ? FocusManager.GetFocusedElement(root) as DependencyObject : null;
+        var current = -1;
+        for (var node = focused; node is not null && current < 0; node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node))
+            current = node == AddressArea ? 0 : node == Toolbar ? 1 : node == NoticeArea ? 2 : node == DesktopArea ? 3 : -1;
+        for (var step = 1; step <= areas.Length; step++)
+        {
+            var next = ((current < 0 ? (backward ? 0 : -1) : current) + (backward ? -step : step) + areas.Length * 2) % areas.Length;
+            if (areas[next]()) return;
+        }
+    }
 
     /// <summary>The settings dialog for the open editor; closing or superseding it ends the editor.</summary>
     private DialogRequest? EditorDialog(object editor)

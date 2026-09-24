@@ -1241,3 +1241,28 @@ Add dated entries, newest last, in the macOS format:
   - W5.18: visual review of the pseudo-locale screenshots with the display on.
   - W5.19: Narrator, keyboard-only, contrast-theme and 225% text passes.
   - W5.21: title bar and Snap Layouts checks, icons, themes, and Mica's solid fallback with transparency off.
+
+### W5.19 (progress), W7.1/W7.2 (progress) — theme-following colours, F6, payload trimming, licence texts — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- W5.19, contrast themes: code-built text and surfaces no longer copy a theme brush once. `Ui.SetTone` and
+  `Ui.Surface` apply App.xaml styles whose `ThemeResource` setters follow light, dark and each contrast theme
+  while windows are open. Covers error, warning, secondary and primary text; the full-screen bar; the
+  statistics overlay; dividers; and display-chooser tiles. The only fixed colour left is the black desktop
+  letterbox, by design.
+- W5.19, keyboard: F6 and Shift+F6 cycle the address row, toolbar, open notices and the desktop (or the
+  pre-session page). The desktop keeps F6 for the remote computer. Gated UI test F6MovesBetweenTheWindowAreas
+  is written; it injects keys, so it waits for the display to be on.
+- W7.1, payload: the unused Windows App SDK components are excluded by direct `ExcludeAssets="all"`
+  references at the metapackage's pinned versions: AI, ML (ONNX Runtime, DirectML), Widgets, and the
+  Runtime package's full framework MSIX. Self-contained builds then assemble the payload and WinRT
+  registrations from the components actually used. The Release payload drops from 233 MB/454 files to
+  186 MB/407 files.
+  - `build.py` reuses a core directory configured with tests for a plain build.
+- W7.2, licence texts: `apps/windows/ThirdParty/{gnutls,nettle,gmp,libidn2,p11-kit}` hold the upstream
+  licence texts the MSYS2 packages lack. They are verbatim FSF texts from other local packages, and
+  p11-kit's own COPYING from the MSYS2 usr package. Each has a README.txt giving its source.
+- Tests:
+  - Full gated VerticalSlice UI suite on the rebuilt app: 14 of 18 pass.
+  - The 4 failures need the display on: on-screen render, full screen, foreground key injection, and F6.
+  - Axe.Windows scan passes. `vncviewer.exe --version` from the Release payload exits 0.

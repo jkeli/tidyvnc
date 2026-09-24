@@ -127,7 +127,7 @@ internal static class InputDialog
         cursor.SelectionChanged += (_, _) => { if (!updating && cursor.SelectedIndex >= 0) draft.CursorFallback = (NativeCursorFallback)cursor.SelectedIndex; };
         var cursorSource = Ui.Caption("");
         var error = Ui.Text("", "input.error");
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         var panel = Ui.Stack(8,
             Ui.Caption(Strings.Get("settings.input.these.settings.apply.to.this.connection")),
             viewOnly, viewOnlySource,
@@ -204,7 +204,7 @@ internal static class ScalingDialog
         var filterSource = Ui.Caption("");
         var filterHelp = Ui.Caption("");
         var error = Ui.Text("", "scaling.error");
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         var panel = Ui.Stack(8,
             Ui.Caption(Strings.Get("settings.scaling.change.how.this.connection.s.desktop.fits.in.the.window.the.remote")),
             mode, modeSource, value, valueHelp, units, unitsSource, unitsHelp, filter, filterSource, filterHelp, error);

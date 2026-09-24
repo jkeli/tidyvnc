@@ -43,7 +43,7 @@ internal sealed partial class ListenerWindow : Window
         ipv6.Click += (_, _) => model.Ipv6 = ipv6.IsChecked == true;
         start = Ui.Button(Strings.Get("listener.start.listening"), (_, _) => model.Start(), "listener.start", accent: true);
         stop = Ui.Button(Strings.Get("listener.stop.listening"), (_, _) => model.Stop(), "listener.stop");
-        issue.Foreground = Ui.Error;
+        Ui.SetTone(issue, Tone.Error);
         var families = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16, Children = { ipv4, ipv6 } };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { start, stop } };
         AutomationProperties.SetAutomationId(incoming, "listener.incoming");

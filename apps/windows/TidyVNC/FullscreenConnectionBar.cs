@@ -49,11 +49,10 @@ internal sealed partial class FullscreenConnectionBar : UserControl
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
         foreach (var child in new UIElement[] { title, connection, statistics, minimize, exit, pin }) row.Children.Add(child);
         title.Margin = new Thickness(8, 0, 8, 0);
-        Content = new Border
+        Content = Ui.Surface(new Border
         {
             Child = row, Padding = new Thickness(8, 4, 8, 4), CornerRadius = new CornerRadius(0, 0, 8, 8), BorderThickness = new Thickness(1, 0, 1, 1),
-            Background = Ui.Brush("SolidBackgroundFillColorBaseBrush"), BorderBrush = Ui.Brush("SurfaceStrokeColorDefaultBrush"),
-        };
+        }, "TidyBarSurface");
         PointerEntered += (_, _) => over = true;
         PointerExited += (_, _) => { over = false; HideUnlessNeeded(); };
 

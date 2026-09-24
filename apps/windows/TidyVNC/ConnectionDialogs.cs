@@ -44,7 +44,7 @@ internal static class ConnectionOptionsDialog
         var (retry, retryEffective) = TriState("settings.connection.offer.retry.after.connection.errors", "retry", v => draft.ReconnectOnError = v, () => updating);
         var sources = Ui.Caption("");
         var error = Ui.Text("", "connection.options.error");
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         var applied = Ui.Caption(Strings.Get("settings.connection.applied.to.this.connection.window"));
         var panel = Ui.Stack(8,
             Ui.Caption(Strings.Get("settings.connection.apply.while.disconnected.then.connect.again.these.options.stay.in.this.window")),
@@ -118,7 +118,7 @@ internal static class RemoteResizePolicyDialog
         size.TextChanged += (_, _) => { if (!updating) draft.InitialSize = size.Text; };
         var sizeSource = Ui.Caption("");
         var error = Ui.Text("", "remoteResizePolicy.error");
-        error.Foreground = Ui.Warning;
+        Ui.SetTone(error, Tone.Warning);
         var restore = Ui.Button(Strings.Get("settings.fullscreen.restore.initial.settings"), (_, _) => draft.RestoreInitial(), "remoteResizePolicy.restore");
         var panel = Ui.Stack(8,
             Ui.Caption(Strings.Get("settings.resize.these.settings.apply.to.this.connection.window.saved.defaults.and.profiles.stay")),
@@ -202,7 +202,7 @@ internal static class RemoteResizeDialog
         }
         var width = Field("settings.resize.width.in.pixels", "remoteResize.width", v => draft.Width = v);
         var height = Field("settings.resize.height.in.pixels", "remoteResize.height", v => draft.Height = v);
-        var replaces = Ui.Caption("", Ui.Warning);
+        var replaces = Ui.Caption("", Tone.Warning);
         var custom = Ui.Stack(8, width, height,
             Ui.Caption(Strings.Get("settings.resize.enter.whole.numbers.from.1.to.65535.the.server.and.this.connection")), replaces);
 
@@ -213,7 +213,7 @@ internal static class RemoteResizeDialog
         var requested = Ui.Text("", "remoteResize.requested");
         var normalized = Ui.Caption(Strings.Get("settings.resize.the.remote.arrangement.is.adjusted.to.keep.displays.with.different.pixel.densities"));
         var problem = Ui.Text("", "remoteResize.displayProblem");
-        problem.Foreground = Ui.Warning;
+        Ui.SetTone(problem, Tone.Warning);
         var chooserPanel = Ui.Stack(10, chooser.Map, chooser.List, devicePixels,
             Ui.Caption(Strings.Get("settings.resize.creates.one.remote.screen.per.selected.local.display.this.changes.the.server")),
             requested, normalized, problem);
@@ -268,7 +268,7 @@ internal static class RemoteResizeDialog
             }
             busy.Visibility = undo.Visibility = draft.IsBusy ? Visibility.Visible : Visibility.Collapsed;
             result.Text = Message(draft);
-            result.Foreground = draft.DidApply ? Ui.Secondary : Ui.Warning;
+            Ui.SetTone(result, draft.DidApply ? Tone.Secondary : Tone.Warning);
             result.Visibility = result.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
             dialog.CloseButtonText = Strings.Get(draft.DidApply ? "action.done" : "action.cancel");
             dialog.IsSecondaryButtonEnabled = draft.CanReload;
@@ -354,18 +354,15 @@ internal sealed class DisplayChooser
         double right = displays.Max(d => d.Bounds.X + d.Bounds.Width), bottom = displays.Max(d => d.Bounds.Y + d.Bounds.Height);
         var scale = Math.Min((Map.ActualWidth - 12) / Math.Max(1, right - left), (Map.ActualHeight - 12) / Math.Max(1, bottom - top));
         double offsetX = (Map.ActualWidth - (right - left) * scale) / 2, offsetY = (Map.ActualHeight - (bottom - top) * scale) / 2;
-        var accent = Ui.Brush("AccentFillColorDefaultBrush");
         for (var i = 0; i < displays.Count; i++)
         {
             var display = displays[i];
             var on = chosen(display.Id);
-            var tile = new Grid
+            var tile = Ui.Surface(new Grid
             {
                 Width = Math.Max(1, display.Bounds.Width * scale - 3), Height = Math.Max(1, display.Bounds.Height * scale - 3),
                 CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(2),
-                BorderBrush = on ? accent : Ui.Secondary,
-                Background = new SolidColorBrush(((SolidColorBrush)(on ? accent : Ui.Secondary)).Color) { Opacity = 0.18 },
-            };
+            }, on ? "TidyDisplayTileChosen" : "TidyDisplayTile");
             tile.Children.Add(new TextBlock
             {
                 Text = (i + 1).ToString(CultureInfo.CurrentCulture), FontWeight = Microsoft.UI.Text.FontWeights.Bold,
@@ -406,7 +403,7 @@ internal static class FullscreenDialog
         var selectedSource = Ui.Caption("");
         var kept = Ui.Caption(Strings.Get("settings.fullscreen.disconnected.selections.are.kept.available.selected.displays.are.used.if.none.remain"));
         var issue = Ui.Text("", "fullscreen.issue");
-        issue.Foreground = Ui.Warning;
+        Ui.SetTone(issue, Tone.Warning);
         var restore = Ui.Button(Strings.Get("settings.fullscreen.restore.initial.settings"), (_, _) => draft.RestoreInitial(), "fullscreen.restore");
         var panel = Ui.Stack(8,
             Ui.Caption(Strings.Get("settings.fullscreen.choose.where.this.connection.appears.when.you.enter.full.screen.exit.full")),

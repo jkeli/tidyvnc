@@ -43,7 +43,7 @@ internal sealed partial class SecurityFields : UserControl
         libraryDefault = Ui.Button(Strings.Get("settings.security.use.library.default"), (_, _) => set(get() with { TlsPriority = "" }), "security.priority.libraryDefault");
         priorityStatus = Ui.Caption("");
         priorityInvalid = Ui.Text(Strings.Get("settings.security.use.at.most.4096.utf.8.bytes.with.no.nul.characters"));
-        priorityInvalid.Foreground = Ui.Error;
+        Ui.SetTone(priorityInvalid, Tone.Error);
         priorityUnavailable = Ui.Caption(Strings.Get("settings.security.custom.tls.priorities.are.unavailable.in.this.build.use.the.library.default"));
         var tls = new Expander
         {
@@ -59,9 +59,9 @@ internal sealed partial class SecurityFields : UserControl
         overrideMethods.Click += (_, _) => { if (!updating) set(get() with { Types = overrideMethods.IsChecked == true ? inherited.Canonical : null }); };
         inheritanceText = Ui.Caption("");
         emptyWarning = Ui.Text(Strings.Get("settings.security.no.methods.are.allowed.new.connections.will.be.refused"), "security.empty");
-        emptyWarning.Foreground = Ui.Warning;
+        Ui.SetTone(emptyWarning, Tone.Warning);
         invalidError = Ui.Text(Strings.Get("settings.security.the.security.selection.is.invalid.or.unavailable.in.this.build"));
-        invalidError.Foreground = Ui.Error;
+        Ui.SetTone(invalidError, Tone.Error);
         Content = Ui.Stack(12, tls, overrideMethods, inheritanceText, Ui.Caption(scopeMessage), emptyWarning, invalidError, groups);
     }
 
@@ -253,11 +253,11 @@ internal sealed partial class TrustFileFields : UserControl
                 if (value is not null && !NativeTrustFiles.IsValidPath(value))
                 {
                     field.Status.Text = Strings.Get("settings.trustFiles.enter.a.valid.full.file.path.or.leave.it.empty.for.no");
-                    field.Status.Foreground = Ui.Error;
+                    Ui.SetTone(field.Status, Tone.Error);
                 }
                 else
                 {
-                    field.Status.Foreground = Ui.Secondary;
+                    Ui.SetTone(field.Status, Tone.Secondary);
                     field.Status.Text = value is null
                         ? Strings.Format("settings.trustFiles.inherited.status", inheritance, Strings.Get(string.IsNullOrEmpty(Value(inherited, authorities))
                             ? "settings.trustFiles.no.additional.file" : "settings.trustFiles.selected.file"))
@@ -304,7 +304,7 @@ internal static class SecurityDialog
             HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch };
         var sources = Ui.Caption("");
         var error = Ui.Text("", "security.error");
-        error.Foreground = Ui.Error;
+        Ui.SetTone(error, Tone.Error);
         var applied = Ui.Caption(Strings.Get("settings.security.applied.for.the.next.connection.in.this.window"));
         var busy = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         busy.Children.Add(new ProgressRing { IsActive = true, Width = 16, Height = 16 });

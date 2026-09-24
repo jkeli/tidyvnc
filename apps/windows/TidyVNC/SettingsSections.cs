@@ -380,7 +380,7 @@ internal sealed class SettingsSections(INativeSettingsEditor editor, Func<Window
     {
         var chooser = new DisplayChooser(prefix + ".fullscreen");
         var help = Ui.Caption(Strings.Get("settings.fullscreen.selections.are.kept.when.displays.disconnect.if.none.are.available.the.current"));
-        var warning = Ui.Caption("", Ui.Warning);
+        var warning = Ui.Caption("", Tone.Warning);
         var group = Ui.Stack(8, chooser.Map, chooser.List, help, warning);
         var card = Card("settings.fullscreen.selected.displays", null, group, null, prefix + ".fullscreen.displays");
         void Toggle(string id, bool selected)

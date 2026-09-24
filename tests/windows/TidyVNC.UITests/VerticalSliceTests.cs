@@ -754,6 +754,41 @@ public sealed class VerticalSliceTests
     }
 
     /// <summary>
+    /// W5.19 / UX.md section 10: F6 moves from the address row to the toolbar
+    /// and on to the desktop area; Shift+F6 goes back.
+    /// </summary>
+    [TestMethod]
+    public void F6MovesBetweenTheWindowAreas()
+    {
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            RequireForeground(window);
+            ById(window, "connection.endpoint").Focus();
+            string Focused() => automation.FocusedElement()?.Properties.AutomationId.ValueOrDefault ?? "";
+            Until(() => Focused() == "connection.endpoint", "the address focused");
+            Keyboard.Type(VirtualKeyShort.F6);
+            Until(() => Focused() == "connection.recent", "the toolbar focused");
+            Keyboard.Type(VirtualKeyShort.F6);
+            Until(() => Focused() == "desktop.view", "the desktop area focused");
+            // The desktop keeps F6 for the remote computer, so go back with focus on the toolbar.
+            ById(window, "connection.recent").Focus();
+            Keyboard.TypeSimultaneously(VirtualKeyShort.SHIFT, VirtualKeyShort.F6);
+            Until(() => Focused() == "connection.endpoint", "back to the address row");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
     /// W5.21 / W15 (D6): below Windows 11 (build 22000) the app says so and
     /// exits before opening a window. The build is simulated.
     /// </summary>

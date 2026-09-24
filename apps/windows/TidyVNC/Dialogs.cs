@@ -15,12 +15,28 @@ using TidyVNC.Native.Tunnel;
 namespace TidyVNC;
 
 /// <summary>Small builders shared by the code-built dialogs and pages.</summary>
+/// <summary>Text colours for <see cref="Ui.SetTone"/>; each is a theme resource.</summary>
+internal enum Tone { Normal, Primary, Secondary, Warning, Error }
+
 internal static class Ui
 {
-    public static Brush Brush(string key) => (Brush)Application.Current.Resources[key];
-    public static Brush Secondary => Brush("TextFillColorSecondaryBrush");
-    public static Brush Warning => Brush("SystemFillColorCautionBrush");
-    public static Brush Error => Brush("SystemFillColorCriticalBrush");
+    private static Style Style(string key) => (Style)Application.Current.Resources[key];
+
+    /// <summary>
+    /// A text colour through an App.xaml style, so it follows light, dark and
+    /// contrast themes while the window is open (a brush looked up once would not).
+    /// </summary>
+    public static void SetTone(TextBlock block, Tone tone) =>
+        block.Style = Style((Captions.TryGetValue(block, out _) ? "TidyCaptionText" : "TidyBodyText") + tone);
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<TextBlock, object> Captions = [];
+
+    /// <summary>A code-built surface (bar, overlay, divider) with its theme-following App.xaml style.</summary>
+    public static T Surface<T>(T element, string style) where T : FrameworkElement
+    {
+        element.Style = Style(style);
+        return element;
+    }
 
     public static TextBlock Text(string text, string? automationId = null, bool selectable = false)
     {
@@ -31,11 +47,11 @@ internal static class Ui
 
     public static TextBlock Text(NativeText text, string? automationId = null) => Text(Strings.Resolve(text), automationId);
 
-    public static TextBlock Caption(string text, Brush? foreground = null)
+    public static TextBlock Caption(string text, Tone tone = Tone.Secondary)
     {
         var block = Text(text);
-        block.Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"];
-        block.Foreground = foreground ?? Secondary;
+        Captions.AddOrUpdate(block, true);
+        SetTone(block, tone);
         return block;
     }
 
@@ -117,7 +133,7 @@ internal static class AuthenticationDialog
         panel.Children.Add(server);
         var protection = Ui.Text(Strings.Get(prompt.Secure ? "authentication.protection.protected" : "authentication.protection.unassured"),
             "authentication.credentialProtection");
-        protection.Foreground = prompt.Secure ? Ui.Secondary : Ui.Warning;
+        Ui.SetTone(protection, prompt.Secure ? Tone.Secondary : Tone.Warning);
         panel.Children.Add(protection);
         panel.Children.Add(Ui.Caption(Strings.Get("authentication.this.assessment.describes.credential.protection.not.encryption")));
 
@@ -165,7 +181,7 @@ internal static class AuthenticationDialog
         var notice = Ui.Caption("");
         panel.Children.Add(notice);
         var problem = Ui.Text("", "authentication.error");
-        problem.Foreground = Ui.Error;
+        Ui.SetTone(problem, Tone.Error);
         problem.Visibility = Visibility.Collapsed;
         panel.Children.Add(problem);
 
@@ -258,7 +274,7 @@ internal static class TrustDialog
         var detailsScroll = new ScrollViewer { Content = details, MaxHeight = 390, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         AutomationProperties.SetAutomationId(detailsScroll, "trust.details");
         panel.Children.Add(detailsScroll);
-        var notice = Ui.Caption("", Ui.Brush("TextFillColorPrimaryBrush"));
+        var notice = Ui.Caption("", Tone.Primary);
         panel.Children.Add(notice);
         var saveHelp = Ui.Caption(Strings.Get("authentication.a.saved.identity.applies.only.to.this"));
         panel.Children.Add(saveHelp);
@@ -268,7 +284,7 @@ internal static class TrustDialog
         var reload = Ui.Button(Strings.Get("authentication.reload.saved.decisions"), (_, _) => trust.Reload(), "authentication.reloadTrust");
         panel.Children.Add(reload);
         var problem = Ui.Text("", "authentication.error");
-        problem.Foreground = Ui.Error;
+        Ui.SetTone(problem, Tone.Error);
         problem.Visibility = Visibility.Collapsed;
         panel.Children.Add(problem);
 
@@ -340,7 +356,7 @@ internal static class TrustDialog
         if (NativeTrustTexts.Issue(trust.Issue, trust.SavedIssue) is { } issue)
         {
             var text = Ui.Text(issue);
-            text.Foreground = Ui.Warning;
+            Ui.SetTone(text, Tone.Warning);
             panel.Children.Add(text);
         }
         if (trust.SavedInspection is { State: not NativeSavedTrustState.Absent } saved)
@@ -348,7 +364,7 @@ internal static class TrustDialog
             if (saved.State == NativeSavedTrustState.Changed)
             {
                 var changed = Ui.Text(Strings.Get("trust.the.server.public.key.differs.from.the.key.saved.for.this.destination"), "trust.changedScopedKey");
-                changed.Foreground = Ui.Error;
+                Ui.SetTone(changed, Tone.Error);
                 panel.Children.Add(changed);
                 panel.Children.Add(Ui.Monospace(Strings.Format(hostKey ? "trust.expected.serverKey" : "trust.expected.spki", saved.SavedFingerprint ?? "")));
                 panel.Children.Add(Ui.Monospace(Strings.Format(hostKey ? "trust.received.serverKey" : "trust.received.spki", saved.ReceivedFingerprint)));
@@ -356,7 +372,7 @@ internal static class TrustDialog
             else if (saved.State == NativeSavedTrustState.Forgotten)
             {
                 panel.Children.Add(Ui.Caption(Strings.Get(hostKey ? "trust.the.server.key.was.forgotten.for.this.destination.compare.its.fingerprint.again"
-                    : "trust.the.saved.key.was.forgotten.for.this.destination.older.host.wide.exceptions"), Ui.Brush("TextFillColorPrimaryBrush")));
+                    : "trust.the.saved.key.was.forgotten.for.this.destination.older.host.wide.exceptions"), Tone.Primary));
             }
             panel.Children.Add(Ui.Caption(Strings.Get("trust.this.decision.is.scoped.to.the.destination.s.address.port.and.route")));
         }
@@ -365,14 +381,14 @@ internal static class TrustDialog
             if (inspection.State == NativeKnownHostsState.Changed)
             {
                 var changed = Ui.Text(Strings.Get("trust.the.server.public.key.differs.from.the.saved.certificate.exception"), "trust.changedKey");
-                changed.Foreground = Ui.Error;
+                Ui.SetTone(changed, Tone.Error);
                 panel.Children.Add(changed);
                 foreach (var identity in inspection.Expected) panel.Children.Add(Ui.Monospace(Strings.Resolve(NativeTrustTexts.Expected(identity))));
                 panel.Children.Add(Ui.Monospace(Strings.Format("trust.received.spki", inspection.ReceivedFingerprint)));
                 if (inspection.HasMore) panel.Children.Add(Ui.Caption(Strings.Get("trust.additional.saved.identities.are.not.shown")));
             }
             else if (inspection.State == NativeKnownHostsState.Missing)
-                panel.Children.Add(Ui.Caption(Strings.Get("trust.no.active.saved.certificate.exception.matches.this.server"), Ui.Brush("TextFillColorPrimaryBrush")));
+                panel.Children.Add(Ui.Caption(Strings.Get("trust.no.active.saved.certificate.exception.matches.this.server"), Tone.Primary));
             panel.Children.Add(Ui.Caption(Strings.Get(inspection.IncludesWildcardHost ? "trust.the.existing.exception.file.includes.a.wildcard.host.rule"
                 : "trust.existing.certificate.exceptions.are.scoped.to.the.server.name.across.ports.and")));
         }
@@ -403,7 +419,7 @@ internal static class TrustDialog
         else
         {
             var refused = Ui.Text(Strings.Get("trust.this.identity.cannot.be.accepted.cancel.and.contact.the.server.administrator"), "trust.cannotOverride");
-            refused.Foreground = Ui.Error;
+            Ui.SetTone(refused, Tone.Error);
             panel.Children.Add(refused);
         }
         if (details.Certificate is { } certificate)
@@ -444,7 +460,7 @@ internal static class SshDialog
             panel.Children.Add(Ui.Caption(Strings.Get("ssh.used.once.for.this.ssh.request.it")));
         }
         var problem = Ui.Text("", "ssh.error");
-        problem.Foreground = Ui.Error;
+        Ui.SetTone(problem, Tone.Error);
         problem.Visibility = Visibility.Collapsed;
         panel.Children.Add(problem);
 

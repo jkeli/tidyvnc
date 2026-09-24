@@ -50,10 +50,19 @@ def ensure_dependencies(arch, test):
     return prefixes
 
 
+def tests_configured(args, build):
+    """A directory configured with tests also builds the DLLs alone; it keeps that configuration."""
+    stamp = build / "tidyvnc-build.json"
+    existing = json.loads(stamp.read_text()) if stamp.exists() else None
+    return args.test or existing == {"arch": args.arch, "configuration": args.configuration, "asan": args.asan, "test": True}
+
+
 def configure_core(args, build, env, prefixes):
     stamp = build / "tidyvnc-build.json"
-    expected = {"arch": args.arch, "configuration": args.configuration, "asan": args.asan, "test": args.test}
-    if build.exists() and not (stamp.exists() and json.loads(stamp.read_text()) == expected):
+    with_tests = tests_configured(args, build)
+    expected = {"arch": args.arch, "configuration": args.configuration, "asan": args.asan, "test": with_tests}
+    existing = json.loads(stamp.read_text()) if stamp.exists() else None
+    if build.exists() and existing != expected:
         raise SystemExit(f"{build} exists and was not created by build.py for {expected}; choose a new --build-dir")
     command = ["cmake", "-S", ROOT, "-B", build, "-G", "Ninja", *toolchain.cmake_compilers(args.arch, build=build),
                f"-DCMAKE_BUILD_TYPE={args.configuration}",
@@ -63,7 +72,7 @@ def configure_core(args, build, env, prefixes):
                "-DENABLE_GNUTLS=ON", "-DENABLE_NETTLE=ON"]
     if args.asan:
         command.append("-DENABLE_ASAN=ON")
-    if not args.test:
+    if not with_tests:
         command.append("-DCMAKE_DISABLE_FIND_PACKAGE_GTest=TRUE")
     else:
         command.append("-DCMAKE_REQUIRE_FIND_PACKAGE_GTest=TRUE")
@@ -75,7 +84,7 @@ def configure_core(args, build, env, prefixes):
 def build_core(args):
     build = (args.build_dir or ROOT / "build/winui" / f"{args.arch}-{args.configuration.lower()}{'-asan' if args.asan else ''}").resolve()
     env = toolchain.environment(args.arch)
-    prefixes = ensure_dependencies(args.arch, args.test)
+    prefixes = ensure_dependencies(args.arch, tests_configured(args, build))
     configure_core(args, build, env, prefixes)
     targets = ["all"] if args.test else ["tidyvnc_viewer_shared", "tidyvnc_windows"]
     run(["cmake", "--build", build, "--target", *targets, "--parallel", str(args.parallel)], env=env)
