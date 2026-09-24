@@ -37,6 +37,18 @@ public static unsafe class NativeProcessLogging
         return selected;
     }
 
+    /// <summary>
+    /// Logs the measured viewport behind an automatic resize request ("Viewport logical WxH,
+    /// backing WxH"; macOS NativeProcessLogging.viewport). Failure never affects resizing.
+    /// </summary>
+    public static void Viewport(double width, double height, double scale)
+    {
+        double[] values = [Math.Floor(width), Math.Floor(height), Math.Floor(width * scale), Math.Floor(height * scale)];
+        if (!double.IsFinite(scale) || scale <= 0 || values.Any(v => !double.IsFinite(v) || v < 1 || v > int.MaxValue)) return;
+        var error = Abi.Init<tidyvnc_error>();
+        _ = NativeMethods.tidyvnc_logging_viewport((uint)values[0], (uint)values[1], (uint)values[2], (uint)values[3], &error);
+    }
+
     /// <summary>Commits the policy for this process; later calls fail (the core freezes it at the first runtime).</summary>
     public static void Configure(string policy)
     {

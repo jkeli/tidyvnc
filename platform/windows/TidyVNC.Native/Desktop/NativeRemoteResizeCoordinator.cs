@@ -223,6 +223,8 @@ public sealed partial class NativeRemoteResizeCoordinator : ObservableObject, ID
             Message = new NativeText("desktop.resize.the.remote.desktop.layout.is.unavailable.for.automatic.resizing");
             return;
         }
+        if (Current is WindowGeometry { Viewport: var measured })
+            NativeProcessLogging.Viewport(measured.Width, measured.Height, measured.Scale);
         Message = null;
         operation = Run(s, requested, target);
     }

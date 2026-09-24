@@ -1346,3 +1346,32 @@ Add dated entries, newest last, in the macOS format:
   - the LICENCE.TXT hash, after CRLF conversion; the file itself is unchanged.
   - This is left for the rebrand plan (R5).
 - Remaining: the handoff status for W7.9, once W7 is further along.
+
+### W6.12 (progress), W7.1 fix — protocol baseline on Windows; published payload missing its PRI — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `tests/integration/windows-scaling-smoke.py` ports the macOS 55-case protocol/lifecycle baseline:
+  - every scaling mode × filter × unit;
+  - fragmented updates, cursor replacement, a server framebuffer change and resize suppression;
+  - automatic resize from the measured viewport, and explicit DesktopSize.
+  - It runs through `vncviewer.exe` with an isolated `TIDYVNC_STATE_ROOT`, so it needs a Debug publish,
+    because Release ignores the override.
+  - Like the UI suite, it is gated on `TIDYVNC_UI_TESTS=1` and an idle desktop. On failure it kills the
+    launcher's process tree.
+- The Windows app now logs "Viewport logical WxH, backing WxH" through `tidyvnc_logging_viewport` when an
+  automatic resize request is made (`NativeProcessLogging.Viewport`, from `NativeRemoteResizeCoordinator`),
+  as macOS does.
+- Result on this machine (display powered off, desktop idle), Debug publish: 55/55 cases pass. For example,
+  automatic resize requested 945×440 logical and 1417×660 device pixels, matching the logged viewport, and
+  every case exited 0.
+- Found while writing the smoke test: `dotnet publish` of the unpackaged app left out `TidyVNC.pri`
+  (strings and compiled XAML). A published app therefore failed at its first window with a
+  XamlParseException. That affected the Release payload and the MSI from the previous package entry. The
+  development output, which the UI suite uses, was complete.
+  - Fix: `EnableMsixTooling=true` in the app project.
+  - The package audit now requires `TidyVNC.pri` with the compiled XAML and strings.
+  - The rebuilt package has 555 files and a 58.9 MB MSI.
+- Remaining:
+  - FLTK side of the comparison: the retained viewer has no state isolation on Windows. It stores history
+    and settings in HKCU, so it runs in a test account or VM.
+  - Security, tunnel and reconnect smokes (next).

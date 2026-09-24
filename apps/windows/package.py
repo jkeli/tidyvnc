@@ -336,6 +336,12 @@ def audit(staging, app, arch, owners):
         lower = path.name.lower()
         if path.suffix.lower() == ".dll" and not image.managed and lower not in imported and lower not in dynamic:
             problems.append(f"{path.relative_to(staging).as_posix()}: native DLL that nothing loads")
+    # The app's PRI carries its strings and compiled XAML; without it the first window cannot load.
+    pri = staging / "TidyVNC.pri"
+    content = pri.read_bytes() if pri.is_file() else b""
+    for resource in (b"App.xbf", b"ConnectionWindow.xbf", b"app_menu_file"):
+        if resource not in content:
+            problems.append(f"TidyVNC.pri is missing or lacks {resource.decode()} (compiled XAML and strings)")
     core = staging / "tidyvnc_viewer.dll"
     exported, declared = set(images[core].exports), header_functions()
     if exported != declared:
