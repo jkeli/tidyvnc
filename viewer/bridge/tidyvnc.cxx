@@ -10,6 +10,7 @@
 #include <viewer/core/LegacyMonitorNumbering.h>
 #include <viewer/core/ExportLoss.h>
 #include <viewer/core/ImportProjection.h>
+#include <viewer/core/ConfigurationLayers.h>
 #include <viewer/core/StartupLogging.h>
 #include <core/Logger_file.h>
 #include "tidyvnc.h"
@@ -74,7 +75,7 @@ constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATU
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
 #endif
   | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY | TIDYVNC_FEATURE_IDENTITY_DIGEST | TIDYVNC_FEATURE_KNOWN_HOSTS | TIDYVNC_FEATURE_MONITOR_NUMBERING
-  | TIDYVNC_FEATURE_EXPORT_LOSS | TIDYVNC_FEATURE_IMPORT_PROJECTION
+  | TIDYVNC_FEATURE_EXPORT_LOSS | TIDYVNC_FEATURE_IMPORT_PROJECTION | TIDYVNC_FEATURE_CONFIGURATION_LAYERS
   | TIDYVNC_FEATURE_CREDENTIAL_BYTES | TIDYVNC_FEATURE_PASSWORD_FILE_REPLY | TIDYVNC_FEATURE_CONNECTION_INFO | TIDYVNC_FEATURE_ENDPOINT_IDENTITY | TIDYVNC_FEATURE_PROMPT_SECURITY | TIDYVNC_FEATURE_CERTIFICATE_POLICY | TIDYVNC_FEATURE_HOST_KEY_ENCODING | TIDYVNC_FEATURE_REQUIRED_TLS_FILES | TIDYVNC_FEATURE_SECURITY_SELECTION | TIDYVNC_FEATURE_TLS_PRIORITY_VALIDATION | TIDYVNC_FEATURE_SECURITY_RECONFIGURATION | TIDYVNC_FEATURE_SHARED_SESSION | TIDYVNC_FEATURE_DESKTOP_LAYOUT | TIDYVNC_FEATURE_DISPLAY_LAYOUT | TIDYVNC_FEATURE_CANVAS_GEOMETRY | TIDYVNC_FEATURE_CONNECTION_DOCUMENT | TIDYVNC_FEATURE_DOCUMENT_OPTIONS | TIDYVNC_FEATURE_INVOCATION_SYNTAX | TIDYVNC_FEATURE_INVOCATION_VALUES | TIDYVNC_FEATURE_INPUT_TIMING | TIDYVNC_FEATURE_MESSAGE_LIMITS | TIDYVNC_FEATURE_WINDOW_GEOMETRY
 #ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_PROCESS_LOGGING | TIDYVNC_FEATURE_FILE_LOGGING
@@ -230,6 +231,11 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
     return TIDYVNC_INVALID_ARGUMENT;
   } catch (const InvocationError& problem) {
     const auto fault = invocationFault(problem); if (writable) errorValue(error,fault); return fault.status;
+  } catch (const ConfigError& problem) {
+    const auto status = problem.problem == ConfigProblem::TooMany ? TIDYVNC_RESOURCE_LIMIT :
+      problem.problem == ConfigProblem::Unavailable ? TIDYVNC_UNSUPPORTED : TIDYVNC_INVALID_ARGUMENT;
+    if (writable) errorValue(error,Fault(status,TIDYVNC_DOMAIN_CONFIG,(problem.index << 8) | (static_cast<uint32_t>(problem.problem)+1)));
+    return status;
   } catch (const ImportError& problem) {
     const auto status = problem.problem == ImportProblem::TooLarge || problem.problem == ImportProblem::TooManyEntries ||
       problem.problem == ImportProblem::LineTooLong ? TIDYVNC_RESOURCE_LIMIT : TIDYVNC_INVALID_ARGUMENT;
@@ -327,7 +333,7 @@ RemoteDesktopLayout desktopLayout(const tidyvnc_desktop_layout_request* input) {
   return RemoteDesktopLayout(input->width,input->height,std::move(screens));
 }
 enum class Kind { Runtime, Session, Listener, Image, Prompt, Subscription, Clipboard, Encoding, Renderer, CursorSampler, Shortcut, Endpoint, CertificateKey, Document, Invocation, SSHGateway,
-  ImportDefaults, ImportHistory };
+  ImportDefaults, ImportHistory, Configuration };
 struct Object { virtual ~Object() = default; virtual void released() noexcept {} };
 struct Registry {
   struct Entry { Kind kind; uint64_t references = 0; std::shared_ptr<Object> object; };
@@ -729,6 +735,10 @@ struct EndpointIdentity : Object {
 struct SSHGatewayValue : Object {
   explicit SSHGatewayValue(viewer::SSHGateway value_) : value(std::move(value_)) {}
   const viewer::SSHGateway value;
+};
+struct ConfigurationValue : Object {
+  explicit ConfigurationValue(ConfigResolution input) : value(std::move(input)) {}
+  const ConfigResolution value;
 };
 struct ImportDefaultsValue : Object {
   explicit ImportDefaultsValue(DefaultsProjection input) : value(std::move(input)) {}
@@ -1930,6 +1940,58 @@ bool fileSource(tidyvnc_bytes file,const void* values,uint32_t count) {
   return file.data != nullptr || !count;
 }
 }
+}
+static_assert(static_cast<unsigned>(ConfigProblem::UnknownParameter)+1 == TIDYVNC_CONFIG_UNKNOWN_PARAMETER &&
+  static_cast<unsigned>(ConfigProblem::TooMany)+1 == TIDYVNC_CONFIG_TOO_MANY &&
+  static_cast<unsigned>(ConfigNoteKind::DotWhenNoCursor) == TIDYVNC_CONFIG_NOTE_DOT_WHEN_NO_CURSOR &&
+  static_cast<unsigned>(ConfigNoteKind::FullScreenAllMonitors) == TIDYVNC_CONFIG_NOTE_FULL_SCREEN_ALL_MONITORS, "Config IDs changed");
+tidyvnc_status tidyvnc_config_resolve(const tidyvnc_config_assignment* input,uint32_t count,tidyvnc_handle* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    require(out != nullptr && (input || !count));
+    if (count > configMaximumAssignments) throw ConfigError(ConfigProblem::TooMany,0);
+    std::vector<ConfigAssignment> assignments;
+    assignments.reserve(count);
+    for (uint32_t i = 0; i < count; ++i) {
+      const auto& entry = input[i];
+      if (entry.name.length > 128 || entry.value.length > 65536) throw ConfigError(ConfigProblem::InvalidValue,i+1);
+      if (entry.source > static_cast<uint32_t>(OptionSource::Document)) throw ConfigError(ConfigProblem::InvalidSource,i+1);
+      assignments.push_back({spanText(entry.name),spanText(entry.value),static_cast<OptionSource>(entry.source),entry.position});
+    }
+    auto resolution = resolveConfiguration(assignments);
+    Reservation slot(Kind::Configuration);
+    *out = slot.commit(std::make_shared<ConfigurationValue>(std::move(resolution))); return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_config_get(tidyvnc_handle id,tidyvnc_config_info* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<ConfigurationValue>(id,Kind::Configuration);
+    auto value = output<tidyvnc_config_info>();
+    value.value_count = static_cast<uint32_t>(owner->value.values.size());
+    value.note_count = static_cast<uint32_t>(owner->value.notes.size());
+    *out = value; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_config_value_at(tidyvnc_handle id,uint32_t index,tidyvnc_config_value* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<ConfigurationValue>(id,Kind::Configuration);
+    if (index >= owner->value.values.size()) return TIDYVNC_NO_CHANGE;
+    const auto& entry = owner->value.values[index];
+    auto value = output<tidyvnc_config_value>();
+    value.source = static_cast<uint32_t>(entry.source); value.position = entry.position; value.dormant = entry.dormant ? 1 : 0;
+    copyText(value.name,entry.name); value.value = bytes(entry.value);
+    *out = value; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_config_note_at(tidyvnc_handle id,uint32_t index,tidyvnc_config_note* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<ConfigurationValue>(id,Kind::Configuration);
+    if (index >= owner->value.notes.size()) return TIDYVNC_NO_CHANGE;
+    const auto& entry = owner->value.notes[index];
+    auto value = output<tidyvnc_config_note>();
+    value.kind = static_cast<uint32_t>(entry.kind); value.source = static_cast<uint32_t>(entry.source);
+    value.position = entry.position; copyText(value.parameter,entry.parameter);
+    *out = value; return TIDYVNC_OK;
+  });
 }
 tidyvnc_status tidyvnc_import_defaults(tidyvnc_bytes file,const tidyvnc_import_value* values,uint32_t count,tidyvnc_handle* out,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t {

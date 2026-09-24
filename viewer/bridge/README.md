@@ -734,3 +734,31 @@ returns the endpoint host, zone, optional user, port intent and canonical
 the macOS route/intent identities are pinned by a regression test and unchanged.
 PasswordFile and X509CA/CRL path resolution stays with each platform's file
 services, since absolute-path and base-directory rules are platform-specific.
+
+## Shared policy for the Windows frontend
+
+The WinUI plan (plans/native-ui-winui CORE.md sections 4 and 6) adds feature bits
+1<<47..1<<53 with additive exports, bringing the C header to 133 status-returning
+exports. Each policy module has a JSON corpus under `tests/conformance`, run by
+`tests/unit` through these exports and by `TidyVNC.Native.Tests`; the Swift
+implementations they mirror must pass the same cases (the Swift runner needs a
+macOS host). All are stateless, perform no IO, report typed reasons in their own
+error domain, and leave outputs untouched on failure.
+
+| Bit | Feature | Exports | Mirrors (macOS) |
+| --- | --- | --- | --- |
+| 47 | `NATIVE_ERROR_CATEGORY` | `tidyvnc_native_error_category` | errno/Winsock/Win32 codes as shared categories |
+| 48 | `IDENTITY_DIGEST` | `tidyvnc_identity_digest` | `NativeCredentialKey`, `NativeTrustScope`, SSH route/intent/resolved identities |
+| 49 | `KNOWN_HOSTS` | `tidyvnc_known_hosts_lookup` | `NativeLegacyTrustCodec` |
+| 50 | `MONITOR_NUMBERING` | `tidyvnc_legacy_monitor_order` | `documentMonitorOrder` |
+| 51 | `EXPORT_LOSS` | `tidyvnc_export_losses`, `tidyvnc_export_loss_at` | `NativeDocumentExportLoss` |
+| 52 | `IMPORT_PROJECTION` | `tidyvnc_import_defaults`, `_defaults_get`, `_assignment_at`, `_notice_at`, `tidyvnc_import_history`, `_history_get` | `NativeDefaultsImportProjection`, `NativeHistoryImport` |
+| 53 | `CONFIGURATION_LAYERS` | `tidyvnc_config_resolve`, `_get`, `_value_at`, `_note_at` | `NativeOptionOverlay`, `NativeInvocationResolution` |
+
+Identity digests use a small internal FIPS 180-4 SHA-256 (tested with the NIST
+vectors), so they exist in builds without nettle. The known-hosts lookup takes a
+certificate-key handle for `c0` commitments and is cross-checked against files
+GnuTLS itself writes. Import projection accepts either file bytes (the XDG files)
+or decoded values (the Windows registry); configuration layers canonicalize every
+parameter through the same validator as the command line
+(`canonicalParameter`), so both agree for every available parameter.

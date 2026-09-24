@@ -137,13 +137,23 @@ connection documents: the invocation catalog, encoding/security/scaling/window
 geometry/logging, DesktopSize, ports and the SSH `via` grammar
 (`TIDYVNC_FEATURE_PARAMETER_GRAMMARS`). The frontend owns:
 
-- layer composition (compiled → app defaults → profile → CLI → explicit file)
-  over its typed configuration model, including the two deprecated migrations
-  (DotWhenNoCursor, FullScreenAllMonitors); see `NativeOptionOverlay`;
+- its typed configuration model over the layer composition (compiled → app
+  defaults → profile → CLI → explicit file) and the two deprecated migrations
+  (DotWhenNoCursor, FullScreenAllMonitors); see `NativeOptionOverlay`. The
+  precedence, migrations and provenance are also in the core
+  (`tidyvnc_config_resolve`, W2 of the WinUI plan);
 - platform path policy for PasswordFile and X509CA/CRL (Windows needs drive/UNC
   rules);
-- stores and their identities: route/intent digests are derived by the frontend
-  from core gateway fields (macOS values are pinned by a regression test).
+- stores. Their identities (credential accounts, trust scopes, SSH route and
+  intent digests) are the core's `tidyvnc_identity_digest`, byte-identical to
+  the macOS values, which stay pinned by regression tests.
+
+The Windows plan moved further shared policy into the core with conformance
+cases under `tests/conformance` that the macOS Swift implementations must also
+pass: legacy `x509_known_hosts` lookup, legacy monitor numbering, export
+losses, and the defaults/history import projection (see the bridge README,
+"Shared policy for the Windows frontend"). The macOS app keeps its Swift
+implementations; switching it to these exports is optional.
 
 ## Services a frontend must provide
 

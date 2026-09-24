@@ -1,0 +1,507 @@
+{
+ "format": "tidyvnc-conformance-v1",
+ "module": "ConfigurationLayers",
+ "about": [
+  "Shared cases for the core (tests/unit/configurationlayers.cxx) and the macOS",
+  "NativeOptionOverlay/NativeInvocationResolution precedence and migrations.",
+  "Sources: compiled < appDefaults < profile < commandLine < document."
+ ],
+ "cases": [
+  {
+   "name": "precedence-document-over-cli-over-profile",
+   "assignments": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "source": "document",
+     "position": 3
+    },
+    {
+     "name": "Shared",
+     "value": "off",
+     "source": "commandLine",
+     "position": 2
+    },
+    {
+     "name": "Shared",
+     "value": "yes",
+     "source": "profile",
+     "position": 9
+    },
+    {
+     "name": "ViewOnly",
+     "value": "1",
+     "source": "appDefaults",
+     "position": 4
+    },
+    {
+     "name": "ViewOnly",
+     "value": "off",
+     "source": "compiled",
+     "position": 0
+    }
+   ],
+   "values": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "source": "document",
+     "position": 3
+    },
+    {
+     "name": "ViewOnly",
+     "value": "on",
+     "source": "appDefaults",
+     "position": 4
+    }
+   ],
+   "notes": []
+  },
+  {
+   "name": "last-in-layer-wins",
+   "assignments": [
+    {
+     "name": "QualityLevel",
+     "value": "3",
+     "source": "profile",
+     "position": 1
+    },
+    {
+     "name": "QualityLevel",
+     "value": "7",
+     "source": "profile",
+     "position": 2
+    },
+    {
+     "name": "QualityLevel",
+     "value": "5",
+     "source": "appDefaults",
+     "position": 3
+    }
+   ],
+   "values": [
+    {
+     "name": "QualityLevel",
+     "value": "7",
+     "source": "profile",
+     "position": 2
+    }
+   ],
+   "notes": []
+  },
+  {
+   "name": "macos-file-migrations",
+   "about": "tests/macos/NativeDefaultsImportTests.swift: DotWhenNoCursor=on beats AlwaysCursor=off/CursorType=System; FullScreenAllMonitors=on beats FullScreenMode=Current",
+   "assignments": [
+    {
+     "name": "DotWhenNoCursor",
+     "value": "on",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "source": "document",
+     "position": 3
+    },
+    {
+     "name": "CursorType",
+     "value": "System",
+     "source": "document",
+     "position": 4
+    },
+    {
+     "name": "FullScreenAllMonitors",
+     "value": "on",
+     "source": "document",
+     "position": 5
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "Current",
+     "source": "document",
+     "position": 6
+    }
+   ],
+   "values": [
+    {
+     "name": "AlwaysCursor",
+     "value": "on",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "name": "CursorType",
+     "value": "Dot",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "name": "DotWhenNoCursor",
+     "value": "on",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "name": "FullScreenAllMonitors",
+     "value": "on",
+     "source": "document",
+     "position": 5
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "All",
+     "source": "document",
+     "position": 5
+    }
+   ],
+   "notes": [
+    {
+     "kind": "dotWhenNoCursor",
+     "parameter": "AlwaysCursor",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "kind": "dotWhenNoCursor",
+     "parameter": "CursorType",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "kind": "fullScreenAllMonitors",
+     "parameter": "FullScreenMode",
+     "source": "document",
+     "position": 5
+    }
+   ]
+  },
+  {
+   "name": "migration-carries-across-layers",
+   "about": "A command-line DotWhenNoCursor still forces the cursor over a file's AlwaysCursor=off (compatibility state)",
+   "assignments": [
+    {
+     "name": "DotWhenNoCursor",
+     "value": "on",
+     "source": "commandLine",
+     "position": 1
+    },
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "source": "document",
+     "position": 7
+    }
+   ],
+   "values": [
+    {
+     "name": "AlwaysCursor",
+     "value": "on",
+     "source": "commandLine",
+     "position": 1
+    },
+    {
+     "name": "CursorType",
+     "value": "Dot",
+     "source": "commandLine",
+     "position": 1
+    },
+    {
+     "name": "DotWhenNoCursor",
+     "value": "on",
+     "source": "commandLine",
+     "position": 1
+    }
+   ],
+   "notes": [
+    {
+     "kind": "dotWhenNoCursor",
+     "parameter": "AlwaysCursor",
+     "source": "commandLine",
+     "position": 1
+    },
+    {
+     "kind": "dotWhenNoCursor",
+     "parameter": "CursorType",
+     "source": "commandLine",
+     "position": 1
+    }
+   ]
+  },
+  {
+   "name": "migration-reset-by-higher-layer",
+   "assignments": [
+    {
+     "name": "DotWhenNoCursor",
+     "value": "on",
+     "source": "profile",
+     "position": 1
+    },
+    {
+     "name": "DotWhenNoCursor",
+     "value": "off",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "source": "document",
+     "position": 3
+    }
+   ],
+   "values": [
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "source": "document",
+     "position": 3
+    },
+    {
+     "name": "DotWhenNoCursor",
+     "value": "off",
+     "source": "document",
+     "position": 2
+    }
+   ],
+   "notes": []
+  },
+  {
+   "name": "reset-migration-no-defaults",
+   "about": "tests/macos: DotWhenNoCursor=on then off does not materialize cursor fields",
+   "assignments": [
+    {
+     "name": "DotWhenNoCursor",
+     "value": "on",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "name": "DotWhenNoCursor",
+     "value": "off",
+     "source": "document",
+     "position": 3
+    }
+   ],
+   "values": [
+    {
+     "name": "DotWhenNoCursor",
+     "value": "off",
+     "source": "document",
+     "position": 3
+    }
+   ],
+   "notes": []
+  },
+  {
+   "name": "dormant-values",
+   "assignments": [
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "source": "profile",
+     "position": 1
+    },
+    {
+     "name": "CursorType",
+     "value": "System",
+     "source": "profile",
+     "position": 2
+    },
+    {
+     "name": "FullScreenSelectedMonitors",
+     "value": "2,1",
+     "source": "profile",
+     "position": 3
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "current",
+     "source": "profile",
+     "position": 4
+    }
+   ],
+   "values": [
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "source": "profile",
+     "position": 1
+    },
+    {
+     "name": "CursorType",
+     "value": "System",
+     "source": "profile",
+     "position": 2,
+     "dormant": true
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "Current",
+     "source": "profile",
+     "position": 4
+    },
+    {
+     "name": "FullScreenSelectedMonitors",
+     "value": "2,1",
+     "source": "profile",
+     "position": 3,
+     "dormant": true
+    }
+   ],
+   "notes": []
+  },
+  {
+   "name": "selected-monitors-active",
+   "assignments": [
+    {
+     "name": "FullScreenSelectedMonitors",
+     "value": "1",
+     "source": "document",
+     "position": 1
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "Selected",
+     "source": "document",
+     "position": 2
+    }
+   ],
+   "values": [
+    {
+     "name": "FullScreenMode",
+     "value": "Selected",
+     "source": "document",
+     "position": 2
+    },
+    {
+     "name": "FullScreenSelectedMonitors",
+     "value": "1",
+     "source": "document",
+     "position": 1
+    }
+   ],
+   "notes": []
+  },
+  {
+   "name": "aliases-case-and-cli-parameters",
+   "assignments": [
+    {
+     "name": "fullcolour",
+     "value": "yes",
+     "source": "commandLine",
+     "position": 1
+    },
+    {
+     "name": "REMOTERESIZE",
+     "value": "0",
+     "source": "commandLine",
+     "position": 2
+    },
+    {
+     "name": "PointerEventInterval",
+     "value": "017",
+     "source": "appDefaults",
+     "position": 3
+    },
+    {
+     "name": "geometry",
+     "value": "800x600+10+10",
+     "source": "profile",
+     "position": 4
+    },
+    {
+     "name": "via",
+     "value": "gateway.invalid",
+     "source": "commandLine",
+     "position": 5
+    }
+   ],
+   "values": [
+    {
+     "name": "FullColor",
+     "value": "on",
+     "source": "commandLine",
+     "position": 1
+    },
+    {
+     "name": "PointerEventInterval",
+     "value": "15",
+     "source": "appDefaults",
+     "position": 3
+    },
+    {
+     "name": "RemoteResize",
+     "value": "off",
+     "source": "commandLine",
+     "position": 2
+    },
+    {
+     "name": "geometry",
+     "value": "800x600+10+10",
+     "source": "profile",
+     "position": 4
+    },
+    {
+     "name": "via",
+     "value": "gateway.invalid",
+     "source": "commandLine",
+     "position": 5
+    }
+   ],
+   "notes": []
+  },
+  {
+   "name": "error.unknown",
+   "assignments": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "source": "profile",
+     "position": 1
+    },
+    {
+     "name": "NoSuchOption",
+     "value": "1",
+     "source": "profile",
+     "position": 1
+    }
+   ],
+   "error": {
+    "reason": "unknownParameter",
+    "index": 2
+   }
+  },
+  {
+   "name": "error.invalid-value",
+   "assignments": [
+    {
+     "name": "QualityLevel",
+     "value": "eleven",
+     "source": "commandLine",
+     "position": 1
+    }
+   ],
+   "error": {
+    "reason": "invalidValue",
+    "index": 1
+   }
+  },
+  {
+   "name": "error.session-source",
+   "assignments": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "source": "session",
+     "position": 1
+    }
+   ],
+   "error": {
+    "reason": "invalidSource",
+    "index": 1
+   }
+  }
+ ]
+}

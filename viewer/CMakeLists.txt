@@ -58,6 +58,7 @@ add_library(tidyvnc_viewer_core STATIC
   core/LegacyMonitorNumbering.cxx
   core/ExportLoss.cxx
   core/ImportProjection.cxx
+  core/ConfigurationLayers.cxx
   core/ConnectionDocument.cxx
   core/DocumentOptions.cxx
   core/Endpoint.cxx

@@ -57,7 +57,7 @@ enum { TIDYVNC_DOMAIN_BRIDGE = 1, TIDYVNC_DOMAIN_ENDPOINT = 2,
        TIDYVNC_DOMAIN_AUTHENTICATION = 5, TIDYVNC_DOMAIN_ENCODING = 6, TIDYVNC_DOMAIN_SECURITY = 7,
        TIDYVNC_DOMAIN_DOCUMENT = 8, TIDYVNC_DOMAIN_INVOCATION = 9, TIDYVNC_DOMAIN_LOGGING = 10,
        TIDYVNC_DOMAIN_IDENTITY = 11, TIDYVNC_DOMAIN_KNOWN_HOSTS = 12, TIDYVNC_DOMAIN_MONITORS = 13,
-       TIDYVNC_DOMAIN_EXPORT = 14, TIDYVNC_DOMAIN_IMPORT = 15 };
+       TIDYVNC_DOMAIN_EXPORT = 14, TIDYVNC_DOMAIN_IMPORT = 15, TIDYVNC_DOMAIN_CONFIG = 16 };
 enum { TIDYVNC_ENDPOINT_TOO_LONG = 1, TIDYVNC_ENDPOINT_INVALID_HOST = 2,
        TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3, TIDYVNC_ENDPOINT_INVALID_PORT = 4,
        TIDYVNC_ENDPOINT_INVALID_PATH = 5, TIDYVNC_ENDPOINT_INVALID_ROUTE = 6,
@@ -95,6 +95,7 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 #define TIDYVNC_FEATURE_MONITOR_NUMBERING 1125899906842624ULL
 #define TIDYVNC_FEATURE_EXPORT_LOSS 2251799813685248ULL
 #define TIDYVNC_FEATURE_IMPORT_PROJECTION 4503599627370496ULL
+#define TIDYVNC_FEATURE_CONFIGURATION_LAYERS 9007199254740992ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -855,6 +856,40 @@ TIDYVNC_API tidyvnc_status tidyvnc_import_notice_at(tidyvnc_handle, uint32_t ind
 TIDYVNC_API tidyvnc_status tidyvnc_import_history(tidyvnc_bytes file, const tidyvnc_bytes* values, uint32_t count,
   tidyvnc_handle*, tidyvnc_error*);
 TIDYVNC_API tidyvnc_status tidyvnc_import_history_get(tidyvnc_handle, tidyvnc_import_history_info*, tidyvnc_error*);
+/* CONFIGURATION_LAYERS: the shared precedence of configuration sources (the
+ * macOS NativeOptionOverlay/NativeInvocationResolution). Each assignment names
+ * a parameter (any catalog spelling or alias, ASCII case-insensitive), a value
+ * and its source: TIDYVNC_SOURCE_COMPILED < APP_DEFAULTS < PROFILE <
+ * COMMAND_LINE < DOCUMENT (an explicit connection file); SESSION is not a
+ * startup layer. Values are validated and canonicalized as the command line
+ * does; within a layer the last wins. The deprecated DotWhenNoCursor (on:
+ * AlwaysCursor on, CursorType Dot) and FullScreenAllMonitors (on:
+ * FullScreenMode All) migrations run after every layer, so a lower layer's
+ * flag applies unless a higher layer resets it; migrated fields take the
+ * flag's source and position, and each is reported as a note. dormant marks a
+ * kept but inactive value (CursorType with AlwaysCursor off; selected monitors
+ * outside Selected mode). Values are ordered by canonical name (ASCII). At
+ * most 16384 assignments; errors use DOMAIN_CONFIG with detail
+ * (index << 8) | reason, index one-based. Paths, routes and geometry remain
+ * literal; display mapping and IO belong to the host. Stateless. */
+enum { TIDYVNC_CONFIG_UNKNOWN_PARAMETER = 1, TIDYVNC_CONFIG_INVALID_VALUE = 2, TIDYVNC_CONFIG_INVALID_SOURCE = 3,
+       TIDYVNC_CONFIG_UNAVAILABLE = 4, TIDYVNC_CONFIG_TOO_MANY = 5 };
+enum { TIDYVNC_CONFIG_NOTE_DOT_WHEN_NO_CURSOR = 1, TIDYVNC_CONFIG_NOTE_FULL_SCREEN_ALL_MONITORS = 2 };
+typedef struct { tidyvnc_bytes name, value; uint32_t source, position; } tidyvnc_config_assignment;
+typedef struct { uint32_t size, version, value_count, note_count; } tidyvnc_config_info;
+typedef struct {
+  uint32_t size, version, source, position, dormant, reserved;
+  char name[64];
+  tidyvnc_bytes value; /* Borrowed from the handle */
+} tidyvnc_config_value;
+typedef struct {
+  uint32_t size, version, kind, source, position, reserved;
+  char parameter[64];
+} tidyvnc_config_note;
+TIDYVNC_API tidyvnc_status tidyvnc_config_resolve(const tidyvnc_config_assignment*, uint32_t count, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_config_get(tidyvnc_handle, tidyvnc_config_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_config_value_at(tidyvnc_handle, uint32_t index, tidyvnc_config_value*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_config_note_at(tidyvnc_handle, uint32_t index, tidyvnc_config_note*, tidyvnc_error*);
 TIDYVNC_API tidyvnc_status tidyvnc_known_hosts_lookup(tidyvnc_bytes file, tidyvnc_bytes host, tidyvnc_bytes spki,
   tidyvnc_handle certificate_key, uint64_t now, tidyvnc_known_hosts_match*, tidyvnc_error*);
 /* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most

@@ -31,41 +31,59 @@ InvocationCapabilities InvocationCapabilities::compiled() {
   return result;
 }
 
+bool viewer::canonicalParameter(const std::string& name, const std::string& value,
+                                std::string& canonicalName, std::string& canonicalValue) {
+  try {
+    DocumentAssignment canonical;
+    if (documentOptionValue({name,value},canonical)) {
+      canonicalName = std::move(canonical.name); canonicalValue = std::move(canonical.value); return true;
+    }
+    const auto schema = invocationOptions({true,true,true,true});
+    const auto spec = std::find_if(schema.begin(),schema.end(),[&](const InvocationOption& option) {
+      return core::asciiParameterEqual(name,option.name.c_str()) ||
+             (!option.alias.empty() && core::asciiParameterEqual(name,option.alias.c_str()));
+    });
+    if (spec == schema.end()) return false;
+    std::string result = value;
+    if (spec->boolean) {
+      bool flag;
+      if (!core::parseBooleanValue(value,flag)) throw InvocationError(InvocationProblem::InvalidValue,0);
+      result = flag ? "on" : "off";
+    } else if (spec->name == "PointerEventInterval" || spec->name == "MaxCutText") {
+      char* end; errno = 0; const auto number = std::strtol(value.c_str(),&end,0);
+      if (errno == ERANGE || *end || number < 0 || number > INT_MAX) throw InvocationError(InvocationProblem::InvalidValue,0);
+      result = std::to_string(number);
+    } else if (spec->name == "Log") {
+      // Pure candidate parsing only. Registry/target admission belongs to the
+      // startup adapter. Preserve original spelling for later resolution.
+      LoggingPolicy::parse(value);
+    } else if (spec->name == "GnuTLSPriority") {
+      // The same bounded GnuTLS preflight as saved settings and drafts, so an
+      // invalid command-line priority fails at startup rather than at connect.
+      validateTLSPriority(value);
+    }
+    canonicalName = spec->name; canonicalValue = std::move(result);
+    return true;
+  } catch (const LoggingError&) {
+    throw InvocationError(InvocationProblem::InvalidValue,0);
+  } catch (const SecurityOptionError&) {
+    throw InvocationError(InvocationProblem::InvalidValue,0);
+  } catch (const DocumentError& error) {
+    throw InvocationError(error.code == DocumentErrorCode::Unavailable ? InvocationProblem::Unavailable : InvocationProblem::InvalidValue,0);
+  }
+}
+
 InvocationSyntax InvocationSyntax::validatingValues() const {
   auto result = *this;
-  const auto schema = invocationOptions({true,true,true,true});
   for (auto& field : result.fields) {
+    std::string name, value;
     try {
-      DocumentAssignment canonical;
-      if (documentOptionValue({field.name,field.value},canonical)) {
-        field.value = std::move(canonical.value); continue;
-      }
-      const auto spec = std::find_if(schema.begin(),schema.end(),[&](const InvocationOption& option) { return option.name == field.name; });
-      if (spec == schema.end()) throw InvocationError(InvocationProblem::UnknownOption,field.argument);
-      if (spec->boolean) {
-        bool flag;
-        if (!core::parseBooleanValue(field.value,flag)) throw InvocationError(InvocationProblem::InvalidValue,field.argument);
-        field.value = flag ? "on" : "off";
-      } else if (field.name == "PointerEventInterval" || field.name == "MaxCutText") {
-        char* end; errno = 0; const auto value = std::strtol(field.value.c_str(),&end,0);
-        if (errno == ERANGE || *end || value < 0 || value > INT_MAX) throw InvocationError(InvocationProblem::InvalidValue,field.argument);
-        field.value = std::to_string(value);
-      } else if (field.name == "Log") {
-        // Pure candidate parsing only. Registry/target admission belongs to the
-        // startup adapter. Preserve original spelling for later resolution.
-        LoggingPolicy::parse(field.value);
-      } else if (field.name == "GnuTLSPriority") {
-        // The same bounded GnuTLS preflight as saved settings and drafts, so an
-        // invalid command-line priority fails at startup rather than at connect.
-        validateTLSPriority(field.value);
-      }
-    } catch (const LoggingError&) {
-      throw InvocationError(InvocationProblem::InvalidValue,field.argument);
-    } catch (const SecurityOptionError&) {
-      throw InvocationError(InvocationProblem::InvalidValue,field.argument);
-    } catch (const DocumentError& error) {
-      throw InvocationError(error.code == DocumentErrorCode::Unavailable ? InvocationProblem::Unavailable : InvocationProblem::InvalidValue,field.argument);
+      if (!canonicalParameter(field.name,field.value,name,value))
+        throw InvocationError(InvocationProblem::UnknownOption,field.argument);
+    } catch (const InvocationError& error) {
+      throw InvocationError(error.problem,field.argument);
     }
+    field.value = std::move(value);
   }
   return result;
 }

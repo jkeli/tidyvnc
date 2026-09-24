@@ -33,6 +33,15 @@ struct InvocationOption {
 // describes compiled/platform syntax, not completion of a frontend's adapters.
 std::vector<InvocationOption> invocationOptions(InvocationCapabilities);
 
+// One parameter's canonical name and value, with the same validation as
+// InvocationSyntax::validatingValues: names and aliases match ASCII
+// case-insensitively across the whole catalog (available or not), file-catalog
+// fields use the connection-file rules, booleans become on/off and numbers
+// decimal. Returns false for an unknown name; an invalid value throws
+// InvocationError with argument 0. Paths, routes and geometry stay literal.
+bool canonicalParameter(const std::string& name, const std::string& value,
+                        std::string& canonicalName, std::string& canonicalValue);
+
 struct InvocationAssignment {
   std::string name, value;
   InvocationCategory category;

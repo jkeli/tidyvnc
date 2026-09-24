@@ -72,6 +72,38 @@ public sealed class ConformanceTests
     }
 
     [TestMethod]
+    public void ConfigurationLayersCorpus()
+    {
+        using var document = JsonDocument.Parse(File.ReadAllBytes(Corpus("configuration-layers.json")));
+        var sources = new Dictionary<string, NativeOptionSource>
+        {
+            ["compiled"] = NativeOptionSource.Compiled, ["appDefaults"] = NativeOptionSource.AppDefaults, ["profile"] = NativeOptionSource.Profile,
+            ["session"] = NativeOptionSource.Session, ["commandLine"] = NativeOptionSource.CommandLine, ["document"] = NativeOptionSource.Document,
+        };
+        foreach (var entry in document.RootElement.GetProperty("cases").EnumerateArray())
+        {
+            var name = entry.GetProperty("name").GetString()!;
+            var input = entry.GetProperty("assignments").EnumerateArray().Select(a => new NativeConfigAssignment(
+                a.GetProperty("name").GetString()!, a.GetProperty("value").GetString()!, sources[a.GetProperty("source").GetString()!],
+                a.GetProperty("position").GetUInt32())).ToList();
+            if (entry.TryGetProperty("error", out var error))
+            {
+                var failure = Assert.ThrowsExactly<NativeConfigFailure>(() => NativeConfiguration.Resolve(input), name);
+                Assert.AreEqual(error.GetProperty("reason").GetString(), JsonNamingPolicy.CamelCase.ConvertName(failure.Reason.ToString()), name);
+                Assert.AreEqual(error.GetProperty("index").GetUInt32(), failure.Index, name);
+                continue;
+            }
+            var result = NativeConfiguration.Resolve(input);
+            CollectionAssert.AreEqual(entry.GetProperty("values").EnumerateArray().Select(v => new NativeConfigValue(
+                v.GetProperty("name").GetString()!, v.GetProperty("value").GetString()!, sources[v.GetProperty("source").GetString()!],
+                v.GetProperty("position").GetUInt32(), v.TryGetProperty("dormant", out var d) && d.GetBoolean())).ToArray(), result.Values.ToArray(), name);
+            CollectionAssert.AreEqual(entry.GetProperty("notes").EnumerateArray().Select(n => new NativeConfigNote(
+                Enum.Parse<NativeConfigNoteKind>(n.GetProperty("kind").GetString()!, ignoreCase: true), n.GetProperty("parameter").GetString()!,
+                sources[n.GetProperty("source").GetString()!], n.GetProperty("position").GetUInt32())).ToArray(), result.Notes.ToArray(), name);
+        }
+    }
+
+    [TestMethod]
     public void ImportProjectionCorpus()
     {
         using var document = JsonDocument.Parse(File.ReadAllBytes(Corpus("import-projection.json")));
