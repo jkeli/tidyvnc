@@ -287,6 +287,9 @@ public sealed partial class ConnectionWindow : Window
             NativeSessionSecurityDraft security => () => SecurityDialog.Create(security, this),
             NativeInputDraft input => () => InputDialog.Create(input),
             NativeScalingDraft scaling => () => ScalingDialog.Create(scaling),
+            NativeConnectionDraft connection => () => ConnectionOptionsDialog.Create(connection),
+            NativeRemoteResizePolicyDraft policy => () => RemoteResizePolicyDialog.Create(policy),
+            NativeRemoteResizeDraft resize => () => RemoteResizeDialog.Create(resize),
             _ => null,
         };
         return create is null ? null : new DialogRequest(key, create, _ => Controller.EndEditor(editor), () => Controller.EndEditor(editor));
@@ -298,6 +301,37 @@ public sealed partial class ConnectionWindow : Window
 
     internal bool CanOpenDisconnectedEditor => Controller.EditorsIdle &&
         session?.Snapshot.State is NativeSessionState.Idle or NativeSessionState.Closed or NativeSessionState.Failed;
+
+    internal bool CanOpenAnyEditor => Controller.EditorsIdle && session is { IsClosing: false };
+
+    internal bool CanResizeRemote => CanOpenConnectedEditor &&
+        session is { Snapshot: { SupportsResize: true, ResizePending: false }, IsViewOnly: false };
+
+    internal void OpenConnectionOptions()
+    {
+        if (!CanOpenDisconnectedEditor || session is null) return;
+        var draft = new NativeConnectionDraft(session);
+        if (!Controller.BeginEditor(draft, NativeEditorScope.Disconnected, () => { draft.Stop(); return Task.CompletedTask; })) { draft.Stop(); return; }
+        draft.Reload();
+        dialogs.Update();
+    }
+
+    internal void OpenResizePolicy()
+    {
+        if (!CanOpenAnyEditor || session is null) return;
+        var draft = new NativeRemoteResizePolicyDraft(session);
+        if (Controller.BeginEditor(draft, NativeEditorScope.Any, () => { draft.Cancel(); return Task.CompletedTask; })) dialogs.Update();
+        else draft.Cancel();
+    }
+
+    internal void OpenRemoteResize()
+    {
+        if (!CanResizeRemote || session is null) return;
+        var draft = new NativeRemoteResizeDraft(session, App.Current.Displays);
+        if (!Controller.BeginEditor(draft, NativeEditorScope.Connected, async () => { await draft.CloseAsync(); draft.Dispose(); })) { draft.Dispose(); return; }
+        draft.Reload();
+        dialogs.Update();
+    }
 
     internal void OpenSecurity()
     {

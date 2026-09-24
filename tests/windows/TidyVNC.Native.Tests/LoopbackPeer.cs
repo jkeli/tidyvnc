@@ -86,6 +86,32 @@ public sealed class LoopbackPeer : IAsyncDisposable
         return SendAsync(message);
     }
 
+    /// <summary>One ExtendedDesktopSize screen: ID, position, size and flags (16 bytes).</summary>
+    public static byte[] Screen(uint id, ushort x, ushort y, ushort width, ushort height, uint flags = 0) =>
+    [
+        (byte)(id >> 24), (byte)(id >> 16), (byte)(id >> 8), (byte)id,
+        (byte)(x >> 8), (byte)x, (byte)(y >> 8), (byte)y, (byte)(width >> 8), (byte)width, (byte)(height >> 8), (byte)height,
+        (byte)(flags >> 24), (byte)(flags >> 16), (byte)(flags >> 8), (byte)flags,
+    ];
+
+    /// <summary>
+    /// An ExtendedDesktopSize update (tests/macos/support/resize-peer.cxx):
+    /// reason 0 announces the server layout, reason 1 answers the client's
+    /// SetDesktopSize with a status (0 accepts).
+    /// </summary>
+    public Task LayoutAsync(ushort reason, ushort status, ushort width, ushort height, params byte[][] screens)
+    {
+        var message = new List<byte> { 0, 0, 0, 1, (byte)(reason >> 8), (byte)reason, (byte)(status >> 8), (byte)status,
+                                        (byte)(width >> 8), (byte)width, (byte)(height >> 8), (byte)height, 0xFF, 0xFF, 0xFE, 0xCC,
+                                        (byte)screens.Length, 0, 0, 0 };
+        foreach (var screen in screens) message.AddRange(screen);
+        return SendAsync([.. message]);
+    }
+
+    /// <summary>The client's SetDesktopSize for a size and screens, as it appears on the wire.</summary>
+    public static byte[] SetDesktopSize(ushort width, ushort height, params byte[][] screens) =>
+        [251, 0, (byte)(width >> 8), (byte)width, (byte)(height >> 8), (byte)height, (byte)screens.Length, 0, .. screens.SelectMany(s => s)];
+
     /// <summary>Full-frame Raw updates, each a new colour.</summary>
     public async Task FloodAsync(int updates)
     {

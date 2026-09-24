@@ -289,6 +289,9 @@ internal static class ConnectionMenu
         settings.Items.Add(Item("desktop.scaling", "desktop.scaling", window.CanOpenConnectedEditor, window.OpenScaling));
         settings.Items.Add(Item("desktop.security", "desktop.security", window.CanOpenDisconnectedEditor, window.OpenSecurity));
         settings.Items.Add(Item("desktop.encoding", "desktop.encoding", window.CanOpenConnectedEditor, window.OpenEncoding));
+        settings.Items.Add(Item("desktop.connection", "desktop.connectionOptions", window.CanOpenDisconnectedEditor, window.OpenConnectionOptions));
+        settings.Items.Add(Item("desktop.remote.resize.settings", "desktop.remoteResizeSettings", window.CanOpenAnyEditor, window.OpenResizePolicy));
+        items.Add(Item("desktop.resize.remote.desktop", "desktop.resizeRemote", window.CanResizeRemote, window.OpenRemoteResize));
         items.Add(settings);
         items.Add(statistics);
     }

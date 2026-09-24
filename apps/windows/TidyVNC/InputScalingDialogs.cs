@@ -21,6 +21,17 @@ internal static class SettingsLabels
         _ => "settings.defaults.built.in.default",
     });
 
+    /// <summary>Where a window's resize setting came from (macOS resizeSourceLabel).</summary>
+    public static string ResizeSource(NativeOptionSource source) => Strings.Get(source switch
+    {
+        NativeOptionSource.AppDefaults => "settings.encoding.app.default",
+        NativeOptionSource.Profile => "settings.encoding.profile",
+        NativeOptionSource.Session => "settings.encoding.connection.override",
+        NativeOptionSource.Document => "settings.encoding.connection.file",
+        NativeOptionSource.CommandLine => "settings.encoding.command.line",
+        _ => "settings.defaults.built.in.default",
+    });
+
     public static string Cursor(NativeCursorFallback value) => Strings.Get(value switch
     {
         NativeCursorFallback.Hidden => "settings.input.hidden",
