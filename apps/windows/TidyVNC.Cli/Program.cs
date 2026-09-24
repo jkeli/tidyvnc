@@ -17,6 +17,9 @@ internal static class Program
 
     private static int Main(string[] args)
     {
+        // D6: a copied folder on older Windows says why instead of failing later.
+        if (!TidyVNC.Native.Platform.NativeWindowsVersion.IsSupported(TidyVNC.Native.Platform.NativeWindowsVersion.CurrentBuild))
+            return Fail(TidyVNC.Native.Platform.NativeWindowsVersion.RefusalText);
         NativeInvocation invocation;
         try
         {

@@ -281,6 +281,7 @@
   <data name="document_fields_ignored_when_opening_the_original_file_will_not_be_copied_to" xml:space="preserve"><value>Fields ignored when opening the original file will not be copied to the exported file.</value></data>
   <data name="document_file_settings_override_saved_defaults_and_command_line_settings_for_every_accepted" xml:space="preserve"><value>File settings override saved defaults and command-line settings for every accepted incoming connection. Start listening binds this port; port 0 chooses an available port. Saved preferences are unchanged.</value></data>
   <data name="document_file_settings_override_saved_defaults_for_this_new_connection_opening_does_not" xml:space="preserve"><value>File settings override saved defaults for this new connection. Opening does not connect or change saved preferences.</value></data>
+  <data name="document_file_type" xml:space="preserve"><value>TidyVNC connection file</value></data>
   <data name="document_files_all" xml:space="preserve"><value>All files</value></data>
   <data name="document_files_certificates" xml:space="preserve"><value>Certificate files</value></data>
   <data name="document_files_tidyvnc" xml:space="preserve"><value>TidyVNC connection files</value></data>

@@ -1266,3 +1266,58 @@ Add dated entries, newest last, in the macOS format:
   - Full gated VerticalSlice UI suite on the rebuilt app: 14 of 18 pass.
   - The 4 failures need the display on: on-screen render, full screen, foreground key injection, and F6.
   - Axe.Windows scan passes. `vncviewer.exe --version` from the Release payload exits 0.
+
+### W7.1–W7.3, W7.5 (progress) — package stage: payload, audit, report, MSI — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Behaviour: `python apps/windows/build.py --configuration Release --stages package` builds the core and
+  publishes the app, then `apps/windows/package.py`:
+  - Assembles the payload: published files minus PDBs and test DLLs; the app-local Visual C++ runtime
+    DLLs the payload imports (`vcruntime140.dll`, `vcruntime140_1.dll`, `msvcp140.dll`, from the VS
+    redistributable folder); README and LICENCE at the root; and `ThirdParty\<component>\` for all 30
+    components.
+    - Components cover the MSYS2 packages, NuGet packages, the .NET runtime pack, the Windows SDK projection
+      (Windows SDK licence), the Windows App SDK components, WebView2 and the VC++ runtime.
+  - Audits the payload with `apps/windows/pe.py`, a standard-library PE reader:
+    - every image's architecture;
+    - every import and delay import resolved in the payload, to an API set, or to System32 (never the VC++
+      runtime, which must be app-local);
+    - no debug CRT, MinGW runtime or FLTK imports or exports;
+    - no native DLL that nothing imports, P/Invokes, registers in the app manifest or lists as a runtime
+      native asset;
+    - `tidyvnc_viewer.dll` exports exactly the 133 functions declared in `tidyvnc.h`;
+    - every shipped binary belongs to a component with a licence text.
+  - Writes `package-report.json`: files with hashes, architectures, signatures, owners and import
+    resolution; components; toolchain; MSI hash; the relocation results.
+  - Signs only with `--sign <thumbprint>` (D23). Without it the report records `signed: false`.
+  - Relocation check: the payload copied to a path with spaces and non-ASCII characters runs
+    `vncviewer --version` (0) and `--help` (1) with only System32 on PATH, and refuses a simulated
+    Windows 10 build (1).
+  - Generates the WiX source and builds a per-user MSI (WiX 5.0.2).
+    - Install location `%LOCALAPPDATA%\Programs\TidyVNC`.
+    - One component per folder with an HKCU key path, and `RemoveFolder` entries (ICE38/ICE64).
+    - Windows 11 launch condition, from the build number in the registry because VersionNT is capped.
+    - Start menu shortcut with the AppUserModelID.
+    - `.tidyvnc` ProgID and OpenWithProgids under HKCU; the default app is not forced.
+    - Optional feature, off by default, that adds the install folder to the user PATH.
+    - Major upgrades, with downgrades blocked; Add/Remove Programs icon and links.
+    - Validation with `wix msi validate` passes. ICE03 is suppressed for Microsoft's WinUI resource
+      language IDs, and ICE91 because a per-user package installs everything to the user profile.
+  - Publishes the MSI, the symbols zip (PDBs and wixpdb) and the report by renaming the private staging
+    directory. An existing output is refused, which was checked.
+- `vncviewer.exe` now refuses older Windows too, through the shared `NativeWindowsVersion`, as TidyVNC.exe
+  does. Test: WindowsVersionTests.
+- Result, x64 Release, published to `build/winui/release/TidyVNC-1.16.80-x64`:
+  - payload 554 files and 194 MB, with 280 PE images;
+  - MSI 58.5 MB;
+  - symbols 0.8 MB.
+- UpgradeCodes are recorded in PACKAGING.md section 4.
+- Remaining:
+  - ARM64 packaging needs the MSVC ARM64 build tools. The ARM64 VC++ redistributable is missing, and the
+    package stage says so.
+  - W7.3/W7.6: installing, upgrading, repairing and uninstalling, and the launch-condition refusal on
+    Windows 10. These need a VM or a dedicated test account; installing into the owner's account is not
+    allowed.
+  - W7.5: starting TidyVNC.exe from the relocated copy, in a test account, because Release ignores the
+    test state root.
+  - W7.4: signing, deferred.

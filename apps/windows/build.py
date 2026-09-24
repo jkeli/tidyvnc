@@ -107,6 +107,10 @@ def main():
     parser.add_argument("--test", action="store_true", help="Build and run the core and ABI test suites")
     parser.add_argument("--asan", action="store_true", help="AddressSanitizer build of the core and tests")
     parser.add_argument("--stages", default="core", help="Comma-separated: core, app, package")
+    parser.add_argument("--output", type=Path, help="package: new output directory (default build/winui/release/TidyVNC-<version>-<arch>); never replaced")
+    parser.add_argument("--no-msi", action="store_true", help="package: audit and report without building the MSI")
+    parser.add_argument("--sign", metavar="SHA1", help="package: code-signing certificate thumbprint (D23; unsigned without it)")
+    parser.add_argument("--timestamp-url", default="http://timestamp.digicert.com", help="package: RFC 3161 timestamp server for --sign")
     args = parser.parse_args()
     stages = [stage.strip() for stage in args.stages.split(",") if stage.strip()]
     unknown = set(stages) - {"core", "app", "package"}
@@ -120,7 +124,10 @@ def main():
         print(f"App: {app}", flush=True)
         if "package" in stages:
             import package  # noqa: E402  (apps/windows/package.py)
-            package.build(args, core, app)
+            try:
+                package.build(args, core, app)
+            except package.PackageError as error:
+                raise SystemExit(f"Packaging failed: {error}") from None
 
 
 if __name__ == "__main__":

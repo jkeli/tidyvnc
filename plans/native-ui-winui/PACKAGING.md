@@ -85,7 +85,7 @@ reinstall or upgrade never touches it.
 | Publisher | Set with the owner under the rebrand plan (publisher versus upstream attribution is an open R5 item) |
 | AppUserModelID | `io.github.jkeli.tidyvnc` (matches the macOS bundle identifier) |
 | File type | `.tidyvnc`, ProgID `TidyVNC.ConnectionFile.1`, description from the Windows catalog, icon from `media/icons/tidyvnc.ico` |
-| MSI `UpgradeCode` | One GUID per architecture, generated once and recorded here when created |
+| MSI `UpgradeCode` | One GUID per architecture, generated once (2026-09-24, `apps/windows/package.py`): x64 `7B0E6C1A-3D52-4F7C-9A36-58E1C0B4D2F1`, ARM64 `C4A1F9E2-8B37-4D05-A1C6-2E9F7B3D5A48` |
 | Version resources | Company, product, description, copyright and original file name for each EXE and DLL, from the rebrand ledger. No TigerVNC strings except required upstream attribution |
 | App manifest | Per-monitor v2 DPI awareness, `longPathAware`, the Windows 10/11 supported-OS GUID (Windows 11 has no separate one), `asInvoker`, UTF-8 active code page |
 | OS check | The MSI refuses to install below Windows 11 (build 22000) with a message pointing to the FLTK build. `TidyVNC.exe` and `vncviewer.exe` also check the build at start-up, so a copied folder on Windows 10 exits with the same message instead of failing unpredictably |
