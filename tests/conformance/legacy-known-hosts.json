@@ -1,0 +1,350 @@
+{
+ "format": "tidyvnc-conformance-v1",
+ "module": "LegacyKnownHosts",
+ "about": [
+  "Shared cases for the core (tests/unit/legacyknownhosts.cxx) and the macOS",
+  "NativeLegacyTrustCodec, from tests/macos/NativeLegacyTrustTests.swift.",
+  "Every case presents 'key': an SPKI (base64) with commitment digests by",
+  "algorithm; other algorithms are unsupported. 'file' null is an absent",
+  "store. Fingerprints are SHA-256 of the SPKI, computed independently."
+ ],
+ "key": {
+  "spki": "AQID",
+  "digests": {
+   "6": "039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"
+  }
+ },
+ "received": "03:90:58:C6:F2:C0:CB:49:2C:53:3B:0A:4D:14:EF:77:CC:0F:78:AB:CC:CE:D5:28:7D:84:A1:A2:01:1C:FB:81",
+ "cases": [
+  {
+   "name": "absent-store",
+   "file": null,
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "missing",
+   "expected": []
+  },
+  {
+   "name": "exact-key",
+   "file": "|g0|fixture.invalid|*|0|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "match",
+   "expected": [
+    {
+     "spki": "03:90:58:C6:F2:C0:CB:49:2C:53:3B:0A:4D:14:EF:77:CC:0F:78:AB:CC:CE:D5:28:7D:84:A1:A2:01:1C:FB:81"
+    }
+   ]
+  },
+  {
+   "name": "any-service",
+   "file": "|g0|fixture.invalid|5902|0|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "match",
+   "expected": [
+    {
+     "spki": "03:90:58:C6:F2:C0:CB:49:2C:53:3B:0A:4D:14:EF:77:CC:0F:78:AB:CC:CE:D5:28:7D:84:A1:A2:01:1C:FB:81"
+    }
+   ]
+  },
+  {
+   "name": "byte-exact-host",
+   "file": "|g0|fixture.invalid|*|0|AQID\n",
+   "host": "FIXTURE.invalid",
+   "now": 100,
+   "state": "missing",
+   "expected": []
+  },
+  {
+   "name": "leading-star-wildcard",
+   "file": "|g0|*suffix|*|0|AQID\n",
+   "host": "elsewhere.invalid",
+   "now": 100,
+   "state": "match",
+   "wildcard": true,
+   "expected": [
+    {
+     "spki": "03:90:58:C6:F2:C0:CB:49:2C:53:3B:0A:4D:14:EF:77:CC:0F:78:AB:CC:CE:D5:28:7D:84:A1:A2:01:1C:FB:81"
+    }
+   ]
+  },
+  {
+   "name": "expiration-equal-active",
+   "file": "|g0|fixture.invalid|*|100|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "match",
+   "expected": [
+    {
+     "spki": "03:90:58:C6:F2:C0:CB:49:2C:53:3B:0A:4D:14:EF:77:CC:0F:78:AB:CC:CE:D5:28:7D:84:A1:A2:01:1C:FB:81"
+    }
+   ]
+  },
+  {
+   "name": "expired-ignored",
+   "file": "|g0|fixture.invalid|*|99|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "missing",
+   "expected": []
+  },
+  {
+   "name": "changed-key",
+   "file": "|g0|fixture.invalid|*|0|BAUG\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "changed",
+   "expected": [
+    {
+     "spki": "78:7C:79:8E:39:A5:BC:19:10:35:5B:AE:6D:0C:D8:7A:36:B2:E1:0F:D0:20:2A:83:E3:BB:6B:00:5D:A8:34:72"
+    }
+   ]
+  },
+  {
+   "name": "any-active-match-wins",
+   "file": "|g0|fixture.invalid|*|0|BAUG\n|g0|fixture.invalid|*|0|AQID\n|g0|fixture.invalid|*|0|BAUG\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "match",
+   "expected": [
+    {
+     "spki": "78:7C:79:8E:39:A5:BC:19:10:35:5B:AE:6D:0C:D8:7A:36:B2:E1:0F:D0:20:2A:83:E3:BB:6B:00:5D:A8:34:72"
+    },
+    {
+     "spki": "03:90:58:C6:F2:C0:CB:49:2C:53:3B:0A:4D:14:EF:77:CC:0F:78:AB:CC:CE:D5:28:7D:84:A1:A2:01:1C:FB:81"
+    }
+   ]
+  },
+  {
+   "name": "commitment-match",
+   "file": "|c0|fixture.invalid|*|0|6|039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "match",
+   "expected": [
+    {
+     "commitment": 6,
+     "digest": "039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"
+    }
+   ]
+  },
+  {
+   "name": "deduplicated-identities",
+   "file": "|g0|fixture.invalid|*|0|BAUG\n|g0|fixture.invalid|*|0|BAUG\n|c0|fixture.invalid|*|0|6|039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81\n|c0|fixture.invalid|*|0|6|039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "match",
+   "expected": [
+    {
+     "spki": "78:7C:79:8E:39:A5:BC:19:10:35:5B:AE:6D:0C:D8:7A:36:B2:E1:0F:D0:20:2A:83:E3:BB:6B:00:5D:A8:34:72"
+    },
+    {
+     "commitment": 6,
+     "digest": "039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"
+    }
+   ]
+  },
+  {
+   "name": "commitment-mismatch",
+   "file": "|c0|fixture.invalid|*|0|6|00\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "changed",
+   "expected": [
+    {
+     "commitment": 6,
+     "digest": "00"
+    }
+   ]
+  },
+  {
+   "name": "unsupported-digest",
+   "file": "|c0|fixture.invalid|*|0|9999|00\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "unsupportedDigest"
+  },
+  {
+   "name": "unsupported-format",
+   "file": "|g0|fixture.invalid|*|0|AQID\n|g1|other|*|0|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "unsupportedFormat"
+  },
+  {
+   "name": "corrupt-0",
+   "file": "bad",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-1",
+   "file": "|g0|fixture.invalid|*|-1|AQID",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-2",
+   "file": "|g0|fixture.invalid|*|0|AQI",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-3",
+   "file": "|c0|fixture.invalid|*|0|6|AB",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-4",
+   "file": "\u0000",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-noncanonical-base64",
+   "file": "|g0|fixture.invalid|*|0|AQJ=\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-expiration-overflow",
+   "file": "|g0|fixture.invalid|*|9223372036854775808|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-empty-service",
+   "file": "|g0|fixture.invalid||0|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-algorithm-zero",
+   "file": "|c0|fixture.invalid|*|0|0|00\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-odd-commitment",
+   "file": "|c0|fixture.invalid|*|0|6|abc\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "corrupt-uppercase-commitment",
+   "file": "|c0|fixture.invalid|*|0|6|AB\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "corrupt"
+  },
+  {
+   "name": "comments-and-crlf",
+   "file": "# comment\r\n\r\n|g0|fixture.invalid|*|0|AQID\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "match",
+   "expected": [
+    {
+     "spki": "03:90:58:C6:F2:C0:CB:49:2C:53:3B:0A:4D:14:EF:77:CC:0F:78:AB:CC:CE:D5:28:7D:84:A1:A2:01:1C:FB:81"
+    }
+   ]
+  },
+  {
+   "name": "too-large-bytes",
+   "file": {
+    "repeat": "x",
+    "count": 1048577
+   },
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "tooLarge"
+  },
+  {
+   "name": "too-many-records",
+   "file": {
+    "repeat": "|g0|fixture.invalid|*|0|AQID\n",
+    "count": 4097
+   },
+   "host": "fixture.invalid",
+   "now": 100,
+   "error": "tooLarge"
+  },
+  {
+   "name": "bounded-identities",
+   "file": "|g0|fixture.invalid|*|0|AA==\n|g0|fixture.invalid|*|0|AQ==\n|g0|fixture.invalid|*|0|Ag==\n|g0|fixture.invalid|*|0|Aw==\n|g0|fixture.invalid|*|0|BA==\n|g0|fixture.invalid|*|0|BQ==\n|g0|fixture.invalid|*|0|Bg==\n|g0|fixture.invalid|*|0|Bw==\n|g0|fixture.invalid|*|0|CA==\n|g0|fixture.invalid|*|0|CQ==\n|g0|fixture.invalid|*|0|Cg==\n|g0|fixture.invalid|*|0|Cw==\n|g0|fixture.invalid|*|0|DA==\n|g0|fixture.invalid|*|0|DQ==\n|g0|fixture.invalid|*|0|Dg==\n|g0|fixture.invalid|*|0|Dw==\n|g0|fixture.invalid|*|0|EA==\n|g0|fixture.invalid|*|0|EQ==\n|g0|fixture.invalid|*|0|Eg==\n|g0|fixture.invalid|*|0|Ew==\n",
+   "host": "fixture.invalid",
+   "now": 100,
+   "state": "changed",
+   "hasMore": true,
+   "expected": [
+    {
+     "spki": "6E:34:0B:9C:FF:B3:7A:98:9C:A5:44:E6:BB:78:0A:2C:78:90:1D:3F:B3:37:38:76:85:11:A3:06:17:AF:A0:1D"
+    },
+    {
+     "spki": "4B:F5:12:2F:34:45:54:C5:3B:DE:2E:BB:8C:D2:B7:E3:D1:60:0A:D6:31:C3:85:A5:D7:CC:E2:3C:77:85:45:9A"
+    },
+    {
+     "spki": "DB:C1:B4:C9:00:FF:E4:8D:57:5B:5D:A5:C6:38:04:01:25:F6:5D:B0:FE:3E:24:49:4B:76:EA:98:64:57:D9:86"
+    },
+    {
+     "spki": "08:4F:ED:08:B9:78:AF:4D:7D:19:6A:74:46:A8:6B:58:00:9E:63:6B:61:1D:B1:62:11:B6:5A:9A:AD:FF:29:C5"
+    },
+    {
+     "spki": "E5:2D:9C:50:8C:50:23:47:34:4D:8C:07:AD:91:CB:D6:06:8A:FC:75:FF:62:92:F0:62:A0:9C:A3:81:C8:9E:71"
+    },
+    {
+     "spki": "E7:7B:9A:9A:E9:E3:0B:0D:BD:B6:F5:10:A2:64:EF:9D:E7:81:50:1D:7B:6B:92:AE:89:EB:05:9C:5A:B7:43:DB"
+    },
+    {
+     "spki": "67:58:6E:98:FA:D2:7D:A0:B9:96:8B:C0:39:A1:EF:34:C9:39:B9:B8:E5:23:A8:BE:F8:9D:47:86:08:C5:EC:F6"
+    },
+    {
+     "spki": "CA:35:87:58:F6:D2:7E:6C:F4:52:72:93:79:77:A7:48:FD:88:39:1D:B6:79:CE:DA:7D:C7:BF:1F:00:5E:E8:79"
+    },
+    {
+     "spki": "BE:EA:D7:79:94:CF:57:33:41:EC:17:B5:8B:BF:7E:B3:4D:27:11:C9:93:C1:D9:76:B1:28:B3:18:8D:C1:82:9A"
+    },
+    {
+     "spki": "2B:4C:34:2F:54:33:EB:E5:91:A1:DA:77:E0:13:D1:B7:24:75:56:2D:48:57:8D:CA:8B:84:BA:C6:65:1C:3C:B9"
+    },
+    {
+     "spki": "01:BA:47:19:C8:0B:6F:E9:11:B0:91:A7:C0:51:24:B6:4E:EE:CE:96:4E:09:C0:58:EF:8F:98:05:DA:CA:54:6B"
+    },
+    {
+     "spki": "E7:CF:46:A0:78:FE:D4:FA:FD:0B:5E:3A:FF:14:48:02:B8:53:F8:AE:45:9A:4F:0C:14:AD:D3:31:4B:7C:C3:A6"
+    },
+    {
+     "spki": "EF:6C:BD:21:61:EA:EA:79:43:CE:86:93:B9:82:4D:23:D1:79:3F:FB:1C:0F:CA:05:B6:00:D3:89:9B:44:C9:77"
+    },
+    {
+     "spki": "9D:1E:0E:2D:94:59:D0:65:23:AD:13:E2:8A:40:93:C2:31:6B:AA:FE:7A:EC:5B:25:F3:0E:BA:2E:11:35:99:C4"
+    },
+    {
+     "spki": "4D:7B:3E:F7:30:0A:CF:70:C8:92:D8:32:7D:B8:27:2F:54:43:4A:DB:C6:1A:4E:13:0A:56:3C:B5:9A:0D:0F:47"
+    },
+    {
+     "spki": "DC:0E:9C:36:58:A1:A3:ED:1E:C9:42:74:D8:B1:99:25:C9:3E:1A:BB:7D:DB:A2:94:92:3A:D9:BD:E3:0F:8C:B8"
+    }
+   ]
+  },
+  {
+   "name": "host-with-bar",
+   "file": "|g0|fixture.invalid|*|0|AQID\n",
+   "host": "fixture|invalid",
+   "now": 100,
+   "error": "corrupt"
+  }
+ ]
+}

@@ -56,7 +56,7 @@ enum { TIDYVNC_DOMAIN_BRIDGE = 1, TIDYVNC_DOMAIN_ENDPOINT = 2,
        TIDYVNC_DOMAIN_OPERATION = 3, TIDYVNC_DOMAIN_INPUT = 4,
        TIDYVNC_DOMAIN_AUTHENTICATION = 5, TIDYVNC_DOMAIN_ENCODING = 6, TIDYVNC_DOMAIN_SECURITY = 7,
        TIDYVNC_DOMAIN_DOCUMENT = 8, TIDYVNC_DOMAIN_INVOCATION = 9, TIDYVNC_DOMAIN_LOGGING = 10,
-       TIDYVNC_DOMAIN_IDENTITY = 11 };
+       TIDYVNC_DOMAIN_IDENTITY = 11, TIDYVNC_DOMAIN_KNOWN_HOSTS = 12 };
 enum { TIDYVNC_ENDPOINT_TOO_LONG = 1, TIDYVNC_ENDPOINT_INVALID_HOST = 2,
        TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3, TIDYVNC_ENDPOINT_INVALID_PORT = 4,
        TIDYVNC_ENDPOINT_INVALID_PATH = 5, TIDYVNC_ENDPOINT_INVALID_ROUTE = 6,
@@ -90,6 +90,7 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
  * (plans/native-ui-winui CORE.md sections 4 and 6). */
 #define TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY 140737488355328ULL
 #define TIDYVNC_FEATURE_IDENTITY_DIGEST 281474976710656ULL
+#define TIDYVNC_FEATURE_KNOWN_HOSTS 562949953421312ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -746,6 +747,33 @@ typedef struct {
   char text[80]; /* NUL-terminated "v1:", "ssh-v1:", "ssh-v2:" or "ssh-request-v2:" + 64 hex digits */
 } tidyvnc_identity;
 TIDYVNC_API tidyvnc_status tidyvnc_identity_digest(const tidyvnc_identity_request*, tidyvnc_identity*, tidyvnc_error*);
+/* KNOWN_HOSTS: read-only lookup in the retained viewer's x509_known_hosts
+ * (GnuTLS "|g0|" SPKI and "|c0|" commitment lines), matching the macOS
+ * legacy trust adapter. The whole file (at most 1 MiB, 4096 records) is
+ * validated; any bad line fails with DOMAIN_KNOWN_HOSTS detail
+ * (line << 8) | reason. Every service matches; host bytes are exact and a
+ * record host starting with '*' is the legacy wildcard; expired records
+ * (expiration < now, Unix seconds; 0 never expires) are skipped. The
+ * presented key is spki (DER SPKI) and/or certificate_key (a
+ * tidyvnc_certificate_key handle, needed for commitments; both must agree
+ * when both are given). expected lists distinct identities of the matching
+ * records in file order, at most 16 (has_more reports the rest). A match
+ * never writes anything or grants trust by itself. Stateless; no IO. */
+enum { TIDYVNC_KNOWN_HOSTS_MISSING = 0, TIDYVNC_KNOWN_HOSTS_MATCH = 1, TIDYVNC_KNOWN_HOSTS_CHANGED = 2 };
+enum { TIDYVNC_KNOWN_HOSTS_SPKI = 1, TIDYVNC_KNOWN_HOSTS_COMMITMENT = 2 };
+enum { TIDYVNC_KNOWN_HOSTS_TOO_LARGE = 1, TIDYVNC_KNOWN_HOSTS_CORRUPT = 2,
+       TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_FORMAT = 3, TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_DIGEST = 4 };
+typedef struct {
+  uint32_t kind, algorithm; /* algorithm: commitments only (GnuTLS digest ID) */
+  char text[132];           /* SPKI SHA-256 "AB:CD:..." or lowercase commitment hex */
+} tidyvnc_known_hosts_identity;
+typedef struct {
+  uint32_t size, version, state, count, has_more, wildcard;
+  char received[100];       /* SHA-256 of the presented SPKI, "AB:CD:..." */
+  tidyvnc_known_hosts_identity expected[16];
+} tidyvnc_known_hosts_match;
+TIDYVNC_API tidyvnc_status tidyvnc_known_hosts_lookup(tidyvnc_bytes file, tidyvnc_bytes host, tidyvnc_bytes spki,
+  tidyvnc_handle certificate_key, uint64_t now, tidyvnc_known_hosts_match*, tidyvnc_error*);
 /* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most
  * 4096 bytes. Pure validation and canonicalization; nothing is resolved or run.
  * host/scope are the endpoint name and IPv6 zone; user is present only with

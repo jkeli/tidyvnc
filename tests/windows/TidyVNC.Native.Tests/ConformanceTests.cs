@@ -70,4 +70,42 @@ public sealed class ConformanceTests
         Assert.IsGreaterThanOrEqualTo(20, relations);
         Assert.IsGreaterThanOrEqualTo(15, errors);
     }
+
+    /// <summary>
+    /// A certificate made by .NET: the core's SPKI equals .NET's export, and
+    /// legacy g0 and SHA-256 c0 records match (TODO W2.5, W4.3).
+    /// </summary>
+    [TestMethod]
+    public void LegacyKnownHostsThroughTheBridge()
+    {
+        using var rsa = System.Security.Cryptography.RSA.Create(2048);
+        var request = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+            "CN=fixture.invalid", rsa, System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+        using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
+        using var key = new NativeCertificateKey(certificate.RawData);
+        CollectionAssert.AreEqual(certificate.PublicKey.ExportSubjectPublicKeyInfo(), key.Spki);
+
+        var spki = Convert.ToBase64String(key.Spki);
+        var digest = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(key.Spki));
+        var fingerprint = string.Join(':', System.Security.Cryptography.SHA256.HashData(key.Spki).Select(b => b.ToString("X2", System.Globalization.CultureInfo.InvariantCulture)));
+        var now = DateTimeOffset.FromUnixTimeSeconds(100);
+
+        var stored = NativeKnownHosts.Lookup(Encoding.UTF8.GetBytes($"|g0|fixture.invalid|*|0|{spki}\n"), "fixture.invalid", key, now);
+        Assert.AreEqual(NativeKnownHostsState.Match, stored.State);
+        Assert.AreEqual(fingerprint, stored.ReceivedFingerprint);
+        Assert.AreEqual(new NativeKnownHostsIdentity(false, 0, fingerprint), stored.Expected[0]);
+
+        var committed = NativeKnownHosts.Lookup(Encoding.UTF8.GetBytes($"|c0|*suffix|*|0|6|{digest}\n"), "elsewhere.invalid", key, now);
+        Assert.AreEqual(NativeKnownHostsState.Match, committed.State);
+        Assert.IsTrue(committed.IncludesWildcardHost);
+        Assert.AreEqual(new NativeKnownHostsIdentity(true, 6, digest), committed.Expected[0]);
+
+        Assert.AreEqual(NativeKnownHostsState.Missing, NativeKnownHosts.Lookup([], "fixture.invalid", key, now).State);
+        Assert.AreEqual(NativeKnownHostsState.Changed,
+            NativeKnownHosts.Lookup(Encoding.UTF8.GetBytes("|g0|fixture.invalid|*|0|AQID\n"), "fixture.invalid", key, now).State);
+        var failure = Assert.ThrowsExactly<NativeKnownHostsFailure>(() =>
+            NativeKnownHosts.Lookup(Encoding.UTF8.GetBytes("# ok\n|g9|x|*|0|AQID\n"), "fixture.invalid", key, now));
+        Assert.AreEqual(NativeKnownHostsFailure.Problem.UnsupportedFormat, failure.Reason);
+        Assert.AreEqual(2u, failure.Line);
+    }
 }

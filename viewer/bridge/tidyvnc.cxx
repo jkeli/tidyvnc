@@ -6,6 +6,7 @@
 #include <viewer/core/DesktopSize.h>
 #include <viewer/core/SSHGateway.h>
 #include <viewer/core/IdentityDigest.h>
+#include <viewer/core/LegacyKnownHosts.h>
 #include <viewer/core/StartupLogging.h>
 #include <core/Logger_file.h>
 #include "tidyvnc.h"
@@ -69,7 +70,7 @@ constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATU
 #ifdef HAVE_GNUTLS
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
 #endif
-  | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY | TIDYVNC_FEATURE_IDENTITY_DIGEST
+  | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY | TIDYVNC_FEATURE_IDENTITY_DIGEST | TIDYVNC_FEATURE_KNOWN_HOSTS
   | TIDYVNC_FEATURE_CREDENTIAL_BYTES | TIDYVNC_FEATURE_PASSWORD_FILE_REPLY | TIDYVNC_FEATURE_CONNECTION_INFO | TIDYVNC_FEATURE_ENDPOINT_IDENTITY | TIDYVNC_FEATURE_PROMPT_SECURITY | TIDYVNC_FEATURE_CERTIFICATE_POLICY | TIDYVNC_FEATURE_HOST_KEY_ENCODING | TIDYVNC_FEATURE_REQUIRED_TLS_FILES | TIDYVNC_FEATURE_SECURITY_SELECTION | TIDYVNC_FEATURE_TLS_PRIORITY_VALIDATION | TIDYVNC_FEATURE_SECURITY_RECONFIGURATION | TIDYVNC_FEATURE_SHARED_SESSION | TIDYVNC_FEATURE_DESKTOP_LAYOUT | TIDYVNC_FEATURE_DISPLAY_LAYOUT | TIDYVNC_FEATURE_CANVAS_GEOMETRY | TIDYVNC_FEATURE_CONNECTION_DOCUMENT | TIDYVNC_FEATURE_DOCUMENT_OPTIONS | TIDYVNC_FEATURE_INVOCATION_SYNTAX | TIDYVNC_FEATURE_INVOCATION_VALUES | TIDYVNC_FEATURE_INPUT_TIMING | TIDYVNC_FEATURE_MESSAGE_LIMITS | TIDYVNC_FEATURE_WINDOW_GEOMETRY
 #ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_PROCESS_LOGGING | TIDYVNC_FEATURE_FILE_LOGGING
@@ -225,6 +226,11 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
     return TIDYVNC_INVALID_ARGUMENT;
   } catch (const InvocationError& problem) {
     const auto fault = invocationFault(problem); if (writable) errorValue(error,fault); return fault.status;
+  } catch (const KnownHostsError& problem) {
+    const auto status = problem.problem == KnownHostsProblem::TooLarge ? TIDYVNC_RESOURCE_LIMIT :
+      problem.problem == KnownHostsProblem::UnsupportedDigest ? TIDYVNC_UNSUPPORTED : TIDYVNC_INVALID_ARGUMENT;
+    if (writable) errorValue(error,Fault(status,TIDYVNC_DOMAIN_KNOWN_HOSTS,(problem.line << 8) | (static_cast<uint32_t>(problem.problem)+1)));
+    return status;
   } catch (const IdentityError& problem) {
     const auto status = problem.problem == IdentityProblem::TooLong ? TIDYVNC_RESOURCE_LIMIT : TIDYVNC_INVALID_ARGUMENT;
     if (writable) errorValue(error,Fault(status,TIDYVNC_DOMAIN_IDENTITY,static_cast<uint32_t>(problem.problem)+1));
@@ -1874,6 +1880,47 @@ tidyvnc_status tidyvnc_certificate_key_digest(tidyvnc_handle id,uint32_t algorit
     const auto digest = owner->key.digest(algorithm); auto value = output<tidyvnc_key_digest>();
     require(digest.size() <= sizeof(value.bytes)); value.length = static_cast<uint32_t>(digest.size());
     std::copy(digest.begin(),digest.end(),value.bytes); *out = value; return TIDYVNC_OK; });
+}
+static_assert(static_cast<unsigned>(KnownHostsProblem::TooLarge)+1 == TIDYVNC_KNOWN_HOSTS_TOO_LARGE &&
+  static_cast<unsigned>(KnownHostsProblem::UnsupportedDigest)+1 == TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_DIGEST, "Known hosts IDs changed");
+tidyvnc_status tidyvnc_known_hosts_lookup(tidyvnc_bytes file,tidyvnc_bytes host,tidyvnc_bytes spki,tidyvnc_handle certificateKey,
+                                          uint64_t now,tidyvnc_known_hosts_match* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out);
+    require((file.data || !file.length) && (host.data || !host.length) && (spki.data || !spki.length));
+    if (file.length > LegacyKnownHosts::maximumBytes) throw KnownHostsError(KnownHostsProblem::TooLarge,0);
+    std::shared_ptr<CertificateKeyIdentity> key;
+    if (certificateKey) key = get<CertificateKeyIdentity>(certificateKey,Kind::CertificateKey);
+    require(key || spki.length);
+    std::vector<uint8_t> presented(spki.data,spki.data+spki.length);
+    if (key) {
+      if (presented.empty()) presented = key->key.bytes();
+      require(presented == key->key.bytes());
+    }
+    const auto records = LegacyKnownHosts::parse(std::string(reinterpret_cast<const char*>(file.data),static_cast<size_t>(file.length)));
+    const auto match = LegacyKnownHosts::lookup(records,
+      std::string(reinterpret_cast<const char*>(host.data),static_cast<size_t>(host.length)),presented,now,
+      [&key](uint32_t algorithm) {
+        if (!key) throw KnownHostsError(KnownHostsProblem::UnsupportedDigest,0);
+        try { return key->key.digest(algorithm); }
+        catch (const std::bad_alloc&) { throw; }
+        catch (const std::exception&) { throw KnownHostsError(KnownHostsProblem::UnsupportedDigest,0); }
+      });
+    auto value = output<tidyvnc_known_hosts_match>();
+    value.state = match.state == KnownHostsMatch::State::Match ? TIDYVNC_KNOWN_HOSTS_MATCH :
+      match.state == KnownHostsMatch::State::Changed ? TIDYVNC_KNOWN_HOSTS_CHANGED : TIDYVNC_KNOWN_HOSTS_MISSING;
+    value.has_more = match.hasMore ? 1 : 0; value.wildcard = match.wildcard ? 1 : 0;
+    require(match.received.size() < sizeof(value.received) && match.expected.size() <= 16,TIDYVNC_INTERNAL);
+    std::memcpy(value.received,match.received.c_str(),match.received.size()+1);
+    for (const auto& identity : match.expected) {
+      auto& entry = value.expected[value.count++];
+      entry.kind = identity.commitment ? TIDYVNC_KNOWN_HOSTS_COMMITMENT : TIDYVNC_KNOWN_HOSTS_SPKI;
+      entry.algorithm = identity.algorithm;
+      require(identity.text.size() < sizeof(entry.text),TIDYVNC_INTERNAL);
+      std::memcpy(entry.text,identity.text.c_str(),identity.text.size()+1);
+    }
+    *out = value; return TIDYVNC_OK;
+  });
 }
 tidyvnc_status tidyvnc_certificate_policy_get(uint32_t status,tidyvnc_certificate_policy* out,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t { header(out);

@@ -29,6 +29,7 @@ public static class Tidyvnc
     public const ulong TIDYVNC_FEATURE_PARAMETER_GRAMMARS = 70368744177664UL;
     public const ulong TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY = 140737488355328UL;
     public const ulong TIDYVNC_FEATURE_IDENTITY_DIGEST = 281474976710656UL;
+    public const ulong TIDYVNC_FEATURE_KNOWN_HOSTS = 562949953421312UL;
     public const uint TIDYVNC_OK = 0U;
     public const uint TIDYVNC_NO_CHANGE = 1U;
     public const uint TIDYVNC_PENDING = 2U;
@@ -63,6 +64,7 @@ public static class Tidyvnc
     public const uint TIDYVNC_DOMAIN_INVOCATION = 9U;
     public const uint TIDYVNC_DOMAIN_LOGGING = 10U;
     public const uint TIDYVNC_DOMAIN_IDENTITY = 11U;
+    public const uint TIDYVNC_DOMAIN_KNOWN_HOSTS = 12U;
     public const uint TIDYVNC_ENDPOINT_TOO_LONG = 1U;
     public const uint TIDYVNC_ENDPOINT_INVALID_HOST = 2U;
     public const uint TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3U;
@@ -304,6 +306,15 @@ public static class Tidyvnc
     public const uint TIDYVNC_IDENTITY_INVALID_GATEWAY = 6U;
     public const uint TIDYVNC_IDENTITY_INVALID_ALIAS = 7U;
     public const uint TIDYVNC_IDENTITY_INVALID_KIND = 8U;
+    public const uint TIDYVNC_KNOWN_HOSTS_MISSING = 0U;
+    public const uint TIDYVNC_KNOWN_HOSTS_MATCH = 1U;
+    public const uint TIDYVNC_KNOWN_HOSTS_CHANGED = 2U;
+    public const uint TIDYVNC_KNOWN_HOSTS_SPKI = 1U;
+    public const uint TIDYVNC_KNOWN_HOSTS_COMMITMENT = 2U;
+    public const uint TIDYVNC_KNOWN_HOSTS_TOO_LARGE = 1U;
+    public const uint TIDYVNC_KNOWN_HOSTS_CORRUPT = 2U;
+    public const uint TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_FORMAT = 3U;
+    public const uint TIDYVNC_KNOWN_HOSTS_UNSUPPORTED_DIGEST = 4U;
     public const uint TIDYVNC_SSH_GATEWAY_USER = 1U;
     public const uint TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT = 2U;
     public const uint TIDYVNC_DESKTOP_SIZE_LEGACY = 1U;
@@ -1097,6 +1108,27 @@ public unsafe partial struct tidyvnc_identity
 }
 
 [StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_known_hosts_identity
+{
+    public uint kind;
+    public uint algorithm;
+    public fixed byte text[132];
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_known_hosts_match
+{
+    public uint size;
+    public uint version;
+    public uint state;
+    public uint count;
+    public uint has_more;
+    public uint wildcard;
+    public fixed byte received[100];
+    public tidyvnc_known_hosts_identity_Array16 expected;
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public unsafe partial struct tidyvnc_ssh_gateway_info
 {
     public uint size;
@@ -1116,6 +1148,12 @@ public unsafe partial struct tidyvnc_desktop_size
     public uint version;
     public uint width;
     public uint height;
+}
+
+[InlineArray(16)]
+public struct tidyvnc_known_hosts_identity_Array16
+{
+    private tidyvnc_known_hosts_identity _element0;
 }
 
 [InlineArray(2)]
@@ -1372,6 +1410,10 @@ public static unsafe partial class NativeMethods
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
     public static partial uint tidyvnc_identity_digest(tidyvnc_identity_request* p0, tidyvnc_identity* p1, tidyvnc_error* p2);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_known_hosts_lookup(tidyvnc_bytes file, tidyvnc_bytes host, tidyvnc_bytes spki, ulong certificate_key, ulong now, tidyvnc_known_hosts_match* p5, tidyvnc_error* p6);
 
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
