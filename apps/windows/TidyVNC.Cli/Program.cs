@@ -40,6 +40,8 @@ internal static class Program
         if (!File.Exists(gui)) return Fail("TidyVNC.exe was not found beside vncviewer.exe.");
         var start = new ProcessStartInfo(gui) { UseShellExecute = false, WorkingDirectory = Environment.CurrentDirectory };
         foreach (var argument in args) start.ArgumentList.Add(argument);
+        // Marks a command-line launch: its own process, never redirected to or registered as the primary (D8).
+        start.Environment[TidyVNC.Native.Activation.NativeActivation.CommandLineVariable] = "1";
         using var process = Process.Start(start);
         if (process is null) return Fail("TidyVNC.exe could not be started.");
         using var close = new EventWaitHandle(false, EventResetMode.ManualReset, CloseEventName(process.Id));

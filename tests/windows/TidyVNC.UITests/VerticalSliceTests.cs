@@ -66,10 +66,12 @@ public sealed class VerticalSliceTests
         }
     }
 
-    private static LaunchedApp Launch(string arguments)
+    private static LaunchedApp Launch(string arguments, bool commandLine = false)
     {
         if (!File.Exists(AppPath)) Assert.Inconclusive($"Build the app first: {AppPath}");
         var start = new ProcessStartInfo(AppPath, arguments) { WorkingDirectory = Path.GetDirectoryName(AppPath)!, UseShellExecute = false };
+        // vncviewer.exe marks its launches this way (D8/D9); plain launches are shell-style.
+        if (commandLine) start.Environment["TIDYVNC_COMMAND_LINE"] = "1";
         return new LaunchedApp(Process.Start(start)!);
     }
 
@@ -159,6 +161,53 @@ public sealed class VerticalSliceTests
 
     private static bool Near((int R, int G, int B) actual, (byte R, byte G, byte B) expected, int tolerance = 6) =>
         Math.Abs(actual.R - expected.R) <= tolerance && Math.Abs(actual.G - expected.G) <= tolerance && Math.Abs(actual.B - expected.B) <= tolerance;
+
+    /// <summary>
+    /// W4.10 / D8: a second shell launch redirects to the primary and exits;
+    /// a connection file opens for review in the primary without connecting;
+    /// a command-line launch keeps its own process.
+    /// </summary>
+    [TestMethod]
+    public void ShellLaunchesRedirectToThePrimaryAndCommandLineLaunchesDoNot()
+    {
+        using var automation = new UIA3Automation();
+        using var primary = Launch("");
+        try
+        {
+            WaitFor(() => primary.Application.GetMainWindow(automation, TimeSpan.FromSeconds(1)), "the primary window");
+            using (var second = Launch(""))
+            {
+                Exits(second);
+            }
+            Until(() => primary.Application.GetAllTopLevelWindows(automation).Length == 2, "a second window in the primary");
+
+            var file = Path.Combine(Path.GetTempPath(), $"tidyvnc-review-{Guid.NewGuid():N}.tidyvnc");
+            File.WriteAllText(file, "TidyVNC Configuration file Version 1.0\nServerName=review.example::5999\n");
+            try
+            {
+                using (var third = Launch($"\"{file}\""))
+                {
+                    Exits(third);
+                }
+                Until(() => primary.Application.GetAllTopLevelWindows(automation).Any(w =>
+                    w.FindFirstDescendant(cf => cf.ByAutomationId("connection.endpoint"))?.AsTextBox().Text == "review.example::5999"),
+                    "the connection file for review in the primary");
+                Assert.AreEqual(3, primary.Application.GetAllTopLevelWindows(automation).Length);
+            }
+            finally { File.Delete(file); }
+
+            using var commandLine = Launch("", commandLine: true);
+            WaitFor(() => commandLine.Application.GetMainWindow(automation, TimeSpan.FromSeconds(1)), "the command-line process's own window");
+            Thread.Sleep(1000);
+            Assert.IsFalse(commandLine.HasExited, "a command-line launch is never redirected");
+            Assert.AreEqual(3, primary.Application.GetAllTopLevelWindows(automation).Length, "and never receives into the primary");
+        }
+        catch
+        {
+            Diagnose(primary, automation);
+            throw;
+        }
+    }
 
     [TestMethod]
     public async Task ConnectAuthenticateRenderTypeClickAndDisconnect()

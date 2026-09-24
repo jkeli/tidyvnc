@@ -105,7 +105,7 @@ proven through the real app before substantial screen work.
 - [x] W4.7 Display service: `QueryDisplayConfig` topology, stable IDs, friendly names, change notifications.
 - [x] W4.8 Keyboard capture service: `WH_KEYBOARD_LL` thread, pass-through rules, release triggers, typed failures.
 - [x] W4.9 SSH tunnel owner with Job Object, askpass helper over a named pipe, configuration capture, host-key review (D17).
-- [ ] W4.10 Activation: primary instance, Jump List, file association handling, console launcher (D8/D9).
+- [x] W4.10 Activation: primary instance, Jump List, file association handling, console launcher (D8/D9).
 - [ ] W4.11 Lifecycle: close and exit ordering, `WM_QUERYENDSESSION`, lock and suspend, bell, logging, links.
 - [ ] W4.12 Service contract tests and a Windows semantics section in the handoff.
 
@@ -845,8 +845,8 @@ Add dated entries, newest last, in the macOS format:
   - `SshSpikeTests`, 3 cases recording the D17 spike.
 
   Result: 3 consecutive clean runs. Mutations:
-  17 mutations, all fail the suite:
-  - the fingerprint match, host match and family match;
+  13 mutations, all fail the suite:
+  - the fingerprint and host matches;
   - answering with the fingerprint;
   - the token check and job admission;
   - HOSTNAME-only observations;
@@ -854,10 +854,62 @@ Add dated entries, newest last, in the macOS format:
   - StrictHostKeyChecking;
   - effective proxy refusal, Include refusal and Match exec refusal;
   - the explicit user;
-  - the interactive deadline;
-  - the stderr-based typed errors (covered by the failure cases above).
-  
+  - the interactive deadline.
+  The typed stderr errors are exercised by the failure cases above.
+
   Full native suite: 105 passed, 2 gated skips.
 - Open: the gateway field, the prompt and host-key dialogs, and the
   connection controller wiring are W5. The installed app's askpass path is
   covered by the W7 package audit.
+
+### W4.10 — activation, instances, Jump List, console launcher — 2026-09-24
+
+- Behaviour:
+  - `apps/windows/TidyVNC/Program.cs` replaces the XAML-generated `Main`
+    (`DISABLE_XAML_GENERATED_MAIN`).
+    - It reads and clears the command-line marker and sets the
+      AppUserModelID `io.github.jkeli.tidyvnc`.
+    - Shell launches use `AppInstance.FindOrRegisterForKey("primary")`. A
+      second shell launch redirects its activation, with a COM-pumping wait
+      and `AllowSetForegroundWindow`, and exits.
+    - The primary queues redirected activations until its UI thread exists.
+  - `vncviewer.exe` sets `TIDYVNC_COMMAND_LINE=1` for the TidyVNC.exe it
+    starts. Such processes never redirect or register (D8), since they may
+    own launch credentials.
+  - `NativeActivation` (TidyVNC.Native/Activation):
+    - operand rules: `\` or `/` means a file, anything else is an address,
+      including `desk.tidyvnc`;
+    - relative paths are accepted only with the launcher's working
+      directory, and redirected activations accept only full paths;
+    - `-listen`, and invalid launches that just open a window;
+    - `CommandLineToArgvW` splitting, checked against the `CreateProcess`
+      quoting.
+  - The app routes its own launch and redirected launch or file activations
+    through the W4.4 `NativeDocumentLaunchRouter`. A connection file opens
+    in a new window for review without connecting; the full review page is
+    W5.14.
+  - `NativeJumpList` publishes the "New connection" task through
+    `ICustomDestinationList`, because the WinRT JumpList needs package
+    identity. The task is a shell launch, so it reaches the primary.
+  - `.tidyvnc` registration under HKCU is the installer's job (W7);
+    handling is here.
+- Tests:
+  - `ActivationTests`, 4 cases: operand rules, splitting and its round trip
+    with `NativeOwnedProcess.Quote`, the marker, and publishing and deleting
+    a Jump List under a disposable AppUserModelID.
+  - Gated UI test `ShellLaunchesRedirectToThePrimaryAndCommandLineLaunchesDoNot`
+    ran on this machine with the desktop idle for about an hour and passed:
+    - a second shell launch exits 0 and the primary opens a second window;
+    - a full-path `.tidyvnc` launch exits and the primary shows its server
+      for review;
+    - a marked command-line launch keeps its own process and window, and
+      the primary still has 3.
+- Same run, the rest of the gated UI suite:
+  - `ClosingDuringAuthenticationExitsCleanly` and `TwoWindowsConnectAtOnce`
+    passed (W3.5/W3.6 evidence).
+  - `ConnectAuthenticateRenderTypeClickAndDisconnect` timed out waiting for
+    the remote desktop on screen. The monitors were in power save, so its
+    screen-capture check needs the displays on. W3.6 stays open until it
+    passes.
+- Open: D8's two-process confirmation for Explorer file opens through the
+  real association waits for the W7 installer, which registers it.

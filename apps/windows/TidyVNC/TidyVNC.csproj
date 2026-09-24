@@ -19,6 +19,8 @@
     <Nullable>enable</Nullable>
     <!-- XAML event handlers and generated code follow WinUI conventions. -->
     <NoWarn>$(NoWarn);CA1812;CA1001;CA1515;CA2213</NoWarn>
+    <!-- Program.cs owns Main: primary-instance redirection happens before XAML starts. -->
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" />

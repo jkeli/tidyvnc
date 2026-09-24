@@ -70,3 +70,13 @@ STARTUPINFOEXW
 GetExitCodeProcess
 OpenProcess
 CloseHandle
+SetCurrentProcessExplicitAppUserModelID
+CommandLineToArgvW
+LocalFree
+ICustomDestinationList
+IObjectCollection
+IObjectArray
+IShellLinkW
+IPropertyStore
+PROPVARIANT
+PropVariantClear

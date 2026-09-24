@@ -1,7 +1,11 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using System.Runtime.InteropServices;
+using Microsoft.Windows.AppLifecycle;
 using TidyVNC.Native;
+using TidyVNC.Native.Activation;
+using TidyVNC.Native.Documents;
 using TidyVNC.Native.Clipboard;
 using TidyVNC.Native.Credentials;
 using TidyVNC.Native.Platform;
@@ -68,28 +72,86 @@ public partial class App : Application
         // vncviewer.exe (D9) signals this to close every window, e.g. on Ctrl+C.
         closeRequest = new EventWaitHandle(false, EventResetMode.ManualReset, $@"Local\TidyVNC-close-{Environment.ProcessId}");
         closeWait = ThreadPool.RegisterWaitForSingleObject(closeRequest, (_, _) => Dispatcher.TryEnqueue(CloseAll), null, -1, true);
-        OpenWindow(StartupAddress());
+        Documents = new NativeDocumentLaunchRouter(Dispatcher);
+        Documents.Install(OpenDocument);
+        Execute(NativeActivation.Classify(Environment.GetCommandLineArgs().Skip(1).ToArray(), Environment.CurrentDirectory));
+        if (!Program.CommandLineLaunch)
+        {
+            // The primary instance: later shell launches arrive here, on the UI thread.
+            Program.DeliverActivations(activation => Dispatcher.TryEnqueue(() => Redirected(activation)));
+            PublishJumpList();
+        }
+    }
+
+    /// <summary>Connection files from launches and redirected activations (reviewed before connecting).</summary>
+    internal NativeDocumentLaunchRouter Documents { get; private set; } = null!;
+
+    /// <summary>Opens what a launch asked for (SERVICES.md section 12).</summary>
+    private void Execute(NativeActivationRequest request)
+    {
+        switch (request.Kind)
+        {
+            case NativeActivationKind.Address:
+                OpenWindow(request.Address);
+                break;
+            case NativeActivationKind.Document when Documents.Route([request.DocumentPath!], Environment.CurrentDirectory):
+                break;
+            default:
+                // NewWindow, Listen (the listener window is W5), Invalid and unroutable documents.
+                OpenWindow();
+                break;
+        }
+    }
+
+    /// <summary>A shell launch redirected from a second process (plain launch, file open or Jump List task).</summary>
+    private void Redirected(AppActivationArguments activation)
+    {
+        if (exiting) return;
+        NativeActivationRequest request;
+        if (activation.Kind == ExtendedActivationKind.Launch && activation.Data is Windows.ApplicationModel.Activation.ILaunchActivatedEventArgs launch)
+        {
+            var arguments = NativeActivation.SplitCommandLine(launch.Arguments ?? "").ToList();
+            // Unpackaged launches may carry the executable as the first token.
+            if (arguments.Count > 0 && arguments[0].EndsWith("TidyVNC.exe", StringComparison.OrdinalIgnoreCase)) arguments.RemoveAt(0);
+            // The sender's working directory is not part of the activation: only full paths are documents.
+            request = NativeActivation.Classify(arguments);
+        }
+        else if (activation.Kind == ExtendedActivationKind.File && activation.Data is Windows.ApplicationModel.Activation.IFileActivatedEventArgs file)
+        {
+            var paths = file.Files.Select(f => f.Path).Where(p => !string.IsNullOrEmpty(p)).ToList();
+            if (paths.Count > 0 && Documents.Route(paths, Environment.CurrentDirectory)) return;
+            request = new NativeActivationRequest(NativeActivationKind.NewWindow);
+        }
+        else request = new NativeActivationRequest(NativeActivationKind.NewWindow);
+        Execute(request);
     }
 
     /// <summary>
-    /// The server address operand, through the shared parser. The console
-    /// launcher has already reported syntax errors; connection files and the
-    /// remaining parameters are applied in W4 (activation and documents).
+    /// Opens a connection file in a new window without connecting. The full
+    /// review page (settings, monitor mapping, losses) is W5.14; until then
+    /// the window shows the file's server for the user to confirm.
     /// </summary>
-    private static string? StartupAddress()
+    private async void OpenDocument(NativeDocumentOpenRequest request)
     {
+        var window = OpenWindow(null, connect: false);
         try
         {
-            var invocation = NativeInvocation.Parse(Environment.GetCommandLineArgs().Skip(1).ToArray());
-            var operand = invocation.Operand;
-            return invocation.Action == NativeInvocationAction.Launch && invocation.Value("listen") != "on" &&
-                   operand is not null && !operand.Contains('/', StringComparison.Ordinal) && !operand.Contains('\\', StringComparison.Ordinal)
-                ? operand : null;
+            var bytes = await new NativeDocumentFileReader().ReadAsync(request.Path, CancellationToken.None);
+            using var document = new NativeConnectionDocument(bytes);
+            var index = document.Entries.ToList().FindIndex(e => string.Equals(e.Name, "ServerName", StringComparison.OrdinalIgnoreCase));
+            window.ReviewDocument(index >= 0 ? document.DecodedValue(index) : null, null);
         }
-        catch (Exception error) when (error is NativeInvocationFailure or NativeError)
+        catch (Exception error) when (error is NativeDocumentOpenException or NativeDocumentFailure or NativeError)
         {
-            return null;
+            window.ReviewDocument(null, "The connection file could not be opened.");
         }
+    }
+
+    /// <summary>Jump List tasks for this app's taskbar button; each is a shell launch that reaches this primary.</summary>
+    private static void PublishJumpList()
+    {
+        try { NativeJumpList.Publish(NativeActivation.AppUserModelId, Environment.ProcessPath!, [new NativeJumpListTask("New connection", "")]); }
+        catch (COMException error) { System.Diagnostics.Trace.TraceWarning($"Jump List not published: {error.HResult:x8}"); }
     }
 
     private static NativeLaunchCredentialInputs? CaptureLaunchCredentials()
@@ -127,9 +189,9 @@ public partial class App : Application
         foreach (var window in windows.ToList()) _ = window.CloseGracefully();
     }
 
-    internal ConnectionWindow OpenWindow(string? address = null)
+    internal ConnectionWindow OpenWindow(string? address = null, bool connect = true)
     {
-        var window = new ConnectionWindow(address);
+        var window = new ConnectionWindow(address, connect);
         windows.Add(window);
         window.Closed += (_, _) => WindowClosed(window);
         window.Activate();

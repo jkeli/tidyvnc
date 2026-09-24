@@ -23,7 +23,7 @@ public sealed partial class ConnectionWindow : Window
     private ContentDialog? dialog;
     private bool closed;
 
-    internal ConnectionWindow(string? address)
+    internal ConnectionWindow(string? address, bool connect = true)
     {
         InitializeComponent();
         var window = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -41,11 +41,18 @@ public sealed partial class ConnectionWindow : Window
         };
         UpdateState();
         // Dialogs need the loaded content's XamlRoot, so connect once it exists.
-        if (!string.IsNullOrWhiteSpace(address))
+        if (connect && !string.IsNullOrWhiteSpace(address))
             Root.Loaded += (_, _) => _ = ConnectAsync();
     }
 
     internal DesktopView Desktop => desktop;
+
+    /// <summary>A connection file opened for review: its server, or a fixed problem; nothing connects until Connect.</summary>
+    internal void ReviewDocument(string? address, string? problem)
+    {
+        if (address is not null) Address.Text = address;
+        Status.Text = problem ?? "Review the connection, then choose Connect.";
+    }
     internal NativeSession? Session => session;
     /// <summary>The latest clipboard problem for this connection; the W5 status area shows it.</summary>
     internal NativeClipboardNotice? ClipboardNotice { get; private set; }
