@@ -413,9 +413,16 @@ public sealed partial class NativeSession : ObservableObject
         return new NativeEncodingOptions(NativeHandle.Adopt(raw));
     }
 
-    public unsafe Task<NativeCompletion> ApplyEncodingAsync(NativeEncodingOptions options, ulong? expectedGeneration = null)
+    /// <summary>
+    /// Applies encoding options. Cancelling asks the core to stop the operation
+    /// (best effort); the task still completes only when the core's single
+    /// completion arrives, so awaiting it drains the command.
+    /// </summary>
+    public unsafe Task<NativeCompletion> ApplyEncodingAsync(NativeEncodingOptions options, ulong? expectedGeneration = null,
+                                                            CancellationToken cancellation = default)
         => SubmitAsync((operation, error) =>
-            NativeMethods.tidyvnc_session_apply_encoding(handle.Raw, expectedGeneration ?? Generation, options.Handle.Raw, operation, error));
+            NativeMethods.tidyvnc_session_apply_encoding(handle.Raw, expectedGeneration ?? Generation, options.Handle.Raw, operation, error),
+            cancellation: cancellation);
 
     public unsafe Task<NativeCompletion> OfferClipboardAsync(string text, NativeClipboardText? origin = null, ulong changeId = 0,
                                                             ulong? expectedGeneration = null)

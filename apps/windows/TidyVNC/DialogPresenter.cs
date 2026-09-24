@@ -28,6 +28,11 @@ internal sealed class DialogPresenter(Func<XamlRoot?> root, Func<DialogRequest?>
     private Shown? shown;
     private bool running, again, stopped;
 
+    private static readonly object WithdrawnTag = new();
+
+    /// <summary>True while the presenter is taking this dialog down; its Closing handler must not refuse.</summary>
+    public static bool IsWithdrawn(ContentDialog dialog) => ReferenceEquals(dialog.Tag, WithdrawnTag);
+
     /// <summary>The key of the dialog on screen (tests and automation).</summary>
     public string? Current => shown?.Request.Key;
 
@@ -51,6 +56,7 @@ internal sealed class DialogPresenter(Func<XamlRoot?> root, Func<DialogRequest?>
                 {
                     if (next?.Key == current.Request.Key) continue;
                     current.Withdrawn = true;
+                    current.Dialog.Tag = WithdrawnTag;
                     current.Request.Superseded?.Invoke();
                     current.Dialog.Hide();
                     await current.Closed.Task;
@@ -88,7 +94,7 @@ internal sealed class DialogPresenter(Func<XamlRoot?> root, Func<DialogRequest?>
     public void Close()
     {
         stopped = true;
-        if (shown is { } current) { current.Withdrawn = true; current.Dialog.Hide(); }
+        if (shown is { } current) { current.Withdrawn = true; current.Dialog.Tag = WithdrawnTag; current.Dialog.Hide(); }
     }
 }
 

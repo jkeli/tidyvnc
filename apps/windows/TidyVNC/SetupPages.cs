@@ -283,6 +283,10 @@ internal static class ConnectionMenu
             IsEnabled = controller.CanToggleStatistics };
         AutomationProperties.SetAutomationId(statistics, "desktop.statistics");
         statistics.Click += (_, _) => controller.ToggleStatistics();
+        var settings = new MenuFlyoutSubItem { Text = Strings.Get("desktop.connection.settings") };
+        AutomationProperties.SetAutomationId(settings, "desktop.connectionSettings");
+        settings.Items.Add(Item("desktop.encoding", "desktop.encoding", window.CanOpenConnectedEditor, window.OpenEncoding));
+        items.Add(settings);
         items.Add(statistics);
     }
 

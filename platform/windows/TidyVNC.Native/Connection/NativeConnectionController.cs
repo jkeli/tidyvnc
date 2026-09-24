@@ -9,6 +9,17 @@ using TidyVNC.Native.Tunnel;
 
 namespace TidyVNC.Native;
 
+/// <summary>When a settings editor may stay open.</summary>
+public enum NativeEditorScope
+{
+    /// <summary>Needs the live connection (input, scaling, encoding, information, remote resize).</summary>
+    Connected,
+    /// <summary>Edits the next attempt (security, connection options); closes when one starts.</summary>
+    Disconnected,
+    /// <summary>Either state (fullscreen displays, resize policy).</summary>
+    Any,
+}
+
 /// <summary>A connection problem shown once per attempt generation; Retry is offered only when it may repeat.</summary>
 public sealed record NativeConnectionProblem(Guid Id, ulong Generation, NativeConnectionIssue Issue);
 
@@ -222,6 +233,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         {
             var snapshot = session.Snapshot;
             if (snapshot.State != NativeSessionState.Connected) ShowsStatistics = false;
+            CloseEditorFor(snapshot.State);
             if (tunnel is { Admitted: true } attempt && snapshot.Generation != attempt.InitialGeneration &&
                 snapshot.State is NativeSessionState.Closed or NativeSessionState.Failed) FinishTunnel(attempt);
             if (NativeConnectionIssues.From(snapshot) is { } issue) Report(issue, snapshot.Generation);
@@ -236,27 +248,37 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
 
     // ---- Editors (settings dialogs) --------------------------------------------------------
 
+    private NativeEditorScope editorScope;
+    private Func<Task>? editorClose;
+
     /// <summary>The open settings dialog's draft, if any; only one at a time.</summary>
     public object? Editor => editor;
 
-    /// <summary>Registers an open editor; false when another is open or still draining.</summary>
-    public bool BeginEditor(object draft)
+    /// <summary>
+    /// Registers an open editor; false when another is open or still draining.
+    /// A Connected editor closes when the connection ends, a Disconnected one
+    /// when an attempt starts (macOS closes the same sheets on the same
+    /// transitions). <paramref name="close"/> stops the draft and completes
+    /// when any cancelled apply has drained; the next editor waits for it.
+    /// </summary>
+    public bool BeginEditor(object draft, NativeEditorScope scope, Func<Task> close)
     {
         UiThread.Require(Dispatcher);
         if (editor is not null || editorCleanup is not null || Closing) return false;
-        editor = draft;
+        editor = draft; editorScope = scope; editorClose = close;
         OnPropertyChanged(nameof(Editor));
         OnPropertyChanged(nameof(CanConnect));
         return true;
     }
 
-    /// <summary>Ends an editor; its cleanup (a cancelled apply) must drain before the next one opens.</summary>
-    public void EndEditor(object draft, Task? drain = null)
+    /// <summary>Ends an editor (its dialog closed, was superseded or the connection changed).</summary>
+    public void EndEditor(object draft)
     {
         UiThread.Require(Dispatcher);
         if (!ReferenceEquals(editor, draft)) return;
-        editor = null;
-        if (drain is { IsCompleted: false })
+        var close = editorClose;
+        editor = null; editorClose = null;
+        if (close?.Invoke() is { IsCompleted: false } drain)
         {
             editorCleanup = drain;
             _ = DrainEditor(drain);
@@ -269,7 +291,16 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     {
         try { await drain; } catch (Exception error) when (error is NativeError or OperationCanceledException or NativeCommandFailure) { }
         if (ReferenceEquals(editorCleanup, drain)) editorCleanup = null;
+        OnPropertyChanged(nameof(Editor));
         OnPropertyChanged(nameof(CanConnect));
+    }
+
+    private void CloseEditorFor(NativeSessionState state)
+    {
+        if (editor is not { } open) return;
+        var idle = state is NativeSessionState.Idle or NativeSessionState.Closed or NativeSessionState.Failed;
+        if ((editorScope == NativeEditorScope.Connected && state != NativeSessionState.Connected) ||
+            (editorScope == NativeEditorScope.Disconnected && !idle)) EndEditor(open);
     }
 
     /// <summary>No editor, prompt, pending work or close: a dialog may open.</summary>
@@ -572,6 +603,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         Trust.Stop(); Credentials.Stop(); SshInteraction.Stop();
         Closing = true; ConnectionProblem = null; retryProblem = null; AttemptEndpoint = null; ShowsStatistics = false;
         cancel?.Cancel();
+        if (editor is { } open) EndEditor(open);
         Defaults.Stop();
         var session = Session;
         var attempt = tunnel;

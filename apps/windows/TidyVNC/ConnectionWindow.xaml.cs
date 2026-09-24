@@ -171,6 +171,7 @@ public sealed partial class ConnectionWindow : Window
         RecentButton.Visibility = controller.History is null ? Visibility.Collapsed : Visibility.Visible;
         RecentPanel.CanSelect = editable;
         ClipboardButton.IsEnabled = defaults.IsReady && session is not null;
+        EncodingButton.IsEnabled = CanOpenConnectedEditor;
 
         // Notices, in the macOS order.
         ReverseNotice.IsOpen = controller.IsReverse;
@@ -256,6 +257,7 @@ public sealed partial class ConnectionWindow : Window
             return new DialogRequest($"trust:{prompt.Generation}:{prompt.Id}", () => TrustDialog.Create(Controller, prompt),
                 result => { if (result != ContentDialogResult.Primary) Controller.Cancel(); });
         }
+        if (Controller.Editor is { } editor && EditorDialog(editor) is { } editing) return editing;
         if (Controller.ConnectionProblem is { } problem)
             return new DialogRequest("problem:" + problem.Id, () => ProblemDialog.Create(Controller, problem), result =>
             {
@@ -269,6 +271,31 @@ public sealed partial class ConnectionWindow : Window
     }
 
     private void ShowFatal(NativeText text) => Controller.ReportFatal(text);
+
+    /// <summary>The settings dialog for the open editor; closing or superseding it ends the editor.</summary>
+    private DialogRequest? EditorDialog(object editor)
+    {
+        var key = "editor:" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(editor);
+        Func<ContentDialog>? create = editor switch
+        {
+            NativeSessionEncodingDraft encoding => () => EncodingDialog.Create(encoding),
+            _ => null,
+        };
+        return create is null ? null : new DialogRequest(key, create, _ => Controller.EndEditor(editor), () => Controller.EndEditor(editor));
+    }
+
+    // ---- Settings dialogs (only one editor at a time; see NativeConnectionController.BeginEditor) ----
+
+    internal bool CanOpenConnectedEditor => Controller.EditorsIdle && session?.Snapshot.State == NativeSessionState.Connected;
+
+    internal void OpenEncoding()
+    {
+        if (!CanOpenConnectedEditor || session is null) return;
+        var draft = new NativeSessionEncodingDraft(session);
+        if (!Controller.BeginEditor(draft, NativeEditorScope.Connected, async () => { await draft.CloseAsync(); draft.Dispose(); })) { draft.Dispose(); return; }
+        draft.Reload();
+        dialogs.Update();
+    }
 
     // ---- Commands -------------------------------------------------------------------
 
@@ -299,6 +326,7 @@ public sealed partial class ConnectionWindow : Window
     }
 
     private void ConnectClick(object sender, RoutedEventArgs e) => Controller.Connect();
+    private void EncodingClick(object sender, RoutedEventArgs e) => OpenEncoding();
     private void DisconnectClick(object sender, RoutedEventArgs e) => Controller.Disconnect();
     private void CancelClick(object sender, RoutedEventArgs e) => Controller.Cancel();
     private void NewConnectionClick(object sender, RoutedEventArgs e) => App.Current.OpenWindow();

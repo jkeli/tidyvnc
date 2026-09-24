@@ -120,6 +120,12 @@
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
+            <AppBarButton x:Name="EncodingButton" Label="{local:Str Key=app.encoding.settings}" ToolTipService.ToolTip="{local:Str Key=app.encoding.settings.for.this.connection}"
+                          Click="EncodingClick" AutomationProperties.AutomationId="connection.encoding">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE9E9;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
             <AppBarButton x:Name="ActionsButton" Label="{local:Str Key=app.connection.actions}" ToolTipService.ToolTip="{local:Str Key=app.connection.actions}"
                           AutomationProperties.AutomationId="connection.actions">
                 <AppBarButton.Icon>
