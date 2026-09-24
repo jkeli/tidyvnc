@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="ARM64" />
+  </Configurations>
+  <Folder Name="/apps/">
+    <Project Path="TidyVNC/TidyVNC.csproj" />
+    <Project Path="TidyVNC.Cli/TidyVNC.Cli.csproj" />
+  </Folder>
+  <Folder Name="/platform/">
+    <Project Path="../../platform/windows/TidyVNC.Native/TidyVNC.Native.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="../../tests/windows/TidyVNC.Native.Tests/TidyVNC.Native.Tests.csproj" />
+    <Project Path="../../tests/windows/TidyVNC.UITests/TidyVNC.UITests.csproj" />
+    <Project Path="../../tests/windows/TidyVNC.TestServer/TidyVNC.TestServer.csproj" />
+  </Folder>
+</Solution>

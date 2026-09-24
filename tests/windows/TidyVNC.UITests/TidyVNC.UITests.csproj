@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- UI automation of the real WinUI app (plans/native-ui-winui TESTING.md
+       section 3, TODO W3.6) against RfbTestServer, with FlaUI (UIA3). Build
+       apps/windows/TidyVNC first (same Configuration and Platform); the tests
+       show windows and inject input on the interactive desktop. -->
+  <PropertyGroup>
+    <TargetFramework>$(TidyVncTargetFramework)</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);CA1707;CA1515;CA1062;CA2007;CA1031;CA1849;CA2000;CA5394;CA1861;CA1812;CA1001;CA1303;CA1416;MSTEST0037</NoWarn>
+    <TidyVncAppDirectory>$(RepoRoot)apps\windows\TidyVNC\bin\$(Platform)\$(Configuration)\$(TidyVncTargetFramework)\win-$(Platform.ToLowerInvariant())\</TidyVncAppDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="FlaUI.UIA3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Shared\RfbTestServer.cs" Link="RfbTestServer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>TidyVncApp</_Parameter1>
+      <_Parameter2>$(TidyVncAppDirectory)TidyVNC.exe</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

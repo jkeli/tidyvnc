@@ -70,6 +70,8 @@ typedef struct {
   uint64_t wparam;
   int64_t lparam;
   uint32_t time;     /* MSG.time, milliseconds */
+  uint32_t reserved;
+  uint64_t hwnd;     /* MSG.hwnd (hook only; the translator ignores it) */
 } tvw_key_message;
 typedef struct {
   uint32_t consumed;       /* The message belongs to the keyboard path (swallow it). */

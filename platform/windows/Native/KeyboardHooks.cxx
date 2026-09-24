@@ -116,7 +116,8 @@ LRESULT CALLBACK getMessageProc(int code, WPARAM wParam, LPARAM lParam)
     if (hook && hook->enabled) {
       bool keyboard = isKeyboardMessage(msg->message);
       if (keyboard || (msg->message >= WM_MOUSEFIRST && msg->message <= WM_MOUSELAST)) {
-        tvw_key_message message{msg->message, (uint64_t)msg->wParam, (int64_t)msg->lParam, msg->time};
+        tvw_key_message message{msg->message, (uint64_t)msg->wParam, (int64_t)msg->lParam, msg->time, 0,
+                                (uint64_t)(uintptr_t)msg->hwnd};
         uint32_t swallow = hook->callback(hook->context, &message);
         if (keyboard && swallow) {
           msg->message = WM_NULL;

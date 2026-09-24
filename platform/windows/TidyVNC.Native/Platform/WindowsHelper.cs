@@ -45,6 +45,9 @@ public struct TvwKeyMessage
     public ulong WParam;
     public long LParam;
     public uint Time;
+    public uint Reserved;
+    /// <summary>The target window (hook messages only).</summary>
+    public ulong Window;
 }
 
 [StructLayout(LayoutKind.Sequential)]

@@ -315,3 +315,23 @@ TEST(WindowsHelper, DisplaysHaveStableIdsAndOnePrimary)
   for (size_t i = 0; i < displays.size(); i++)
     EXPECT_EQ(displays[i].id, again[i].id);
 }
+
+// Many full-size presents of a swap chain no compositor consumes must not
+// block (the render thread presents whether or not the panel is visible).
+TEST(WindowsHelper, UnattachedPresentsNeverBlock)
+{
+  Presenter p;
+  ASSERT_EQ(S_OK, tvw_presenter_resize(p.value, 1920, 1080, 1.0f, 1.0f));
+  auto tile = solid(256, 256, 1, 2, 3);
+  for (int frame = 0; frame < 200; frame++) {
+    for (int y = 0; y < 1080; y += 256) {
+      for (int x = 0; x < 1920; x += 256) {
+        tvw_rect area = {x, y, 256, 256};
+        ASSERT_EQ(S_OK, tvw_presenter_upload(p.value, tile.data(), 256 * 4, &area));
+      }
+    }
+    tvw_rect dirty = {0, 0, 1920, 1080};
+    ASSERT_EQ(S_OK, tvw_presenter_present(p.value, frame % 2 ? &dirty : nullptr, frame % 2));
+  }
+  EXPECT_EQ(0xff030201u, pixel(p.value, 960, 540));
+}

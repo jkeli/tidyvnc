@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A console RFB server for trying the WinUI app by hand (TODO W3.6).
+       Options: port N, password P, size WxH (see Program.cs). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(TidyVncTargetFramework)</TargetFramework>
+    <AssemblyName>tidyvnc-testserver</AssemblyName>
+    <RootNamespace>TidyVNC.Testing</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1031;CA2007;CA1303;CA1515</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Shared\RfbTestServer.cs" Link="RfbTestServer.cs" />
+  </ItemGroup>
+</Project>

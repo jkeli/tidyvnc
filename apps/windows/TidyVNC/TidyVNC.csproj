@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The WinUI 3 viewer (plans/native-ui-winui PLAN.md section 3). Unpackaged
+       and self-contained (DECISIONS.md D4): the .NET runtime and the Windows App
+       SDK runtime travel with the app; FLTK is never linked. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>$(TidyVncTargetFramework)</TargetFramework>
+    <RootNamespace>TidyVNC</RootNamespace>
+    <AssemblyName>TidyVNC</AssemblyName>
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Platform)' != 'ARM64'">win-x64</RuntimeIdentifier>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>$(RepoRoot)media\icons\tidyvnc.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <!-- XAML event handlers and generated code follow WinUI conventions. -->
+    <NoWarn>$(NoWarn);CA1812;CA1001;CA1515;CA2213</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />
+  </ItemGroup>
+</Project>
