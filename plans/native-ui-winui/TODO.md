@@ -1819,3 +1819,37 @@ Add dated entries, newest last, in the macOS format:
   - the AOT build of the full app with no warnings (W7.8).
 - D1 stays as decided in W7.8: ship JIT, not trimmed. Native AOT remains the way to faster startup once
   its multi-window hang is fixed. This measurement puts a number on what that fix would buy.
+
+### W7.8 follow-up, D1 — the Native AOT hang explained; an AOT-only presenter bug fixed — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- The W7.8 hang: a Debug AOT app stopped answering UI Automation after several windows (in SavedProfiles,
+  HelpAndAbout and the pseudo-locale runs).
+  - A watcher took non-invasive `cdb -pv` stacks of the hung process, with local symbols only.
+  - The UI thread is deadlocked inside the .NET Native AOT runtime. WinUI's
+    `DisconnectUnusedReferenceSources` calls `GC.Collect`. The GC's reference-tracking callout constructs
+    `FindReferenceTargetsCallback`, whose static constructor has not run. `ClassConstructorRunner.GetCctor`
+    then allocates, inside the GC, and waits in `wait_for_gc_done` on the collection its own thread is
+    running.
+  - Unoptimized (Debug) AOT builds run that static constructor at run time. Optimized builds
+    pre-initialize it at compile time.
+  - Under Release AOT the same suite ran with no hang; the watcher saw none. It is a runtime issue of
+    Debug AOT builds only, not of the app.
+- An AOT-only app bug found on the way:
+  - Under Release AOT, windows shrank below their minimum sizes in the pseudo-locale check.
+  - The cause was `AppWindow.Presenter is OverlappedPresenter`: under AOT the projection can return the
+    base `AppWindowPresenter`, so the C# type test was false. Minimum sizes were never applied, and
+    maximize, restore, minimize and viewport-availability checks saw no overlapped presenter.
+  - The new `AppWindowPresenters.Overlapped()` finds the presenter by `Kind` and converts it with a
+    QueryInterface (`As<OverlappedPresenter>()`). All ten sites in `ConnectionWindow` and `WindowSizes`
+    use it.
+- Results after the fix (display off):
+  - Release AOT (measurement build) vertical-slice suite: 15/20. Debug JIT: 15/20. The same 5
+    display-dependent tests fail in both: render, large cursor, full screen, Connection menu commands and
+    F6.
+  - Before the fix, Release AOT failed both pseudo-locale runs. Now they pass.
+  - Release AOT passes the 55-case protocol smoke (`windows-scaling-smoke.py`) and the 10 security
+    handshakes (`windows-security-smoke.py`).
+- D1 is updated: nothing known now blocks Native AOT except the display-on run of the full suite that
+  D1 asks for. Adopting it would take startup from about 442 ms to 248 ms (W0.2). The MSI keeps shipping
+  JIT until that run.

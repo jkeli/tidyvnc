@@ -84,6 +84,15 @@ AOT only if the full app later builds without warnings (tracked in W7).
     cannot share its folder with the untrimmed launcher;
   - Native AOT: 248 ms.
   - Trimming is therefore not pursued. AOT's roughly 190 ms is the gain on offer once its hang is fixed.
+- The AOT hang explained (2026-09-24):
+  - It is a .NET Native AOT runtime self-deadlock. A static constructor runs inside a GC reference-tracking
+    callout and allocates during the GC.
+  - It happens only in unoptimized (Debug) AOT builds. Optimized builds pre-initialize that type.
+  - Release AOT ran the same UI sequences without hanging.
+  - It also exposed an AOT-only app bug in the `OverlappedPresenter` type tests, now fixed.
+  - Release AOT now matches JIT on the automated evidence: UI suite 15/20 with the same display-dependent
+    failures, protocol smoke 55/55, security smokes 10/10.
+  - What remains before adopting AOT is the full suite with the display on. Debug builds stay JIT.
 
 ## D2 — Build the core with MSVC as a DLL
 

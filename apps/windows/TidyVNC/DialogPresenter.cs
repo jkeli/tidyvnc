@@ -105,7 +105,7 @@ internal static class WindowSizes
     {
         var scale = Math.Max(1.0, GetScale(window));
         window.Resize(new Windows.Graphics.SizeInt32((int)(width * scale), (int)(height * scale)));
-        if (window.Presenter is OverlappedPresenter presenter)
+        if (window.Overlapped() is { } presenter)
         {
             presenter.PreferredMinimumWidth = (int)(minimumWidth * scale);
             presenter.PreferredMinimumHeight = (int)(minimumHeight * scale);
@@ -117,4 +117,17 @@ internal static class WindowSizes
         var dpi = TidyVNC.Native.Platform.NativeWindows.DpiForWindow(Microsoft.UI.Win32Interop.GetWindowFromWindowId(window.Id));
         return dpi > 0 ? dpi / 96.0 : 1.0;
     }
+}
+
+internal static class AppWindowPresenters
+{
+    /// <summary>
+    /// The window's overlapped presenter, or null in full screen or compact overlay. Found by its kind
+    /// and converted with a QueryInterface: under Native AOT the projection can hand the presenter back
+    /// as the base AppWindowPresenter, so a C# type test alone would miss it (D1).
+    /// </summary>
+    public static OverlappedPresenter? Overlapped(this AppWindow window) =>
+        window.Presenter is { Kind: AppWindowPresenterKind.Overlapped } presenter
+            ? presenter as OverlappedPresenter ?? WinRT.CastExtensions.As<OverlappedPresenter>(presenter)
+            : null;
 }

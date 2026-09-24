@@ -780,14 +780,14 @@ public sealed partial class ConnectionWindow : Window
         Update();
     }
 
-    internal bool CanMinimize => !closed && AppWindow.Presenter is not OverlappedPresenter { State: OverlappedPresenterState.Minimized };
+    internal bool CanMinimize => !closed && AppWindow.Overlapped() is not { State: OverlappedPresenterState.Minimized };
 
     /// <summary>Minimize (M03): in full screen every surface goes; restoring returns to full screen.</summary>
     internal void MinimizeWindow()
     {
         foreach (var view in fullscreen.Views) view.ReleaseKeys();
         if (fullscreen.IsFullscreen) fullscreen.Minimize();
-        else if (AppWindow.Presenter is OverlappedPresenter presenter) presenter.Minimize();
+        else if (AppWindow.Overlapped() is { } presenter) presenter.Minimize();
     }
 
     internal bool CanFitWindow => Connected && !fullscreen.IsFullscreen && desktop.DesktopSize is { Width: > 0, Height: > 0 };
@@ -800,7 +800,7 @@ public sealed partial class ConnectionWindow : Window
     internal void FitWindow()
     {
         if (!CanFitWindow || desktop.DesktopSize is not { } size) return;
-        if (AppWindow.Presenter is OverlappedPresenter { State: not OverlappedPresenterState.Restored } presenter) presenter.Restore();
+        if (AppWindow.Overlapped() is { State: not OverlappedPresenterState.Restored } presenter) presenter.Restore();
         var snapshot = App.Current.Displays.Snapshot;
         if (snapshot.Find(CurrentDisplayId ?? "") is not { } display) return;
         var (viewWidth, viewHeight) = desktop.ViewSize;
@@ -871,7 +871,7 @@ public sealed partial class ConnectionWindow : Window
     private void TryAutomaticFullscreen()
     {
         if (closed || !active || !fullscreen.State.AutomaticEntryPending || !Controller.EditorsIdle ||
-            AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized }) return;
+            AppWindow.Overlapped() is { State: OverlappedPresenterState.Minimized }) return;
         if (fullscreen.State.TakeAutomaticEntry()) fullscreen.TryEnter(automatic: true);
     }
 
@@ -911,7 +911,7 @@ public sealed partial class ConnectionWindow : Window
     private static readonly (int Width, int Height) MinimumClient = (640, 420);
 
     private NativeWindowFrame Frame => new(AppWindow.Position.X, AppWindow.Position.Y, AppWindow.Size.Width, AppWindow.Size.Height);
-    private bool Maximized => AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Maximized };
+    private bool Maximized => AppWindow.Overlapped() is { State: OverlappedPresenterState.Maximized };
 
     private static (int Width, int Height) ScaledMinimum(NativeDisplayInfo display) =>
         ((int)Math.Round(MinimumClient.Width * display.Scale), (int)Math.Round(MinimumClient.Height * display.Scale));
@@ -923,7 +923,7 @@ public sealed partial class ConnectionWindow : Window
     {
         if (closed) return;
         var value = desktop.Viewport;
-        if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } || !AppWindow.IsVisible) value = value with { Available = false };
+        if (AppWindow.Overlapped() is { State: OverlappedPresenterState.Minimized } || !AppWindow.IsVisible) value = value with { Available = false };
         Controller.RemoteResize.Update(viewportSource, value);
     }
 
@@ -931,7 +931,7 @@ public sealed partial class ConnectionWindow : Window
     {
         if (args.DidPresenterChange || args.DidSizeChange || args.DidVisibilityChange) ReportViewport();
         if (!args.DidPositionChange && !args.DidSizeChange) return;
-        if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Restored }) restoredFrame = Frame;
+        if (AppWindow.Overlapped() is { State: OverlappedPresenterState.Restored }) restoredFrame = Frame;
         if (shown && !placing) userPlaced = true;
     }
 
@@ -942,7 +942,7 @@ public sealed partial class ConnectionWindow : Window
         {
             AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(frame.X, frame.Y, frame.Width, frame.Height));
             restoredFrame = frame;
-            if (maximize && AppWindow.Presenter is OverlappedPresenter presenter) presenter.Maximize();
+            if (maximize && AppWindow.Overlapped() is { } presenter) presenter.Maximize();
         }
         finally { placing = false; }
     }
@@ -976,7 +976,7 @@ public sealed partial class ConnectionWindow : Window
         var client = AppWindow.ClientSize;
         var side = Math.Max(0, (frame.Width - client.Width) / 2);
         var borders = new NativeInsets(side, Math.Max(0, frame.Height - client.Height - side), side, side);
-        if (AppWindow.Presenter is OverlappedPresenter { State: not OverlappedPresenterState.Restored } presenter) presenter.Restore();
+        if (AppWindow.Overlapped() is { State: not OverlappedPresenterState.Restored } presenter) presenter.Restore();
         Place(NativeWindowPlacements.Startup(policy, frame, borders, target, ScaledMinimum(target), position), policy.Maximize);
     }
 
