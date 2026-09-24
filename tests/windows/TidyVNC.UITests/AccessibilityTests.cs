@@ -89,6 +89,9 @@ public sealed class AccessibilityTests
                      {
                          ("menu.file", "menu.settings", "Settings"), ("menu.file", "menu.savedProfiles", "Saved profiles"),
                          ("menu.file", "menu.listen", "Listen for connections"), ("menu.help", "menu.helpContents", "TidyVNC help"),
+                         ("menu.file", "menu.savedServerKeys", "Saved server keys"),
+                         ("menu.file", "menu.savedCertificateDecisions", "Saved certificate decisions"),
+                         ("menu.help", "menu.about", "About TidyVNC"),
                      })
             {
                 Open(window, automation, menu, item);

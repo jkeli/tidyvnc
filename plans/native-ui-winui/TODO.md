@@ -2045,3 +2045,15 @@ Add dated entries, newest last, in the macOS format:
 - Test: gated UI test `SavedTrustLibrariesForgetADestination`. For each kind, the window loads empty in a
   fresh state root. A typed destination enables Ask again…; confirming in the flyout shows "Forgot the
   saved key" and lists the destination. It passes.
+
+### W5.19 (progress) — Axe.Windows over the new windows; UI suite after today's changes — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `EveryWindowPassesAxeWindows` now also scans Saved server keys, Saved certificate decisions and About.
+  It passes.
+- Full vertical-slice suite (Debug): 20/23 pass, up from 15/20. It gained AuthenticateAndDisconnect,
+  AboutClosesWithEscape and SavedTrustLibrariesForgetADestination, and FullScreenFromTheCommandLine and
+  F6MovesBetweenTheWindowAreas passed in this run because the session could take the foreground.
+  - Still failing: ConnectAuthenticateRenderTypeClickAndDisconnect and LargeRemoteCursorsAreDrawnOverTheDesktop
+    (the screen capture of the desktop), and ConnectionMenuCommandsReachTheServer. They need the session
+    displayed.
