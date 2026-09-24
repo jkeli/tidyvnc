@@ -31,10 +31,27 @@ internal static partial class Program
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool AllowSetForegroundWindow(uint processId);
 
+    [LibraryImport("user32.dll", EntryPoint = "MessageBoxW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int MessageBox(nint owner, string text, string caption, uint type);
+
+    /// <summary>Windows 11 is build 22000 (DECISIONS.md D6).</summary>
+    internal const int FirstSupportedBuild = 22000;
+
+    /// <summary>The Windows build; TIDYVNC_TEST_WINDOWS_BUILD lets the refusal be tested on Windows 11.</summary>
+    private static int WindowsBuild =>
+        int.TryParse(Environment.GetEnvironmentVariable("TIDYVNC_TEST_WINDOWS_BUILD"), out var build) ? build : Environment.OSVersion.Version.Build;
+
     [STAThread]
     private static int Main()
     {
         CommandLineLaunch = NativeActivation.TakeCommandLineMarker();
+        if (WindowsBuild < FirstSupportedBuild)
+        {
+            // D6 / W15: older Windows keeps the FLTK viewer; say so and stop before any window.
+            const uint IconError = 0x10;
+            _ = MessageBox(0, Strings.Get("app.windows.11.required"), "TidyVNC", IconError);
+            return 1;
+        }
         WinRT.ComWrappersSupport.InitializeComWrappers();
         try { NativeActivation.ApplyAppUserModelId(); }
         catch (COMException error) { System.Diagnostics.Trace.TraceWarning($"AppUserModelID not set: {error.HResult:x8}"); }

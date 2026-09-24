@@ -1192,3 +1192,52 @@ Add dated entries, newest last, in the macOS format:
   - Gated UI test FirstUseOfferImportsTigerVncDefaults, against the isolated registry root, passes.
 - Remaining: a manual display-assignment step for imported monitor numbers (macOS lets the user choose; here
   missing numbers are omitted with acknowledgement).
+
+### W5.14 (progress), W5.18 (pseudo-locales), W5.19 (desktop peer), W5.21 (progress) — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- W5.14, Save connection file as (F05-F08):
+  - `NativeDocumentExport` snapshots the connection (endpoint, shared, reconnect, clipboard, encoding, input,
+    inactive cursor, scaling, full-screen policy, security types, CA/CRL files, ignored-input and SSH gateway
+    flags). The core's export-loss rules decide what the review lists; a custom TLS priority refuses the export.
+  - Every emitted field is read back through the shared decoder before the export is offered. Passwords and
+    trust decisions are never written. `Data()` refuses until every loss is acknowledged.
+  - Selected displays become monitor numbers of the current arrangement. When a selected display has no
+    number (disconnected), `NativeExportMapping` lets the user assign distinct positive numbers; "Change
+    exported monitor numbers…" reopens it from the review. Only the file changes.
+  - File > Save connection file as… (Ctrl+Shift+S) opens the review in the editor slot (mapping, then the
+    review of losses and monitor numbers, "Continue to save…"). The Windows save dialog follows (`.tidyvnc`,
+    overwrite prompt), then `NativeDocumentFileWriter` writes atomically. Progress, success and each
+    `NativeDocumentSaveError` show in an InfoBar in the window.
+  - Tests: ExportTests (losses acknowledged, no secrets, TLS priority refused, SSH gateway loss, monitor
+    numbering, mapping validation and explicit numbers). Gated UI test
+    SaveConnectionFileAsReviewsLossesAndWrites passes: review, save dialog, file on disk, status.
+- W5.18, pseudo-locales (D20):
+  - `strings.py pseudo` writes qps-ploc (about 40% longer, accented) and qps-plocm (mirrored) catalogs.
+    They are generated, git-ignored and left out of non-Debug builds.
+  - The catalog carries `app.flow.direction`; every window applies it, and the remote desktop is never
+    mirrored. `TIDYVNC_UI_LANGUAGE` sets `ApplicationLanguages.PrimaryLanguageOverride` for layout checks.
+  - Gated UI test PseudoLocaleWindowsFitTheirMinimumSize: in each pseudo-locale, the connection, settings,
+    saved profiles, listener, import and help windows shrink to their minimum size, no text, button, box
+    or menu item extends beyond its window, and qps-plocm mirrors the menu bar. Both pass. The test's menu
+    helper now waits for a menu's items before toggling it again.
+  - Screenshots are saved for review, but with the owner's display powered off they capture black. The
+    visual review is still open.
+- W5.19, desktop automation peer (UX.md section 10, V02, W18):
+  - `DesktopAutomationPeer`: control type Image, name "Remote desktop", the macOS help text, and the Scroll
+    pattern (percentages, view size, scroll by page, set percent with -1 kept) over the pan. Invoke focuses
+    the view. Property-change events follow the pan.
+  - `NativeGeometry.ScrollPercent`, `ViewPercent` and `PannedTo` carry the arithmetic.
+  - Tests: PanTests.ScrollPercentagesFollowThePan; the gated UI test DesktopViewScrollsForAssistiveTechnology
+    (2000×1500 desktop at 100%: set percent, page left and down, Invoke focuses) passes.
+- Gated UI runs on this machine (display powered off, desktop idle): SaveConnectionFileAs, both pseudo-locales,
+  DesktopViewScrolls, OlderWindowsIsRefused, HelpAndAbout, SavedProfiles, SettingsApply, ConnectionInformation
+  and FirstUseOffer pass.
+- W5.21, progress:
+  - Mica on the connection window too; the desktop area stays opaque black.
+  - Below Windows 11 (build 22000), the app shows why and exits with code 1 before any window opens (W15).
+    Gated UI test OlderWindowsIsRefused simulates build 19045 and passes.
+- Remaining:
+  - W5.18: visual review of the pseudo-locale screenshots with the display on.
+  - W5.19: Narrator, keyboard-only, contrast-theme and 225% text passes.
+  - W5.21: title bar and Snap Layouts checks, icons, themes, and Mica's solid fallback with transparency off.

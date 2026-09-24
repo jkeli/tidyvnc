@@ -35,6 +35,7 @@
   <data name="app_encoding_settings" xml:space="preserve"><value>Encoding settings</value></data>
   <data name="app_encoding_settings_for_this_connection" xml:space="preserve"><value>Encoding settings for this connection</value></data>
   <data name="app_enter_a_vnc_server_address_to_begin" xml:space="preserve"><value>Enter a VNC server address to begin.</value></data>
+  <data name="app_flow_direction" xml:space="preserve"><value>LeftToRight</value></data>
   <data name="app_history_import_is_unavailable" xml:space="preserve"><value>History import is unavailable</value></data>
   <data name="app_import_connection_defaults" xml:space="preserve"><value>Import connection defaults…</value></data>
   <data name="app_import_recent_connections" xml:space="preserve"><value>Import recent connections…</value></data>
@@ -78,6 +79,7 @@
   <data name="app_unable_to_start_a_connection" xml:space="preserve"><value>Unable to start a connection</value></data>
   <data name="app_use_built_in_defaults_for_this_connection" xml:space="preserve"><value>Use built-in defaults for this connection</value></data>
   <data name="app_waiting_for_authentication" xml:space="preserve"><value>Waiting for authentication</value></data>
+  <data name="app_windows_11_required" xml:space="preserve"><value>This version of TidyVNC requires Windows 11. On earlier versions of Windows, use the classic TidyVNC viewer (vncviewer) instead.</value></data>
   <data name="authentication_a_saved_identity_applies_only_to_this" xml:space="preserve"><value>A saved identity applies only to this destination’s address, port and route. Verify the fingerprint before saving.</value></data>
   <data name="authentication_authenticate" xml:space="preserve"><value>Authenticate</value></data>
   <data name="authentication_authentication_required" xml:space="preserve"><value>Authentication required</value></data>

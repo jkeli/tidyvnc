@@ -30,6 +30,10 @@ public partial class App : Application
 
     public App()
     {
+        // Layout checks (TESTING.md section 4): TIDYVNC_UI_LANGUAGE selects a catalog, such as the
+        // qps-ploc and qps-plocm pseudo-locales that Debug builds carry, before any string loads.
+        if (Environment.GetEnvironmentVariable("TIDYVNC_UI_LANGUAGE") is { Length: > 0 and < 32 } language)
+            Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = language;
         InitializeComponent();
         // Until W4.11 routes this into the process log, TIDYVNC_CRASH_LOG names a
         // file that receives unhandled UI exceptions (tests and diagnosis).

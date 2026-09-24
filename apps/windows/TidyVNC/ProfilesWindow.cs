@@ -133,6 +133,7 @@ internal sealed partial class ProfilesWindow : Window
         Grid.SetRow(middle, 1); Grid.SetRow(error, 2); Grid.SetRow(busy, 3); Grid.SetRow(buttons, 4);
         root.Children.Add(header); root.Children.Add(middle); root.Children.Add(error); root.Children.Add(busy); root.Children.Add(buttons);
         Content = root;
+        Strings.Localize(this);
 
         library.PropertyChanged += (_, _) => Refresh();
         Activated += (_, e) => { if (e.WindowActivationState != WindowActivationState.Deactivated) library.RefreshIfClean(); };

@@ -73,13 +73,16 @@ public sealed class VerticalSliceTests
     /// </summary>
     private static readonly string StateRoot = Path.Combine(Path.GetTempPath(), "tidyvnc-ui-" + Guid.NewGuid().ToString("N"));
 
-    private static LaunchedApp Launch(string arguments, bool commandLine = false, string? stateRoot = null)
+    private static LaunchedApp Launch(string arguments, bool commandLine = false, string? stateRoot = null, string? language = null,
+                                      string? windowsBuild = null)
     {
         if (!File.Exists(AppPath)) Assert.Inconclusive($"Build the app first: {AppPath}");
         var start = new ProcessStartInfo(AppPath, arguments) { WorkingDirectory = Path.GetDirectoryName(AppPath)!, UseShellExecute = false };
         start.Environment["TIDYVNC_STATE_ROOT"] = stateRoot ?? StateRoot;
         // vncviewer.exe marks its launches this way (D8/D9); plain launches are shell-style.
         if (commandLine) start.Environment["TIDYVNC_COMMAND_LINE"] = "1";
+        if (language is not null) start.Environment["TIDYVNC_UI_LANGUAGE"] = language;
+        if (windowsBuild is not null) start.Environment["TIDYVNC_TEST_WINDOWS_BUILD"] = windowsBuild;
         return new LaunchedApp(Process.Start(start)!);
     }
 
@@ -131,7 +134,14 @@ public sealed class VerticalSliceTests
             }
             catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException
                                               or System.ComponentModel.Win32Exception) { return null; }
-            return window.FindFirstDescendant(cf => cf.ByAutomationId(item)) ?? automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId(item));
+            // Give a menu that just opened a moment to show its items before toggling it again.
+            var opened = Stopwatch.StartNew();
+            while (opened.Elapsed < TimeSpan.FromSeconds(1))
+            {
+                if (window.FindFirstDescendant(cf => cf.ByAutomationId(item)) is { } shown) return shown;
+                Thread.Sleep(50);
+            }
+            return automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId(item));
         }, item).AsMenuItem();
 
     /// <summary>Opens a menu; a window that has just appeared may refuse until its content is ready.</summary>
@@ -641,6 +651,203 @@ public sealed class VerticalSliceTests
             var licence = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "TidyVNC help"), "help at the licence");
             Until(() => ById(licence, "help.document").Name.Contains("GNU GENERAL PUBLIC LICENSE", StringComparison.Ordinal), "the licence from About");
             foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.14 / F05-F08: File > Save connection file as reviews what the file
+    /// cannot preserve, then the Windows save dialog writes a .tidyvnc file
+    /// that holds the address and no secrets.
+    /// </summary>
+    [TestMethod]
+    public void SaveConnectionFileAsReviewsLossesAndWrites()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "tidyvnc-ui-export-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(folder);
+        var file = Path.Combine(folder, "saved.tidyvnc");
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            var address = ById(window, "connection.endpoint");
+            address.Patterns.Value.Pattern.SetValue("export.example::5907");
+            Until(() => ById(window, "connection.endpoint").AsTextBox().Text == "export.example::5907", "the address");
+            MenuItem(window, automation, "menu.file", "menu.saveConnectionFile").Invoke();
+            StringAssert.Contains(ById(window, "document.export.server").Name, "export.example::5907");
+            WaitFor(() => window.FindFirstDescendant(cf => cf.ByName(
+                "Failure-alert settings are not supported by this connection-file format. The receiving viewer will use its own error-alert policy.")),
+                "the omitted settings");
+            var dialog = ById(window, "document.export.dialog");
+            dialog.FindFirstDescendant(cf => cf.ByAutomationId("PrimaryButton"))!.AsButton().Invoke();
+            var save = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).Concat(window.FindAllChildren(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Window)))
+                .FirstOrDefault(w => w.Name == "Save connection file"), "the save dialog");
+            var name = WaitFor(() => save.FindFirstDescendant(cf => cf.ByAutomationId("1001").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Edit))), "the file name box");
+            name.Patterns.Value.Pattern.SetValue(file);
+            save.FindFirstDescendant(cf => cf.ByAutomationId("1").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)))!.AsButton().Invoke();
+            Until(() => File.Exists(file), "the saved file");
+            Until(() => window.FindFirstDescendant(cf => cf.ByName("Saved saved.tidyvnc")) is not null, "the saved status");
+            var text = File.ReadAllText(file);
+            StringAssert.Contains(text, "ServerName=export.example::5907");
+            Assert.IsFalse(text.Contains("Password", StringComparison.OrdinalIgnoreCase), "no secrets");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+        finally
+        {
+            try { Directory.Delete(folder, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        }
+    }
+
+    /// <summary>
+    /// W5.19 / V02, W18: the desktop view is an Image named Remote desktop
+    /// whose pan is the Scroll pattern; Invoke focuses it. The desktop is
+    /// larger than the window at 100% scale, so it scrolls both ways.
+    /// </summary>
+    [TestMethod]
+    public async Task DesktopViewScrollsForAssistiveTechnology()
+    {
+        await using var server = new RfbTestServer(2000, 1500);
+        using var app = Launch("-ScalingFactor=100 " + server.Endpoint, commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            Until(() => server.AuthenticatedClients == 1, "the connection");
+            var desktop = ById(window, "desktop.view");
+            Assert.AreEqual(FlaUI.Core.Definitions.ControlType.Image, desktop.ControlType);
+            Assert.AreEqual("Remote desktop", desktop.Name);
+            StringAssert.Contains(desktop.HelpText, "Click to focus");
+            var scroll = desktop.Patterns.Scroll.Pattern;
+            Until(() => scroll.HorizontallyScrollable.Value && scroll.VerticallyScrollable.Value, "a desktop larger than the view");
+            Assert.AreEqual(0, scroll.HorizontalScrollPercent.Value, 0.01);
+            Assert.IsTrue(scroll.HorizontalViewSize.Value is > 0 and < 100, "part of the desktop is visible");
+            scroll.SetScrollPercent(100, -1);
+            Until(() => Math.Abs(scroll.HorizontalScrollPercent.Value - 100) < 0.01, "panned to the right edge");
+            Assert.AreEqual(0, scroll.VerticalScrollPercent.Value, 0.01, "-1 keeps the vertical position");
+            scroll.Scroll(FlaUI.Core.Definitions.ScrollAmount.LargeDecrement, FlaUI.Core.Definitions.ScrollAmount.LargeIncrement);
+            Until(() => scroll.HorizontalScrollPercent.Value < 100 && scroll.VerticalScrollPercent.Value > 0, "a page left and down");
+            desktop.Patterns.Invoke.Pattern.Invoke();
+            Until(() => desktop.Properties.HasKeyboardFocus.ValueOrDefault, "the desktop focused");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.21 / W15 (D6): below Windows 11 (build 22000) the app says so and
+    /// exits before opening a window. The build is simulated.
+    /// </summary>
+    [TestMethod]
+    public void OlderWindowsIsRefused()
+    {
+        using var app = Launch("", windowsBuild: "19045");
+        using var automation = new UIA3Automation();
+        var message = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "TidyVNC"), "the refusal");
+        Assert.IsNotNull(message.FindFirstDescendant(cf => cf.ByName(
+            "This version of TidyVNC requires Windows 11. On earlier versions of Windows, use the classic TidyVNC viewer (vncviewer) instead.")),
+            "the message names the classic viewer");
+        message.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))!.AsButton().Invoke();
+        Until(() => app.HasExited, "the app to exit", TimeSpan.FromSeconds(30));
+        Assert.AreEqual(1, app.Process.ExitCode, "exit code");
+    }
+
+    /// <summary>
+    /// W5.18 / D20: in the qps-ploc (about 40% longer) and qps-plocm (mirrored)
+    /// pseudo-locales, every top-level window opened from the menus loads the
+    /// pseudo catalog, fits its minimum size without controls escaping the
+    /// window, and mirrors in qps-plocm. Screenshots go to the test results
+    /// for the visual review. Needs `python apps/windows/strings.py pseudo`
+    /// and a Debug build.
+    /// </summary>
+    [TestMethod]
+    [DataRow("qps-ploc")]
+    [DataRow("qps-plocm")]
+    public void PseudoLocaleWindowsFitTheirMinimumSize(string language)
+    {
+        var catalog = Path.Combine(Path.GetDirectoryName(AppPath)!, "TidyVNC.pri");
+        // The PRI names its language qualifiers in UTF-16.
+        if (!File.Exists(catalog) || !File.ReadAllText(catalog, System.Text.Encoding.Unicode).Contains(language, StringComparison.OrdinalIgnoreCase))
+            Assert.Inconclusive("Run `python apps/windows/strings.py pseudo` and build Debug first");
+        var mirrored = language == "qps-plocm";
+        var directory = Path.Combine(TestContext.TestResultsDirectory ?? Path.GetTempPath(), "pseudo-" + language);
+        Directory.CreateDirectory(directory);
+        using var app = Launch("", language: language);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            var file = ById(window, "menu.file");
+            var help = ById(window, "menu.help");
+            StringAssert.Contains(file.Name, mirrored ? "‮" : "[", "the pseudo catalog is loaded");
+            if (mirrored) Assert.IsTrue(file.BoundingRectangle.Left > help.BoundingRectangle.Left, "the menu bar mirrors");
+            else Assert.IsTrue(file.BoundingRectangle.Left < help.BoundingRectangle.Left, "the menu bar reads left to right");
+
+            var problems = new List<string>();
+            void Check(Window each, string name)
+            {
+                // Shrink to the minimum size the window allows.
+                if (each.Patterns.Transform.IsSupported && each.Patterns.Transform.Pattern.CanResize.Value) each.Patterns.Transform.Pattern.Resize(100, 100);
+                Thread.Sleep(500);
+                var frame = each.BoundingRectangle;
+                try { Capture.Element(each).ToFile(Path.Combine(directory, name + ".png")); } catch (Exception) { }
+                foreach (var element in each.FindAllDescendants())
+                {
+                    try
+                    {
+                        if (element.Properties.IsOffscreen.ValueOrDefault) continue;
+                        var type = element.Properties.ControlType.ValueOrDefault;
+                        if (type is not (FlaUI.Core.Definitions.ControlType.Text or FlaUI.Core.Definitions.ControlType.Button or FlaUI.Core.Definitions.ControlType.Edit
+                                or FlaUI.Core.Definitions.ControlType.CheckBox or FlaUI.Core.Definitions.ControlType.ComboBox or FlaUI.Core.Definitions.ControlType.MenuItem))
+                            continue;
+                        var box = element.BoundingRectangle;
+                        if (box.IsEmpty) continue;
+                        if (box.Left < frame.Left - 1 || box.Right > frame.Right + 1)
+                            problems.Add($"{name}: {type} {element.Properties.AutomationId.ValueOrDefault} extends beyond the window ({box} in {frame})");
+                    }
+                    catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException) { }
+                }
+            }
+            Check(window, "connection");
+            Window Open(string menu, string item)
+            {
+                var before = app.Application.GetAllTopLevelWindows(automation).Select(w => w.Properties.NativeWindowHandle.ValueOrDefault).ToHashSet();
+                // A menu opened in an inactive window closes at once; the last window closed may have left none active.
+                try { window.Focus(); }
+                catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException) { }
+                MenuItem(window, automation, menu, item).Invoke();
+                return WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => !before.Contains(w.Properties.NativeWindowHandle.ValueOrDefault)),
+                    item + " window");
+            }
+            foreach (var (menu, item) in new[] { ("menu.file", "menu.settings"), ("menu.file", "menu.savedProfiles"), ("menu.file", "menu.listen"),
+                                                 ("menu.file", "menu.importDefaults"), ("menu.help", "menu.helpContents") })
+            {
+                var opened = Open(menu, item);
+                Check(opened, item);
+                opened.Close();
+            }
+            Assert.AreEqual(0, problems.Count, string.Join(Environment.NewLine, problems));
+            TestContext.WriteLine($"Screenshots in {directory}");
+            window.Close();
             Exits(app);
         }
         catch

@@ -55,6 +55,7 @@ internal sealed partial class ListenerWindow : Window
             Ui.Caption(Strings.Get("listener.waiting.connections.expire.after.30.seconds.stopping.the.listener.leaves.accepted.connections")));
         panel.Padding = new Thickness(24);
         Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Disabled };
+        Strings.Localize(this);
 
         model.PropertyChanged += (_, e) =>
         {

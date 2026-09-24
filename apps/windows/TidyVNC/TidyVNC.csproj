@@ -30,6 +30,10 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' != 'Debug'">
+    <!-- The qps-ploc/qps-plocm layout-check catalogs (`strings.py pseudo`) never ship. -->
+    <PRIResource Remove="Strings\qps-*\**" />
+  </ItemGroup>
   <ItemGroup>
     <!-- Window and title bar icons, loaded from the app folder. -->
     <Content Include="$(RepoRoot)media\icons\tidyvnc_32.png" Link="Assets\tidyvnc_32.png" CopyToOutputDirectory="PreserveNewest" />

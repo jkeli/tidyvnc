@@ -47,7 +47,9 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         IsTabStop = true;
         UseSystemFocusVisuals = false;
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(this, "desktop.view");
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(this, "Remote desktop");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(this, Strings.Get("ssh.remote.desktop"));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(this,
+            Strings.Get("desktop.click.to.focus.keyboard.and.pointer.input.control.the.connected.computer"));
         host.Children.Add(panel);
         host.Children.Add(statistics);
         Content = host;
@@ -200,7 +202,17 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         geometry = frameSize is { } size && width > 0 && height > 0 && scale > 0
             ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels, pan.X, pan.Y, canvas)
             : null;
+        if (peer is not null && Microsoft.UI.Xaml.Automation.Peers.AutomationPeer.ListenerExists(Microsoft.UI.Xaml.Automation.Peers.AutomationEvents.PropertyChanged))
+            peer.GeometryChanged();
     }
+
+    private DesktopAutomationPeer? peer;
+
+    /// <summary>The Scroll and Invoke patterns (UX.md section 10).</summary>
+    protected override Microsoft.UI.Xaml.Automation.Peers.AutomationPeer OnCreateAutomationPeer() => peer = new DesktopAutomationPeer(this);
+
+    /// <summary>The geometry the Scroll pattern reports, while a desktop is shown.</summary>
+    internal NativeGeometry? PanGeometry => Live ? geometry : null;
 
     /// <summary>Connection statistics over this view (Q03), or none.</summary>
     public void ShowStatistics(NativeConnectionInformation? information) => statistics.Show(information);
@@ -214,6 +226,15 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     public (double Width, double Height) ViewSize => (panel.ActualWidth, panel.ActualHeight);
 
     public bool CanPan(NativeDesktopPan direction) => Live && geometry is { } value && value.Panned(direction) != value.PanPosition;
+
+    /// <summary>Pans to Scroll pattern percentages; -1 keeps an axis.</summary>
+    public bool PanTo(double percentX, double percentY)
+    {
+        if (!Live || geometry is null) return false;
+        pan = geometry.PannedTo(percentX, percentY);
+        UpdateViewport();
+        return true;
+    }
 
     public bool Pan(NativeDesktopPan direction)
     {

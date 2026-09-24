@@ -8,6 +8,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:TidyVNC"
     Title="TidyVNC">
+    <!-- Mica behind the chrome (UX.md section 1); the desktop area stays opaque black. -->
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
     <Grid x:Name="Root">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -42,6 +46,12 @@
                                         AutomationProperties.AutomationId="menu.openConnectionFile">
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Modifiers="Control" Key="O" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="SaveFileItem" Text="{local:Str Key=app.save.connection.file.as}" Click="SaveFileClick"
+                                        AutomationProperties.AutomationId="menu.saveConnectionFile">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Modifiers="Control,Shift" Key="S" />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
                         <MenuFlyoutItem Text="{local:Str Key=app.import.connection.defaults}" Click="ImportDefaultsClick"
@@ -205,6 +215,8 @@
                     <Button x:Name="ReloadHistoryButton" Content="{local:Str Key=history.reload.history}" Click="ReloadHistoryClick" />
                 </InfoBar.ActionButton>
             </InfoBar>
+            <InfoBar x:Name="SaveNotice" IsOpen="False" IsClosable="True" CloseButtonClick="SaveNoticeClosed"
+                     AutomationProperties.AutomationId="document.save.status" />
             <InfoBar x:Name="CredentialNotice" IsOpen="False" IsClosable="True" Severity="Informational" CloseButtonClick="CredentialNoticeClosed"
                      AutomationProperties.AutomationId="credentials.notice" />
             <TextBlock x:Name="ProfileSource" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"

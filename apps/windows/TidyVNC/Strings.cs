@@ -28,6 +28,16 @@ internal static class Strings
         return key;
     }
 
+    /// <summary>The catalog's layout direction: right to left in mirrored languages (and the qps-plocm pseudo-locale).</summary>
+    public static Microsoft.UI.Xaml.FlowDirection FlowDirection =>
+        Get("app.flow.direction") == "RightToLeft" ? Microsoft.UI.Xaml.FlowDirection.RightToLeft : Microsoft.UI.Xaml.FlowDirection.LeftToRight;
+
+    /// <summary>Every window's content follows the catalog's direction (D20).</summary>
+    public static void Localize(Microsoft.UI.Xaml.Window window)
+    {
+        if (window.Content is Microsoft.UI.Xaml.FrameworkElement root) root.FlowDirection = FlowDirection;
+    }
+
     public static string Format(string key, params object[] arguments) =>
         string.Format(CultureInfo.CurrentCulture, Get(key), arguments.Select(Argument).ToArray());
 

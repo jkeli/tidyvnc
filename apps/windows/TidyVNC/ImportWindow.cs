@@ -43,6 +43,7 @@ internal sealed partial class ImportWindow : Window
         Grid.SetRow(scroll, 1); Grid.SetRow(issue, 2); Grid.SetRow(busy, 3); Grid.SetRow(buttons, 4);
         foreach (var child in new UIElement[] { title, scroll, issue, busy, buttons }) root.Children.Add(child);
         Content = root;
+        Strings.Localize(this);
     }
 
     /// <summary>Import connection defaults (F09-F12).</summary>

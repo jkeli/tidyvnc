@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using TidyVNC.Native;
 using TidyVNC.Native.Clipboard;
 using TidyVNC.Native.Desktop;
+using TidyVNC.Native.Documents;
 using TidyVNC.Native.Platform;
 using TidyVNC.Native.Storage;
 using TidyVNC.Native.Tunnel;
@@ -45,6 +46,7 @@ public sealed partial class ConnectionWindow : Window
     internal ConnectionWindow(NativeConnectionController controller)
     {
         InitializeComponent();
+        Strings.Localize(this);
         Controller = controller;
         var window = WinRT.Interop.WindowNative.GetWindowHandle(this);
         ExtendsContentIntoTitleBar = true;
@@ -79,6 +81,8 @@ public sealed partial class ConnectionWindow : Window
         fullscreen.State.AutomaticEntryDue += () => DispatcherQueue.TryEnqueue(TryAutomaticFullscreen);
         desktop.RenderFailed += _ => ShowFatal(NativePresentationIssues.From(new NativeError(NativeStatus.Failed, "render"), NativePresentationContext.Desktop).Message());
         DesktopHost.Child = desktop;
+        // The remote desktop is an image of another computer: never mirrored.
+        DesktopHost.FlowDirection = FlowDirection.LeftToRight;
         dialogs = new DialogPresenter(() => Content?.XamlRoot, DesiredDialog);
         RecentPanel.Selected += destination => { Controller.SelectDestination(destination); RecentFlyout.Hide(); };
         GatewayHelp.Visibility = Visibility.Collapsed;
@@ -227,6 +231,7 @@ public sealed partial class ConnectionWindow : Window
         RecentPanel.CanSelect = editable;
         ClipboardButton.IsEnabled = defaults.IsReady && session is not null;
         EncodingButton.IsEnabled = InputButton.IsEnabled = ScalingButton.IsEnabled = CanOpenConnectedEditor;
+        SaveFileItem.IsEnabled = CanExport;
 
         // Notices, in the macOS order.
         ReverseNotice.IsOpen = controller.IsReverse;
@@ -338,6 +343,12 @@ public sealed partial class ConnectionWindow : Window
     private DialogRequest? EditorDialog(object editor)
     {
         var key = "editor:" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(editor);
+        if (editor is ExportRequest export)
+            return new DialogRequest(key, () => ExportDialog.Create(export), result =>
+            {
+                Controller.EndEditor(editor);
+                if (result == ContentDialogResult.Primary && export.Approved is { } approved) SaveExport(approved);
+            }, () => Controller.EndEditor(editor));
         Func<ContentDialog>? create = editor switch
         {
             NativeSessionEncodingDraft encoding => () => EncodingDialog.Create(encoding),
@@ -381,6 +392,94 @@ public sealed partial class ConnectionWindow : Window
     internal bool IsFullscreen => fullscreen.IsFullscreen;
 
     internal bool CanOpenInformation => CanOpenConnectedEditor;
+
+    // ---- Save connection file as (F05-F08) ------------------------------------------
+
+    private bool saving;
+
+    internal bool CanExport => !Controller.IsReverse && Controller.EditorsIdle && Controller.Defaults.IsReady && !saving &&
+                               Controller.GatewayIssue is null && (Controller.Endpoint.Length == 0 || Controller.EndpointIssue is null) &&
+                               !fullscreen.IsFullscreen && !NativeFileDialogs.IsOpen &&
+                               session?.Snapshot.State is NativeSessionState.Idle or NativeSessionState.Connected or NativeSessionState.Closed or NativeSessionState.Failed;
+
+    /// <summary>A snapshot of this connection's current settings, taken before any UI appears.</summary>
+    private NativeExportSource? ExportSource()
+    {
+        if (session is not { } current) return null;
+        try
+        {
+            var options = current.ConnectionOptions();
+            var security = current.SecurityConfiguration();
+            return new NativeExportSource(Controller.Endpoint, options.Shared, options.ReconnectOnError, current.ClipboardSendEnabled,
+                current.ClipboardReceiveEnabled, current.EncodingOptions(), Controller.Input.Value, Controller.Input.InactiveCursor,
+                Controller.Scaling.Value, fullscreen.State.Policy, security.Types, security.TlsPriority, security.CaFile, security.CrlFile,
+                IgnoredInput: Controller.Defaults.Setup is { Notices.Count: > 0 }, SshGateway: Controller.SshGateway is not null);
+        }
+        catch (NativeError) { return null; }
+    }
+
+    internal void OpenExport()
+    {
+        if (!CanExport) return;
+        if (ExportSource() is not { } source)
+        {
+            ShowSaveStatus(InfoBarSeverity.Error, Strings.Get("connection.recovery.the.connection.settings.cannot.be.exported.review.them.and.try.again"));
+            return;
+        }
+        App.Current.Displays.Refresh();
+        var snapshot = App.Current.Displays.Snapshot;
+        IReadOnlyList<string> legacy = snapshot.Error is null ? NativeSessionDefaults.DisplaysOf(snapshot).Legacy : [];
+        var request = new ExportRequest(source, legacy);
+        if (request.Begin() is { } problem)
+        {
+            ShowSaveStatus(InfoBarSeverity.Error, ExportRequest.Text(problem));
+            return;
+        }
+        SaveNotice.IsOpen = false;
+        if (Controller.BeginEditor(request, NativeEditorScope.Any, () => Task.CompletedTask)) dialogs.Update();
+    }
+
+    /// <summary>The save dialog, then the atomic write (F07-F08); the status shows in this window.</summary>
+    private async void SaveExport(NativeDocumentExport export)
+    {
+        if (saving || closed) return;
+        var text = new NativeFileDialogText(Strings.Get("app.save.connection.file"), Strings.Get("profiles.save"), Strings.Get("document.files.tidyvnc"));
+        var invalid = Path.GetInvalidFileNameChars();
+        var name = export.Endpoint.Length == 0 ? null
+            : string.Concat(export.Endpoint.Select(c => invalid.Contains(c) ? '_' : c)) + NativeDocumentFileWriter.Extension;
+        string? path;
+        try { path = NativeFileDialogs.Show(WinRT.Interop.WindowNative.GetWindowHandle(this), NativeFileDialogKind.SaveConnection, text, fileName: name); }
+        catch (InvalidOperationException) { return; } // Another file dialog is already open.
+        if (path is null || closed) return;
+        saving = true;
+        ShowSaveStatus(InfoBarSeverity.Informational, Strings.Get("document.saving.connection.file"));
+        try
+        {
+            var writer = new NativeDocumentFileWriter();
+            var destination = await writer.PrepareAsync(path);
+            await writer.WriteAsync(export.Data(export.Losses), destination, overwrite: destination.Exists);
+            ShowSaveStatus(InfoBarSeverity.Success, Strings.Format("document.save.success", Path.GetFileName(path)));
+        }
+        catch (NativeDocumentSaveException error) when (error.Error == NativeDocumentSaveError.Cancelled) { SaveNotice.IsOpen = false; }
+        catch (NativeDocumentSaveException error) { ShowSaveStatus(InfoBarSeverity.Error, ExportRequest.Text(error.Error)); }
+        finally
+        {
+            saving = false;
+            Update();
+        }
+    }
+
+    private void ShowSaveStatus(InfoBarSeverity severity, string message)
+    {
+        if (closed) return;
+        SaveNotice.Severity = severity;
+        SaveNotice.Message = message;
+        SaveNotice.IsClosable = severity != InfoBarSeverity.Informational;
+        SaveNotice.IsOpen = true;
+    }
+
+    private void SaveNoticeClosed(InfoBar sender, object args) => SaveNotice.IsOpen = false;
+    private void SaveFileClick(object sender, RoutedEventArgs e) => OpenExport();
 
     /// <summary>Connection information (Q01): read-only, in the editor slot so it follows the connection.</summary>
     internal void OpenInformation()

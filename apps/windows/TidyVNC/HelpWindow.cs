@@ -73,6 +73,7 @@ internal sealed partial class HelpWindow : Window
         Grid.SetRow(topics, 1); Grid.SetRow(scroll, 2); Grid.SetRow(links, 3); Grid.SetRow(privacy, 4);
         foreach (var child in new UIElement[] { title, topics, scroll, links, privacy }) root.Children.Add(child);
         Content = root;
+        Strings.Localize(this);
         topics.SelectedItem = topics.Items.FirstOrDefault(i => (string)i.Tag == (topic ?? "guide")) ?? topics.Items[0];
     }
 

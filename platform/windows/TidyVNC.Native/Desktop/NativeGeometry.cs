@@ -140,6 +140,40 @@ public sealed unsafe class NativeGeometry
         };
     }
 
+    /// <summary>
+    /// The pan as UI Automation Scroll percentages (UX.md section 10): 0-100 of
+    /// the pan range, or -1 (UIA_ScrollPatternNoScroll) on an axis where the desktop fits.
+    /// </summary>
+    public (double X, double Y) ScrollPercent
+    {
+        get
+        {
+            var (x, y) = PanPosition;
+            var (limitX, limitY) = PanLimit;
+            return (limitX > 0 ? x / limitX * 100 : -1, limitY > 0 ? y / limitY * 100 : -1);
+        }
+    }
+
+    /// <summary>The visible part of the desktop on each axis, in percent (the Scroll pattern's view size).</summary>
+    public (double X, double Y) ViewPercent
+    {
+        get
+        {
+            var (limitX, limitY) = PanLimit;
+            double Visible(double total, double limit) => total > 0 ? Math.Clamp((total - limit) / total * 100, 0, 100) : 100;
+            return (Visible(Width * PanUnits, limitX), Visible(Height * PanUnits, limitY));
+        }
+    }
+
+    /// <summary>The pan at Scroll percentages; a negative value keeps that axis.</summary>
+    public (double X, double Y) PannedTo(double percentX, double percentY)
+    {
+        var (x, y) = PanPosition;
+        var (limitX, limitY) = PanLimit;
+        return (percentX < 0 ? x : Math.Round(limitX * Math.Min(100, percentX) / 100),
+                percentY < 0 ? y : Math.Round(limitY * Math.Min(100, percentY) / 100));
+    }
+
     /// <summary>The remote pixel under a logical point (clamped to the desktop).</summary>
     public (int X, int Y) RemotePoint(double x, double y)
     {

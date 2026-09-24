@@ -35,4 +35,21 @@ public sealed class PanTests
         Assert.AreEqual((320.0, 0.0), device.PanLimit);
         Assert.AreEqual((320.0, 0.0), device.Panned(NativeDesktopPan.Right));
     }
+
+    /// <summary>W5.19 / V02: the desktop view's UI Automation Scroll pattern is the pan in percent.</summary>
+    [TestMethod]
+    public void ScrollPercentagesFollowThePan()
+    {
+        var geometry = new NativeGeometry(1920, 1080, 800, 600, 1, "100", panX: 560, panY: 480);
+        Assert.AreEqual((50.0, 100.0), geometry.ScrollPercent);
+        Assert.AreEqual(800.0 / 1920 * 100, geometry.ViewPercent.X, 1e-9);
+        Assert.AreEqual(600.0 / 1080 * 100, geometry.ViewPercent.Y, 1e-9);
+        Assert.AreEqual((1120.0, 480.0), geometry.PannedTo(100, -1), "-1 keeps the vertical position");
+        Assert.AreEqual((0.0, 240.0), geometry.PannedTo(0, 50));
+
+        var fitted = new NativeGeometry(1920, 1080, 800, 600, 1, "FixedRatio");
+        Assert.AreEqual((-1.0, -1.0), fitted.ScrollPercent, "nothing to scroll (UIA_ScrollPatternNoScroll)");
+        Assert.AreEqual((100.0, 100.0), fitted.ViewPercent);
+        Assert.AreEqual((0.0, 0.0), fitted.PannedTo(40, 40));
+    }
 }

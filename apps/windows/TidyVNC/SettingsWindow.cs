@@ -97,6 +97,7 @@ internal sealed partial class SettingsWindow : Window
         body.Children.Add(header); body.Children.Add(page); body.Children.Add(footer);
         navigation.Content = body;
         Content = navigation;
+        Strings.Localize(this);
 
         draft.PropertyChanged += (_, _) => Refresh();
         Activated += (_, e) =>

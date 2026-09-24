@@ -234,6 +234,10 @@ def pseudo(strings: dict[str, str], mirrored: bool) -> dict[str, str]:
     accents = str.maketrans("aeiouAEIOUcnyCNY", "àéîõüÀÉÎÕÜçñýÇÑÝ")
     result = {}
     for key, text in strings.items():
+        if key == "app_flow_direction" or key == "app.flow.direction":
+            # Not text: the layout direction every window applies.
+            result[key] = "RightToLeft" if mirrored else text
+            continue
         parts = re.split(r"(\{\d+\}|\{\{|\}\})", text)
         body = "".join(p if re.fullmatch(r"\{\d+\}|\{\{|\}\}", p) else p.translate(accents) for p in parts)
         pad = "~" * max(2, len(text) * 2 // 5)  # About 40% longer, as translations can be.

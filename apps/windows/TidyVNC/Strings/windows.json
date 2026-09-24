@@ -46,6 +46,8 @@
     "settings.scaling.on.a.retina.display.one.logical.point.spans.multiple.device.pixels": "When Windows scales a display above 100%, one effective pixel spans more than one device pixel."
   },
   "windowsOnly": {
+    "app.flow.direction": "LeftToRight",
+    "app.windows.11.required": "This version of TidyVNC requires Windows 11. On earlier versions of Windows, use the classic TidyVNC viewer (vncviewer) instead.",
     "tunnel.error.windows.client.missing": "The Windows OpenSSH Client is not installed. Add it in Settings > System > Optional features, then connect again.",
     "app.menu.file": "File",
     "app.menu.connection": "Connection",
