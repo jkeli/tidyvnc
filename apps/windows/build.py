@@ -73,12 +73,12 @@ def configure_core(args, build, env, prefixes):
 
 
 def build_core(args):
-    build = (args.build_dir or ROOT / "build/winui" / f"core-{args.arch}-{args.configuration.lower()}").resolve()
+    build = (args.build_dir or ROOT / "build/winui" / f"{args.arch}-{args.configuration.lower()}{'-asan' if args.asan else ''}").resolve()
     env = toolchain.environment(args.arch)
     prefixes = ensure_dependencies(args.arch, args.test)
     configure_core(args, build, env, prefixes)
-    target = "all" if args.test else "tidyvnc_viewer_shared"
-    run(["cmake", "--build", build, "--target", target, "--parallel", str(args.parallel)], env=env)
+    targets = ["all"] if args.test else ["tidyvnc_viewer_shared", "tidyvnc_windows"]
+    run(["cmake", "--build", build, "--target", *targets, "--parallel", str(args.parallel)], env=env)
     if args.test:
         if args.arch != "x64":
             print("ARM64 binaries are cross-built; run their tests on ARM64 hardware.", flush=True)
@@ -93,7 +93,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--arch", choices=toolchain.ARCHES, default="x64")
     parser.add_argument("--configuration", choices=("Debug", "Release", "RelWithDebInfo"), default="Debug")
-    parser.add_argument("--build-dir", type=Path, help="Core build directory (default build/winui/core-<arch>-<config>)")
+    parser.add_argument("--build-dir", type=Path, help="Core build directory (default build/winui/<arch>-<config>, where the .NET projects look)")
     parser.add_argument("--parallel", type=int, default=8)
     parser.add_argument("--test", action="store_true", help="Build and run the core and ABI test suites")
     parser.add_argument("--asan", action="store_true", help="AddressSanitizer build of the core and tests")

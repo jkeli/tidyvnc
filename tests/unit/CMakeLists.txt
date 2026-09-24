@@ -274,6 +274,18 @@ if(WIN32 AND MSVC)
   add_executable(socketlistener socketlistener.cxx)
   target_link_libraries(socketlistener tidyvnc_viewer_core GTest::gtest_main Threads::Threads ws2_32)
   gtest_discover_tests(socketlistener PROPERTIES TIMEOUT 30)
+  if(BUILD_WINUI_VIEWER)
+    # The retained vncviewer/KeyboardWin32 against the helper DLL's extracted
+    # translator, with a stub FL/Fl.H in place of FLTK (TODO W3.4).
+    add_executable(keyboardtranslator windows/keyboardtranslator.cxx)
+    target_include_directories(keyboardtranslator BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/windows/fltk-stub
+      ${CMAKE_SOURCE_DIR}/vncviewer)
+    target_link_libraries(keyboardtranslator tidyvnc_windows_keyboard core GTest::gtest_main)
+    gtest_discover_tests(keyboardtranslator PROPERTIES TIMEOUT 60)
+    add_executable(windowshelper windows/windowshelper.cxx)
+    target_link_libraries(windowshelper tidyvnc_windows GTest::gtest_main)
+    gtest_discover_tests(windowshelper PROPERTIES TIMEOUT 60)
+  endif()
 endif()
 
 # C ABI sessions and listeners against loopback peers wherever the platform

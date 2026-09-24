@@ -269,7 +269,7 @@ Add dated entries, newest last, in the macOS format:
   `python tests/viewer/headless.py --build-dir build/winui/headless-x64`
   passes the Windows audit and suites; `ViewerABI.EndToEndThroughDLL`
   (VncAuth and VeNCrypt X509Vnc/TLS 1.2 through the DLL only); the Windows
-  adapter suites repeat 15× clean; `utf8paths` proves non-ASCII and `\?\` CA
+  adapter suites repeat 15× clean; `utf8paths` proves non-ASCII and `\\?\` CA
   paths through GnuTLS under the app's UTF-8 manifest (the W1.9 choice).
 - Retained FLTK (W1.12, MinGW64 GCC 16.2, Debug, FLTK 1.4.5): builds
   `vncviewer.exe`; unit 643/647. The 4 failures (DocumentABI allocation
