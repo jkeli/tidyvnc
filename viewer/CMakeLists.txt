@@ -1,5 +1,5 @@
 # Dependency direction: frontend -> viewer_core -> viewer_platform / RFB.
-add_library(tidyvnc_viewer_platform STATIC platform/DisplayMetrics.cxx)
+add_library(tidyvnc_viewer_platform STATIC platform/DisplayMetrics.cxx platform/NativeErrorCategory.cxx)
 target_include_directories(tidyvnc_viewer_platform PUBLIC ${CMAKE_SOURCE_DIR})
 if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(tidyvnc_viewer_platform PRIVATE platform/SocketTransport.cxx platform/SocketConnector.cxx platform/SocketListener.cxx platform/PrivateFileLogger.cxx)

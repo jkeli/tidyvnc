@@ -272,6 +272,10 @@ if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MSVC)
   gtest_discover_tests(listenerabi DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 30)
 endif()
 
+add_executable(nativeerrorcategory nativeerrorcategory.cxx)
+target_link_libraries(nativeerrorcategory tidyvnc_viewer_c tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(nativeerrorcategory)
+
 add_executable(parameters parameters.cxx)
 target_link_libraries(parameters core GTest::gtest_main)
 gtest_discover_tests(parameters)

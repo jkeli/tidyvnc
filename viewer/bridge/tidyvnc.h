@@ -85,6 +85,9 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 #define TIDYVNC_FEATURE_ROUTED_CONNECT 17592186044416ULL
 #define TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS 35184372088832ULL
 #define TIDYVNC_FEATURE_PARAMETER_GRAMMARS 70368744177664ULL
+/* Feature bits 1<<47..1<<53 are the Windows plan's additive exports
+ * (plans/native-ui-winui CORE.md sections 4 and 6). */
+#define TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY 140737488355328ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -703,6 +706,14 @@ TIDYVNC_API tidyvnc_status tidyvnc_endpoint_get(tidyvnc_handle, tidyvnc_endpoint
 /* Strict decimal port 0..65535: digits only, no sign/whitespace/trailing text.
  * Invalid text leaves *port unchanged. */
 TIDYVNC_API tidyvnc_status tidyvnc_port_parse(tidyvnc_bytes, uint32_t* port, tidyvnc_error*);
+/* NATIVE_ERROR_CATEGORY: what a native_error from a snapshot, listener or
+ * error value means, independent of the platform that produced it. Native
+ * codes are platform values: errno on macOS/Linux, Winsock/Win32 codes on
+ * Windows; never compare them across platforms, compare the category. */
+enum { TIDYVNC_NATIVE_ERROR_OTHER = 0, TIDYVNC_NATIVE_ERROR_NETWORK_POLICY = 1,
+       TIDYVNC_NATIVE_ERROR_REFUSED = 2, TIDYVNC_NATIVE_ERROR_ROUTING = 3,
+       TIDYVNC_NATIVE_ERROR_TIMED_OUT = 4 };
+TIDYVNC_API tidyvnc_status tidyvnc_native_error_category(int32_t native_error, uint32_t* category, tidyvnc_error*);
 /* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most
  * 4096 bytes. Pure validation and canonicalization; nothing is resolved or run.
  * host/scope are the endpoint name and IPv6 zone; user is present only with

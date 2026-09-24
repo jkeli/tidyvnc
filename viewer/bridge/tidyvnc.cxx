@@ -33,6 +33,7 @@
 #include <viewer/platform/SocketListener.h>
 #include <viewer/platform/PrivateFileLogger.h>
 #endif
+#include <viewer/platform/NativeErrorCategory.h>
 #include <core/string.h>
 #include <algorithm>
 #include <array>
@@ -64,6 +65,7 @@ constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATU
 #ifdef HAVE_GNUTLS
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
 #endif
+  | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY
   | TIDYVNC_FEATURE_CREDENTIAL_BYTES | TIDYVNC_FEATURE_PASSWORD_FILE_REPLY | TIDYVNC_FEATURE_CONNECTION_INFO | TIDYVNC_FEATURE_ENDPOINT_IDENTITY | TIDYVNC_FEATURE_PROMPT_SECURITY | TIDYVNC_FEATURE_CERTIFICATE_POLICY | TIDYVNC_FEATURE_HOST_KEY_ENCODING | TIDYVNC_FEATURE_REQUIRED_TLS_FILES | TIDYVNC_FEATURE_SECURITY_SELECTION | TIDYVNC_FEATURE_TLS_PRIORITY_VALIDATION | TIDYVNC_FEATURE_SECURITY_RECONFIGURATION | TIDYVNC_FEATURE_SHARED_SESSION | TIDYVNC_FEATURE_DESKTOP_LAYOUT | TIDYVNC_FEATURE_DISPLAY_LAYOUT | TIDYVNC_FEATURE_CANVAS_GEOMETRY | TIDYVNC_FEATURE_CONNECTION_DOCUMENT | TIDYVNC_FEATURE_DOCUMENT_OPTIONS | TIDYVNC_FEATURE_INVOCATION_SYNTAX | TIDYVNC_FEATURE_INVOCATION_VALUES | TIDYVNC_FEATURE_INPUT_TIMING | TIDYVNC_FEATURE_MESSAGE_LIMITS | TIDYVNC_FEATURE_WINDOW_GEOMETRY
 #ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_PROCESS_LOGGING | TIDYVNC_FEATURE_FILE_LOGGING
@@ -1215,6 +1217,12 @@ tidyvnc_status tidyvnc_port_parse(tidyvnc_bytes input,uint32_t* out,tidyvnc_erro
     require(out != nullptr && input.length <= 16);
     uint32_t port; require(parseDecimalPort(text(input,16),port));
     *out = port; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_native_error_category(int32_t native_error,uint32_t* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    require(out != nullptr);
+    *out = static_cast<uint32_t>(classifyNativeError(native_error)); return TIDYVNC_OK;
   });
 }
 tidyvnc_status tidyvnc_ssh_gateway_create(tidyvnc_bytes input,tidyvnc_handle* out,tidyvnc_error* error) {
