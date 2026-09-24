@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Stage the MSYS2-built GnuTLS/nettle/GMP/zlib DLLs for the MSVC core.
+"""Stage the MSYS2-built C dependency DLLs for the MSVC core.
 
-DECISIONS.md D3 fallback: the vcpkg gnutls port does not support MSVC, so
-GnuTLS, nettle, hogweed, GMP and zlib (and their DLL closure) come from the
-MSYS2 CLANG64 (x64) or CLANGARM64 (ARM64) environment. Both link only the
+DECISIONS.md D3 (revised): the vcpkg gnutls port does not support MSVC, and
+the vcpkg ARM64 triplet needs MSVC ARM64 build tools, so every C dependency
+of the core -- GnuTLS, nettle, hogweed, GMP, zlib, pixman and libjpeg-turbo,
+with their DLL closure -- comes from the MSYS2 CLANG64 (x64) or CLANGARM64
+(ARM64) environment. vcpkg supplies only GoogleTest for the tests. Both link only the
 Universal CRT, so they share a C runtime with MSVC code. This script copies
 their headers and DLLs into a prefix CMake can use and generates MSVC import
 libraries from the DLL export tables. It records package versions and licence
 files in deps.json for the package report.
 
 The prefix layout is:
-  <out>/include/{gnutls,nettle,gmp.h,zlib.h,zconf.h}
-  <out>/lib/{gnutls,nettle,hogweed,gmp,zlib}.lib
+  <out>/include/{gnutls,nettle,pixman-1,gmp.h,zlib.h,zconf.h,jpeglib.h,...}
+  <out>/lib/{gnutls,nettle,hogweed,gmp,zlib,pixman-1,jpeg}.lib
   <out>/bin/*.dll           the complete runtime closure
   <out>/share/licenses/<package>/...
   <out>/deps.json
@@ -31,8 +33,10 @@ ENVIRONMENTS = {"x64": ("clang64", "mingw-w64-clang-x86_64"),
                 "arm64": ("clangarm64", "mingw-w64-clang-aarch64")}
 # Libraries the core links directly: (import library name, DLL).
 LINKED = {"gnutls": "libgnutls-30.dll", "nettle": "libnettle-9.dll",
-          "hogweed": "libhogweed-7.dll", "gmp": "libgmp-10.dll", "zlib": "zlib1.dll"}
-HEADERS = ["gnutls", "nettle", "gmp.h", "zlib.h", "zconf.h"]
+          "hogweed": "libhogweed-7.dll", "gmp": "libgmp-10.dll", "zlib": "zlib1.dll",
+          "pixman-1": "libpixman-1-0.dll", "jpeg": "libjpeg-8.dll"}
+HEADERS = ["gnutls", "nettle", "gmp.h", "zlib.h", "zconf.h", "pixman-1",
+           "jpeglib.h", "jconfig.h", "jmorecfg.h", "jerror.h"]
 # Licence texts some MSYS2 packages do not ship under share/licenses. They are
 # the upstream COPYING files of the same release, kept in the repository.
 LICENCE_OVERRIDES = Path(__file__).resolve().parent / "ThirdParty"

@@ -1,9 +1,8 @@
 """Locate the MSVC toolchain and produce a build environment for x64 and ARM64.
 
 Shared by deps.py, build.py and the Windows verification scripts so every step
-uses the same toolset. Hosts are always x64; ARM64 cross-builds use clang-cl
-with the MSVC and Windows SDK ARM64 libraries when the MSVC ARM64 cross
-compiler is not installed.
+uses the same toolset. Hosts are always x64; ARM64 is cross-compiled with the
+MSVC ARM64 build tools component.
 """
 import json
 import os
@@ -45,12 +44,6 @@ def has_msvc_arm64(vs=None):
     return (toolset(vs) / "bin/Hostx64/arm64/cl.exe").exists()
 
 
-def clang_cl(vs=None):
-    vs = vs or installation()
-    path = vs / "VC/Tools/Llvm/x64/bin/clang-cl.exe"
-    return path if path.exists() else None
-
-
 def environment(arch, vs=None):
     """Return os.environ plus the vcvarsall environment for arch (host x64)."""
     if arch not in ARCHES:
@@ -74,26 +67,21 @@ def environment(arch, vs=None):
     return env
 
 
-def cmake_compilers(arch, vs=None):
-    """CMake cache arguments selecting the compiler for arch."""
+def cmake_compilers(arch, vs=None, build=None):
+    """CMake cache arguments selecting MSVC for arch (host x64)."""
     if arch == "x64":
         return ["-DCMAKE_C_COMPILER=cl", "-DCMAKE_CXX_COMPILER=cl"]
-    if has_msvc_arm64(vs):
-        return ["-DCMAKE_C_COMPILER=cl", "-DCMAKE_CXX_COMPILER=cl",
-                "-DCMAKE_SYSTEM_NAME=Windows", "-DCMAKE_SYSTEM_PROCESSOR=ARM64"]
-    clang = clang_cl(vs)
-    if not clang:
-        raise SystemExit("ARM64 needs the MSVC ARM64 build tools or clang-cl")
-    lld = clang.parent / "lld-link.exe"
-    target = "--target=aarch64-pc-windows-msvc"
-    return [f"-DCMAKE_C_COMPILER={clang.as_posix()}", f"-DCMAKE_CXX_COMPILER={clang.as_posix()}",
-            f"-DCMAKE_LINKER={lld.as_posix()}", f"-DCMAKE_C_FLAGS_INIT={target}",
-            f"-DCMAKE_CXX_FLAGS_INIT={target}", "-DCMAKE_SYSTEM_NAME=Windows",
-            "-DCMAKE_SYSTEM_PROCESSOR=ARM64"]
+    if not has_msvc_arm64(vs):
+        # Both the ARM64 cross compiler and the ARM64 C runtime libraries come
+        # with this component; clang cannot link without the latter either.
+        raise SystemExit("ARM64 builds need the Visual Studio component "
+                         "'MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools (Latest)' "
+                         "(Microsoft.VisualStudio.Component.VC.Tools.ARM64)")
+    return ["-DCMAKE_C_COMPILER=cl", "-DCMAKE_CXX_COMPILER=cl",
+            "-DCMAKE_SYSTEM_NAME=Windows", "-DCMAKE_SYSTEM_PROCESSOR=ARM64"]
 
 
 def describe(vs=None):
     vs = vs or installation()
     return {"visual_studio": str(vs), "msvc_toolset": toolset(vs).name,
-            "msvc_arm64_cross": has_msvc_arm64(vs),
-            "clang_cl": str(clang_cl(vs)) if clang_cl(vs) else None}
+            "msvc_arm64_cross": has_msvc_arm64(vs)}

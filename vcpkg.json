@@ -1,18 +1,9 @@
 {
-  "$comment": "MSVC dependencies for the WinUI viewer core (plans/native-ui-winui/CORE.md \u00a73). zlib, GnuTLS, nettle and GMP come from MSYS2 CLANG64/CLANGARM64 DLLs (DECISIONS.md D3 fallback; apps/windows/deps.py) because the vcpkg gnutls port does not support MSVC, and one zlib serves both GnuTLS and the core.",
+  "$comment": "GoogleTest for the MSVC unit tests (plans/native-ui-winui CORE.md section 3). Every C dependency of the core comes from MSYS2 CLANG64/CLANGARM64 DLLs through apps/windows/deps.py (DECISIONS.md D3, revised).",
   "name": "tidyvnc",
   "version-string": "1.16.80",
   "builtin-baseline": "48483a35f9e6f32572bc7c9382f14436cc7106a8",
   "dependencies": [
-    "libjpeg-turbo",
-    "pixman"
-  ],
-  "features": {
-    "tests": {
-      "description": "GoogleTest for the unit suite",
-      "dependencies": [
-        "gtest"
-      ]
-    }
-  }
+    "gtest"
+  ]
 }
