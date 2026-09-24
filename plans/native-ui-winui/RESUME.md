@@ -16,7 +16,8 @@ The WinUI 3 viewer (`apps/windows/TidyVNC`) runs on the MSVC-built core
 The W7 package stage produces an audited per-user MSI. Items stay unchecked in TODO.md until
 their remaining checks run. These are mostly the following, and each item lists its own:
 
-- display-dependent UI tests (the owner's single display was powered off during this work);
+- display-dependent UI tests. The desktop is an active RDP session that was not on screen during this
+  work; these tests need it displayed (the RDP window visible, not minimized) or the console session;
 - hands-on keyboard, Narrator and contrast passes;
 - hardware: mixed-DPI, touch, pen, ARM64;
 - a clean VM or test account: installing, FLTK comparisons, relocated GUI start;
@@ -25,6 +26,7 @@ their remaining checks run. These are mostly the following, and each item lists 
 Checked or decided so far:
 
 - W0.2 (startup, size and warnings for JIT, trimmed and AOT builds);
+- W0.10 (the terminal cases and Ctrl+C in cmd.exe and PowerShell);
 - W1.9 (long paths now work without the LongPathsEnabled setting);
 - W1–W4, with named exceptions;
 - W7.8 (Native AOT not adopted yet; see DECISIONS.md D1).
@@ -62,6 +64,8 @@ rem UI automation and smokes: only with TIDYVNC_UI_TESTS=1 and an idle desktop (
 dotnet test --project tests\windows\TidyVNC.UITests -c Debug -p:Platform=x64
 python tests\integration\windows-scaling-smoke.py build\winui\app-x64-debug\vncviewer.exe
 python tests\integration\windows-security-smoke.py build\winui\app-x64-debug\vncviewer.exe --accept-prompts
+python tests\integration\windows-invocation-terminal.py build\winui\app-x64-debug\vncviewer.exe
+python tests\integration\windows-console-smoke.py build\winui\app-x64-debug\vncviewer.exe
 python tests\perf\windows-viewer-workloads.py --winui build\winui\app-x64-debug\vncviewer.exe
 
 rem Strings and pseudo-locales
