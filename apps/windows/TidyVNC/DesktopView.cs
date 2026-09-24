@@ -25,6 +25,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     private readonly Grid host = new() { Background = new SolidColorBrush(Colors.Black) };
     private readonly DesktopRenderer renderer;
     private readonly NativeKeyboard keyboard = new();
+    private readonly NativeShortcutRouter shortcuts = new();
     private readonly DispatcherQueueTimer altGrTimer;
     private NativeSession? session;
     private NativeGeometry? geometry;
@@ -32,6 +33,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     private uint buttons;
     private bool disposed, keyboardFocused;
     private NativeScaling scaling = NativeScaling.BuiltIn;
+    private NativeCanvasViewport? canvas;
+    private NativeShortcutModifiers shortcutModifiers = NativeShortcutModifiers.BuiltIn;
 
     /// <summary>The largest backing store a Direct3D 11 texture can hold on any feature level we require.</summary>
     private const uint MaximumBacking = 16384;
@@ -55,6 +58,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         host.PointerReleased += OnPointer;
         host.PointerCanceled += OnPointer;
         host.PointerWheelChanged += OnWheel;
+        host.PointerEntered += (_, _) => SurfaceEntered?.Invoke(this);
         GotFocus += (_, _) => SetKeyboardFocus(true);
         LostFocus += (_, _) => SetKeyboardFocus(false);
         altGrTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
@@ -72,6 +76,10 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     public IntPtr WindowHandle { get; }
     public DesktopRenderer Renderer => renderer;
     public event Action<Exception>? RenderFailed;
+    /// <summary>A viewer shortcut other than remote input (full screen, keyboard capture, context menu), raised after the key is handled.</summary>
+    public event Action<DesktopView, NativeShortcutDecision.RouteKind>? Command;
+    /// <summary>The pointer entered this surface (full-screen surfaces follow the pointer).</summary>
+    public event Action<DesktopView>? SurfaceEntered;
 
     public NativeSession? Session
     {
@@ -113,6 +121,30 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         }
     }
 
+    /// <summary>This surface's region of a shared full-screen canvas, or null for the whole desktop.</summary>
+    public NativeCanvasViewport? Canvas
+    {
+        get => canvas;
+        set
+        {
+            if (canvas == value) return;
+            canvas = value;
+            UpdateViewport();
+        }
+    }
+
+    /// <summary>The connection's viewer shortcut modifiers (K07-K09).</summary>
+    public NativeShortcutModifiers ShortcutModifiers
+    {
+        get => shortcutModifiers;
+        set
+        {
+            if (shortcutModifiers == value) return;
+            shortcutModifiers = value;
+            shortcuts.SetModifiers(value);
+        }
+    }
+
     /// <summary>
     /// Whether this view can render a scaling for its current desktop and
     /// size (macOS validateScaling): the backing store must fit a texture.
@@ -134,7 +166,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
         if (width <= 0 || height <= 0 || scale <= 0) return;
         renderer.Resize(new DesktopViewport((uint)Math.Ceiling(width * scale), (uint)Math.Ceiling(height * scale), width, height, scale,
-            scaling.Canonical, scaling.Filter, scaling.DevicePixels));
+            scaling.Canonical, scaling.Filter, scaling.DevicePixels, canvas));
         UpdateGeometry();
     }
 
@@ -142,7 +174,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     {
         double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
         geometry = frameSize is { } size && width > 0 && height > 0 && scale > 0
-            ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels)
+            ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels, canvas: canvas)
             : null;
     }
 
@@ -214,8 +246,40 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         if (session is null) return;
         foreach (var key in events)
         {
-            try { session.SendKey((uint)key.SystemKeyCode, key.KeySym, key.KeyCode, key.Press); }
-            catch (NativeError) { return; }
+            // Viewer shortcuts come first (the retained Space bypass and chord rules).
+            NativeShortcutDecision decision;
+            try
+            {
+                decision = key.Press
+                    ? shortcuts.Press(key.SystemKeyCode, key.KeySym, () => keyboard.KeySyms(key.SystemKeyCode))
+                    : shortcuts.Release(key.SystemKeyCode);
+            }
+            catch (NativeError)
+            {
+                shortcuts.Reset();
+                decision = new(NativeShortcutDecision.RouteKind.Suppress, true);
+            }
+            if (decision.ReleaseRemoteKeys)
+            {
+                try { session.ReleaseInput(); }
+                catch (NativeError) { }
+            }
+            switch (decision.Route)
+            {
+                case NativeShortcutDecision.RouteKind.Remote:
+                    try { session.SendKey((uint)key.SystemKeyCode, key.KeySym, key.KeyCode, key.Press); }
+                    catch (NativeError) { return; }
+                    break;
+                case NativeShortcutDecision.RouteKind.ReleaseKeyboard:
+                    Capture.ReleaseForCommand();
+                    break;
+                case NativeShortcutDecision.RouteKind.CaptureKeyboard or NativeShortcutDecision.RouteKind.ToggleFullscreen
+                    or NativeShortcutDecision.RouteKind.ContextMenu:
+                    // After the hook returns: the command may change windows and focus.
+                    var route = decision.Route;
+                    DispatcherQueue.TryEnqueue(() => { if (!disposed) Command?.Invoke(this, route); });
+                    break;
+            }
         }
     }
 
@@ -237,6 +301,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         if (disposed) return;
         altGrTimer.Stop();
         keyboard.Reset();
+        shortcuts.Reset();
         try { if (session is { IsClosing: false } s) s.ReleaseInput(); }
         catch (NativeError) { }
     }
@@ -252,5 +317,6 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         altGrTimer.Stop();
         renderer.Dispose();
         keyboard.Dispose();
+        shortcuts.Dispose();
     }
 }

@@ -139,8 +139,8 @@ internal static class RemoteResizePolicyDialog
             enabled.IsChecked = draft.Enabled;
             if (size.Text != draft.InitialSize) size.Text = draft.InitialSize;
             updating = false;
-            enabledSource.Text = SettingsLabels.ResizeSource(draft.Source(NativeResizeOption.Enabled));
-            sizeSource.Text = SettingsLabels.ResizeSource(draft.Source(NativeResizeOption.InitialSize));
+            enabledSource.Text = SettingsLabels.ShortSource(draft.Source(NativeResizeOption.Enabled));
+            sizeSource.Text = SettingsLabels.ShortSource(draft.Source(NativeResizeOption.InitialSize));
             error.Text = draft.Changed ? Strings.Get("settings.resize.the.connection.s.resize.settings.changed.close.and.reopen.this.sheet")
                 : !draft.IsValid ? Strings.Get("settings.resize.use.widthxheight.with.each.dimension.from.1.to.65535.or.leave.the") : "";
             error.Visibility = error.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
@@ -170,13 +170,6 @@ internal static class RemoteResizeDialog
         NativeRemoteResizeSource.SelectedDisplays => "settings.resize.selected.local.displays",
         _ => "settings.resize.custom.size",
     });
-
-    /// <summary>"1. Name — W × H effective pixels, S%" (the Windows form of settings.display.description).</summary>
-    internal static string Describe(int index, NativeDisplayInfo display) => Strings.Format("settings.display.description",
-        (index + 1).ToString(CultureInfo.CurrentCulture), display.Name,
-        Math.Round(display.LogicalBounds.Width).ToString("N0", CultureInfo.CurrentCulture),
-        Math.Round(display.LogicalBounds.Height).ToString("N0", CultureInfo.CurrentCulture),
-        Math.Round(display.Scale * 100).ToString("N0", CultureInfo.CurrentCulture));
 
     private static string Number(uint value) => value.ToString("N0", CultureInfo.CurrentCulture);
 
@@ -213,11 +206,7 @@ internal static class RemoteResizeDialog
         var custom = Ui.Stack(8, width, height,
             Ui.Caption(Strings.Get("settings.resize.enter.whole.numbers.from.1.to.65535.the.server.and.this.connection")), replaces);
 
-        var map = new Canvas { Height = 110 };
-        AutomationProperties.SetAccessibilityView(map, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
-        map.SizeChanged += (_, _) => DrawMap();
-        var list = new StackPanel { Spacing = 6 };
-        AutomationProperties.SetAutomationId(list, "remoteResize.displays");
+        var chooser = new DisplayChooser("remoteResize");
         var devicePixels = new CheckBox { Content = Strings.Get("settings.resize.use.device.pixels") };
         AutomationProperties.SetAutomationId(devicePixels, "remoteResize.devicePixels");
         devicePixels.Click += (_, _) => { if (!updating) draft.DevicePixels = devicePixels.IsChecked == true; };
@@ -225,7 +214,7 @@ internal static class RemoteResizeDialog
         var normalized = Ui.Caption(Strings.Get("settings.resize.the.remote.arrangement.is.adjusted.to.keep.displays.with.different.pixel.densities"));
         var problem = Ui.Text("", "remoteResize.displayProblem");
         problem.Foreground = Ui.Warning;
-        var chooser = Ui.Stack(10, map, list, devicePixels,
+        var chooserPanel = Ui.Stack(10, chooser.Map, chooser.List, devicePixels,
             Ui.Caption(Strings.Get("settings.resize.creates.one.remote.screen.per.selected.local.display.this.changes.the.server")),
             requested, normalized, problem);
 
@@ -236,7 +225,7 @@ internal static class RemoteResizeDialog
         var undo = Ui.Caption(Strings.Get("settings.resize.closing.this.sheet.cannot.undo.a.request.already.sent.to.the.server"));
         var panel = Ui.Stack(12,
             Ui.Caption(Strings.Get("settings.resize.request.a.new.resolution.from.the.server.this.may.affect.other.viewers")),
-            source, custom, chooser, busy, result, undo);
+            source, custom, chooserPanel, busy, result, undo);
         var dialog = Ui.Dialog(Strings.Get("settings.resize.resize.remote.desktop"), panel, 520);
         dialog.PrimaryButtonText = Strings.Get("settings.resize.resize");
         dialog.SecondaryButtonText = Strings.Get("trust.library.ui.reload");
@@ -247,72 +236,6 @@ internal static class RemoteResizeDialog
             var next = new HashSet<string>(draft.SelectedDisplays, StringComparer.Ordinal);
             if (selected) next.Add(id); else next.Remove(id);
             draft.SelectedDisplays = next;
-        }
-
-        void DrawMap()
-        {
-            map.Children.Clear();
-            var displays = draft.DisplaySnapshot?.Displays ?? [];
-            if (displays.IsEmpty || map.ActualWidth <= 12) return;
-            double left = displays.Min(d => d.Bounds.X), top = displays.Min(d => d.Bounds.Y);
-            double right = displays.Max(d => d.Bounds.X + d.Bounds.Width), bottom = displays.Max(d => d.Bounds.Y + d.Bounds.Height);
-            var scale = Math.Min((map.ActualWidth - 12) / Math.Max(1, right - left), (map.ActualHeight - 12) / Math.Max(1, bottom - top));
-            double offsetX = (map.ActualWidth - (right - left) * scale) / 2, offsetY = (map.ActualHeight - (bottom - top) * scale) / 2;
-            var accent = Ui.Brush("AccentFillColorDefaultBrush");
-            for (var i = 0; i < displays.Length; i++)
-            {
-                var display = displays[i];
-                var chosen = draft.Source == NativeRemoteResizeSource.AllDisplays || draft.SelectedDisplays.Contains(display.Id);
-                var tile = new Grid
-                {
-                    Width = Math.Max(1, display.Bounds.Width * scale - 3), Height = Math.Max(1, display.Bounds.Height * scale - 3),
-                    CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(2),
-                    BorderBrush = chosen ? accent : Ui.Secondary,
-                    Background = new SolidColorBrush(((SolidColorBrush)(chosen ? accent : Ui.Secondary)).Color) { Opacity = 0.18 },
-                };
-                tile.Children.Add(new TextBlock
-                {
-                    Text = (i + 1).ToString(CultureInfo.CurrentCulture), FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
-                });
-                var id = display.Id;
-                tile.Tapped += (_, _) =>
-                {
-                    if (draft.Source == NativeRemoteResizeSource.SelectedDisplays && !draft.IsBusy) Toggle(id, !draft.SelectedDisplays.Contains(id));
-                };
-                Canvas.SetLeft(tile, offsetX + (display.Bounds.X - left) * scale + 1.5);
-                Canvas.SetTop(tile, offsetY + (display.Bounds.Y - top) * scale + 1.5);
-                map.Children.Add(tile);
-            }
-        }
-
-        void FillList()
-        {
-            list.Children.Clear();
-            var displays = draft.DisplaySnapshot?.Displays ?? [];
-            var selectable = draft.Source == NativeRemoteResizeSource.SelectedDisplays;
-            for (var i = 0; i < displays.Length; i++)
-            {
-                var label = Describe(i, displays[i]);
-                if (!selectable) { list.Children.Add(Ui.Text(label)); continue; }
-                var id = displays[i].Id;
-                var box = new CheckBox { Content = label, IsChecked = draft.SelectedDisplays.Contains(id), IsEnabled = !draft.IsBusy };
-                AutomationProperties.SetAutomationId(box, "remoteResize.display." + i.ToString(CultureInfo.InvariantCulture));
-                box.Click += (_, _) => Toggle(id, box.IsChecked == true);
-                list.Children.Add(box);
-            }
-            var missing = draft.MissingDisplays;
-            for (var i = 0; i < missing.Count; i++)
-            {
-                var id = missing[i];
-                var box = new CheckBox
-                {
-                    Content = Strings.Format("settings.display.disconnected.selection", (i + 1).ToString(CultureInfo.CurrentCulture)),
-                    IsChecked = true, IsEnabled = !draft.IsBusy,
-                };
-                box.Click += (_, _) => Toggle(id, box.IsChecked == true);
-                list.Children.Add(box);
-            }
         }
 
         void Refresh()
@@ -326,14 +249,15 @@ internal static class RemoteResizeDialog
             var isCustom = draft.Source == NativeRemoteResizeSource.Custom;
             source.IsEnabled = width.IsEnabled = height.IsEnabled = devicePixels.IsEnabled = !draft.IsBusy;
             custom.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
-            chooser.Visibility = isCustom ? Visibility.Collapsed : Visibility.Visible;
+            chooserPanel.Visibility = isCustom ? Visibility.Collapsed : Visibility.Visible;
             var screens = draft.Baseline?.Layout.Screens.Count ?? 0;
             replaces.Text = screens > 1 ? Strings.Format("settings.resize.replaces.layout", screens.ToString("N0", CultureInfo.CurrentCulture)) : "";
             replaces.Visibility = screens > 1 ? Visibility.Visible : Visibility.Collapsed;
             if (!isCustom)
             {
-                FillList();
-                DrawMap();
+                var all = draft.Source == NativeRemoteResizeSource.AllDisplays;
+                chooser.Show(draft.DisplaySnapshot?.Displays ?? [], id => all || draft.SelectedDisplays.Contains(id),
+                    draft.Source == NativeRemoteResizeSource.SelectedDisplays, draft.SelectedDisplays, draft.MissingDisplays, !draft.IsBusy, Toggle);
                 var layout = draft.DisplayLayout;
                 requested.Text = layout is null ? "" : Strings.Format("settings.resize.requested.layout",
                     Number(layout.Width), Number(layout.Height), layout.Regions.Count.ToString("N0", CultureInfo.CurrentCulture));
@@ -355,6 +279,178 @@ internal static class RemoteResizeDialog
         Refresh();
         dialog.PrimaryButtonClick += (_, args) => { args.Cancel = true; draft.Apply(); };
         dialog.SecondaryButtonClick += (_, args) => { args.Cancel = true; draft.Reload(); };
+        return dialog;
+    }
+}
+
+/// <summary>
+/// The display arrangement picture and list shared by the full-screen and
+/// remote resize dialogs (macOS RemoteDisplayChooser and the fullscreen
+/// sheet's tiles): chosen displays are highlighted; in selection mode tiles
+/// and check boxes toggle a display, and disconnected selections stay listed.
+/// </summary>
+internal sealed class DisplayChooser
+{
+    private readonly string prefix;
+    private IReadOnlyList<NativeDisplayInfo> displays = [];
+    private Func<string, bool> chosen = _ => false;
+    private bool selectable, enabled;
+    private Action<string, bool> toggle = (_, _) => { };
+
+    public Canvas Map { get; } = new() { Height = 110 };
+    public StackPanel List { get; } = new() { Spacing = 6 };
+
+    public DisplayChooser(string prefix)
+    {
+        this.prefix = prefix;
+        AutomationProperties.SetAccessibilityView(Map, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
+        AutomationProperties.SetAutomationId(List, prefix + ".displays");
+        Map.SizeChanged += (_, _) => Draw();
+    }
+
+    /// <summary>"1. Name — W × H effective pixels, S%" (the Windows form of settings.display.description).</summary>
+    public static string Describe(int index, NativeDisplayInfo display) => Strings.Format("settings.display.description",
+        (index + 1).ToString(CultureInfo.CurrentCulture), display.Name,
+        Math.Round(display.LogicalBounds.Width).ToString("N0", CultureInfo.CurrentCulture),
+        Math.Round(display.LogicalBounds.Height).ToString("N0", CultureInfo.CurrentCulture),
+        Math.Round(display.Scale * 100).ToString("N0", CultureInfo.CurrentCulture));
+
+    public void Show(IReadOnlyList<NativeDisplayInfo> displays, Func<string, bool> chosen, bool selectable, IReadOnlySet<string> selected,
+                     IReadOnlyList<string> missing, bool enabled, Action<string, bool> toggle)
+    {
+        this.displays = displays; this.chosen = chosen; this.selectable = selectable; this.enabled = enabled; this.toggle = toggle;
+        Draw();
+        List.Children.Clear();
+        for (var i = 0; i < displays.Count; i++)
+        {
+            var label = Describe(i, displays[i]);
+            if (!selectable) { List.Children.Add(Ui.Text(label)); continue; }
+            var id = displays[i].Id;
+            var box = new CheckBox { Content = label, IsChecked = selected.Contains(id), IsEnabled = enabled };
+            AutomationProperties.SetAutomationId(box, prefix + ".display." + i.ToString(CultureInfo.InvariantCulture));
+            box.Click += (_, _) => toggle(id, box.IsChecked == true);
+            List.Children.Add(box);
+        }
+        if (!selectable) return;
+        for (var i = 0; i < missing.Count; i++)
+        {
+            var id = missing[i];
+            var box = new CheckBox
+            {
+                Content = Strings.Format("settings.display.disconnected.selection", (i + 1).ToString(CultureInfo.CurrentCulture)),
+                IsChecked = true, IsEnabled = enabled,
+            };
+            box.Click += (_, _) => toggle(id, box.IsChecked == true);
+            List.Children.Add(box);
+        }
+    }
+
+    private void Draw()
+    {
+        Map.Children.Clear();
+        Map.Visibility = displays.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        if (displays.Count == 0 || Map.ActualWidth <= 12) return;
+        double left = displays.Min(d => d.Bounds.X), top = displays.Min(d => d.Bounds.Y);
+        double right = displays.Max(d => d.Bounds.X + d.Bounds.Width), bottom = displays.Max(d => d.Bounds.Y + d.Bounds.Height);
+        var scale = Math.Min((Map.ActualWidth - 12) / Math.Max(1, right - left), (Map.ActualHeight - 12) / Math.Max(1, bottom - top));
+        double offsetX = (Map.ActualWidth - (right - left) * scale) / 2, offsetY = (Map.ActualHeight - (bottom - top) * scale) / 2;
+        var accent = Ui.Brush("AccentFillColorDefaultBrush");
+        for (var i = 0; i < displays.Count; i++)
+        {
+            var display = displays[i];
+            var on = chosen(display.Id);
+            var tile = new Grid
+            {
+                Width = Math.Max(1, display.Bounds.Width * scale - 3), Height = Math.Max(1, display.Bounds.Height * scale - 3),
+                CornerRadius = new CornerRadius(5), BorderThickness = new Thickness(2),
+                BorderBrush = on ? accent : Ui.Secondary,
+                Background = new SolidColorBrush(((SolidColorBrush)(on ? accent : Ui.Secondary)).Color) { Opacity = 0.18 },
+            };
+            tile.Children.Add(new TextBlock
+            {
+                Text = (i + 1).ToString(CultureInfo.CurrentCulture), FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            });
+            var id = display.Id;
+            tile.Tapped += (_, _) => { if (selectable && enabled) toggle(id, !chosen(id)); };
+            Canvas.SetLeft(tile, offsetX + (display.Bounds.X - left) * scale + 1.5);
+            Canvas.SetTop(tile, offsetY + (display.Bounds.Y - top) * scale + 1.5);
+            Map.Children.Add(tile);
+        }
+    }
+}
+
+/// <summary>Full-screen display settings for this connection (macOS FullscreenSettingsSheet; PARITY D02-D05).</summary>
+internal static class FullscreenDialog
+{
+    private static readonly NativeFullscreenMode[] Modes = Enum.GetValues<NativeFullscreenMode>();
+
+    private static string Title(NativeFullscreenMode mode) => Strings.Get(mode switch
+    {
+        NativeFullscreenMode.All => "settings.fullscreen.all.displays",
+        NativeFullscreenMode.Selected => "settings.fullscreen.selected.displays",
+        _ => "settings.fullscreen.current.display",
+    });
+
+    public static ContentDialog Create(NativeFullscreenDraft draft)
+    {
+        var updating = false;
+        var start = new CheckBox { Content = Strings.Get("settings.fullscreen.start.in.full.screen") };
+        AutomationProperties.SetAutomationId(start, "fullscreen.start");
+        start.Click += (_, _) => { if (!updating) draft.StartsFullscreen = start.IsChecked == true; };
+        var startSource = Ui.Caption("");
+        var mode = SettingsLabels.Choice(Strings.Get("settings.fullscreen.use"), "fullscreen.mode", [.. Modes.Select(Title)]);
+        mode.SelectionChanged += (_, _) => { if (!updating && mode.SelectedIndex >= 0) draft.Mode = Modes[mode.SelectedIndex]; };
+        var modeSource = Ui.Caption("");
+        var chooser = new DisplayChooser("fullscreen");
+        var selectedSource = Ui.Caption("");
+        var kept = Ui.Caption(Strings.Get("settings.fullscreen.disconnected.selections.are.kept.available.selected.displays.are.used.if.none.remain"));
+        var issue = Ui.Text("", "fullscreen.issue");
+        issue.Foreground = Ui.Warning;
+        var restore = Ui.Button(Strings.Get("settings.fullscreen.restore.initial.settings"), (_, _) => draft.RestoreInitial(), "fullscreen.restore");
+        var panel = Ui.Stack(8,
+            Ui.Caption(Strings.Get("settings.fullscreen.choose.where.this.connection.appears.when.you.enter.full.screen.exit.full")),
+            start, startSource, mode, modeSource, chooser.Map, chooser.List, selectedSource, kept,
+            Ui.Caption(Strings.Get("settings.fullscreen.display.changes.apply.the.next.time.full.screen.opens.reconnecting.restores.full")),
+            issue, restore);
+        var dialog = Ui.Dialog(Strings.Get("settings.fullscreen.fullscreen.displays"), panel, 520);
+        dialog.PrimaryButtonText = Strings.Get("action.apply");
+        dialog.SecondaryButtonText = Strings.Get("settings.fullscreen.review.displays");
+        dialog.CloseButtonText = Strings.Get("action.cancel");
+        AutomationProperties.SetAutomationId(dialog, "fullscreen.dialog");
+
+        void Toggle(string id, bool selected)
+        {
+            var next = new HashSet<string>(draft.SelectedDisplays, StringComparer.Ordinal);
+            if (selected) next.Add(id); else next.Remove(id);
+            draft.SelectedDisplays = next;
+        }
+
+        void Refresh()
+        {
+            updating = true;
+            start.IsChecked = draft.StartsFullscreen;
+            mode.SelectedIndex = Array.IndexOf(Modes, draft.Mode);
+            updating = false;
+            startSource.Text = SettingsLabels.ShortSource(draft.Source(NativeFullscreenOption.StartsFullscreen));
+            modeSource.Text = SettingsLabels.ShortSource(draft.Source(NativeFullscreenOption.Mode));
+            var chosen = draft.ChosenDisplays.Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
+            var selecting = draft.Mode == NativeFullscreenMode.Selected;
+            chooser.Show(draft.Snapshot.Displays, chosen.Contains, selecting, draft.SelectedDisplays, draft.Missing, true, Toggle);
+            selectedSource.Text = Strings.Format("settings.fullscreen.selected.source", SettingsLabels.ShortSource(draft.Source(NativeFullscreenOption.SelectedDisplays)));
+            kept.Visibility = selecting && draft.Missing.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            issue.Text = draft.Changed ? Strings.Get("settings.fullscreen.the.connection.changed.close.and.reopen.this.sheet")
+                : draft.Validation is { } text ? Strings.Resolve(text) : "";
+            issue.Visibility = issue.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            dialog.IsSecondaryButtonEnabled = draft.NeedsReview;
+            dialog.IsPrimaryButtonEnabled = draft.CanApply;
+            dialog.DefaultButton = draft.CanApply ? ContentDialogButton.Primary : ContentDialogButton.Close;
+        }
+        draft.PropertyChanged += (_, _) => Refresh();
+        Refresh();
+        dialog.PrimaryButtonClick += (_, args) => { if (!draft.Apply()) args.Cancel = true; };
+        dialog.SecondaryButtonClick += (_, args) => { args.Cancel = true; draft.ReviewDisplays(); };
+        dialog.Closed += (_, _) => draft.Cancel();
         return dialog;
     }
 }

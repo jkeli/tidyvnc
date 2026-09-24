@@ -30,7 +30,8 @@ public sealed partial class ConnectionWindow : Window
     private bool closed, updatingFields;
     // Placement (DESKTOP.md section 8): the last restored frame, and whether the user has placed the window.
     private NativeWindowFrame? restoredFrame;
-    private bool shown, placing, userPlaced, startupApplied;
+    private bool shown, placing, userPlaced, startupApplied, active;
+    private readonly FullscreenHost fullscreen;
 
     internal NativeConnectionController Controller { get; }
     internal DesktopView Desktop => desktop;
@@ -48,7 +49,12 @@ public sealed partial class ConnectionWindow : Window
         TitleIcon.ImageSource = new BitmapImage(new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc_32.png")));
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));
         WindowSizes.Apply(AppWindow, 960, 700, 640, 420);
+        Handle = window;
         desktop = new DesktopView(window);
+        desktop.Command += DesktopCommand;
+        fullscreen = new FullscreenHost(this, new NativeFullscreenState(), App.Current.Displays);
+        fullscreen.State.PropertyChanged += (_, _) => Update();
+        fullscreen.State.AutomaticEntryDue += () => DispatcherQueue.TryEnqueue(TryAutomaticFullscreen);
         desktop.RenderFailed += _ => ShowFatal(NativePresentationIssues.From(new NativeError(NativeStatus.Failed, "render"), NativePresentationContext.Desktop).Message());
         DesktopHost.Child = desktop;
         dialogs = new DialogPresenter(() => Content?.XamlRoot, DesiredDialog);
@@ -70,7 +76,8 @@ public sealed partial class ConnectionWindow : Window
         controller.SessionReady += Attach;
         // The desktop renders the connection's scaling and refuses sizes it cannot hold.
         scalingCheck = controller.Scaling.Register(desktop.CanRender);
-        controller.Scaling.PropertyChanged += (_, _) => desktop.Scaling = controller.Scaling.Value;
+        controller.Scaling.PropertyChanged += (_, _) => fullscreen.ScalingChanged(controller.Scaling.Value);
+        controller.Input.PropertyChanged += (_, _) => InputChanged();
         if (controller.History is { } history)
         {
             history.PropertyChanged += (_, _) => Update();
@@ -84,7 +91,8 @@ public sealed partial class ConnectionWindow : Window
         {
             if (!shown && restoredFrame is null && !Maximized) restoredFrame = Frame;
             shown = true;
-            var active = e.WindowActivationState != WindowActivationState.Deactivated;
+            active = e.WindowActivationState != WindowActivationState.Deactivated;
+            if (active && fullscreen.State.AutomaticEntryPending) DispatcherQueue.TryEnqueue(TryAutomaticFullscreen);
             if (!active) desktop.ReleaseKeys();
             App.Current.WindowActivationChanged(this, active);
         };
@@ -97,6 +105,8 @@ public sealed partial class ConnectionWindow : Window
         if (ReferenceEquals(session, value)) return;
         session = value;
         ApplyStartupPlacement(value.InitialWindowStartupPolicy);
+        fullscreen.State.Bind(value);
+        InputChanged();
         session.PropertyChanged += SessionChanged;
         App.Current.Clipboard.Register(session, notice => { ClipboardNotice = notice; Update(); });
         session.BellHandler = App.Current.Bell.Ring;
@@ -135,6 +145,7 @@ public sealed partial class ConnectionWindow : Window
         if (e.PropertyName is nameof(NativeSession.Prompt) or nameof(NativeSession.Snapshot)) dialogs.Update();
         if (e.PropertyName == nameof(NativeSession.Snapshot) && session?.Snapshot.State == NativeSessionState.Connected && session.HasFrame is false)
             desktop.Focus(FocusState.Programmatic);
+        if (e.PropertyName == nameof(NativeSession.Snapshot) && session?.Snapshot.State != NativeSessionState.Connected) fullscreen.ConnectionEnded();
     }
 
     // ---- Presentation ---------------------------------------------------------------
@@ -216,6 +227,8 @@ public sealed partial class ConnectionWindow : Window
         StatusText.Text = Strings.Resolve(NativeTexts.Status(state));
         ClipboardStatus.Text = ClipboardNotice is { } clipboard ? Strings.Resolve(NativeTexts.Clipboard(clipboard)) : "";
         ClipboardStatus.Visibility = ClipboardNotice is null ? Visibility.Collapsed : Visibility.Visible;
+        FullscreenStatus.Text = fullscreen.State.Message is { } fullscreenNotice ? Strings.Resolve(fullscreenNotice) : "";
+        FullscreenStatus.Visibility = FullscreenStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         DesktopSize.Text = session is { Snapshot.Width: > 0 } s
             ? Strings.Format("information.desktop.size", s.Snapshot.Width, s.Snapshot.Height) : "";
     }
@@ -298,6 +311,7 @@ public sealed partial class ConnectionWindow : Window
             NativeConnectionDraft connection => () => ConnectionOptionsDialog.Create(connection),
             NativeRemoteResizePolicyDraft policy => () => RemoteResizePolicyDialog.Create(policy),
             NativeRemoteResizeDraft resize => () => RemoteResizeDialog.Create(resize),
+            NativeFullscreenDraft displays => () => FullscreenDialog.Create(displays),
             _ => null,
         };
         return create is null ? null : new DialogRequest(key, create, _ => Controller.EndEditor(editor), () => Controller.EndEditor(editor));
@@ -314,6 +328,23 @@ public sealed partial class ConnectionWindow : Window
 
     internal bool CanResizeRemote => CanOpenConnectedEditor &&
         session is { Snapshot: { SupportsResize: true, ResizePending: false }, IsViewOnly: false };
+
+    internal bool CanOpenFullscreenSettings => CanOpenConnectedEditor && !fullscreen.IsFullscreen;
+
+    internal void OpenFullscreenSettings()
+    {
+        if (!CanOpenFullscreenSettings) return;
+        var draft = new NativeFullscreenDraft(fullscreen.State, App.Current.Displays, () => CurrentDisplayId, () =>
+            Controller.Scaling.Value is var value && !value.Mode.Fits() && value.DevicePixels);
+        if (Controller.BeginEditor(draft, NativeEditorScope.Connected, () => { draft.Cancel(); return Task.CompletedTask; })) dialogs.Update();
+        else draft.Cancel();
+    }
+
+    internal bool IsFullscreen => fullscreen.IsFullscreen;
+
+    internal bool CanToggleFullscreen => fullscreen.IsFullscreen || (session?.Snapshot.State == NativeSessionState.Connected && Controller.EditorsIdle);
+
+    internal void ToggleFullscreen() => fullscreen.Toggle();
 
     internal void OpenConnectionOptions()
     {
@@ -470,6 +501,77 @@ public sealed partial class ConnectionWindow : Window
 
     private void ActionsOpening(object? sender, object e) => ConnectionMenu.Fill(ActionsFlyout.Items, this);
 
+    // ---- Full screen (DESKTOP.md section 7) ------------------------------------------
+
+    internal IntPtr Handle { get; }
+
+    /// <summary>The display holding most of this window.</summary>
+    internal string? CurrentDisplayId => NativeWindowPlacements.Capture(Frame, false, App.Current.Displays.Snapshot).Display;
+
+    private readonly Dictionary<UIElement, Visibility> chrome = [];
+
+    /// <summary>Full screen on the current display: only the desktop remains, edge to edge.</summary>
+    internal void SetFullscreenChrome(bool fullscreenChrome)
+    {
+        if (fullscreenChrome)
+        {
+            chrome.Clear();
+            foreach (var child in Root.Children.Where(c => c != DesktopArea))
+            {
+                chrome[child] = child.Visibility;
+                child.Visibility = Visibility.Collapsed;
+            }
+            Grid.SetRow(DesktopArea, 0);
+            Grid.SetRowSpan(DesktopArea, Root.RowDefinitions.Count);
+            DesktopArea.BorderThickness = new Thickness(0);
+        }
+        else
+        {
+            foreach (var (child, visibility) in chrome) child.Visibility = visibility;
+            chrome.Clear();
+            Grid.SetRow(DesktopArea, 4);
+            Grid.SetRowSpan(DesktopArea, 2);
+            DesktopArea.BorderThickness = new Thickness(0, 1, 0, 1);
+        }
+    }
+
+    /// <summary>Automatic entry (startup or reconnect) waits until this window is active and can present.</summary>
+    private void TryAutomaticFullscreen()
+    {
+        if (closed || !active || !fullscreen.State.AutomaticEntryPending || !Controller.EditorsIdle ||
+            AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized }) return;
+        if (fullscreen.State.TakeAutomaticEntry()) fullscreen.TryEnter(automatic: true);
+    }
+
+    /// <summary>Viewer shortcuts from any of this connection's desktop views.</summary>
+    internal void DesktopCommand(DesktopView view, NativeShortcutDecision.RouteKind route)
+    {
+        if (closed) return;
+        switch (route)
+        {
+            case NativeShortcutDecision.RouteKind.ToggleFullscreen:
+                if (CanToggleFullscreen) fullscreen.Toggle();
+                break;
+            case NativeShortcutDecision.RouteKind.CaptureKeyboard:
+                try { view.Capture.Capture(); }
+                catch (NativeKeyboardCaptureException) { } // The capture notice reports it.
+                break;
+            case NativeShortcutDecision.RouteKind.ContextMenu when !fullscreen.IsFullscreen:
+                ActionsFlyout.ShowAt(desktop);
+                break;
+        }
+    }
+
+    private void InputChanged()
+    {
+        var value = Controller.Input.Value;
+        foreach (var view in fullscreen.Views.Append(desktop).Distinct())
+        {
+            view.ShortcutModifiers = value.ShortcutModifiers;
+            view.Capture.SetFullscreenSystemKeys(value.FullscreenSystemKeys);
+        }
+    }
+
     // ---- Placement -----------------------------------------------------------------
 
     private const string PlacementKey = "connection";
@@ -553,6 +655,7 @@ public sealed partial class ConnectionWindow : Window
     {
         if (closed) return;
         closed = true;
+        fullscreen.Dispose();
         RememberPlacement();
         dialogs.Close();
         if (session is not null) App.Current.Clipboard.Unregister(session);

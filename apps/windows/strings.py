@@ -82,6 +82,24 @@ def dotnet_format(text: str) -> str:
     return PLACEHOLDER.sub(lambda _: "{%d}" % next(index), text)
 
 
+# Windows terminology (Microsoft Writing Style Guide): "full screen" is the
+# noun, "full-screen" the adjective. Applied to generated text, not overrides.
+TERMINOLOGY = [
+    (re.compile(r"\bor fullscreen this window\b"), "or make this window full screen"),
+    (re.compile(r"\b([Ff])ullscreen (?=(?:display|displays|mode|surface|surfaces|bar|arrangement|connection|window|windows)\b)"),
+     lambda m: m.group(1) + "ull-screen "),
+    (re.compile(r"\b([Ff])ullscreen\b"), lambda m: m.group(1) + "ull screen"),
+    # Windows calls a display's density its scale.
+    (re.compile(r"\bbacking scale\b"), "scale"),
+]
+
+
+def windows_terms(text: str) -> str:
+    for pattern, replacement in TERMINOLOGY:
+        text = pattern.sub(replacement, text)
+    return text
+
+
 def is_title(text: str) -> bool:
     words = [w for w in re.split(r"\s+", text.strip().rstrip("…").strip()) if w]
     if len(words) < 2 or text.rstrip().endswith((".", ":", "?", "!")) or "{" in text:
@@ -155,7 +173,7 @@ def build() -> tuple[dict[str, str], list[str]]:
             value = text
             for title, sentence in phrases:
                 value = value.replace(title, sentence)
-        result[key] = dotnet_format(value)
+        result[key] = dotnet_format(windows_terms(value))
     for key, text in windows_only.items():
         result[key] = text
     for key, text in result.items():

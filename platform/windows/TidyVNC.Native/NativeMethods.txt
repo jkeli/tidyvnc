@@ -86,3 +86,4 @@ ShutdownBlockReasonCreate
 ShutdownBlockReasonDestroy
 MessageBeep
 GetDpiForWindow
+SetWindowLongPtr

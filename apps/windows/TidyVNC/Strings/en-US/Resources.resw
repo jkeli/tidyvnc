@@ -196,9 +196,9 @@
   <data name="desktop_enter_full_screen" xml:space="preserve"><value>Full screen</value></data>
   <data name="desktop_exit_full_screen" xml:space="preserve"><value>Exit full screen</value></data>
   <data name="desktop_focus_remote_desktop" xml:space="preserve"><value>Focus remote desktop</value></data>
-  <data name="desktop_fullscreen_displays" xml:space="preserve"><value>Fullscreen displays…</value></data>
+  <data name="desktop_fullscreen_displays" xml:space="preserve"><value>Full-screen displays…</value></data>
   <data name="desktop_fullscreen_displays_changed_full_screen_was_closed_choose_displays_again" xml:space="preserve"><value>Displays changed. Full screen was closed; choose displays again.</value></data>
-  <data name="desktop_fullscreen_full_screen_could_not_be_opened_review_fullscreen_displays_or_use_enter" xml:space="preserve"><value>Full screen could not be opened. Review Fullscreen displays or use Full screen to try again.</value></data>
+  <data name="desktop_fullscreen_full_screen_could_not_be_opened_review_fullscreen_displays_or_use_enter" xml:space="preserve"><value>Full screen could not be opened. Review Full-screen displays or use Full screen to try again.</value></data>
   <data name="desktop_fullscreen_full_screen_could_not_be_opened_try_again" xml:space="preserve"><value>Full screen could not be opened. Try again.</value></data>
   <data name="desktop_fullscreen_full_screen_could_not_exit_normally_the_windowed_desktop_was_restored" xml:space="preserve"><value>Full screen could not exit normally. The windowed desktop was restored.</value></data>
   <data name="desktop_fullscreen_select_at_least_one_display" xml:space="preserve"><value>Select at least one display</value></data>
@@ -464,7 +464,7 @@
   <data name="import_defaults_desktop_scaling" xml:space="preserve"><value>Desktop scaling</value></data>
   <data name="import_defaults_displays_for_imported_defaults" xml:space="preserve"><value>Displays for imported defaults</value></data>
   <data name="import_defaults_encoding_and_image_quality" xml:space="preserve"><value>Encoding and image quality</value></data>
-  <data name="import_defaults_fullscreen_displays" xml:space="preserve"><value>Fullscreen displays</value></data>
+  <data name="import_defaults_fullscreen_displays" xml:space="preserve"><value>Full-screen displays</value></data>
   <data name="import_defaults_have_existing_tidyvnc_defaults_review_an_import_before_opening_your_next_connection" xml:space="preserve"><value>Have existing TidyVNC defaults? Review an import before opening your next connection window.</value></data>
   <data name="import_defaults_hidden_cursor_preserved_inactive_system_cursor_shape_omitted" xml:space="preserve"><value>Hidden cursor preserved; inactive System cursor shape omitted</value></data>
   <data name="import_defaults_i_reviewed_the_omissions_and_conversions" xml:space="preserve"><value>I reviewed the omissions and conversions.</value></data>
@@ -627,13 +627,13 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="presentation_issue_cursorUnavailable" xml:space="preserve"><value>The remote cursor could not be drawn. The local pointer is being used. Reconnect if the cursor remains unavailable.</value></data>
   <data name="presentation_issue_desktopResources" xml:space="preserve"><value>The desktop exceeds available rendering resources. Reduce the window size or scale in Scaling settings, or close unused connections.</value></data>
   <data name="presentation_issue_desktopUnavailable" xml:space="preserve"><value>The remote desktop could not be drawn. Try Refresh desktop. If it still does not update, reconnect.</value></data>
-  <data name="presentation_issue_displaysUnavailable" xml:space="preserve"><value>The display arrangement is unavailable. Reconnect any missing displays and review Fullscreen displays.</value></data>
+  <data name="presentation_issue_displaysUnavailable" xml:space="preserve"><value>The display arrangement is unavailable. Reconnect any missing displays and review Full-screen displays.</value></data>
   <data name="presentation_issue_inputBusy" xml:space="preserve"><value>Keyboard or pointer input is busy. Release pressed keys, wait for the current operation to finish and try again.</value></data>
   <data name="presentation_issue_inputFailed" xml:space="preserve"><value>Keyboard or pointer input could not be sent. Release pressed keys, focus the desktop and try again. Reconnect if input remains unavailable.</value></data>
   <data name="presentation_issue_inputUnavailable" xml:space="preserve"><value>Focus the desktop and check view-only and input settings before trying again.</value></data>
   <data name="presentation_issue_keyboardCaptureFailed" xml:space="preserve"><value>Keyboard capture could not start. Try again, or exit and reopen TidyVNC if it keeps failing.</value></data>
   <data name="presentation_issue_layoutResources" xml:space="preserve"><value>The display layout exceeds available resources. Select fewer displays, reduce the scale or close unused connections, then try again.</value></data>
-  <data name="presentation_issue_layoutUnavailable" xml:space="preserve"><value>The desktop layout could not be changed. Review Scaling settings and Fullscreen displays, then try again.</value></data>
+  <data name="presentation_issue_layoutUnavailable" xml:space="preserve"><value>The desktop layout could not be changed. Review Scaling settings and Full-screen displays, then try again.</value></data>
   <data name="presentation_issue_preferencesUnavailable" xml:space="preserve"><value>TidyVNC could not open its settings store. Reopen the app and check that your Windows account can access its AppData folder.</value></data>
   <data name="presentation_issue_shortcutUnavailable" xml:space="preserve"><value>This keyboard shortcut could not be completed. Release pressed keys and try again. Review Input settings if it keeps failing.</value></data>
   <data name="presentation_issue_startupIncompatible" xml:space="preserve"><value>The native viewer components are incompatible or lack a required feature. Install a matching build of TidyVNC.</value></data>
@@ -764,7 +764,7 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="settings_fullscreen_display_information_is_unavailable" xml:space="preserve"><value>Display information is unavailable.</value></data>
   <data name="settings_fullscreen_display_information_is_unavailable_saved_selections_are_kept" xml:space="preserve"><value>Display information is unavailable. Saved selections are kept.</value></data>
   <data name="settings_fullscreen_displays_changed_review_the_new_arrangement_before_applying" xml:space="preserve"><value>Displays changed. Review the new arrangement before applying.</value></data>
-  <data name="settings_fullscreen_fullscreen_displays" xml:space="preserve"><value>Fullscreen displays</value></data>
+  <data name="settings_fullscreen_fullscreen_displays" xml:space="preserve"><value>Full-screen displays</value></data>
   <data name="settings_fullscreen_override_selected_displays" xml:space="preserve"><value>Override selected displays</value></data>
   <data name="settings_fullscreen_restore_initial_settings" xml:space="preserve"><value>Restore initial settings</value></data>
   <data name="settings_fullscreen_review_displays" xml:space="preserve"><value>Review displays</value></data>
@@ -816,17 +816,17 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="settings_input_viewer_shortcuts_are_off_release_keyboard_capture_from_the_connection_menu" xml:space="preserve"><value>Viewer shortcuts are off. Release keyboard capture from the Connection menu.</value></data>
   <data name="settings_input_viewer_shortcuts_are_off_use_the_connection_menu_to_release_keyboard_capture" xml:space="preserve"><value>Viewer shortcuts are off. Use the Connection menu to release keyboard capture.</value></data>
   <data name="settings_input_watch_the_remote_desktop_without_sending_keyboard_pointer_or_clipboard_input_enabling" xml:space="preserve"><value>Watch the remote desktop without sending keyboard, pointer or clipboard input. Enabling this releases held keys and mouse buttons.</value></data>
-  <data name="settings_resize_a_resize_may_affect_other_viewers_windowed_and_initial_size_requests_use" xml:space="preserve"><value>A resize may affect other viewers. Windowed and initial-size requests use one remote screen; fullscreen follows the selected displays. Turning resizing off cannot undo a request already sent.</value></data>
+  <data name="settings_resize_a_resize_may_affect_other_viewers_windowed_and_initial_size_requests_use" xml:space="preserve"><value>A resize may affect other viewers. Windowed and initial-size requests use one remote screen; full screen follows the selected displays. Turning resizing off cannot undo a request already sent.</value></data>
   <data name="settings_resize_a_selected_display_is_disconnected_reconnect_it_or_remove_it_from_the" xml:space="preserve"><value>A selected display is disconnected. Reconnect it or remove it from the selection.</value></data>
   <data name="settings_resize_all_local_displays" xml:space="preserve"><value>All local displays</value></data>
   <data name="settings_resize_an_optional_widthxheight_such_as_1920x1080_is_requested_once_on_connection_when" xml:space="preserve"><value>An optional widthxheight, such as 1920x1080, is requested once on connection when resizing is enabled. Each dimension must be 1 to 65535. An explicit blank value uses the server’s size.</value></data>
   <data name="settings_resize_automatic_resizing_follows_the_window_or_the_complete_fullscreen_display_arrangement_in" xml:space="preserve"><value>Automatic resizing follows the window or the complete full-screen display arrangement in Unscaled mode. Device-pixel units include the display’s scale. View-only mode and servers without resize support prevent requests.</value></data>
   <data name="settings_resize_closing_this_sheet_cannot_undo_a_request_already_sent_to_the_server" xml:space="preserve"><value>Closing this dialog cannot undo a request already sent to the server.</value></data>
-  <data name="settings_resize_creates_one_remote_screen_per_selected_local_display_this_changes_the_server" xml:space="preserve"><value>Creates one remote screen per selected local display. This changes the server layout; it does not move or fullscreen this window.</value></data>
+  <data name="settings_resize_creates_one_remote_screen_per_selected_local_display_this_changes_the_server" xml:space="preserve"><value>Creates one remote screen per selected local display. This changes the server layout; it does not move or make this window full screen.</value></data>
   <data name="settings_resize_custom_size" xml:space="preserve"><value>Custom size</value></data>
   <data name="settings_resize_enter_a_valid_initial_size_or_leave_the_override_blank" xml:space="preserve"><value>Enter a valid initial size or leave the override blank.</value></data>
   <data name="settings_resize_enter_whole_numbers_from_1_to_65535_the_server_and_this_connection" xml:space="preserve"><value>Enter whole numbers from 1 to 65535. The server and this connection’s memory limit determine which sizes are accepted.</value></data>
-  <data name="settings_resize_follows_the_window_or_the_complete_fullscreen_display_arrangement_in_unscaled_mode" xml:space="preserve"><value>Follows the window or the complete fullscreen display arrangement in Unscaled mode. View-only mode and servers without resize support prevent requests. Device-pixel units include the display’s backing scale.</value></data>
+  <data name="settings_resize_follows_the_window_or_the_complete_fullscreen_display_arrangement_in_unscaled_mode" xml:space="preserve"><value>Follows the window or the complete full-screen display arrangement in Unscaled mode. View-only mode and servers without resize support prevent requests. Device-pixel units include the display’s scale.</value></data>
   <data name="settings_resize_height_in_pixels" xml:space="preserve"><value>Height in pixels</value></data>
   <data name="settings_resize_inherited_size" xml:space="preserve"><value>{0}: {1}</value></data>
   <data name="settings_resize_initial_desktop_size" xml:space="preserve"><value>Initial desktop size</value></data>
@@ -845,7 +845,7 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="settings_resize_resize_remote_desktop" xml:space="preserve"><value>Resize remote desktop</value></data>
   <data name="settings_resize_resize_remote_desktop_with_window" xml:space="preserve"><value>Resize remote desktop with window</value></data>
   <data name="settings_resize_resize_the_remote_desktop_with_this_window" xml:space="preserve"><value>Resize the remote desktop with this window</value></data>
-  <data name="settings_resize_resizing_may_affect_other_viewers_windowed_and_initial_size_requests_use_one" xml:space="preserve"><value>Resizing may affect other viewers. Windowed and initial-size requests use one remote screen; fullscreen follows the selected displays.</value></data>
+  <data name="settings_resize_resizing_may_affect_other_viewers_windowed_and_initial_size_requests_use_one" xml:space="preserve"><value>Resizing may affect other viewers. Windowed and initial-size requests use one remote screen; full screen follows the selected displays.</value></data>
   <data name="settings_resize_resolution_from" xml:space="preserve"><value>Resolution from</value></data>
   <data name="settings_resize_selected_local_displays" xml:space="preserve"><value>Selected local displays</value></data>
   <data name="settings_resize_server_rejection" xml:space="preserve"><value>The server rejected the requested size (result {0}).</value></data>
@@ -908,7 +908,7 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="settings_section_clipboard" xml:space="preserve"><value>Clipboard</value></data>
   <data name="settings_section_connection" xml:space="preserve"><value>Connection</value></data>
   <data name="settings_section_encoding" xml:space="preserve"><value>Encoding</value></data>
-  <data name="settings_section_fullscreen" xml:space="preserve"><value>Fullscreen</value></data>
+  <data name="settings_section_fullscreen" xml:space="preserve"><value>Full screen</value></data>
   <data name="settings_section_input" xml:space="preserve"><value>Input</value></data>
   <data name="settings_section_remoteResize" xml:space="preserve"><value>Remote resize</value></data>
   <data name="settings_section_scaling" xml:space="preserve"><value>Scaling</value></data>

@@ -279,6 +279,8 @@ internal static class ConnectionMenu
         items.Add(Item("app.disconnect", "desktop.disconnect", !controller.Closing && !controller.Busy && connected, controller.Disconnect));
         items.Add(new MenuFlyoutSeparator());
         items.Add(Item("desktop.refresh.desktop", "desktop.refresh", !controller.Closing && connected, controller.Refresh));
+        items.Add(Item(window.IsFullscreen ? "desktop.exit.full.screen" : "desktop.enter.full.screen", "desktop.fullscreen",
+            window.CanToggleFullscreen, window.ToggleFullscreen));
         var statistics = new ToggleMenuFlyoutItem { Text = Strings.Get("desktop.show.connection.statistics"), IsChecked = controller.ShowsStatistics,
             IsEnabled = controller.CanToggleStatistics };
         AutomationProperties.SetAutomationId(statistics, "desktop.statistics");
@@ -289,6 +291,7 @@ internal static class ConnectionMenu
         settings.Items.Add(Item("desktop.scaling", "desktop.scaling", window.CanOpenConnectedEditor, window.OpenScaling));
         settings.Items.Add(Item("desktop.security", "desktop.security", window.CanOpenDisconnectedEditor, window.OpenSecurity));
         settings.Items.Add(Item("desktop.encoding", "desktop.encoding", window.CanOpenConnectedEditor, window.OpenEncoding));
+        settings.Items.Add(Item("desktop.fullscreen.displays", "desktop.fullscreenDisplays", window.CanOpenFullscreenSettings, window.OpenFullscreenSettings));
         settings.Items.Add(Item("desktop.connection", "desktop.connectionOptions", window.CanOpenDisconnectedEditor, window.OpenConnectionOptions));
         settings.Items.Add(Item("desktop.remote.resize.settings", "desktop.remoteResizeSettings", window.CanOpenAnyEditor, window.OpenResizePolicy));
         items.Add(Item("desktop.resize.remote.desktop", "desktop.resizeRemote", window.CanResizeRemote, window.OpenRemoteResize));

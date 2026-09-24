@@ -307,6 +307,46 @@ public sealed class VerticalSliceTests
         }
     }
 
+    /// <summary>
+    /// W5.8 / D02: -FullScreen enters full screen on the window's display once
+    /// connected, with the window chrome gone; the viewer shortcut
+    /// (Ctrl+Alt+Enter) leaves it without sending Enter to the server.
+    /// </summary>
+    [TestMethod]
+    public async Task FullScreenFromTheCommandLineAndTheShortcutLeavesIt()
+    {
+        await using var server = new RfbTestServer();
+        using var app = Launch("-FullScreen " + server.Endpoint, commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            Until(() => server.AuthenticatedClients == 1, "the connection");
+            var handle = window.Properties.NativeWindowHandle.Value;
+            Until(() => NativeMethods.WindowRect(handle) == NativeMethods.MonitorRect(handle), "the window filling its display");
+            Until(() => window.FindFirstDescendant(cf => cf.ByAutomationId("menu.file")) is null or { IsOffscreen: true }, "the menu bar hidden");
+            var desktop = ById(window, "desktop.view");
+            Until(() => Near(PixelAt(desktop, 0.5, 0.5), RfbTestServer.Background), "the remote desktop on screen");
+
+            RequireForeground(window);
+            var bounds = desktop.BoundingRectangle;
+            Mouse.Click(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            Until(() => server.Pointers.Any(p => p.Buttons == 1), "the desktop focused");
+            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.RETURN);
+            Until(() => NativeMethods.WindowRect(handle) != NativeMethods.MonitorRect(handle), "the window restored");
+            Until(() => ById(window, "menu.file") is { IsOffscreen: false }, "the menu bar back");
+            Assert.IsFalse(server.Keys.Any(k => k.KeySym is 0xff0d or 0xff8d), "Enter stays local");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
     [TestMethod]
     public async Task TwoWindowsConnectAtOnce()
     {
@@ -359,6 +399,41 @@ internal static partial class NativeMethods
     [System.Runtime.InteropServices.LibraryImport("user32.dll")]
     [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
     private static partial bool GetLastInputInfo(ref LastInputInfo info);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct Rect
+    {
+        public int Left, Top, Right, Bottom;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct MonitorInfo
+    {
+        public uint Size;
+        public Rect Monitor, Work;
+        public uint Flags;
+    }
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static partial bool GetWindowRect(IntPtr window, out Rect rect);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    private static partial IntPtr MonitorFromWindow(IntPtr window, uint flags);
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static partial bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
+
+    internal static (int, int, int, int) WindowRect(IntPtr window) =>
+        GetWindowRect(window, out var rect) ? (rect.Left, rect.Top, rect.Right, rect.Bottom) : default;
+
+    /// <summary>The full bounds of the display holding most of the window.</summary>
+    internal static (int, int, int, int) MonitorRect(IntPtr window)
+    {
+        var info = new MonitorInfo { Size = 40 };
+        return GetMonitorInfo(MonitorFromWindow(window, 2), ref info) ? (info.Monitor.Left, info.Monitor.Top, info.Monitor.Right, info.Monitor.Bottom) : (-1, -1, -1, -1);
+    }
 
     /// <summary>Time since the last keyboard or mouse input in this session.</summary>
     internal static TimeSpan IdleTime()

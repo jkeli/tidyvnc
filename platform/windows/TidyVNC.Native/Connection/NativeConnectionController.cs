@@ -12,11 +12,11 @@ namespace TidyVNC.Native;
 /// <summary>When a settings editor may stay open.</summary>
 public enum NativeEditorScope
 {
-    /// <summary>Needs the live connection (input, scaling, encoding, information, remote resize).</summary>
+    /// <summary>Needs the live connection (input, scaling, encoding, information, remote resize, full-screen displays).</summary>
     Connected,
     /// <summary>Edits the next attempt (security, connection options); closes when one starts.</summary>
     Disconnected,
-    /// <summary>Either state (fullscreen displays, resize policy).</summary>
+    /// <summary>Either state (resize policy).</summary>
     Any,
 }
 

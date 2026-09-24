@@ -21,8 +21,8 @@ internal static class SettingsLabels
         _ => "settings.defaults.built.in.default",
     });
 
-    /// <summary>Where a window's resize setting came from (macOS resizeSourceLabel).</summary>
-    public static string ResizeSource(NativeOptionSource source) => Strings.Get(source switch
+    /// <summary>Where a window's resize or full-screen setting came from (macOS resizeSourceLabel, fullscreenSourceLabel).</summary>
+    public static string ShortSource(NativeOptionSource source) => Strings.Get(source switch
     {
         NativeOptionSource.AppDefaults => "settings.encoding.app.default",
         NativeOptionSource.Profile => "settings.encoding.profile",

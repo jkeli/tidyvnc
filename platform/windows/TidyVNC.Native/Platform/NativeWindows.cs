@@ -14,4 +14,11 @@ public static class NativeWindows
 
     /// <summary>The window's DPI (96 at 100%); per-monitor v2 aware.</summary>
     public static unsafe uint DpiForWindow(IntPtr window) => PInvoke.GetDpiForWindow(new HWND((void*)window));
+
+    /// <summary>
+    /// Makes a top-level window owned by another: it stays above its owner,
+    /// has no taskbar button of its own and closes with it.
+    /// </summary>
+    public static unsafe void SetOwner(IntPtr window, IntPtr owner) =>
+        PInvoke.SetWindowLongPtr(new HWND((void*)window), WINDOW_LONG_PTR_INDEX.GWLP_HWNDPARENT, owner);
 }
