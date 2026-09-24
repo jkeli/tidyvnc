@@ -151,6 +151,20 @@ public sealed class LoopbackPeer : IAsyncDisposable
         return message;
     }
 
+    /// <summary>
+    /// A Cursor pseudo-encoding update (-239): a width x height cursor of one BGR colour with the
+    /// given hotspot; <paramref name="visible"/> false sends an all-clear mask (a blank cursor).
+    /// </summary>
+    public Task CursorAsync(ushort cursorWidth, ushort cursorHeight, ushort hotspotX, ushort hotspotY, bool visible = true)
+    {
+        var maskRow = (cursorWidth + 7) / 8;
+        var message = new List<byte> { 0, 0, 0, 1, (byte)(hotspotX >> 8), (byte)hotspotX, (byte)(hotspotY >> 8), (byte)hotspotY,
+                                        (byte)(cursorWidth >> 8), (byte)cursorWidth, (byte)(cursorHeight >> 8), (byte)cursorHeight, 0xFF, 0xFF, 0xFF, 0x11 };
+        for (var i = 0; i < cursorWidth * cursorHeight; i++) message.AddRange(new byte[] { 0, 0, 200, 0 }); // red, 32bpp little endian
+        for (var i = 0; i < maskRow * cursorHeight; i++) message.Add(visible ? (byte)0xFF : (byte)0);
+        return SendAsync([.. message]);
+    }
+
     /// <summary>Closes the client connection from the server side.</summary>
     public void Drop() => stream?.Socket.Close();
 

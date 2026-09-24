@@ -111,11 +111,101 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         set
         {
             if (ReferenceEquals(session, value)) return;
-            if (session is not null) session.FrameUpdated -= OnFrame;
+            if (session is not null)
+            {
+                session.FrameUpdated -= OnFrame;
+                session.CursorUpdated -= OnCursor;
+                session.PropertyChanged -= OnSessionProperty;
+            }
             session = value;
-            if (session is not null) session.FrameUpdated += OnFrame;
+            if (session is not null)
+            {
+                session.FrameUpdated += OnFrame;
+                session.CursorUpdated += OnCursor;
+                session.PropertyChanged += OnSessionProperty;
+            }
             OnFrame(session?.Frame);
+            UpdateCursor();
         }
+    }
+
+    // ---- Cursor (DESKTOP.md section 3, D13) -------------------------------------------
+
+    private NativeCursorHandle? cursorHandle;
+    private object? cursorKey;
+    private NativeCursorFallback cursorFallback = NativeCursorFallback.Hidden;
+
+    /// <summary>What a blank remote cursor becomes (AlwaysCursor/CursorType): nothing, the dot or the system arrow.</summary>
+    public NativeCursorFallback CursorFallback
+    {
+        get => cursorFallback;
+        set { if (cursorFallback == value) return; cursorFallback = value; UpdateCursor(); }
+    }
+
+    private void OnCursor(NativeImage? cursor) => UpdateCursor();
+
+    private void OnSessionProperty(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(NativeSession.IsViewOnly) or nameof(NativeSession.Snapshot)) UpdateCursor();
+    }
+
+    /// <summary>
+    /// The pointer over the desktop follows the retained rules: the remote cursor scaled like the desktop
+    /// (device pixels per remote pixel, the connection's filter), the dot, the system arrow or nothing.
+    /// </summary>
+    private void UpdateCursor()
+    {
+        if (disposed) return;
+        var image = Live ? session!.Cursor : null;
+        var viewOnly = session?.IsViewOnly == true;
+        if (!Live || geometry is not { } shape)
+        {
+            SetCursor("system", null);
+            return;
+        }
+        double scaleX = (double)shape.BackingWidth / shape.RemoteWidth, scaleY = (double)shape.BackingHeight / shape.RemoteHeight;
+        NativeCursorRaster? remote = null;
+        if (image is not null && !viewOnly)
+        {
+            var (maxWidth, maxHeight) = NativeCursorHandle.Limits;
+            var (fitX, fitY) = NativeCursorPolicy.FitScale(image.Width, image.Height, scaleX, scaleY, maxWidth, maxHeight);
+            try { remote = image.Width == 0 || image.Height == 0 ? null : NativeCursorSampler.Sample(image, fitX, fitY, scaling.Filter); }
+            catch (NativeError) { remote = null; }
+        }
+        var choice = NativeCursorPolicy.Choose(viewOnly, remote is null or { Blank: true }, cursorFallback);
+        switch (choice)
+        {
+            case NativeCursorChoice.Remote: SetCursor(("remote", image, scaleX, scaleY, scaling.Filter), remote); break;
+            case NativeCursorChoice.Dot: SetCursor(("dot", shape.BackingScale), NativeCursorPolicy.Dot(shape.BackingScale)); break;
+            case NativeCursorChoice.Hidden: SetCursor("hidden", NativeCursorPolicy.Hidden); break;
+            default: SetCursor("system", null); break;
+        }
+    }
+
+    private void SetCursor(object key, NativeCursorRaster? raster)
+    {
+        if (Equals(cursorKey, key)) return;
+        cursorKey = key;
+        var previous = cursorHandle;
+        cursorHandle = null;
+        if (raster is null) ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
+        else
+        {
+            try
+            {
+                var handle = new NativeCursorHandle(raster.Rgba, raster.Width, raster.Height, raster.HotspotX, raster.HotspotY);
+                ProtectedCursor = InputCursors.FromHandle(handle.Handle);
+                cursorHandle = handle;
+            }
+            catch (Exception error) when (error is System.Runtime.InteropServices.COMException or InvalidOperationException or ArgumentException)
+            {
+                System.Diagnostics.Trace.TraceWarning($"Remote cursor not shown ({error.GetType().Name} {error.HResult:x8}); using the arrow");
+                // Debug builds stop here, so the protocol smokes (which send cursors) catch a broken conversion.
+                System.Diagnostics.Debug.Fail("HCURSOR to InputCursor conversion failed: " + error.Message);
+                ProtectedCursor = InputSystemCursor.Create(InputSystemCursorShape.Arrow);
+            }
+        }
+        previous?.Dispose(); // The replaced InputCursor no longer uses it.
     }
 
     private void AttachPresenter(NativePresenter presenter)
@@ -213,6 +303,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         geometry = frameSize is { } size && width > 0 && height > 0 && scale > 0
             ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels, pan.X, pan.Y, canvas)
             : null;
+        UpdateCursor();
         if (peer is not null && Microsoft.UI.Xaml.Automation.Peers.AutomationPeer.ListenerExists(Microsoft.UI.Xaml.Automation.Peers.AutomationEvents.PropertyChanged))
             peer.GeometryChanged();
     }
@@ -482,6 +573,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         Session = null;
         altGrTimer.Stop();
         touchTimer.Stop();
+        cursorHandle?.Dispose();
+        cursorHandle = null;
         renderer.Dispose();
         keyboard.Dispose();
         touch.Dispose();

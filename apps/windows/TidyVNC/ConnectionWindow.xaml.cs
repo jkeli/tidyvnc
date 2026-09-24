@@ -880,6 +880,7 @@ public sealed partial class ConnectionWindow : Window
         foreach (var view in fullscreen.Views.Append(desktop).Distinct())
         {
             view.ShortcutModifiers = value.ShortcutModifiers;
+            view.CursorFallback = value.CursorFallback;
             view.Capture.SetFullscreenSystemKeys(value.FullscreenSystemKeys);
         }
     }

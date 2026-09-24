@@ -1576,3 +1576,44 @@ Add dated entries, newest last, in the macOS format:
 - `LoopbackPeer` gained a patterned first frame for these checks.
 - Remaining (hardware): a window dragged between monitors of different scale, and each scale on a real
   display.
+
+### W6.3 (progress), W0.6 — remote cursors — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Before: the desktop view never showed the server's cursor. The helper could build an HCURSOR, but
+  nothing used it.
+- W0.6 route, taken: a real HCURSOR becomes a WinUI `InputCursor` through the Windows App SDK's
+  `IInputCursorStaticsInterop.CreateFromHCursor` (`InputCursors.FromHandle`). It is set as the desktop
+  view's `ProtectedCursor`, so WinUI keeps it over the view without WM_SETCURSOR subclassing and hands
+  back the normal cursors elsewhere.
+- `NativeCursorSampler` wraps the shared cursor sampler (`tidyvnc_cursor_renderer_*`). It scales the
+  server's cursor by device pixels per remote pixel with the connection's filter, giving straight RGBA,
+  the hotspot and blank detection.
+- `NativeCursorPolicy` has the retained rules (vncviewer/Viewport.cxx):
+  - view-only shows the system arrow;
+  - a blank cursor becomes nothing, the 5×5 dot (hotspot 2,2, enlarged by whole pixels at high DPI) or
+    the arrow, following the connection's cursor fallback;
+  - otherwise the remote cursor is shown.
+  - A cursor larger than Windows accepts (`tvw_cursor_limits`) is shown at the largest size that fits.
+    The software-cursor overlay of DESKTOP.md section 3 remains a later step.
+- `DesktopView` updates the cursor when:
+  - the session's cursor changes;
+  - view-only or the connection state changes;
+  - the geometry changes (scale or mode);
+  - the fallback setting changes.
+  - A cursor handle lives exactly as long as its InputCursor is in use.
+  - A failed conversion falls back to the arrow with a trace warning, and fails fast in Debug builds.
+- Tests:
+  - `CursorTests.ServerCursorsAreSampledAtTheViewScale`: a Cursor pseudo-encoding from a loopback server
+    becomes 6×6 at 1.5×, with the hotspot scaled and red first in straight RGBA; an all-clear mask is
+    blank.
+  - `RetainedRulesChooseTheShownCursor` covers the rules, the dot and the size fitting.
+  - The quick protocol smoke, which sends a 128×128 cursor and then an empty one, passes on the Debug
+    publish, where a failed conversion would fail fast.
+  - Connected UI tests pass: DesktopViewScrolls, TwoWindowsConnectAtOnce, ConnectionInformation and
+    ListenAccepts.
+- Remaining:
+  - Seeing the cursor on screen and checking for flicker between the toolbar and the desktop, with the
+    display on.
+  - Large cursors as a software overlay.
+  - Density changes checked on mixed-DPI hardware.
