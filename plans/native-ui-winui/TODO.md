@@ -97,7 +97,7 @@ proven through the real app before substantial screen work.
 
 - [x] W4.1 Stores: preferences, profiles/history, window state; schema, revision, `LockFileEx`, atomic replace, ACL check, sharing-violation retry, corruption and newer-schema recovery (D16).
 - [x] W4.2 Credentials: Credential Manager store, retention controller (use once / session / remember), replace/forget, launch credentials with Windows path rules (D15).
-- [ ] W4.3 Trust: TidyVNC trust stores, legacy `x509_known_hosts` adapters for both `%APPDATA%` locations, CA/CRL path handling.
+- [x] W4.3 Trust: TidyVNC trust stores, legacy `x509_known_hosts` adapters for both `%APPDATA%` locations, CA/CRL path handling.
 - [ ] W4.4 Documents: common file dialogs, bounded reads, atomic writes, launch routing; file dialog open during exit.
 - [ ] W4.5 Registry import sources for defaults and history, read-only, feeding the core projection.
 - [ ] W4.6 Clipboard adapter and coordinator: listener window, contention retry, remote-origin format, focus routing, `CanUploadToCloudClipboard = 0` on every remote-origin write (D21).
@@ -488,3 +488,70 @@ Add dated entries, newest last, in the macOS format:
 - Environment note: `DesktopTests.KeyboardDisplaysAndCursorsThroughTheBridge`
   fails while the monitors are in power save (QueryDisplayConfig returns
   E_INVALIDARG). W4.7 turns that into a typed Unavailable result.
+
+### W4.3 — trust — 2026-09-23
+
+- Behaviour: `platform/windows/TidyVNC.Native/Trust`.
+  - `NativeTrustStore`: `trust\certificates.json` (SPKI) and
+    `trust\server-keys.json` (RSA-AES keys) on the W4.1 record store, with the
+    macOS rules:
+    - destination scopes come from the core trust identity and are rederived
+      on load;
+    - accept/forget decisions, capacity 256;
+    - a save needs a core-overridable status and an explicit replace flag
+      that agrees with the record;
+    - revision conflicts;
+    - server keys are validated by the core.
+  - `NativeLegacyTrustFiles`: read-only lookup in
+    `%APPDATA%\TidyVNC\x509_known_hosts` and
+    `%APPDATA%\TigerVNC\x509_known_hosts` through the core parser.
+    - A match in either file is a match.
+    - Files are opened without following reparse points and must be regular
+      single-link disk files that no principal other than the user, SYSTEM
+      and Administrators can modify.
+    - Reads are bounded (1 MiB), with a before/after identity check.
+  - `NativeCertificateTrust` ports the macOS controller. A saved match
+    answers the prompt; a forgotten or changed entry stops there (no legacy
+    revival); with no entry, a legacy match answers. It also covers Connect
+    once, the confirmed save/replace and connect, forget, reload, and a
+    Cancel that suspends checking.
+  - `NativeTrustLibrary` is the library window model (reload, forget,
+    forget destination; a stale view is a conflict).
+  - `NativeTrustFiles` holds the CA/CRL paths:
+    - fully qualified Windows paths only; empty selects no file; null
+      inherits;
+    - paths in connection files resolve against the file's folder, and `C:x`
+      or `\x` are refused;
+    - no implicit `%APPDATA%\TidyVNC\x509_ca.pem`.
+- Tests: `TidyVNC.Native.Tests` `TrustTests`, 10 cases.
+  - Store scope, revision and override rules, server keys, and revalidation
+    of edited records and capacity.
+  - Legacy files: combining, read-only use, format and corrupt errors, a
+    shared ACL, hard links and directories.
+  - CA/CRL path rules.
+  - Five controller scenarios end to end against `TlsPeer`, a new .NET
+    VeNCrypt X509None peer with a self-signed certificate, so the core's
+    GnuTLS verification really fails and prompts. The scenarios cover:
+    - save, then reconnect answered by the saved decision;
+    - Connect once with nothing written, and Cancel;
+    - a legacy match, and a forget that suppresses it;
+    - a changed key replaced only on request;
+    - the library.
+
+  Result: 3 consecutive clean runs. Mutations:
+  11 mutations. 10 fail the suite:
+  - saved decisions suppress legacy lookups;
+  - a saved match answers the prompt;
+  - a legacy match answers the prompt;
+  - the override policy gate;
+  - the replace flag;
+  - scope rederivation;
+  - match in any legacy file;
+  - the ACL check;
+  - the single-link check;
+  - relative CA/CRL refusal.
+  
+  One equivalent survivor: removing Mutate's early revision check changes
+  nothing, because CommitAsync checks the same revision under the writer lock.
+- Not in W4.3: the trust dialog and the two library windows (W5) bind these
+  models.

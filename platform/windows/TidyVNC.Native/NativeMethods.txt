@@ -14,3 +14,4 @@ GetFileType
 FILE_BASIC_INFO
 FILE_STANDARD_INFO
 WIN32_ERROR
+GetFileInformationByHandle
