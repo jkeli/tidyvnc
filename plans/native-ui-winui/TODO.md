@@ -1959,3 +1959,26 @@ Add dated entries, newest last, in the macOS format:
 - Still open for W7.5: the same start with the exact packaged binaries, which honour no test state
   root. That needs a test account or VM, as section 6 says. The only difference in the binaries run
   here is the compiled-in state-root override.
+
+### W6.10 (progress) — Release workloads, JIT and Native AOT — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `windows-viewer-workloads.py --direct --seconds 10` on the Release measurement builds (this machine,
+  offered 30/s). Both builds kept up with every workload: 30.1 updates/s, and protocol round trips
+  p50 0.02–0.06 ms, p95 at most 0.11 ms.
+
+  | Workload | JIT CPU s/s | AOT CPU s/s | JIT peak working set | AOT peak working set |
+  | --- | --- | --- | --- | --- |
+  | idle | 0.014 | 0.011 | 215 MiB | 175 MiB |
+  | full1080 | 0.617 | 0.572 | 304 MiB | 256 MiB |
+  | full4k | 1.029 | 0.903 | 613 MiB | 565 MiB |
+  | scroll | 0.595 | 0.534 | 242 MiB | 192 MiB |
+  | patch | 0.142 | 0.094 | 232 MiB | 185 MiB |
+
+  - AOT uses 7–34% less CPU and about 40–50 MiB less memory.
+  - Scroll costs about as much as a full 1080p frame: the CopyRect covers nearly the whole desktop, so
+    nearly the whole frame is rendered again.
+  - Release JIT used more CPU than the earlier Debug run (full1080 0.617 against 0.424). That run was
+    taken while the session was not displayed. Only runs in the same session state should be
+    compared; the FLTK comparison must match that too.
+- Still open for W6.10: the FLTK side (test account), present timing (PresentMon/ETW) and the 10% gate.
