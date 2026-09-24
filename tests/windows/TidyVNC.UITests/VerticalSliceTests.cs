@@ -347,8 +347,10 @@ public sealed class VerticalSliceTests
             var centre = new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
             Mouse.MoveTo(new System.Drawing.Point(centre.X - 20, centre.Y - 20));
             Mouse.MoveTo(centre);
+            // Where the cursor really is: over a remote session, the client's own pointer can move it back.
+            var placed = NativeMethods.CursorPosition();
             Until(() => Near(PixelAt(desktop, 0.55, 0.55), red),
-                  $"the cursor drawn at the pointer (view {bounds}, window {window.BoundingRectangle}, pointer {centre}, pixel {PixelAt(desktop, 0.55, 0.55)})");
+                  $"the cursor drawn at the pointer (view {bounds}, window {window.BoundingRectangle}, pointer {centre}, placed {placed}, now {NativeMethods.CursorPosition()}, pixel {PixelAt(desktop, 0.55, 0.55)})");
             Assert.IsTrue(Near(PixelAt(desktop, 0.45, 0.45), RfbTestServer.Background), "nothing above and left of the hotspot");
             // Clipped to the desktop: the square desktop is letterboxed in the wider window, and the bar stays black.
             var bar = PixelAt(desktop, 0.995, 0.6);
@@ -1484,6 +1486,16 @@ internal static partial class NativeMethods
                 return counts;
             }
         }
+    }
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static unsafe partial bool GetCursorPos(int* point);
+
+    internal static unsafe System.Drawing.Point CursorPosition()
+    {
+        var point = stackalloc int[2];
+        return GetCursorPos(point) ? new System.Drawing.Point(point[0], point[1]) : default;
     }
 
     [System.Runtime.InteropServices.LibraryImport("user32.dll", EntryPoint = "FindWindowW", StringMarshalling = System.Runtime.InteropServices.StringMarshalling.Utf16)]
