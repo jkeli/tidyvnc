@@ -80,9 +80,11 @@ python apps\windows\build.py --configuration Release --stages app --measurement 
 ```
 
 The package stage refuses them. `--runtime` publishes the WinUI app trimmed or
-with Native AOT, for comparison with the shipped JIT build (D1). The measurements use
-`tests\perf\windows-viewer-workloads.py`: the workloads, or `--startup N` for
-start-up times. Like the UI tests, they run only with `TIDYVNC_UI_TESTS=1` on an
+with Native AOT, for comparison with the shipped JIT build (D1). A trimmed build
+holds the app alone, because trimming rewrites framework files the launcher
+shares. The measurements use `tests\perf\windows-viewer-workloads.py`: the
+workloads, or `--startup N` for start-up times, with `--direct` to start
+`TidyVNC.exe` itself (required for a trimmed build). Like the UI tests, they run only with `TIDYVNC_UI_TESTS=1` on an
 idle desktop.
 
 ### Package
