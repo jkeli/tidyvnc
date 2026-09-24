@@ -70,6 +70,27 @@ public static class NativeProfileHistoryOperations
             throw new NativeStorageException(NativeStorageError.Invalid);
     }
 
+    /// <summary>
+    /// Starts native history once (F13-F14): with the imported registry
+    /// entries, or empty when the import was skipped. Refused (Conflict) once
+    /// history has been initialized or used.
+    /// </summary>
+    public static Task<NativeRecordSnapshot<NativeProfileHistory>> ImportHistoryAsync(this NativeProfileHistoryStore store,
+        IReadOnlyList<NativeConnectionDestination> imported, bool fromRegistry, Guid? expected, CancellationToken cancellation = default)
+    {
+        foreach (var destination in imported) Validate(destination, allowEmpty: false);
+        if (imported.Count > NativeProfileHistoryStore.HistoryCapacity) throw new NativeStorageException(NativeStorageError.ResourceLimit);
+        return store.MutateAsync(expected, initializesHistory: false, value =>
+        {
+            if (!value.CanImportHistory) throw new NativeStorageException(NativeStorageError.Conflict);
+            return value with
+            {
+                RecentConnections = [.. imported],
+                HistoryState = fromRegistry ? NativeHistoryState.Registry : NativeHistoryState.Native,
+            };
+        }, cancellation);
+    }
+
     private static async Task<NativeRecordSnapshot<NativeProfileHistory>> MutateAsync(this NativeProfileHistoryStore store, Guid? expected, bool initializesHistory,
                                                                                      Func<NativeProfileHistory, NativeProfileHistory> change, CancellationToken cancellation)
     {

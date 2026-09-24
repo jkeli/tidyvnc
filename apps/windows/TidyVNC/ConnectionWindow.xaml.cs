@@ -120,6 +120,9 @@ public sealed partial class ConnectionWindow : Window
             App.Current.WindowActivationChanged(this, active);
         };
         Root.Loaded += (_, _) => { dialogs.Update(); Address.Focus(FocusState.Programmatic); };
+        App.Current.ImportOfferChanged += UpdateImportOffer;
+        Closed += (_, _) => App.Current.ImportOfferChanged -= UpdateImportOffer;
+        UpdateImportOffer();
         Update();
     }
 
@@ -491,6 +494,25 @@ public sealed partial class ConnectionWindow : Window
     private void NewConnectionClick(object sender, RoutedEventArgs e) => App.Current.OpenWindow();
     private void OpenFileClick(object sender, RoutedEventArgs e) => App.Current.OpenConnectionFile(this);
     private void SettingsClick(object sender, RoutedEventArgs e) => App.Current.OpenSettings();
+    private void ImportDefaultsClick(object sender, RoutedEventArgs e) => App.Current.OpenDefaultsImport();
+    private void ImportHistoryClick(object sender, RoutedEventArgs e) => App.Current.OpenHistoryImport();
+    private void ImportNotNowClick(object sender, RoutedEventArgs e) => App.Current.DismissImportOffer();
+
+    private void ImportOfferClick(object sender, RoutedEventArgs e)
+    {
+        if (App.Current.ImportOffer.Defaults) App.Current.OpenDefaultsImport();
+        else App.Current.OpenHistoryImport();
+    }
+
+    /// <summary>The first-use import offer (F09): defaults first, then recent connections.</summary>
+    private void UpdateImportOffer()
+    {
+        var (offerDefaults, offerHistory) = App.Current.ImportOffer;
+        ImportNotice.IsOpen = !closed && (offerDefaults || offerHistory);
+        ImportNotice.Message = Strings.Get(offerDefaults ? "import.defaults.have.existing.tidyvnc.defaults.review.an.import.before.opening.your.next.connection"
+            : "history.import.have.a.recent.server.list.review.a.separate.history.import");
+        ImportOfferButton.Content = Strings.Get(offerDefaults ? "import.defaults.review.import" : "history.import.review.history");
+    }
     private void HelpClick(object sender, RoutedEventArgs e) => App.Current.OpenHelp();
 
     private void AboutClick(object sender, RoutedEventArgs e)

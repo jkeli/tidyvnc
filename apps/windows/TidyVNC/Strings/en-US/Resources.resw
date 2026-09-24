@@ -516,8 +516,20 @@
   <data name="import_defaults_tidyvnc_settings_already_exist_review_those_settings_instead_of_importing_legacy_settings" xml:space="preserve"><value>TidyVNC settings already exist. Review those settings instead of importing legacy settings.</value></data>
   <data name="import_defaults_unavailable_on_macos_not_imported" xml:space="preserve"><value>Unavailable on Windows; not imported</value></data>
   <data name="import_defaults_unknown_setting_not_imported" xml:space="preserve"><value>Unknown setting; not imported</value></data>
+  <data name="import_registry_left_unchanged" xml:space="preserve"><value>The previous viewer’s settings were left unchanged.</value></data>
+  <data name="import_registry_monitor" xml:space="preserve"><value>Monitor {0}: {1}</value></data>
+  <data name="import_registry_monitor_missing" xml:space="preserve"><value>Monitor {0}: no connected display; not imported</value></data>
+  <data name="import_registry_none" xml:space="preserve"><value>No settings from the previous TidyVNC or TigerVNC viewer were found for your Windows account.</value></data>
+  <data name="import_registry_notice" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="import_registry_replaces" xml:space="preserve"><value>Importing replaces your current connection defaults.</value></data>
+  <data name="import_registry_reviewing" xml:space="preserve"><value>Source: {0}</value></data>
+  <data name="import_registry_skipped" xml:space="preserve"><value>{0}: unreadable value; not imported</value></data>
+  <data name="import_registry_source" xml:space="preserve"><value>Reads the settings the previous TidyVNC or TigerVNC viewer saved for your Windows account. They are read, never changed.</value></data>
+  <data name="import_registry_unreadable" xml:space="preserve"><value>Those settings could not be read. Choose another source or close this window.</value></data>
   <data name="import_source_the_import_location_is_invalid_check_the_home_and_xdg_paths" xml:space="preserve"><value>The import location is invalid. Check the home and XDG paths.</value></data>
   <data name="import_source_the_import_source_could_not_be_inspected_check_its_location_and_access" xml:space="preserve"><value>The import source could not be inspected. Check its location and access.</value></data>
+  <data name="import_source_tidyvnc" xml:space="preserve"><value>Current TidyVNC settings</value></data>
+  <data name="import_source_tigervnc" xml:space="preserve"><value>TigerVNC settings</value></data>
   <data name="information_available" xml:space="preserve"><value>Available</value></data>
   <data name="information_connection_information" xml:space="preserve"><value>Connection information</value></data>
   <data name="information_connection_statistics" xml:space="preserve"><value>Connection statistics</value></data>

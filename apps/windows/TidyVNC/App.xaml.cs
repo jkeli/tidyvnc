@@ -129,6 +129,7 @@ public partial class App : Application
         credentialStore = new NativeCredentialStore();
         certificateTrust = new NativeTrustStore(NativeTrustKind.Certificate, root);
         hostKeyTrust = new NativeTrustStore(NativeTrustKind.HostKey, root);
+        RefreshImportOffer();
     }
 
     /// <summary>A launch through vncviewer.exe (D9): the retained viewer's behaviour, connecting a given address at once.</summary>
@@ -374,6 +375,63 @@ public partial class App : Application
     private SettingsWindow? settings;
     private ProfilesWindow? profiles;
     private HelpWindow? help;
+    private ImportWindow? importDefaults, importHistory;
+
+    /// <summary>File > Import connection defaults (F09-F12): one window.</summary>
+    internal void OpenDefaultsImport()
+    {
+        if (exiting) return;
+        if (importDefaults is { } open) { open.Activate(); return; }
+        var window = new ImportWindow(new NativeDefaultsImport(Preferences, () => { Displays.Refresh(); return Displays.Snapshot; }));
+        importDefaults = window;
+        window.Closed += (_, _) => { if (ReferenceEquals(importDefaults, window)) importDefaults = null; RefreshImportOffer(); };
+        window.Activate();
+    }
+
+    /// <summary>File > Import recent connections (F13-F14): one window.</summary>
+    internal void OpenHistoryImport()
+    {
+        if (exiting) return;
+        if (importHistory is { } open) { open.Activate(); return; }
+        var window = new ImportWindow(new NativeHistoryImport(Profiles));
+        importHistory = window;
+        window.Closed += (_, _) => { if (ReferenceEquals(importHistory, window)) importHistory = null; History.Reload(); RefreshImportOffer(); };
+        window.Activate();
+    }
+
+    /// <summary>What the first-use offer (F09) suggests: defaults, recent connections, or nothing.</summary>
+    internal (bool Defaults, bool History) ImportOffer { get; private set; }
+    internal event Action? ImportOfferChanged;
+    private bool importOfferDismissed;
+
+    /// <summary>
+    /// Offered only while native defaults were never saved (or native history
+    /// never started) and the previous viewer left settings in the registry.
+    /// </summary>
+    internal async void RefreshImportOffer()
+    {
+        if (exiting || importOfferDismissed) return;
+        try
+        {
+            var sources = NativeRegistryImport.Available();
+            var saved = await Preferences.ReadAsync();
+            var profiles = await Profiles.ReadAsync();
+            ImportOffer = (sources.Any(s => s.HasDefaults) && !saved.IsStored, sources.Any(s => s.HasHistory) && profiles.Value.CanImportHistory);
+        }
+        catch (Exception error) when (error is NativeStorageException or IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            ImportOffer = (false, false);
+        }
+        ImportOfferChanged?.Invoke();
+    }
+
+    /// <summary>Not now: the offer stays away for this run.</summary>
+    internal void DismissImportOffer()
+    {
+        importOfferDismissed = true;
+        ImportOffer = (false, false);
+        ImportOfferChanged?.Invoke();
+    }
 
     /// <summary>TidyVNC help (H03): one window, brought forward at a topic when asked again.</summary>
     internal void OpenHelp(string? topic = null)
@@ -428,6 +486,8 @@ public partial class App : Application
         settings?.Close();
         profiles?.Close();
         help?.Close();
+        importDefaults?.Close();
+        importHistory?.Close();
         Documents?.Stop();
         await Clipboard.CloseAsync();
         await History.CloseAsync();

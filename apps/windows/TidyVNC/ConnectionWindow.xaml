@@ -44,6 +44,10 @@
                                 <KeyboardAccelerator Modifiers="Control" Key="O" />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
+                        <MenuFlyoutItem Text="{local:Str Key=app.import.connection.defaults}" Click="ImportDefaultsClick"
+                                        AutomationProperties.AutomationId="menu.importDefaults" />
+                        <MenuFlyoutItem Text="{local:Str Key=app.import.recent.connections}" Click="ImportHistoryClick"
+                                        AutomationProperties.AutomationId="menu.importHistory" />
                         <MenuFlyoutItem x:Name="ProfilesItem" Text="{local:Str Key=app.saved.profiles}" Click="ProfilesClick"
                                         AutomationProperties.AutomationId="menu.savedProfiles">
                             <MenuFlyoutItem.KeyboardAccelerators>
@@ -187,6 +191,15 @@
             <InfoBar x:Name="ReverseNotice" IsOpen="False" IsClosable="False" Severity="Informational"
                      Message="{local:Str Key=app.incoming.connection.to.reconnect.ask.the.server.to.connect.to.the.listener}"
                      AutomationProperties.AutomationId="connection.reverse" />
+            <InfoBar x:Name="ImportNotice" IsOpen="False" IsClosable="False" Severity="Informational" AutomationProperties.AutomationId="import.offer">
+                <InfoBar.ActionButton>
+                    <Button x:Name="ImportOfferButton" Click="ImportOfferClick" AutomationProperties.AutomationId="import.firstUse" />
+                </InfoBar.ActionButton>
+                <InfoBar.Content>
+                    <Button Content="{local:Str Key=history.import.not.now}" Click="ImportNotNowClick" Margin="0,0,0,8"
+                            AutomationProperties.AutomationId="import.notNow" />
+                </InfoBar.Content>
+            </InfoBar>
             <InfoBar x:Name="HistoryNotice" IsOpen="False" IsClosable="False" Severity="Warning" AutomationProperties.AutomationId="history.status">
                 <InfoBar.ActionButton>
                     <Button x:Name="ReloadHistoryButton" Content="{local:Str Key=history.reload.history}" Click="ReloadHistoryClick" />

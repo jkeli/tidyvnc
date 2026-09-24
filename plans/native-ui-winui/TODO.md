@@ -1169,3 +1169,26 @@ Add dated entries, newest last, in the macOS format:
   - Strings audit clean.
 - Remaining: Narrator, keyboard-only and contrast-theme passes (W5.19); the desktop view's automation peer
   with the Scroll pattern; the 225% text-size check.
+
+### W5.13 (progress) — registry import windows — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Behaviour delivered:
+  - Defaults (F09-F12): `NativeDefaultsImport` reads the chosen registry source (*Current TidyVNC settings* or
+    *TigerVNC settings*) through the core import projection.
+    - Monitor numbers become stable display IDs by the retained numbering; numbers without a connected display
+      are omitted and listed.
+    - Excluded, unknown, unreadable and Windows-unavailable values need an acknowledgement.
+    - The review is written exactly, marked `importedFrom: registry`, against the revision read. A later
+      native save refuses the stale review.
+  - History (F13-F14): `NativeHistoryImport` offers the registry history only while native history was never
+    started. Import or Skip starts native history (`ImportHistoryAsync`); omitted duplicates need
+    acknowledging.
+  - `ImportWindow` for both, the File menu items, and the connection window's first-use offer (defaults first,
+    then recent connections; *Not now* for the run). The registry is never written.
+- Tests:
+  - ImportTests (disposable HKCU test keys): review, acknowledgement, mapping, marker, stale review, the
+    registry left unchanged, history import once and skip.
+  - Gated UI test FirstUseOfferImportsTigerVncDefaults, against the isolated registry root, passes.
+- Remaining: a manual display-assignment step for imported monitor numbers (macOS lets the user choose; here
+  missing numbers are omitted with acknowledgement).

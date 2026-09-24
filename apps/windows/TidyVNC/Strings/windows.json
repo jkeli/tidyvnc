@@ -63,7 +63,19 @@
     "about.version": "Version {0} ({1})",
     "about.summary": "TidyVNC is a VNC viewer derived from TigerVNC, distributed under the GNU General Public License, version 2 or later.",
     "about.licences": "Licence, acknowledgements and third-party notices",
-    "app.menu.help.contents": "TidyVNC help"
+    "app.menu.help.contents": "TidyVNC help",
+    "import.source.tidyvnc": "Current TidyVNC settings",
+    "import.source.tigervnc": "TigerVNC settings",
+    "import.registry.source": "Reads the settings the previous TidyVNC or TigerVNC viewer saved for your Windows account. They are read, never changed.",
+    "import.registry.none": "No settings from the previous TidyVNC or TigerVNC viewer were found for your Windows account.",
+    "import.registry.unreadable": "Those settings could not be read. Choose another source or close this window.",
+    "import.registry.reviewing": "Source: {0}",
+    "import.registry.replaces": "Importing replaces your current connection defaults.",
+    "import.registry.notice": "{0}: {1}",
+    "import.registry.skipped": "{0}: unreadable value; not imported",
+    "import.registry.monitor": "Monitor {0}: {1}",
+    "import.registry.monitor.missing": "Monitor {0}: no connected display; not imported",
+    "import.registry.left.unchanged": "The previous viewer’s settings were left unchanged."
   },
   "reviewed": [
     "help.guide.input.title",

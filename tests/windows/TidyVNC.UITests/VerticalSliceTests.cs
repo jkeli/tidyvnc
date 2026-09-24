@@ -73,11 +73,11 @@ public sealed class VerticalSliceTests
     /// </summary>
     private static readonly string StateRoot = Path.Combine(Path.GetTempPath(), "tidyvnc-ui-" + Guid.NewGuid().ToString("N"));
 
-    private static LaunchedApp Launch(string arguments, bool commandLine = false)
+    private static LaunchedApp Launch(string arguments, bool commandLine = false, string? stateRoot = null)
     {
         if (!File.Exists(AppPath)) Assert.Inconclusive($"Build the app first: {AppPath}");
         var start = new ProcessStartInfo(AppPath, arguments) { WorkingDirectory = Path.GetDirectoryName(AppPath)!, UseShellExecute = false };
-        start.Environment["TIDYVNC_STATE_ROOT"] = StateRoot;
+        start.Environment["TIDYVNC_STATE_ROOT"] = stateRoot ?? StateRoot;
         // vncviewer.exe marks its launches this way (D8/D9); plain launches are shell-style.
         if (commandLine) start.Environment["TIDYVNC_COMMAND_LINE"] = "1";
         return new LaunchedApp(Process.Start(start)!);
@@ -648,6 +648,55 @@ public sealed class VerticalSliceTests
             try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
             catch (Exception) { }
             throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.13 / F09-F12: with TigerVNC settings in the (isolated) registry and
+    /// no native defaults, the connection window offers an import; the review
+    /// imports them into preferences.json marked as imported from the registry.
+    /// </summary>
+    [TestMethod]
+    public void FirstUseOfferImportsTigerVncDefaults()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "tidyvnc-ui-import-" + Guid.NewGuid().ToString("N"));
+        // The app's isolated registry root for this state root (NativeStateRoot.RunId).
+        var run = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Path.GetFullPath(root).ToUpperInvariant())))[..12]
+            .ToLowerInvariant();
+        var key = $@"Software\TidyVNC-Test\{run}";
+        using (var viewer = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(key + @"\Software\TigerVNC\vncviewer", writable: true))
+            viewer.SetValue("Shared", 1, Microsoft.Win32.RegistryValueKind.DWord);
+        using var app = Launch("", stateRoot: root);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            Until(() => ById(window, "import.offer") is { IsOffscreen: false }, "the import offer");
+            ById(window, "import.firstUse").AsButton().Invoke();
+            var import = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "Import connection defaults"), "the import window");
+            ById(import, "import.source.tigervnc").AsButton().Invoke();
+            var approve = ById(import, "import.approve").AsButton();
+            Until(() => approve.IsEnabled, "the review");
+            approve.Invoke();
+            var preferences = Path.Combine(root, "preferences.json");
+            Until(() => File.Exists(preferences) && File.ReadAllText(preferences).Contains("\"importedFrom\": \"registry\"", StringComparison.Ordinal),
+                "the imported defaults");
+            StringAssert.Contains(File.ReadAllText(preferences), "\"Shared\": \"on\"");
+            ById(import, "import.done").AsButton().Invoke();
+            Until(() => window.FindFirstDescendant(cf => cf.ByAutomationId("import.offer")) is null or { IsOffscreen: true }, "the offer gone");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+        finally
+        {
+            Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(key, throwOnMissingSubKey: false);
+            try { Directory.Delete(root, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
         }
     }
 
