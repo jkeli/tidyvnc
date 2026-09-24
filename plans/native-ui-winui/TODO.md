@@ -2185,3 +2185,43 @@ Add dated entries, newest last, in the macOS format:
   `ConnectionMenuCommandsReachTheServer` still fail. The click and keys reached the test server, but the
   screen kept showing the first frame, as a session that is not displayed does. They wait for the RDP
   window to be visible.
+
+### W7.13 (progress) — Windows App SDK 2.5.1 — 2026-09-24
+
+- IDs/commit: `c506ba47` (D24, W7.13) and the commit carrying this entry.
+- Packages (`Directory.Packages.props`, `TidyVNC.csproj`):
+  - `Microsoft.WindowsAppSDK` 2.5.1. It resolves WinUI 2.3.9, Foundation 2.3.12, InteractiveExperiences
+    2.1.9, DWrite 2.1.0, Base 2.0.4 and WebView2 1.0.3719.77.
+  - Excluded again, at the versions the metapackage resolves: AI 2.5.5, ML 2.1.94, Widgets 2.0.5 and
+    Runtime 2.5.1. Also excluded: the new Search 2.5.5, and two packages that 2.0 moved out of ML and
+    that arrived transitively: the ML runtime (`Microsoft.Windows.AI.MachineLearning` 2.1.74) and its
+    `System.Numerics.Tensors` 9.0.0. Only Runtime is pinned exactly by the metapackage now; the rest
+    are minimum versions.
+- `package.py` found Windows App SDK components through the first metapackage folder in the NuGet cache.
+  With 1.8 and 2.5.1 both cached, that was 1.8: the report named 1.8 versions, and the audit used 1.8
+  file lists, which passed only because the names match. Both now read the components the app restored
+  and does not exclude (`windows_app_sdk_components()`, from `project.assets.json`).
+- Builds: Debug and Release have no warnings. Native AOT measurement build has no warnings.
+- Package stage (x64 Release): the audit passes and the MSI validates. The payload is 553 files and
+  200.9 MB, against 555 files and 196.2 MB on 1.8 (`System.Numerics.Tensors.dll` is gone; nothing
+  referenced it). The report credits the 2.x components. The relocation checks pass: `--version` 0,
+  `--help` 1, Windows 10 refusal 1.
+- Smokes on the Debug publish: invocation terminal (34 cases, 136 runs), console Ctrl+C (3 consoles),
+  SSH tunnel, scaling (55/55) and security (10/10) all pass.
+- Native AOT (D1): warm median to first frame is 228 ms, against 426 ms for JIT (1.8: 248 and 442 ms).
+  The scaling (55/55) and tunnel smokes pass on the AOT build.
+- The title-bar leak (W6.11) is unchanged. It was measured on 1.8 and 2.5.1 back to back in the same
+  session state (RDP disconnected, so both counts are about three times the connected ones):
+  - 20 About windows with the extended title bar: +2888 handles on 1.8, +2869 on 2.5.1. Section +1380
+    and DxgkCompositionObject +1320 on both.
+  - 20 connection windows: +1834 on 1.8, +1774 on 2.5.1. Every closed window is released on both.
+- UI suite with the RDP session disconnected: 17 of 27 pass on 2.5.1.
+  - Eight failures need the foreground or the display: foreground timeouts, full screen filling its
+    display, and the Axe scan ("the handle is invalid"). Axe and About-with-Escape fail the same way on
+    1.8 in the same state.
+  - The two pseudo-locale tests failed only on 2.5.1. Listing the app's top-level windows met a window
+    whose handle could no longer be read (0x80040201, a window that closed between listing and query).
+    The test now skips such windows, and both pass on 2.5.1.
+- Native suite: 212 of 215 pass and 2 are gated skips. `KeyboardDisplaysAndCursorsThroughTheBridge`
+  fails with 0x80070005 because display queries need a connected session; it does not use the SDK.
+- Remaining for W7.13: the display-dependent UI tests on 2.5.1 with the RDP window shown.

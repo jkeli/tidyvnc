@@ -158,6 +158,24 @@ def copy_licences(source_dir, target, names=None):
     return [p.name for p in files]
 
 
+def windows_app_sdk_components():
+    """(package, version) for each Windows App SDK component the app restored and does not exclude.
+
+    Read from the app's restore (project.assets.json), not the NuGet cache, which can hold several
+    versions: the 2.x metapackage pins most components only as minimum versions (D24).
+    """
+    assets = json.loads((ROOT / "apps/windows/TidyVNC/obj/project.assets.json").read_text(encoding="utf-8"))
+    excluded = {name.lower() for framework in assets["project"]["frameworks"].values()
+                for name, reference in framework.get("dependencies", {}).items()
+                if reference.get("include", "All").lower() == "none"}
+    found = []
+    for key in assets["libraries"]:
+        name, package_version = key.split("/")
+        if name.startswith("Microsoft.WindowsAppSDK.") and name.lower() not in excluded:
+            found.append((name, package_version))
+    return sorted(found)
+
+
 def nuget_dir(package, package_version):
     path = NUGET / package.lower() / package_version
     if not path.is_dir():
@@ -216,24 +234,21 @@ def add_notices(staging, app, deps_prefix):
             component(package, files, f"NuGet {package} {package_version}", texts)
 
     # Windows App SDK component payload (assembled by its self-contained targets, not deps.json).
-    meta = next(NUGET.glob("microsoft.windowsappsdk/*"))
-    for spec in (meta / "microsoft.windowsappsdk.nuspec",):
-        for match in re.finditer(r'<dependency id="(Microsoft\.WindowsAppSDK\.[^"]+)" version="\[([^\]]+)\]"', spec.read_text()):
-            package, package_version = match.groups()
-            source = nuget_dir(package, package_version)
-            native = source / "runtimes-framework"
-            files = [p.name for p in native.rglob("*") if p.is_file()] if native.is_dir() else []
-            shipped = [f for f in files if (staging / f).exists() or any(staging.rglob(f))]
+    for package, package_version in windows_app_sdk_components():
+        source = nuget_dir(package, package_version)
+        native = source / "runtimes-framework"
+        files = [p.name for p in native.rglob("*") if p.is_file()] if native.is_dir() else []
+        shipped = [f for f in files if (staging / f).exists() or any(staging.rglob(f))]
+        if shipped:
+            component(package, shipped, f"NuGet {package} {package_version}", copy_licences(source, third / package))
+        # Their own NuGet dependencies (WebView2 for WinUI) reach the payload as references.
+        for dependency, dependency_version in re.findall(r'<dependency id="((?!Microsoft\.WindowsAppSDK)[^"]+)" version="\[?([^\],"]+)',
+                                                         next(source.glob("*.nuspec")).read_text()):
+            other = nuget_dir(dependency, dependency_version)
+            names = {p.name for p in other.rglob("*.dll")}
+            shipped = sorted(n for n in names if (staging / n).exists())
             if shipped:
-                component(package, shipped, f"NuGet {package} {package_version}", copy_licences(source, third / package))
-            # Their own NuGet dependencies (WebView2 for WinUI) reach the payload as references.
-            for dependency, dependency_version in re.findall(r'<dependency id="((?!Microsoft\.WindowsAppSDK)[^"]+)" version="\[?([^\],"]+)',
-                                                             next(source.glob("*.nuspec")).read_text()):
-                other = nuget_dir(dependency, dependency_version)
-                names = {p.name for p in other.rglob("*.dll")}
-                shipped = sorted(n for n in names if (staging / n).exists())
-                if shipped:
-                    component(dependency, shipped, f"NuGet {dependency} {dependency_version}", copy_licences(other, third / dependency))
+                component(dependency, shipped, f"NuGet {dependency} {dependency_version}", copy_licences(other, third / dependency))
 
     # The app-local Visual C++ runtime: Visual Studio's redistributable code.
     vc = [p.name for p in staging.iterdir() if VC_RUNTIME.match(p.name)]
@@ -281,10 +296,8 @@ def dynamic_dlls(staging, app):
     for exe in staging.glob("*.exe"):
         manifest = pe.read(exe).manifest
         names.update(m.lower() for m in re.findall(r"<(?:asmv3:)?file\s+name=['\"]([^'\"]+\.dll)['\"]", manifest, re.I))
-    meta = next(NUGET.glob("microsoft.windowsappsdk/*"))
-    for match in re.finditer(r'<dependency id="(Microsoft\.WindowsAppSDK\.[^"]+)" version="\[([^\]]+)\]"',
-                             (meta / "microsoft.windowsappsdk.nuspec").read_text()):
-        native = NUGET / match.group(1).lower() / match.group(2) / "runtimes-framework"
+    for package, package_version in windows_app_sdk_components():
+        native = NUGET / package.lower() / package_version / "runtimes-framework"
         if native.is_dir():
             names.update(p.name.lower() for p in native.rglob("*.dll"))
     return names

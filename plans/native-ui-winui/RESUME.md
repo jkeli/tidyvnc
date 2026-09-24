@@ -38,6 +38,9 @@ Checked or decided so far:
 - Owner decision (2026-09-24): keep the extended title bar (UX.md section 1, W08) and accept Windows App
   SDK 1.8's leak of about 50 handles per closed window that extends into the title bar, until the SDK
   fixes it. The leak test bounds it against an About window with the same title bar.
+- D24 (owner, 2026-09-24): Windows App SDK 2.5.1 (1.8 left servicing on 2026-09-09). Builds, package,
+  smokes and Native AOT pass on it; the title-bar leak is unchanged. W7.13 waits for the
+  display-dependent UI tests with the display on.
 - W6.12 tunnel smoke passes, with MSYS2's openssh (installed with approval on 2026-09-24): a
   localhost-only sshd that runs as this user only during the test. The machine also runs the Windows
   `sshd` service (Automatic, since 2026-09-19); the smoke does not use it.

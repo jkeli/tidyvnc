@@ -42,7 +42,7 @@ development `bin` directory for tests only; the W7 payload script excludes them.
 | Component | Version | Licence |
 | --- | --- | --- |
 | .NET runtime | 10.0 (SDK 10.0.112) | MIT |
-| Windows App SDK (WinUI 3 and runtime) | 1.8.260804001 | MIT |
+| Windows App SDK (WinUI 3 and runtime) | 2.5.1 (WinUI 2.3.9, Foundation 2.3.12, InteractiveExperiences 2.1.9, DWrite 2.1.0) | MIT |
 | CommunityToolkit.Mvvm | 8.4.2 | MIT |
 | CommunityToolkit.WinUI.Controls.SettingsControls | 8.2.251219 | MIT (added when W5 uses it) |
 

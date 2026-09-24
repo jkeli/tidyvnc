@@ -1277,14 +1277,21 @@ public sealed class VerticalSliceTests
                 }
             }
             Check(window, "connection");
+            // A window can close between being listed and being asked for its handle (Windows App SDK 2.x lists a
+            // short-lived one here); such a window is simply not a candidate.
+            IntPtr HandleOf(Window w)
+            {
+                try { return w.Properties.NativeWindowHandle.ValueOrDefault; }
+                catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException) { return IntPtr.Zero; }
+            }
             Window Open(string menu, string item)
             {
-                var before = app.Application.GetAllTopLevelWindows(automation).Select(w => w.Properties.NativeWindowHandle.ValueOrDefault).ToHashSet();
+                var before = app.Application.GetAllTopLevelWindows(automation).Select(HandleOf).ToHashSet();
                 // A menu opened in an inactive window closes at once; the last window closed may have left none active.
                 try { window.Focus(); }
                 catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException) { }
                 MenuItem(window, automation, menu, item).Invoke();
-                return WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => !before.Contains(w.Properties.NativeWindowHandle.ValueOrDefault)),
+                return WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => HandleOf(w) is var h && h != IntPtr.Zero && !before.Contains(h)),
                     item + " window");
             }
             foreach (var (menu, item) in new[] { ("menu.file", "menu.settings"), ("menu.file", "menu.savedProfiles"), ("menu.file", "menu.listen"),
