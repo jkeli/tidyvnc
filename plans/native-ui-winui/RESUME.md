@@ -35,9 +35,10 @@ Checked or decided so far:
 - W7.8 (Native AOT not adopted yet; see DECISIONS.md D1);
 - W6.11 follow-up: closed connection and About windows are released. A WinUI `TitleBar` holding the menu
   bar kept every closed connection window alive; the window now detaches it before closing.
-- Owner decision (2026-09-24): keep the extended title bar (UX.md section 1, W08) and accept Windows App
-  SDK 1.8's leak of about 50 handles per closed window that extends into the title bar, until the SDK
-  fixes it. The leak test bounds it against an About window with the same title bar.
+- Owner decision (2026-09-24): keep the extended title bar (UX.md section 1, W08) and accept the Windows
+  App SDK's leak of about 50 handles per closed window that extends into the title bar (the same on 1.8
+  and 2.5.1), until the SDK fixes it. The leak test bounds it against an About window with the same
+  title bar.
 - D24 (owner, 2026-09-24): Windows App SDK 2.5.1 (1.8 left servicing on 2026-09-09). Builds, package,
   smokes and Native AOT pass on it; the title-bar leak is unchanged. W7.13 waits for the
   display-dependent UI tests with the display on.
