@@ -55,7 +55,7 @@ before W0.2–W0.5 are accepted.
   - [x] D18: `AF_UNIX` endpoints enabled with tests, or reported unavailable with a recorded reason
 - [x] W1.7 Windows listener (`SO_EXCLUSIVEADDRUSE`, `IPV6_V6ONLY`), passing the existing listener contract tests.
 - [x] W1.8 Windows private log file (owner-only DACL, `LockFileEx`, rotation, reparse refusal), stdio routes in a GUI process, retained default path.
-- [ ] W1.9 Bridge: Windows feature bits, Windows path rules for CA/CRL and logs (UTF-8 active code page or in-memory CA/CRL loading, CORE.md §4), native error domain, Winsock/DNS error categories.
+- [x] W1.9 Bridge: Windows feature bits, Windows path rules for CA/CRL and logs (UTF-8 active code page or in-memory CA/CRL loading, CORE.md §4), native error domain, Winsock/DNS error categories.
 - [x] W1.10 Tests: MSVC unit suite with justified exclusions; `c-abi-smoke` gated on the listener bit; DLL-loading C smoke; `headless.py` Windows mode.
 - [x] W1.11 AddressSanitizer build of the core and unit suite.
 - [ ] W1.12 FLTK MinGW build and unit run still pass; ARM64 cross-build of the core succeeds.
@@ -1744,3 +1744,37 @@ Add dated entries, newest last, in the macOS format:
       display-dependent tests, because the display was off.
 - Remaining: that UI test and the other on-screen cursor checks with the display on; density changes on
   mixed-DPI hardware.
+
+### W1.9, W20 (progress) — long paths without the LongPathsEnabled setting — 2026-09-24
+
+- IDs/commit: `ec611d17`; this entry follows it.
+- W1.9 was open only because long CA/CRL paths needed the LongPathsEnabled system setting (0 here), and
+  CORE.md section 4 requires non-ASCII and long paths to pass. The viewer no longer depends on that
+  setting:
+  - CA/CRL: `rfb::tlsFilePath` (`common/rfb/TLSFilePath.h`), used by `CSecurityTLS` for both files.
+    - In UCRT builds, a path of MAX_PATH or more characters is resolved (separators, `.` and `..`) and
+      given to GnuTLS in its extended-length form (`\?\C:\...` or `\?\UNC\server\share\...`).
+    - The UCRT's narrow `fopen` converts through the active code page (UTF-8 in the app) and calls
+      `CreateFileW`, which opens that form beyond MAX_PATH.
+    - Short paths, already-extended paths and msvcrt MinGW (FLTK) builds are unchanged.
+  - Log file: `winio::extendedLength` in `PrivateFileLogger`, when the folder plus an entry name reaches
+    MAX_PATH.
+  - .NET direct Win32 calls: `NativeWin32Path.For`, applied to the CreateFile calls of the document
+    reader and writer, the PasswordFile reader and the legacy trust reader, and to the writer's
+    ReplaceFile/MoveFileEx. .NET's own file APIs already extend long paths.
+- Tests (this machine, LongPathsEnabled = 0):
+  - `utf8paths` `LongCaPathsLoadInTheirExtendedForm`: a 300+ character CA path with non-ASCII segments
+    loads through GnuTLS. Short, already-extended, `.`/`..` and UNC forms convert as expected. The
+    plain-path test still skips without the setting, as intended.
+  - `privatefilelogger` `LongPathsLogWithoutTheLongPathsSetting`: a private log at a 300+ character path.
+    10/10.
+  - `DocumentTests.LongPathsSaveAndOpenWithoutTheLongPathsSetting` (save, open and replace) and a
+    300+ character PasswordFile in `CredentialTests`. Document, credential and trust tests pass 33/33.
+  - `build.py --test` (Debug): viewer 7/7, unit 742/742.
+  - The FLTK MinGW build compiles the shared `CSecurityTLS` change. Its unit run is 655 passed and the
+    same known DocumentABI failure, with the three GDI `Surface` tests hanging as before, so again
+    655/659.
+- W1.9 is now complete: feature bits, path rules for CA/CRL and logs (drive-letter, UNC, non-ASCII and
+  long), the native error domain and the Winsock/DNS categories, all with tests.
+- W20 (PARITY) still needs hands-on checks: files, CA/CRL and PasswordFile chosen in the app, on UNC
+  shares.
