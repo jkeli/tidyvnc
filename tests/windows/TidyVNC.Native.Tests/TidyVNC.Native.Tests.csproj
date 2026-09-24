@@ -15,6 +15,13 @@
     <PackageReference Include="MSTest" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The shared conformance corpus (tests/conformance), read in place. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>TidyVncConformance</_Parameter1>
+      <_Parameter2>$(RepoRoot)tests\conformance</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />
   </ItemGroup>
   <ItemGroup>

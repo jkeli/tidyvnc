@@ -28,6 +28,7 @@ public static class Tidyvnc
     public const ulong TIDYVNC_FEATURE_VIEWPORT_DIAGNOSTICS = 35184372088832UL;
     public const ulong TIDYVNC_FEATURE_PARAMETER_GRAMMARS = 70368744177664UL;
     public const ulong TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY = 140737488355328UL;
+    public const ulong TIDYVNC_FEATURE_IDENTITY_DIGEST = 281474976710656UL;
     public const uint TIDYVNC_OK = 0U;
     public const uint TIDYVNC_NO_CHANGE = 1U;
     public const uint TIDYVNC_PENDING = 2U;
@@ -61,6 +62,7 @@ public static class Tidyvnc
     public const uint TIDYVNC_DOMAIN_DOCUMENT = 8U;
     public const uint TIDYVNC_DOMAIN_INVOCATION = 9U;
     public const uint TIDYVNC_DOMAIN_LOGGING = 10U;
+    public const uint TIDYVNC_DOMAIN_IDENTITY = 11U;
     public const uint TIDYVNC_ENDPOINT_TOO_LONG = 1U;
     public const uint TIDYVNC_ENDPOINT_INVALID_HOST = 2U;
     public const uint TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3U;
@@ -286,6 +288,22 @@ public static class Tidyvnc
     public const uint TIDYVNC_NATIVE_ERROR_REFUSED = 2U;
     public const uint TIDYVNC_NATIVE_ERROR_ROUTING = 3U;
     public const uint TIDYVNC_NATIVE_ERROR_TIMED_OUT = 4U;
+    public const uint TIDYVNC_IDENTITY_CREDENTIAL = 1U;
+    public const uint TIDYVNC_IDENTITY_TRUST_CERTIFICATE = 2U;
+    public const uint TIDYVNC_IDENTITY_TRUST_HOST_KEY = 3U;
+    public const uint TIDYVNC_IDENTITY_SSH_ROUTE = 4U;
+    public const uint TIDYVNC_IDENTITY_SSH_INTENT = 5U;
+    public const uint TIDYVNC_IDENTITY_SSH_RESOLVED = 6U;
+    public const uint TIDYVNC_IDENTITY_PASSWORD_ONLY = 1U;
+    public const uint TIDYVNC_IDENTITY_USERNAME_PASSWORD = 2U;
+    public const uint TIDYVNC_IDENTITY_TOO_LONG = 1U;
+    public const uint TIDYVNC_IDENTITY_INVALID_TEXT = 2U;
+    public const uint TIDYVNC_IDENTITY_INVALID_ENDPOINT = 3U;
+    public const uint TIDYVNC_IDENTITY_INVALID_AUTHENTICATION = 4U;
+    public const uint TIDYVNC_IDENTITY_UNEXPECTED_USERNAME = 5U;
+    public const uint TIDYVNC_IDENTITY_INVALID_GATEWAY = 6U;
+    public const uint TIDYVNC_IDENTITY_INVALID_ALIAS = 7U;
+    public const uint TIDYVNC_IDENTITY_INVALID_KIND = 8U;
     public const uint TIDYVNC_SSH_GATEWAY_USER = 1U;
     public const uint TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT = 2U;
     public const uint TIDYVNC_DESKTOP_SIZE_LEGACY = 1U;
@@ -1054,6 +1072,31 @@ public unsafe partial struct tidyvnc_clipboard_info
 }
 
 [StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_identity_request
+{
+    public uint size;
+    public uint version;
+    public uint kind;
+    public uint security_type;
+    public uint shape;
+    public uint allow_unix_sockets;
+    public uint port;
+    public uint reserved;
+    public tidyvnc_bytes endpoint;
+    public tidyvnc_bytes route;
+    public tidyvnc_bytes username;
+    public tidyvnc_bytes host_key_alias;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_identity
+{
+    public uint size;
+    public uint version;
+    public fixed byte text[80];
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public unsafe partial struct tidyvnc_ssh_gateway_info
 {
     public uint size;
@@ -1325,6 +1368,10 @@ public static unsafe partial class NativeMethods
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
     public static partial uint tidyvnc_native_error_category(int native_error, uint* category, tidyvnc_error* p2);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_identity_digest(tidyvnc_identity_request* p0, tidyvnc_identity* p1, tidyvnc_error* p2);
 
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]

@@ -53,6 +53,7 @@ add_library(tidyvnc_viewer_core STATIC
   core/WindowGeometry.cxx
   core/DesktopSize.cxx
   core/SSHGateway.cxx
+  core/IdentityDigest.cxx
   core/ConnectionDocument.cxx
   core/DocumentOptions.cxx
   core/Endpoint.cxx

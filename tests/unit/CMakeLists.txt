@@ -303,6 +303,13 @@ add_executable(nativeerrorcategory nativeerrorcategory.cxx)
 target_link_libraries(nativeerrorcategory tidyvnc_viewer_c tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
 gtest_discover_tests(nativeerrorcategory)
 
+# Shared policy modules (plans/native-ui-winui CORE.md section 6) against the
+# conformance corpus in tests/conformance, shared with the macOS Swift suite.
+add_executable(identitydigest identitydigest.cxx)
+target_compile_definitions(identitydigest PRIVATE TIDYVNC_CONFORMANCE_DIR="${CMAKE_SOURCE_DIR}/tests/conformance")
+target_link_libraries(identitydigest tidyvnc_viewer_c tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
+gtest_discover_tests(identitydigest)
+
 add_executable(parameters parameters.cxx)
 target_link_libraries(parameters core GTest::gtest_main)
 gtest_discover_tests(parameters)

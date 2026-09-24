@@ -5,6 +5,7 @@
 #include <viewer/core/WindowGeometry.h>
 #include <viewer/core/DesktopSize.h>
 #include <viewer/core/SSHGateway.h>
+#include <viewer/core/IdentityDigest.h>
 #include <viewer/core/StartupLogging.h>
 #include <core/Logger_file.h>
 #include "tidyvnc.h"
@@ -68,7 +69,7 @@ constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATU
 #ifdef HAVE_GNUTLS
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
 #endif
-  | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY
+  | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY | TIDYVNC_FEATURE_IDENTITY_DIGEST
   | TIDYVNC_FEATURE_CREDENTIAL_BYTES | TIDYVNC_FEATURE_PASSWORD_FILE_REPLY | TIDYVNC_FEATURE_CONNECTION_INFO | TIDYVNC_FEATURE_ENDPOINT_IDENTITY | TIDYVNC_FEATURE_PROMPT_SECURITY | TIDYVNC_FEATURE_CERTIFICATE_POLICY | TIDYVNC_FEATURE_HOST_KEY_ENCODING | TIDYVNC_FEATURE_REQUIRED_TLS_FILES | TIDYVNC_FEATURE_SECURITY_SELECTION | TIDYVNC_FEATURE_TLS_PRIORITY_VALIDATION | TIDYVNC_FEATURE_SECURITY_RECONFIGURATION | TIDYVNC_FEATURE_SHARED_SESSION | TIDYVNC_FEATURE_DESKTOP_LAYOUT | TIDYVNC_FEATURE_DISPLAY_LAYOUT | TIDYVNC_FEATURE_CANVAS_GEOMETRY | TIDYVNC_FEATURE_CONNECTION_DOCUMENT | TIDYVNC_FEATURE_DOCUMENT_OPTIONS | TIDYVNC_FEATURE_INVOCATION_SYNTAX | TIDYVNC_FEATURE_INVOCATION_VALUES | TIDYVNC_FEATURE_INPUT_TIMING | TIDYVNC_FEATURE_MESSAGE_LIMITS | TIDYVNC_FEATURE_WINDOW_GEOMETRY
 #ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_PROCESS_LOGGING | TIDYVNC_FEATURE_FILE_LOGGING
@@ -224,6 +225,10 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
     return TIDYVNC_INVALID_ARGUMENT;
   } catch (const InvocationError& problem) {
     const auto fault = invocationFault(problem); if (writable) errorValue(error,fault); return fault.status;
+  } catch (const IdentityError& problem) {
+    const auto status = problem.problem == IdentityProblem::TooLong ? TIDYVNC_RESOURCE_LIMIT : TIDYVNC_INVALID_ARGUMENT;
+    if (writable) errorValue(error,Fault(status,TIDYVNC_DOMAIN_IDENTITY,static_cast<uint32_t>(problem.problem)+1));
+    return status;
   } catch (const LoggingError& problem) {
     const auto status = problem.problem == LoggingProblem::TooLarge ? TIDYVNC_RESOURCE_LIMIT :
       problem.problem == LoggingProblem::UnknownTarget ? TIDYVNC_UNSUPPORTED : TIDYVNC_INVALID_ARGUMENT;
@@ -1229,6 +1234,47 @@ tidyvnc_status tidyvnc_native_error_category(int32_t native_error,uint32_t* out,
   return call(error,[&]() -> uint32_t {
     require(out != nullptr);
     *out = static_cast<uint32_t>(classifyNativeError(native_error)); return TIDYVNC_OK;
+  });
+}
+static_assert(static_cast<unsigned>(IdentityProblem::TooLong)+1 == TIDYVNC_IDENTITY_TOO_LONG &&
+  static_cast<unsigned>(IdentityProblem::InvalidAlias)+1 == TIDYVNC_IDENTITY_INVALID_ALIAS, "Identity problem IDs changed");
+tidyvnc_status tidyvnc_identity_digest(const tidyvnc_identity_request* request,tidyvnc_identity* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(request); header(out);
+    // Raw bytes: length and text validity are the identity's own reasons.
+    auto raw = [](tidyvnc_bytes bytes) {
+      if (bytes.length > 4096) throw IdentityError(IdentityProblem::TooLong);
+      require(bytes.data || !bytes.length);
+      return bytes.length ? std::string(reinterpret_cast<const char*>(bytes.data),static_cast<size_t>(bytes.length)) : std::string();
+    };
+    const auto endpoint = raw(request->endpoint), route = raw(request->route), username = raw(request->username);
+    std::string text;
+    switch (request->kind) {
+    case TIDYVNC_IDENTITY_CREDENTIAL:
+      text = identity::credentialAccount(endpoint,route,request->allow_unix_sockets != 0,request->security_type,
+        static_cast<identity::CredentialShape>(request->shape),username);
+      break;
+    case TIDYVNC_IDENTITY_TRUST_CERTIFICATE: case TIDYVNC_IDENTITY_TRUST_HOST_KEY:
+      text = identity::trustScope(endpoint,route,request->kind == TIDYVNC_IDENTITY_TRUST_CERTIFICATE ?
+        identity::TrustKind::Certificate : identity::TrustKind::HostKey);
+      break;
+    case TIDYVNC_IDENTITY_SSH_ROUTE: case TIDYVNC_IDENTITY_SSH_INTENT: {
+      SSHGateway gateway;
+      try { gateway = SSHGateway::parse(endpoint); }
+      catch (const std::invalid_argument&) { throw IdentityError(IdentityProblem::InvalidGateway); }
+      text = request->kind == TIDYVNC_IDENTITY_SSH_ROUTE ? identity::sshRoute(gateway) : identity::sshIntent(gateway);
+      break;
+    }
+    case TIDYVNC_IDENTITY_SSH_RESOLVED:
+      text = identity::sshResolved(endpoint,username,request->port,raw(request->host_key_alias));
+      break;
+    default:
+      throw Fault(TIDYVNC_INVALID_ARGUMENT,TIDYVNC_DOMAIN_IDENTITY,TIDYVNC_IDENTITY_INVALID_KIND);
+    }
+    auto value = output<tidyvnc_identity>();
+    require(text.size() < sizeof(value.text),TIDYVNC_INTERNAL);
+    std::memcpy(value.text,text.c_str(),text.size()+1);
+    *out = value; return TIDYVNC_OK;
   });
 }
 tidyvnc_status tidyvnc_ssh_gateway_create(tidyvnc_bytes input,tidyvnc_handle* out,tidyvnc_error* error) {

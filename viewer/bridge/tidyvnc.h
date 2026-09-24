@@ -55,7 +55,8 @@ enum {
 enum { TIDYVNC_DOMAIN_BRIDGE = 1, TIDYVNC_DOMAIN_ENDPOINT = 2,
        TIDYVNC_DOMAIN_OPERATION = 3, TIDYVNC_DOMAIN_INPUT = 4,
        TIDYVNC_DOMAIN_AUTHENTICATION = 5, TIDYVNC_DOMAIN_ENCODING = 6, TIDYVNC_DOMAIN_SECURITY = 7,
-       TIDYVNC_DOMAIN_DOCUMENT = 8, TIDYVNC_DOMAIN_INVOCATION = 9, TIDYVNC_DOMAIN_LOGGING = 10 };
+       TIDYVNC_DOMAIN_DOCUMENT = 8, TIDYVNC_DOMAIN_INVOCATION = 9, TIDYVNC_DOMAIN_LOGGING = 10,
+       TIDYVNC_DOMAIN_IDENTITY = 11 };
 enum { TIDYVNC_ENDPOINT_TOO_LONG = 1, TIDYVNC_ENDPOINT_INVALID_HOST = 2,
        TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3, TIDYVNC_ENDPOINT_INVALID_PORT = 4,
        TIDYVNC_ENDPOINT_INVALID_PATH = 5, TIDYVNC_ENDPOINT_INVALID_ROUTE = 6,
@@ -88,6 +89,7 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 /* Feature bits 1<<47..1<<53 are the Windows plan's additive exports
  * (plans/native-ui-winui CORE.md sections 4 and 6). */
 #define TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY 140737488355328ULL
+#define TIDYVNC_FEATURE_IDENTITY_DIGEST 281474976710656ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -714,6 +716,36 @@ enum { TIDYVNC_NATIVE_ERROR_OTHER = 0, TIDYVNC_NATIVE_ERROR_NETWORK_POLICY = 1,
        TIDYVNC_NATIVE_ERROR_REFUSED = 2, TIDYVNC_NATIVE_ERROR_ROUTING = 3,
        TIDYVNC_NATIVE_ERROR_TIMED_OUT = 4 };
 TIDYVNC_API tidyvnc_status tidyvnc_native_error_category(int32_t native_error, uint32_t* category, tidyvnc_error*);
+/* IDENTITY_DIGEST: versioned SHA-256 identities that name saved credentials,
+ * trust entries and SSH routes, byte-identical to the macOS frontend. Not a
+ * secret, never proof of trust or permission to send credentials, and no
+ * endpoint, route or user text is recoverable from it. Stateless, thread safe,
+ * no IO. Inputs by kind:
+ *   CREDENTIAL      endpoint, route, allow_unix_sockets, security_type (the
+ *                   negotiated method), shape, username (password-only: empty)
+ *   TRUST_*         endpoint (non-empty; Unix sockets allowed), route
+ *   SSH_ROUTE/_INTENT  endpoint = the requested gateway text ("via")
+ *   SSH_RESOLVED    endpoint = resolved host name, username, port, and
+ *                   host_key_alias (empty = none) from `ssh -G`
+ * Text is at most 4096 bytes of UTF-8 without NUL. Output is untouched on
+ * failure; errors use DOMAIN_IDENTITY with the reason as detail. */
+enum { TIDYVNC_IDENTITY_CREDENTIAL = 1, TIDYVNC_IDENTITY_TRUST_CERTIFICATE = 2,
+       TIDYVNC_IDENTITY_TRUST_HOST_KEY = 3, TIDYVNC_IDENTITY_SSH_ROUTE = 4,
+       TIDYVNC_IDENTITY_SSH_INTENT = 5, TIDYVNC_IDENTITY_SSH_RESOLVED = 6 };
+enum { TIDYVNC_IDENTITY_PASSWORD_ONLY = 1, TIDYVNC_IDENTITY_USERNAME_PASSWORD = 2 };
+enum { TIDYVNC_IDENTITY_TOO_LONG = 1, TIDYVNC_IDENTITY_INVALID_TEXT = 2,
+       TIDYVNC_IDENTITY_INVALID_ENDPOINT = 3, TIDYVNC_IDENTITY_INVALID_AUTHENTICATION = 4,
+       TIDYVNC_IDENTITY_UNEXPECTED_USERNAME = 5, TIDYVNC_IDENTITY_INVALID_GATEWAY = 6,
+       TIDYVNC_IDENTITY_INVALID_ALIAS = 7, TIDYVNC_IDENTITY_INVALID_KIND = 8 };
+typedef struct {
+  uint32_t size, version, kind, security_type, shape, allow_unix_sockets, port, reserved;
+  tidyvnc_bytes endpoint, route, username, host_key_alias;
+} tidyvnc_identity_request;
+typedef struct {
+  uint32_t size, version;
+  char text[80]; /* NUL-terminated "v1:", "ssh-v1:", "ssh-v2:" or "ssh-request-v2:" + 64 hex digits */
+} tidyvnc_identity;
+TIDYVNC_API tidyvnc_status tidyvnc_identity_digest(const tidyvnc_identity_request*, tidyvnc_identity*, tidyvnc_error*);
 /* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most
  * 4096 bytes. Pure validation and canonicalization; nothing is resolved or run.
  * host/scope are the endpoint name and IPv6 zone; user is present only with
