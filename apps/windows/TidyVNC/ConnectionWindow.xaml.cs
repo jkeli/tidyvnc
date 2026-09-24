@@ -12,6 +12,7 @@ using TidyVNC.Native.Desktop;
 using TidyVNC.Native.Documents;
 using TidyVNC.Native.Platform;
 using TidyVNC.Native.Storage;
+using TidyVNC.Native.Trust;
 using TidyVNC.Native.Tunnel;
 
 namespace TidyVNC;
@@ -653,6 +654,8 @@ public sealed partial class ConnectionWindow : Window
     }
     private void ListenClick(object sender, RoutedEventArgs e) => App.Current.OpenListener();
     private void ProfilesClick(object sender, RoutedEventArgs e) => App.Current.OpenProfiles();
+    private void ServerKeysClick(object sender, RoutedEventArgs e) => App.Current.OpenTrustLibrary(NativeTrustKind.HostKey);
+    private void CertificateDecisionsClick(object sender, RoutedEventArgs e) => App.Current.OpenTrustLibrary(NativeTrustKind.Certificate);
     private void CloseWindowClick(object sender, RoutedEventArgs e) => _ = CloseGracefully();
     private void ExitClick(object sender, RoutedEventArgs e) => App.Current.ExitApplication();
     private void ProjectLinkClick(object sender, RoutedEventArgs e) => App.OpenLink(NativeHelpLink.Project);

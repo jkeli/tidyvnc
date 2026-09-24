@@ -392,6 +392,7 @@ public partial class App : Application
 
     private SettingsWindow? settings;
     private ProfilesWindow? profiles;
+    private readonly Dictionary<NativeTrustKind, TrustLibraryWindow> trustLibraries = [];
     private HelpWindow? help;
     private AboutWindow? about;
     private ImportWindow? importDefaults, importHistory;
@@ -471,6 +472,18 @@ public partial class App : Application
         window.Activate();
     }
 
+    /// <summary>Saved server keys or saved certificate decisions (T07): one window per kind, brought forward when asked again.</summary>
+    internal void OpenTrustLibrary(NativeTrustKind kind)
+    {
+        if (exiting) return;
+        if (trustLibraries.TryGetValue(kind, out var open)) { open.Activate(); return; }
+        if ((kind == NativeTrustKind.Certificate ? certificateTrust : hostKeyTrust) is not { } store) return;
+        var window = new TrustLibraryWindow(new NativeTrustLibrary(Dispatcher, store));
+        trustLibraries[kind] = window;
+        window.Closed += (_, _) => { if (trustLibraries.TryGetValue(kind, out var current) && ReferenceEquals(current, window)) trustLibraries.Remove(kind); };
+        window.Activate();
+    }
+
     /// <summary>About TidyVNC (H01): one window, brought forward when asked again.</summary>
     internal void OpenAbout()
     {
@@ -520,6 +533,7 @@ public partial class App : Application
         profiles?.Close();
         help?.Close();
         about?.Close();
+        foreach (var library in trustLibraries.Values.ToList()) library.Close();
         importDefaults?.Close();
         importHistory?.Close();
         Documents?.Stop();

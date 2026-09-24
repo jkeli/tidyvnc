@@ -798,6 +798,47 @@ public sealed class VerticalSliceTests
         }
     }
 
+    /// <summary>
+    /// T07: File > Saved server keys and Saved certificate decisions open one window per kind. Each
+    /// loads (empty in a fresh state root). Ask again… for a typed destination, confirmed in its
+    /// flyout, records that destination as forgotten, so it will ask again.
+    /// </summary>
+    [TestMethod]
+    public void SavedTrustLibrariesForgetADestination()
+    {
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            foreach (var (item, title) in new[] { ("menu.savedServerKeys", "Saved Server Keys"), ("menu.savedCertificateDecisions", "Saved Certificate Decisions") })
+            {
+                window.Focus();
+                MenuItem(window, automation, "menu.file", item).Invoke();
+                var library = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w =>
+                    string.Equals(w.Title, title, StringComparison.OrdinalIgnoreCase)), title);
+                Until(() => library.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "No saved destination decisions."), "the loaded, empty list");
+                ById(library, "trustLibrary.destination").AsTextBox().Text = "trust.example::5901";
+                var ask = ById(library, "trustLibrary.askAgain").AsButton();
+                Until(() => ask.IsEnabled, "Ask again enabled for a valid destination");
+                ask.Invoke();
+                WaitFor(() => app.Application.GetAllTopLevelWindows(automation).SelectMany(w => w.FindAllDescendants())
+                    .FirstOrDefault(e => e.Properties.AutomationId.ValueOrDefault == "trustLibrary.askAgain.confirm"), "the confirmation").AsButton().Invoke();
+                Until(() => ById(library, "trustLibrary.message").Name.StartsWith("Forgot the saved key", StringComparison.Ordinal), "forgotten");
+                Until(() => library.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "trust.example::5901"), "the destination listed");
+                library.Close();
+            }
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
     /// <summary>C08: About closes from the keyboard (Esc), and opening it again brings back one window.</summary>
     [TestMethod]
     public void AboutClosesWithEscape()

@@ -58,6 +58,10 @@
                                         AutomationProperties.AutomationId="menu.importDefaults" />
                         <MenuFlyoutItem Text="{local:Str Key=app.import.recent.connections}" Click="ImportHistoryClick"
                                         AutomationProperties.AutomationId="menu.importHistory" />
+                        <MenuFlyoutItem Text="{local:Str Key=app.saved.server.keys}" Click="ServerKeysClick"
+                                        AutomationProperties.AutomationId="menu.savedServerKeys" />
+                        <MenuFlyoutItem Text="{local:Str Key=app.saved.certificate.decisions}" Click="CertificateDecisionsClick"
+                                        AutomationProperties.AutomationId="menu.savedCertificateDecisions" />
                         <MenuFlyoutItem x:Name="ProfilesItem" Text="{local:Str Key=app.saved.profiles}" Click="ProfilesClick"
                                         AutomationProperties.AutomationId="menu.savedProfiles">
                             <MenuFlyoutItem.KeyboardAccelerators>

@@ -2024,3 +2024,24 @@ Add dated entries, newest last, in the macOS format:
     audit passes with 1097 strings.
 - Test: `ListenAcceptsAReverseConnection` now checks that the notice appears while listening and is gone
   after Stop. `ListenWithAFileReviewsItFirst` passes too (2/2).
+
+### T07 — the two trust library windows — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Found by the PARITY audit: the model (`NativeTrustLibrary`) and the store's `ForgetAsync` existed, but
+  no window used them and no menu opened one.
+- `TrustLibraryWindow` (UX.md sections 2 and 4, macOS TrustLibraryView), one window per kind from
+  File > Saved server keys… and Saved certificate decisions…, 720×560:
+  - the explanation for its kind;
+  - the destination field with Ask again…, enabled only for a valid address;
+  - the saved entries: selectable endpoint, route and SHA-256 fingerprint, with Forget for this
+    destination, or the "ask again" note for a forgotten destination;
+  - storage problems (`NativeTrustTexts.Storage`) and the forgot message;
+  - Reload, with a progress ring while it works.
+  - Confirmations are flyouts on the buttons (UX.md section 5).
+  - Forgetting also suppresses older legacy host-wide exceptions for that destination, as the store's
+    forget does.
+  - It loads on first activation and closes with the app.
+- Test: gated UI test `SavedTrustLibrariesForgetADestination`. For each kind, the window loads empty in a
+  fresh state root. A typed destination enables Ask again…; confirming in the flyout shows "Forgot the
+  saved key" and lists the destination. It passes.
