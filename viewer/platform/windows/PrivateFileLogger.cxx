@@ -169,11 +169,13 @@ std::string defaultLogPath()
     if (length == 0 || length >= 32768) continue;
     std::wstring directory(buffer, length);
     while (!directory.empty() && separator(directory.back())) directory.pop_back();
+    // An unusable candidate (invalid text or path) falls through to the next;
+    // allocation failure propagates rather than silently choosing another.
     try {
       const auto path = winio::narrow(directory) + "\\vncviewer.log";
       PrivateFileLogger::validatePath(path);
       return path;
-    } catch (...) {}
+    } catch (const std::logic_error&) {}
   }
   return "C:\\vncviewer.log";
 }
@@ -198,7 +200,7 @@ void PrivateFileLogger::validatePath(const std::string& path) {
   if (name.empty() || name == "." || name == ".." || name.size() > 250 ||
       name.find_first_of("<>:\"|?*") != std::string::npos)
     throw LogFilePathError();
-  try { winio::widen(path); } catch (...) { throw LogFilePathError(); }
+  try { winio::widen(path); } catch (const std::logic_error&) { throw LogFilePathError(); }
 }
 
 namespace {

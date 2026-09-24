@@ -183,6 +183,32 @@ public sealed class SessionTests
     }
 
     [TestMethod]
+    public async Task KeyAndPointerInputReachThePeerWhileFocused()
+    {
+        using var ui = new SingleThreadDispatcher();
+        await using var peer = new LoopbackPeer();
+        await OnUi(ui, async () =>
+        {
+            var runtime = new NativeRuntime(ui);
+            var session = runtime.CreateSession(new NativeSessionConfiguration { SecurityTypes = [1], PointerEventIntervalMilliseconds = 0 });
+            await session.ConnectAsync(peer.Endpoint);
+            await Until(() => peer.Established && session.Snapshot.State == NativeSessionState.Connected);
+            session.SetFocused(true);
+            session.SendKey(0x10, 0x71, 0x10, true);   // q, scan code 0x10
+            session.SendKey(0x10, 0x71, 0x10, false);
+            session.SendPointer(1, 1, 1);
+            session.SendPointer(1, 1, 0);
+            // RFB KeyEvent: type 4, down flag, padding, keysym (big endian); PointerEvent: type 5, mask, x, y.
+            await Until(() => peer.Received([4, 1, 0, 0, 0, 0, 0, 0x71]) && peer.Received([4, 0, 0, 0, 0, 0, 0, 0x71]) &&
+                              peer.Received([5, 1, 0, 1, 0, 1]) && peer.Received([5, 0, 0, 1, 0, 1]));
+            // Releasing input after focus loss sends nothing new for keys already up.
+            session.ReleaseInput();
+            await runtime.ShutdownAsync();
+            return true;
+        });
+    }
+
+    [TestMethod]
     public async Task ListenerAcceptsAReverseConnectionIntoASession()
     {
         using var ui = new SingleThreadDispatcher();

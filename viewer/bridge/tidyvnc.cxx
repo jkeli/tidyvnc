@@ -1075,7 +1075,11 @@ tidyvnc_status tidyvnc_logging_validate(tidyvnc_bytes policy,tidyvnc_error* erro
 }
 tidyvnc_status tidyvnc_logging_configure(tidyvnc_bytes policy,tidyvnc_error* error) {
 #ifdef TIDYVNC_PLATFORM_SOCKETS
-  const char* path = PrivateFileLogger::defaultPath();
+  // The default path may allocate (Windows reads TMP/TEMP/USERPROFILE), so it
+  // is resolved inside the ABI guard; a failed first lookup is retried later.
+  const char* path = nullptr;
+  const auto status = call(error,[&]() -> uint32_t { path = PrivateFileLogger::defaultPath(); return TIDYVNC_OK; });
+  if (status != TIDYVNC_OK) return status;
   return tidyvnc_logging_configure_with_file(policy,
     {reinterpret_cast<const uint8_t*>(path),std::strlen(path)},error);
 #else
