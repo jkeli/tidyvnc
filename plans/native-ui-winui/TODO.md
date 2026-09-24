@@ -2006,3 +2006,21 @@ Add dated entries, newest last, in the macOS format:
     copyright, credits and the licence link.
   - The new `AboutClosesWithEscape` checks that Esc closes it and that asking twice gives one window.
   - Both pass. K04's pointer placement needs input on screen and is left to the hands-on keyboard pass.
+
+### W12, L07, E04 — Windows Firewall guidance in the listener — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Found by the PARITY audit: SERVICES.md section 10 and UX.md section 4 ask the listener window to
+  explain the Windows Defender Firewall prompt, and nothing did.
+- `ListenerWindow` shows an InfoBar while it listens on an address other computers can reach
+  (`NativeListenerAddress.IsLoopback`; the listener binds every address).
+  - It explains that Windows may ask whether TidyVNC can accept connections on private or public
+    networks, where to allow the app later if servers cannot reach this computer, and that TidyVNC
+    changes no firewall rules.
+  - It closes when the listener stops. If the user closes it, it stays away for the rest of the run.
+  - It carries the "no peers arrive" guidance too. Whether the user allowed or denied the prompt cannot
+    be known, so the text covers both.
+  - New strings `listener.firewall.title` and `listener.firewall.message` (`windowsOnly`); the strings
+    audit passes with 1097 strings.
+- Test: `ListenAcceptsAReverseConnection` now checks that the notice appears while listening and is gone
+  after Stop. `ListenWithAFileReviewsItFirst` passes too (2/2).

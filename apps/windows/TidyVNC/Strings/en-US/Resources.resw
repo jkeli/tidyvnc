@@ -624,6 +624,8 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="listener_families" xml:space="preserve"><value>IPv4: {0} · IPv6: {1}</value></data>
   <data name="listener_family_disabled" xml:space="preserve"><value>disabled</value></data>
   <data name="listener_family_enabled" xml:space="preserve"><value>enabled</value></data>
+  <data name="listener_firewall_message" xml:space="preserve"><value>Windows Defender Firewall may ask whether TidyVNC can accept connections on private or public networks. If a server cannot reach this computer, allow TidyVNC in Windows Security &gt; Firewall &amp; network protection &gt; Allow an app through firewall. TidyVNC does not change firewall rules itself.</value></data>
+  <data name="listener_firewall_title" xml:space="preserve"><value>Windows Firewall</value></data>
   <data name="listener_incoming_connections" xml:space="preserve"><value>Incoming connections</value></data>
   <data name="listener_listen_for_connections" xml:space="preserve"><value>Listen for connections</value></data>
   <data name="listener_listener_could_not_continue" xml:space="preserve"><value>Listener could not continue</value></data>

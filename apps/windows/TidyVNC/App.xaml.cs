@@ -423,6 +423,9 @@ public partial class App : Application
     internal event Action? ImportOfferChanged;
     private bool importOfferDismissed;
 
+    /// <summary>The listener's Windows Firewall notice was closed in this run (SERVICES.md section 10).</summary>
+    internal bool FirewallNoticeDismissed { get; set; }
+
     /// <summary>
     /// Offered only while native defaults were never saved (or native history
     /// never started) and the previous viewer left settings in the registry.

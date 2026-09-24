@@ -72,6 +72,8 @@
     "about.copyright": "Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)",
     "about.credits": "TidyVNC builds on the work of the TigerVNC, TightVNC, RealVNC and many other contributors, and on the libraries listed in the acknowledgements and third-party notices.",
     "about.acknowledgements": "Acknowledgements",
+    "listener.firewall.title": "Windows Firewall",
+    "listener.firewall.message": "Windows Defender Firewall may ask whether TidyVNC can accept connections on private or public networks. If a server cannot reach this computer, allow TidyVNC in Windows Security > Firewall & network protection > Allow an app through firewall. TidyVNC does not change firewall rules itself.",
     "app.menu.help.contents": "TidyVNC help",
     "import.source.tidyvnc": "Current TidyVNC settings",
     "import.source.tigervnc": "TigerVNC settings",

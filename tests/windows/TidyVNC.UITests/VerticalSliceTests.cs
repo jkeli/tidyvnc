@@ -636,6 +636,10 @@ public sealed class VerticalSliceTests
                 .FirstOrDefault(name => name?.StartsWith("IPv4 port ", StringComparison.Ordinal) == true), "the address");
             var port = int.Parse(address["IPv4 port ".Length..], System.Globalization.CultureInfo.InvariantCulture);
             Assert.AreEqual(free, port, "the -listen operand is the port");
+            // W12: listening on every address brings the Windows Firewall notice (SERVICES.md section 10).
+            StringAssert.Contains(WaitFor(() => listener.FindFirstDescendant(cf => cf.ByAutomationId("listener.firewall")), "the firewall notice")
+                .FindAllDescendants().Select(e => e.Properties.Name.ValueOrDefault).FirstOrDefault(n => n?.Contains("Firewall", StringComparison.Ordinal) == true) ?? "",
+                "Firewall");
 
             await server.ConnectReverseAsync(port);
             var accept = WaitFor(() => listener.FindAllDescendants().FirstOrDefault(e =>
@@ -650,6 +654,8 @@ public sealed class VerticalSliceTests
 
             ById(listener, "listener.stop").AsButton().Invoke();
             Until(() => ById(listener, "listener.status").Name == "Listener stopped", "stopped");
+            Until(() => listener.FindFirstDescendant(cf => cf.ByAutomationId("listener.firewall")) is not { IsOffscreen: false },
+                  "the notice gone when stopped");
             Assert.IsTrue(Connected(), "the connection stays");
             foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
             Exits(app);

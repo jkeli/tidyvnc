@@ -12,7 +12,9 @@ namespace TidyVNC;
 /// Listen for connections (macOS ListenerView; PARITY L07, L08, W12): a TCP
 /// port and address families, Start and Stop listening, the addresses being
 /// listened on and the incoming connections waiting to be accepted into a new
-/// connection window or rejected.
+/// connection window or rejected. While it listens beyond this computer, an
+/// InfoBar explains the Windows Defender Firewall prompt and where to change
+/// the choice (SERVICES.md section 10); the app creates no firewall rules.
 /// </summary>
 internal sealed partial class ListenerWindow : Window
 {
@@ -25,6 +27,11 @@ internal sealed partial class ListenerWindow : Window
     private readonly StackPanel addresses = new() { Spacing = 2 };
     private readonly StackPanel incoming = new() { Spacing = 8 };
     private readonly TextBlock issue = Ui.Text("", "listener.issue");
+    private readonly InfoBar firewall = new()
+    {
+        Title = Strings.Get("listener.firewall.title"), Message = Strings.Get("listener.firewall.message"),
+        Severity = InfoBarSeverity.Informational, IsClosable = true, IsOpen = false,
+    };
     // A listener file (-listen <file>): its review, display mapping or problem, shown until it is accepted.
     private readonly ContentControl preparationHost = new() { HorizontalContentAlignment = HorizontalAlignment.Stretch };
     private StackPanel listening = null!;
@@ -50,9 +57,12 @@ internal sealed partial class ListenerWindow : Window
         var families = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16, Children = { ipv4, ipv6 } };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { start, stop } };
         AutomationProperties.SetAutomationId(incoming, "listener.incoming");
+        AutomationProperties.SetAutomationId(firewall, "listener.firewall");
+        // Dismissed once, it stays away for this run of the app.
+        firewall.CloseButtonClick += (_, _) => App.Current.FirewallNoticeDismissed = true;
         listening = Ui.Stack(12,
             Ui.Caption(Strings.Get("listener.start.a.listener.then.ask.the.remote.vnc.server.to.connect.to")),
-            port, families, buttons, status, addresses, issue,
+            port, families, buttons, status, addresses, firewall, issue,
             Ui.Heading(Strings.Get("listener.incoming.connections")), incoming,
             Ui.Caption(Strings.Get("listener.waiting.connections.expire.after.30.seconds.stopping.the.listener.leaves.accepted.connections")));
         var panel = Ui.Stack(12, Ui.Title(Strings.Get("listener.listen.for.connections"), "listener.title"), preparationHost, listening);
@@ -161,6 +171,9 @@ internal sealed partial class ListenerWindow : Window
             row.Children.Add(text); row.Children.Add(accept); row.Children.Add(reject);
             incoming.Children.Add(row);
         }
+        // Only an address other computers can reach makes Windows ask about the firewall.
+        firewall.IsOpen = model.Phase == NativeListenerPhase.Listening && model.Addresses.Any(a => !a.IsLoopback)
+                          && !App.Current.FirewallNoticeDismissed;
         issue.Text = model.Issue is { } problem ? Text(problem) : "";
         issue.Visibility = issue.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
