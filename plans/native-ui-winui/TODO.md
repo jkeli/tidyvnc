@@ -1,7 +1,7 @@
 # WinUI TODO
 
-Tracks [PLAN.md](PLAN.md). Planning checkpoint `6972f720`, 2026-09-23: **no code
-is started;** the owner decisions in W0.1 are recorded. Task IDs are W0.x–W7.x,
+Tracks [PLAN.md](PLAN.md). Planning checkpoint `6972f720`, 2026-09-23. Implementation started the same
+day; see the evidence log for what has landed and what stays open. Task IDs are W0.x–W7.x,
 parallel to the macOS N0.x–N6.x IDs in
 [plans/native-ui/TODO.md](../native-ui/TODO.md).
 
@@ -24,7 +24,7 @@ Rules (the macOS rules, unchanged):
   10.0.26100, .NET SDK 10.0.112 (also 8 and 9), CMake 4.0.3, Python 3.13.5,
   Windows 11 25H2 x64, Windows OpenSSH 9.5p2. Not installed: vcpkg, WiX, MSYS2.
   - [x] Owner approves installing vcpkg, WiX and MSYS2 (for the FLTK comparison build) on this machine. Approved 2026-09-23
-  - [ ] Install vcpkg, WiX and MSYS2 and record their versions
+  - [x] Install vcpkg, WiX and MSYS2 and record their versions
   - [x] Owner decisions, 2026-09-23: D5 per-user install; D6 Windows 11 only; D19 no audio; D21 remote clipboard text excluded from cloud sync; D22 no updater for now; D23 unsigned for now, signing added later. See the evidence log
   - [ ] Availability of a second serviced Windows 11 release in a VM, an ARM64 device or VM, a second monitor at a different scale, and a touch screen
 - [ ] W0.2 D1 spike: WinUI 3 on .NET 10 calls `tidyvnc_get_abi` and a parser export through `LibraryImport`, receives a `ready` callback and marshals it to the UI thread; trimmed and Native AOT builds with startup time, size and warnings recorded.
@@ -46,20 +46,20 @@ before W0.2–W0.5 are accepted.
 
 ## W1 — Core on Windows
 
-- [ ] W1.1 CMake: MSVC allowed for `TIDYVNC_UI=WINUI` and headless builds, still refused for FLTK/server targets; `WINUI` added to `cmake/ViewerFrontend.cmake`; compiler-specific flag sets; `_WIN32_WINNT=0x0A00` for WinUI only.
-- [ ] W1.2 `vcpkg.json` with a pinned baseline for x64 and ARM64; versions recorded (or the D3 fallback documented and scripted).
-- [ ] W1.3 MSVC `/W4` clean with a reviewed suppression list; `/WX` in Debug; GCC/Clang C++11 builds still clean.
-- [ ] W1.4 `TIDYVNC_API` export macro and `tidyvnc_viewer.dll`; export list equals the header; `headless.py` header audit accepts exactly that macro.
-- [ ] W1.5 Windows wakeup and established-socket transport (`WSAEventSelect`, `FD_CLOSE` peer-closure observation) with tests.
-- [ ] W1.6 Windows connector: cancellable `GetAddrInfoExW`, nonblocking connect, family policy, scope IDs, typed failures, with tests.
-  - [ ] D18: `AF_UNIX` endpoints enabled with tests, or reported unavailable with a recorded reason
-- [ ] W1.7 Windows listener (`SO_EXCLUSIVEADDRUSE`, `IPV6_V6ONLY`), passing the existing listener contract tests.
-- [ ] W1.8 Windows private log file (owner-only DACL, `LockFileEx`, rotation, reparse refusal), stdio routes in a GUI process, retained default path.
+- [x] W1.1 CMake: MSVC allowed for `TIDYVNC_UI=WINUI` and headless builds, still refused for FLTK/server targets; `WINUI` added to `cmake/ViewerFrontend.cmake`; compiler-specific flag sets; `_WIN32_WINNT=0x0A00` for WinUI only.
+- [x] W1.2 `vcpkg.json` with a pinned baseline for x64 and ARM64; versions recorded (or the D3 fallback documented and scripted).
+- [x] W1.3 MSVC `/W4` clean with a reviewed suppression list; `/WX` in Debug; GCC/Clang C++11 builds still clean.
+- [x] W1.4 `TIDYVNC_API` export macro and `tidyvnc_viewer.dll`; export list equals the header; `headless.py` header audit accepts exactly that macro.
+- [x] W1.5 Windows wakeup and established-socket transport (`WSAEventSelect`, `FD_CLOSE` peer-closure observation) with tests.
+- [x] W1.6 Windows connector: cancellable `GetAddrInfoExW`, nonblocking connect, family policy, scope IDs, typed failures, with tests.
+  - [x] D18: `AF_UNIX` endpoints enabled with tests, or reported unavailable with a recorded reason
+- [x] W1.7 Windows listener (`SO_EXCLUSIVEADDRUSE`, `IPV6_V6ONLY`), passing the existing listener contract tests.
+- [x] W1.8 Windows private log file (owner-only DACL, `LockFileEx`, rotation, reparse refusal), stdio routes in a GUI process, retained default path.
 - [ ] W1.9 Bridge: Windows feature bits, Windows path rules for CA/CRL and logs (UTF-8 active code page or in-memory CA/CRL loading, CORE.md §4), native error domain, Winsock/DNS error categories.
-- [ ] W1.10 Tests: MSVC unit suite with justified exclusions; `c-abi-smoke` gated on the listener bit; DLL-loading C smoke; `headless.py` Windows mode.
-- [ ] W1.11 AddressSanitizer build of the core and unit suite.
+- [x] W1.10 Tests: MSVC unit suite with justified exclusions; `c-abi-smoke` gated on the listener bit; DLL-loading C smoke; `headless.py` Windows mode.
+- [x] W1.11 AddressSanitizer build of the core and unit suite.
 - [ ] W1.12 FLTK MinGW build and unit run still pass; ARM64 cross-build of the core succeeds.
-- [ ] W1.13 End-to-end C program through the DLL: loopback connect, VncAuth, TLS, frames, disconnect, drain.
+- [x] W1.13 End-to-end C program through the DLL: loopback connect, VncAuth, TLS, frames, disconnect, drain.
 - [ ] W1.14 Only if D17 selects `ssh -W`: routed stream transport with the routed-connect contract, one feature bit and one export.
 
 Exit: CORE.md §8 criteria 1–6.
@@ -83,7 +83,7 @@ Exit: CORE.md §8, W2 paragraph.
 
 - [ ] W3.1 Solution layout (`platform/windows/TidyVNC.Native`, `platform/windows/Native`, `apps/windows/TidyVNC`, `apps/windows/TidyVNC.Cli`, `tests/windows`); central package versions; nullable and warnings-as-errors; CsWin32 configuration; licence list started.
 - [ ] W3.2 Interop: `LibraryImport` declarations, struct size/offset tests against the C smoke's values, `SafeHandle`s with asynchronous close and drain, the callback dispatcher to `DispatcherQueue`.
-  - [ ] D7 responsiveness: worst UI-thread tick gap during a pending connect, a raw decode flood and shutdown under load
+  - [x] D7 responsiveness: worst UI-thread tick gap during a pending connect, a raw decode flood and shutdown under load
 - [ ] W3.3 `NativeRuntime`, `NativeSession`, `NativeListener` with prompts, frames, input, clipboard and information; MSTest model tests against real loopback peers.
 - [ ] W3.4 Helper DLL skeleton with its C API: presenter, keyboard translator extracted from `KeyboardWin32.cxx` with the equivalence test harness, display queries.
 - [ ] W3.5 WinUI shell: `App`, a minimal `ConnectionWindow` (address, Connect, authentication dialog, desktop view, Disconnect); FLTK not linked.
@@ -216,3 +216,90 @@ Add dated entries, newest last, in the macOS format:
 - Tests, commands and results: none (decision record).
 - Remaining: tool installation and versions (W0.1), all spikes (W0.2–W0.11),
   and owner review of UX.md §12 (W0.13).
+
+### W0.1 — tools installed — 2026-09-23
+
+- IDs/commit: W0.1; `3231271d`.
+- Installed (owner-approved): vcpkg at `C:\vcpkg`, tool 2026-07-27, baseline
+  `48483a35f9e6f32572bc7c9382f14436cc7106a8` (pinned in `vcpkg.json`); MSYS2
+  installer 2026-06-11 at `C:\msys64` (packages below); WiX Toolset 5.0.2 as a
+  `dotnet` global tool. WiX 7.0.0 was installed first and removed: it requires
+  accepting the WiX OSMF EULA (`wix eula accept`), which needs the owner. The
+  plan allows "v5 or later".
+- MSYS2 packages (x64 and ARM64 C dependencies, D3 revised): CLANG64 and
+  CLANGARM64 gnutls 3.8.13-3, nettle 4.0-1, gmp 6.3.0-2, libtasn1 4.21.0-1,
+  libidn2 2.3.8-4, libunistring 1.4.2-1, p11-kit 0.26.5-1, brotli 1.2.0-1,
+  zstd 1.5.7-2, libiconv 1.19-1, gettext-runtime 1.0-1, pixman 0.46.4-3,
+  libjpeg-turbo 3.2.0-1; MINGW64 gcc 16.2.0-4 and friends for the FLTK
+  comparison build; CLANG64 clang/lld 22.1.8 (tried for ARM64, see W0.3).
+- Toolchain: VS 2022 Build Tools MSVC 14.44.35207 (x64 host and target only:
+  no ARM64 cross compiler and no ARM64 C runtime libraries are installed),
+  Windows SDK 10.0.26100 (includes ARM64 libraries), .NET SDK 10.0.112,
+  CMake 4.0.3, Ninja 1.13.1, Python 3.13.5.
+- Remaining: second Windows 11 release VM, ARM64 hardware/VM, second monitor at
+  another scale and touch screen availability (unknown; owner). WSL Ubuntu is
+  present but has no compiler and needs a sudo password, so Linux runs of the
+  shared code stay open.
+
+### W0.3, W1.1–W1.13 — core on Windows with MSVC — 2026-09-23
+
+- IDs/commits: `3231271d`, `93217115`, `1c3a4ba5`, `4c0b741b`, `29e09cdb`,
+  `0e260c82`, `0a500cfa`, `de0d9cab`.
+- Behaviour: MSVC (C++17, `/W4` with the reviewed list in
+  `cmake/MSVCWarnings.cmake`, `/WX` in Debug, `/guard:cf`, `/CETCOMPAT`) builds
+  the core, bridge, `tidyvnc_viewer.dll` (117 + 1 `TIDYVNC_API` exports) and
+  tests; FLTK and the server still require MinGW. `common/compat/msvc` gives
+  POSIX spellings to shared sources. New Windows adapters in
+  `viewer/platform/windows`: WSAPoll + loopback-UDP wake transport with
+  `FD_CLOSE` peer observation (event-based write waits were rejected:
+  `FD_WRITE` is only re-posted after a failed send, which the select-guarded
+  `FdOutStream` never makes), `GetAddrInfoExW` connector with abandon-on-cancel
+  completion, AF_UNIX (ASCII paths; backslash paths classify as Unix sockets
+  on Windows), `SO_EXCLUSIVEADDRUSE` listener, private log file (protected
+  user+SYSTEM DACL, `LockFileEx` sidecar, `.bak` rotation, reparse/hard-link/
+  foreign-owner refusal, sticky-directory rule), GUI-safe stdio routes. New
+  export `tidyvnc_native_error_category` (feature bit 1<<47).
+- D3 revised: vcpkg's gnutls port rejects MSVC and vcpkg's ARM64 triplet needs
+  the missing MSVC ARM64 tools, so all C dependencies come from MSYS2
+  CLANG64/CLANGARM64 as UCRT DLLs with MSVC import libraries
+  (`apps/windows/deps.py`); vcpkg supplies only GoogleTest.
+- Tests (this machine): `python apps/windows/build.py --test` → viewer 7/7 and
+  unit 705/705 (MSVC x64 Debug, run 3 times; RelWithDebInfo 657/657 before the
+  last additions); `ENABLE_ASAN` RelWithDebInfo 657/657 + 6/6;
+  `python tests/viewer/headless.py --build-dir build/winui/headless-x64`
+  passes the Windows audit and suites; `ViewerABI.EndToEndThroughDLL`
+  (VncAuth and VeNCrypt X509Vnc/TLS 1.2 through the DLL only); the Windows
+  adapter suites repeat 15× clean; `utf8paths` proves non-ASCII and `\?\` CA
+  paths through GnuTLS under the app's UTF-8 manifest (the W1.9 choice).
+- Retained FLTK (W1.12, MinGW64 GCC 16.2, Debug, FLTK 1.4.5): builds
+  `vncviewer.exe`; unit 643/647. The 4 failures (DocumentABI allocation
+  injection and three GDI `Surface` timeouts) also fail at the planning
+  checkpoint `6972f720` built the same way, which additionally needed two
+  fixes now committed (missing `<windows.h>` in `Fl_Suggestion_Input.cxx`,
+  unused parameter in the bridge).
+- Machine: Windows 11 Pro 25H2 (10.0.26200) x64, this workstation.
+- Remaining: ARM64 cross-build (W0.3, W1.12) needs the Visual Studio component
+  "MSVC v143 C++ ARM64/ARM64EC build tools" (elevated installer change, owner);
+  long-path CA/CRL tests need `LongPathsEnabled=1` (0 here; system setting,
+  owner) so W1.9 stays open; Linux/macOS reruns of the shared-code changes
+  (Endpoint path separators, header macro, test fixtures) have not been run;
+  W1.14 waits for D17. MSVC Debug skips allocation-injection cases (debug
+  iterators allocate inside noexcept moves); Release runs them.
+
+### W3.2/W3.3 (partial) — TidyVNC.Native bridge — 2026-09-23
+
+- IDs/commit: `5b0132c6`.
+- Behaviour: `platform/windows/TidyVNC.Native` (C#, .NET 10, AOT/trim
+  compatible): generated `LibraryImport` interop for all 118 exports and 63
+  structs (`Bridge/generate-interop.py`), SafeHandle ownership, coalesced
+  `UnmanagedCallersOnly` readiness delivery onto one UI dispatcher,
+  NativeRuntime/Session/Listener and the other Swift Bridge types.
+- Tests: `dotnet test --project tests/windows/TidyVNC.Native.Tests` 13/13 —
+  layouts equal the C compiler's for all 63 structs, every export resolves,
+  loopback VncAuth session/frame/disconnect/drain, wrong password, cancel,
+  close during authentication, two sessions, bell, remote clipboard, reverse
+  connection through the listener. D7: worst UI tick gap 16 ms (pending
+  connect), 16 ms (60 full-frame 1080p Raw updates), 18 ms (shutdown under
+  load).
+- Remaining: the WinUI DispatcherQueue adapter (W3.5), input commands and
+  Native AOT/trim measurements (W0.2) with the app.
