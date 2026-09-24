@@ -2,18 +2,15 @@
 #include <gtest/gtest.h>
 #include <viewer/core/CertificateKey.h>
 #include <gnutls/gnutls.h>
-#include <unistd.h>
+#include "test-files.h"
 #include <fstream>
 #include <iterator>
 #include <thread>
 #include <stdexcept>
 #include "../viewer/trust-fixture.h"
 namespace {
-struct TemporaryFile {
-  char path[64] = "/tmp/tidyvnc-certificate-key-XXXXXX";
-  TemporaryFile() { int fd = mkstemp(path); if (fd < 0) throw std::runtime_error("temp file"); close(fd); }
-  ~TemporaryFile() { unlink(path); }
-  std::string read() { std::ifstream in(path); return {std::istreambuf_iterator<char>(in),{}}; }
+struct TemporaryFile : testfiles::TemporaryFile {
+  TemporaryFile() : testfiles::TemporaryFile(std::string(), "tidyvnc-certificate-key-") {}
 };
 gnutls_datum_t certificate() { return {const_cast<unsigned char*>(trust_fixture_certificate),sizeof(trust_fixture_certificate)}; }
 }
@@ -38,19 +35,19 @@ TEST(CertificateKey, GnuTLSLegacyFileCompatibility) {
   struct Cleanup { ~Cleanup() { gnutls_global_deinit(); } } cleanup;
   TemporaryFile file;
   auto cert = certificate();
-  ASSERT_EQ(gnutls_store_pubkey(file.path,nullptr,"fixture.invalid","5902",GNUTLS_CRT_X509,&cert,0,0),0);
+  ASSERT_EQ(gnutls_store_pubkey(file.path.c_str(),nullptr,"fixture.invalid","5902",GNUTLS_CRT_X509,&cert,0,0),0);
   gnutls_datum_t raw{const_cast<unsigned char*>(trust_fixture_spki),sizeof(trust_fixture_spki)}, base64{};
   ASSERT_EQ(gnutls_base64_encode2(&raw,&base64),0);
   std::string expected = "|g0|fixture.invalid|5902|0|" + std::string(reinterpret_cast<char*>(base64.data),base64.size) + "\n";
   gnutls_free(base64.data);
   EXPECT_EQ(file.read(),expected);
-  EXPECT_EQ(gnutls_verify_stored_pubkey(file.path,nullptr,"fixture.invalid",nullptr,GNUTLS_CRT_X509,&cert,0),0);
-  EXPECT_EQ(gnutls_verify_stored_pubkey(file.path,nullptr,"FIXTURE.invalid",nullptr,GNUTLS_CRT_X509,&cert,0),GNUTLS_E_NO_CERTIFICATE_FOUND);
+  EXPECT_EQ(gnutls_verify_stored_pubkey(file.path.c_str(),nullptr,"fixture.invalid",nullptr,GNUTLS_CRT_X509,&cert,0),0);
+  EXPECT_EQ(gnutls_verify_stored_pubkey(file.path.c_str(),nullptr,"FIXTURE.invalid",nullptr,GNUTLS_CRT_X509,&cert,0),GNUTLS_E_NO_CERTIFICATE_FOUND);
   TemporaryFile commitment;
   gnutls_datum_t digest{const_cast<unsigned char*>(trust_fixture_sha256),sizeof(trust_fixture_sha256)};
-  ASSERT_EQ(gnutls_store_commitment(commitment.path,nullptr,"*suffix",nullptr,GNUTLS_DIG_SHA256,&digest,0,0),0);
+  ASSERT_EQ(gnutls_store_commitment(commitment.path.c_str(),nullptr,"*suffix",nullptr,GNUTLS_DIG_SHA256,&digest,0,0),0);
   std::string hex; const char* digits = "0123456789abcdef";
   for (auto byte: trust_fixture_sha256) { hex += digits[byte >> 4]; hex += digits[byte & 15]; }
   EXPECT_EQ(commitment.read(),"|c0|*suffix|*|0|6|"+hex+"\n");
-  EXPECT_EQ(gnutls_verify_stored_pubkey(commitment.path,nullptr,"elsewhere.invalid",nullptr,GNUTLS_CRT_X509,&cert,0),0);
+  EXPECT_EQ(gnutls_verify_stored_pubkey(commitment.path.c_str(),nullptr,"elsewhere.invalid",nullptr,GNUTLS_CRT_X509,&cert,0),0);
 }

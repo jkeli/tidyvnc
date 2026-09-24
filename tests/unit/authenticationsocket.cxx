@@ -13,12 +13,11 @@
 #include <rdr/FdOutStream.h>
 #include <rdr/TLSSocket.h>
 #include <gnutls/x509.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#include <poll.h>
+#include "test-files.h"
+#include "test-sockets.h"
+#ifndef _WIN32
 #include <signal.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#endif
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -33,6 +32,9 @@
 using namespace viewer;
 using namespace std::chrono;
 namespace {
+#ifdef _WIN32
+struct IgnoreBrokenPipe {}; // Winsock reports broken connections as errors, never signals.
+#else
 struct IgnoreBrokenPipe {
   IgnoreBrokenPipe() {
     struct sigaction action{};
@@ -43,6 +45,7 @@ struct IgnoreBrokenPipe {
   ~IgnoreBrokenPipe() { sigaction(SIGPIPE,&previous,nullptr); }
   struct sigaction previous;
 };
+#endif
 void require(bool okay, const char* message) {
   if (!okay) throw std::runtime_error(message);
 }
@@ -51,38 +54,31 @@ void tlsCheck(int result) {
 }
 struct Descriptor {
   explicit Descriptor(int value_=-1) : value(value_) {}
-  ~Descriptor() { if (value>=0) ::close(value); }
+  ~Descriptor() { if (value>=0) testsock::closeSocket(value); }
   Descriptor(const Descriptor&)=delete;
   Descriptor& operator=(const Descriptor&)=delete;
   int value;
 };
 struct Loopback {
   Loopback() {
-    Descriptor listener(::socket(AF_INET,SOCK_STREAM,0));
+    Descriptor listener(testsock::open(AF_INET));
     require(listener.value>=0,"socket listener");
     sockaddr_in address{};
     address.sin_family=AF_INET; address.sin_addr.s_addr=htonl(INADDR_LOOPBACK);
     require(::bind(listener.value,reinterpret_cast<sockaddr*>(&address),sizeof(address))==0,"bind loopback");
     require(::listen(listener.value,1)==0,"listen loopback");
-    socklen_t length=sizeof(address);
+    testsock::length_t length=sizeof(address);
     require(::getsockname(listener.value,reinterpret_cast<sockaddr*>(&address),&length)==0,"getsockname");
-    client.value=::socket(AF_INET,SOCK_STREAM,0); require(client.value>=0,"socket client");
+    client.value=testsock::open(AF_INET); require(client.value>=0,"socket client");
     require(::connect(client.value,reinterpret_cast<sockaddr*>(&address),length)==0,"connect loopback");
-    server.value=::accept(listener.value,nullptr,nullptr); require(server.value>=0,"accept loopback");
-    for (int fd : {client.value,server.value}) {
-      int one=1;
-      require(::setsockopt(fd,IPPROTO_TCP,TCP_NODELAY,&one,sizeof(one))==0,"TCP_NODELAY");
-#ifdef SO_NOSIGPIPE
-      require(::setsockopt(fd,SOL_SOCKET,SO_NOSIGPIPE,&one,sizeof(one))==0,"SO_NOSIGPIPE");
-#endif
-    }
+    server.value=static_cast<int>(::accept(listener.value,nullptr,nullptr)); require(server.value>=0,"accept loopback");
+    for (int fd : {client.value,server.value}) { testsock::noDelay(fd); testsock::noSigpipe(fd); }
   }
-  void stop() { ::shutdown(client.value,SHUT_RDWR); ::shutdown(server.value,SHUT_RDWR); }
+  void stop() { testsock::shutdownBoth(client.value); testsock::shutdownBoth(server.value); }
   Descriptor client,server;
 };
 void waitReadable(int fd) {
-  pollfd event{fd,POLLIN,0};
-  if (::poll(&event,1,5)<0 && errno!=EINTR) throw std::runtime_error("poll failed");
+  if (testsock::readable(fd,5)<0 && errno!=EINTR) throw std::runtime_error("poll failed");
 }
 std::unique_ptr<SessionTransport> takeClient(Descriptor& client) {
   std::unique_ptr<network::Socket> socket(new network::TcpSocket(client.value));
@@ -100,7 +96,10 @@ struct Certificate {
     tlsCheck(gnutls_x509_crt_set_serial(certificate,&serial,1));
     tlsCheck(gnutls_x509_crt_set_activation_time(certificate,time(nullptr)-3600));
     tlsCheck(gnutls_x509_crt_set_expiration_time(certificate,time(nullptr)+86400));
-    tlsCheck(gnutls_x509_crt_set_dn(certificate,"CN=localhost",nullptr));
+    // A unique subject: system trust stores (Windows includes the user's
+    // root store) may hold unrelated "CN=localhost" certificates that GnuTLS
+    // would consider as issuers. The SAN still names localhost.
+    tlsCheck(gnutls_x509_crt_set_dn(certificate,"CN=tidyvnc-authentication-fixture.invalid",nullptr));
     tlsCheck(gnutls_x509_crt_set_key(certificate,key));
     tlsCheck(gnutls_x509_crt_set_subject_alt_name(certificate,GNUTLS_SAN_DNSNAME,"localhost",9,GNUTLS_FSAN_SET));
     tlsCheck(gnutls_x509_crt_sign2(certificate,certificate,key,GNUTLS_DIG_SHA256,0));
@@ -264,7 +263,7 @@ public:
   }
   void stopFromUI() { inbox.auth->cancel(); transport->control()->cancel(); wires.stop(); }
   void peerDisappears() {
-    ::shutdown(wires.server.value,SHUT_RDWR);
+    testsock::shutdownBoth(wires.server.value);
     require(observer.wait_for(seconds(2))==std::future_status::ready,"FIN not observed");
     observer.get();
   }
@@ -382,7 +381,8 @@ protected:
     auto prompt=inbox.take();
     if (GetParam()) {
       EXPECT_EQ(prompt.kind,PromptKind::Certificate);
-      EXPECT_NE(prompt.certificateStatus & GNUTLS_CERT_SIGNER_NOT_FOUND,0u);
+      EXPECT_NE(prompt.certificateStatus & GNUTLS_CERT_SIGNER_NOT_FOUND,0u)
+        << "status 0x" << std::hex << prompt.certificateStatus;
       EXPECT_FALSE(prompt.identity.empty());
       EXPECT_EQ(inbox.auth->replyTrust(prompt.id,prompt.generation,true),PromptReply::Accepted);
       prompt=inbox.take();
@@ -474,7 +474,7 @@ TEST_P(AuthenticationSocket, ProductionWorkerObservesFinWhilePromptIsParked)
   WorkerAttempt attempt(GetParam(), certificate);
   auto prompt = attempt.prompt();
   EXPECT_NE(prompt.id, 0u);
-  ::shutdown(attempt.wires.server.value, SHUT_RDWR);
+  testsock::shutdownBoth(attempt.wires.server.value);
   auto done = attempt.worker->drained();
   ASSERT_EQ(done.wait_for(seconds(3)), std::future_status::ready);
   EXPECT_EQ(done.get().code, WorkerResultCode::PeerClosed);
@@ -654,18 +654,8 @@ TEST(AuthenticationSocket, RSAAESWireKeysReachOwnedTrustPromptBeforeCredentials)
 #endif
 
 namespace {
-struct TLSFile {
-  explicit TLSFile(const std::string& bytes) {
-    char pattern[] = "/tmp/tidyvnc-tls-files-XXXXXX";
-    Descriptor fd(::mkstemp(pattern)); require(fd.value >= 0,"TLS fixture file"); path = pattern;
-    size_t offset = 0;
-    while (offset < bytes.size()) {
-      const auto count = ::write(fd.value,bytes.data()+offset,bytes.size()-offset);
-      require(count > 0,"TLS fixture write"); offset += count;
-    }
-  }
-  ~TLSFile() { ::unlink(path.c_str()); }
-  std::string path;
+struct TLSFile : testfiles::TemporaryFile {
+  explicit TLSFile(const std::string& bytes) : testfiles::TemporaryFile(bytes, "tidyvnc-tls-files-") {}
 };
 std::string certificatePEM(gnutls_x509_crt_t certificate) {
   gnutls_datum_t data{};

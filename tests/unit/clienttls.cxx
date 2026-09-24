@@ -5,6 +5,7 @@
 #endif
 
 #include <gtest/gtest.h>
+#include "test-files.h"
 #include <rfb/CConnection.h>
 #include <rfb/CSecurityTLS.h>
 #include <rfb/Exception.h>
@@ -154,9 +155,8 @@ protected:
   {
     check(gnutls_global_init());
     initialized = true;
-    std::string path = (std::filesystem::temp_directory_path() / "tidyvnc-tls-XXXXXX").string();
-    if (!mkdtemp(&path[0])) throw std::runtime_error("Cannot create TLS fixture directory");
-    directory = path;
+    directory = testfiles::uniquePath("tidyvnc-tls-");
+    std::filesystem::create_directory(directory);
     check(gnutls_x509_privkey_init(&key));
     check(gnutls_x509_privkey_generate(key, GNUTLS_PK_RSA, 2048, 0));
     makeCertificate(ca, 1, true);
@@ -252,7 +252,7 @@ TEST_F(ClientTLS, LegacyDefaultsAreCapturedBeforeHandshake)
   rfb::SecurityClient policy;
   rfb::Security::GnuTLSPriority.setParam("INVALID-PRIORITY");
   rfb::CSecurityTLS::X509CA.setParam("");
-  rfb::CSecurityTLS::X509CRL.setParam((directory / "revoked.pem").c_str());
+  rfb::CSecurityTLS::X509CRL.setParam((directory / "revoked.pem").string().c_str());
   Exchange exchange(policy, leaf, ca, key);
   EXPECT_NO_THROW(exchange.finish());
   EXPECT_EQ(0u, exchange.connection.certificateStatus);

@@ -12,6 +12,7 @@
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -46,6 +47,17 @@ inline long long recvBytes(int fd, void* data, size_t length, int flags = 0) { r
 inline long long sendBytes(int fd, const void* data, size_t length) { return ::send(fd, data, length, 0); }
 inline int readable(int fd, int timeoutMs) { pollfd event{fd, POLLIN, 0}; return ::poll(&event, 1, timeoutMs); }
 #endif
+inline void shutdownBoth(int fd) {
+#ifdef _WIN32
+  ::shutdown(static_cast<SOCKET>(fd), SD_BOTH);
+#else
+  ::shutdown(fd, SHUT_RDWR);
+#endif
+}
+inline void noDelay(int fd) {
+  int one = 1;
+  ::setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&one), sizeof(one));
+}
 inline void noSigpipe(int fd) {
 #ifdef SO_NOSIGPIPE
   int one = 1; ::setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one));
