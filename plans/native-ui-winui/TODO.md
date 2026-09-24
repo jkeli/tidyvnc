@@ -103,7 +103,7 @@ proven through the real app before substantial screen work.
 - [x] W4.6 Clipboard adapter and coordinator: listener window, contention retry, remote-origin format, focus routing, `CanUploadToCloudClipboard = 0` on every remote-origin write (D21).
   - [ ] Manual check with cloud clipboard on: remote text appears in local history and never on a second device
 - [x] W4.7 Display service: `QueryDisplayConfig` topology, stable IDs, friendly names, change notifications.
-- [ ] W4.8 Keyboard capture service: `WH_KEYBOARD_LL` thread, pass-through rules, release triggers, typed failures.
+- [x] W4.8 Keyboard capture service: `WH_KEYBOARD_LL` thread, pass-through rules, release triggers, typed failures.
 - [ ] W4.9 SSH tunnel owner with Job Object, askpass helper over a named pipe, configuration capture, host-key review (D17).
 - [ ] W4.10 Activation: primary instance, Jump List, file association handling, console launcher (D8/D9).
 - [ ] W4.11 Lifecycle: close and exit ordering, `WM_QUERYENDSESSION`, lock and suspend, bell, logging, links.
@@ -729,3 +729,40 @@ Add dated entries, newest last, in the macOS format:
 - Open: W6 checks the legacy monitor numbering against the FLTK viewer on
   multi-monitor hardware, and real DPI and topology changes (hot-plug,
   scale change) on that hardware.
+
+### W4.8 — keyboard capture service — 2026-09-24
+
+- Behaviour: `platform/windows/TidyVNC.Native/Platform/NativeKeyboardCaptureController.cs`.
+  - `INativeKeyboardCapturing` is the Windows form of macOS
+    `NativeKeyboardCapturing`. Windows needs no permission, so start is
+    Active or Failed.
+  - `NativeWindowsKeyboardCapture` wraps the helper's `WH_KEYBOARD_LL`
+    thread (W3.4), which carries the retained win32.c pass-through rules
+    (lock keys pass; keys down at capture start pass their release).
+  - `NativeKeyboardCaptureController` holds the macOS desktop-view rules:
+    - capture only while eligible;
+    - automatic capture once per fullscreen entry or focus interval when
+      Capture system keys in full screen is on;
+    - the explicit Capture keyboard command, with typed `Unavailable` or
+      `Failed`;
+    - typed release reasons: focus lost, command, sleep, lock, policy
+      change, disconnect, close, and ended (the hook went away);
+    - the remote's pressed keys are released whenever capture ends;
+    - an explicit release, a failure or an ended capture suppresses
+      automatic recapture until the next fullscreen entry or focus change.
+  - `DesktopView` owns one controller: focus changes drive it and dispose
+    closes it. The menu command and fullscreen come with the W5/W6 screens;
+    sleep and lock come with W4.11.
+- Tests: `KeyboardCaptureTests`, 4 cases:
+  - fullscreen policy and suppression, including no recapture after a
+    dialog without a focus change;
+  - eligibility and every lifecycle release;
+  - failures and ended captures;
+  - the real low-level hook starting and stopping for a window, which
+    needs the UI-thread message hook first.
+
+  Result: 3 consecutive clean runs. Mutation-checked, 6 mutations, all fail
+  the suite: suppression, focus reset, input release, policy release, the
+  once-per-entry rule, and the eligibility gate.
+- Open: which keys the hook actually captures in fullscreen (Alt+Tab, Win
+  and the rest of DESKTOP.md section 5) is W6 physical verification.

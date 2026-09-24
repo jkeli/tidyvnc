@@ -30,7 +30,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     private NativeGeometry? geometry;
     private (uint Width, uint Height)? frameSize;
     private uint buttons;
-    private bool disposed;
+    private bool disposed, keyboardFocused;
 
     public DesktopView(IntPtr window)
     {
@@ -56,7 +56,14 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         altGrTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
         altGrTimer.IsRepeating = false;
         altGrTimer.Tick += (_, _) => Send(keyboard.Timeout().Events);
+        systemKeys = new NativeWindowsKeyboardCapture(window);
+        Capture = new NativeKeyboardCaptureController(systemKeys, () => keyboardFocused && !disposed && session is not null, ReleaseKeys);
     }
+
+    private readonly NativeWindowsKeyboardCapture systemKeys;
+
+    /// <summary>System-key capture for this desktop (SERVICES.md section 8); commands and fullscreen drive it.</summary>
+    public NativeKeyboardCaptureController Capture { get; }
 
     public IntPtr WindowHandle { get; }
     public DesktopRenderer Renderer => renderer;
@@ -187,6 +194,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         if (!focused) ReleaseKeys();
         try { if (session is { IsClosing: false } s) s.SetFocused(focused); }
         catch (NativeError) { }
+        keyboardFocused = focused;
+        Capture?.FocusChanged(focused);
     }
 
     /// <summary>Window deactivation and focus loss release everything held.</summary>
@@ -202,8 +211,10 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     public void Dispose()
     {
         if (disposed) return;
-        disposed = true;
         SetKeyboardFocus(false);
+        Capture.Close();
+        systemKeys.Dispose();
+        disposed = true;
         Session = null;
         altGrTimer.Stop();
         renderer.Dispose();
