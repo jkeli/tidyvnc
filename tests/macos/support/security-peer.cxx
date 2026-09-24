@@ -2,8 +2,9 @@
 /* Test-only loopback RFB server built from the project's own server-side
  * security handlers (rfb::SConnection, SecurityServer, SSecurityVncAuth,
  * SSecurityVeNCrypt/TLS and SSecurityRSAAES). Used by
- * tests/integration/macos-security-smoke.py to complete real security
- * handshakes against the actual native app.
+ * tests/integration/macos-security-smoke.py and windows-security-smoke.py to
+ * complete real security handshakes against the actual native app. On Windows
+ * it builds with the MinGW toolchain, which builds the server-side libraries.
  *
  *   native-security-peer [--close-after-update] <SecurityTypes> [Param=value ...]
  *
@@ -27,11 +28,19 @@
 #include <rfb/UpdateTracker.h>
 #include <rfb/obfuscate.h>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#define close closesocket
+static void usleep(unsigned microseconds) { Sleep(microseconds / 1000); }
+#else
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#endif
 
 #include <cstdio>
 #include <cstdlib>
@@ -179,7 +188,14 @@ int main(int argc, char** argv)
       return 2;
     }
   }
-  int listener = socket(AF_INET, SOCK_STREAM, 0);
+#ifdef _WIN32
+  WSADATA wsa;
+  if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+    fprintf(stderr, "WSAStartup failed\n");
+    return 1;
+  }
+#endif
+  int listener = (int)socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in address = {};
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -192,7 +208,7 @@ int main(int argc, char** argv)
   printf("127.0.0.1::%u\n", ntohs(address.sin_port));
   fflush(stdout);
   for (;;) {
-    int fd = accept(listener, nullptr, nullptr);
+    int fd = (int)accept(listener, nullptr, nullptr);
     if (fd < 0)
       return 1;
     printf("accepted\n");

@@ -18,6 +18,13 @@ if(BUILD_MACOS_NATIVE)
   add_subdirectory(macos)
 endif()
 
+# Real server-side security handlers for tests/integration/windows-security-smoke.py.
+# The server libraries build with MinGW only (MSVC builds the viewer core).
+if(WIN32 AND NOT MSVC AND TARGET rfbserver)
+  add_executable(native-security-peer ${CMAKE_SOURCE_DIR}/tests/macos/support/security-peer.cxx)
+  target_link_libraries(native-security-peer PRIVATE rfbserver rfb rdr core ws2_32)
+endif()
+
 # Unit tests
 if(GTest_FOUND)
   add_subdirectory(unit)

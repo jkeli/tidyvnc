@@ -1375,3 +1375,28 @@ Add dated entries, newest last, in the macOS format:
   - FLTK side of the comparison: the retained viewer has no state isolation on Windows. It stores history
     and settings in HKCU, so it runs in a test account or VM.
   - Security, tunnel and reconnect smokes (next).
+
+### W6.12 (progress) — security and reconnect smokes on Windows — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `tests/macos/support/security-peer.cxx` builds on Windows too (Winsock ifdefs). `tests/CMakeLists.txt`
+  adds `native-security-peer` to MinGW builds, which build the server-side libraries (`rfbserver`); MSVC
+  builds only the viewer core. It is built in the existing MinGW tree (`build/mingw/viewer`).
+- `tests/integration/windows-security-smoke.py` ports the macOS security smoke:
+  - VncAuth, TLSNone, TLSVnc, X509None and X509Vnc (with `-X509CA`);
+  - the four RSA-AES variants;
+  - reconnect through Retry.
+  - The viewer runs through `vncviewer.exe` with `VNC_PASSWORD` launch credentials and an isolated state
+    root (Debug publish).
+  - `tests/integration/windows-invoke.ps1` answers the server-key prompt (`trust.dialog`, "Connect once")
+    and presses Retry (`connection.problem`) with the UI Automation Invoke pattern, not synthesized input.
+  - Certificates come from MSYS2's openssl in the temporary directory.
+  - The test is gated like the UI suite.
+- Result on this machine: 10/10 cases pass (run with `--accept-prompts`). No test processes were left
+  running.
+- Remaining:
+  - SSH tunnel smoke. There is no SSH server on this machine: Windows OpenSSH Server and MSYS2 openssh
+    are not installed, and installing either needs approval. An isolated run also needs a Debug-only
+    override for the SSH configuration, because the app reads `%USERPROFILE%\.ssh\config` through the
+    known-folder API.
+  - The FLTK side of the comparison needs a test account or VM (no state isolation).
