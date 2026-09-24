@@ -17,7 +17,10 @@ The W7 package stage produces an audited per-user MSI. Items stay unchecked in T
 their remaining checks run. These are mostly the following, and each item lists its own:
 
 - display-dependent UI tests. The desktop is an active RDP session that was not on screen during this
-  work; these tests need it displayed (the RDP window visible, not minimized) or the console session;
+  work; these tests need it displayed (the RDP window visible, not minimized) or the console session.
+  Tests that type or click into the desktop view also need to take the foreground: this machine's
+  `ForegroundLockTimeout` is infinite, so they fail while another app keeps it (they fail the same way on
+  the commit before the W6.11 leak fix);
 - hands-on keyboard, Narrator and contrast passes;
 - hardware: mixed-DPI, touch, pen, ARM64;
 - a clean VM or test account: installing, FLTK comparisons, relocated GUI start;
@@ -29,7 +32,9 @@ Checked or decided so far:
 - W0.10 (the terminal cases and Ctrl+C in cmd.exe and PowerShell);
 - W1.9 (long paths now work without the LongPathsEnabled setting);
 - W1–W4, with named exceptions;
-- W7.8 (Native AOT not adopted yet; see DECISIONS.md D1).
+- W7.8 (Native AOT not adopted yet; see DECISIONS.md D1);
+- W6.11 follow-up: closed connection and About windows are released. A WinUI `TitleBar` holding the menu
+  bar kept every closed connection window alive; the window now detaches it before closing.
 
 Native AOT status (D1): the earlier hang was a .NET runtime deadlock in Debug AOT builds only. After an
 AOT-only presenter fix, Release AOT matches JIT on every automated check. It saves about 190 ms of
@@ -42,6 +47,10 @@ startup. Adopting it waits only for the full UI suite with the display on.
 - Signing identity (D23).
 - VMs or a test account for installed-app acceptance (W7.3–W7.7, W7.10).
 - W0.13 and W7.11 reviews.
+- The extended title bar (UX.md section 1, W08): Windows App SDK 1.8 leaves about 50 handles behind for
+  every closed window that extends into the title bar, even when the window itself is collected
+  (reproduced with the About window). Keep it and accept that, or use the standard title bar until the
+  SDK is fixed. The leak test bounds it against an About window with the same title bar.
 - An SSH server for the tunnel smoke. None is installed, and installing one needs approval.
 
 ## Commands
