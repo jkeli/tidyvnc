@@ -1853,3 +1853,45 @@ Add dated entries, newest last, in the macOS format:
 - D1 is updated: nothing known now blocks Native AOT except the display-on run of the full suite that
   D1 asks for. Adopting it would take startup from about 442 ms to 248 ms (W0.2). The MSI keeps shipping
   JIT until that run.
+
+### W0.10 (progress), D9 — the macOS terminal cases through vncviewer.exe in cmd.exe and PowerShell — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- D9's confirmation ports `tests/macos/invocation-terminal.py` to
+  `tests/integration/windows-invocation-terminal.py`.
+  - Every case runs directly and through cmd.exe, Windows PowerShell 5.1 and PowerShell 7.
+  - Standard error must be byte-identical across all four, standard output empty and the exit status
+    the retained one.
+  - No input may be reflected, and no state, file or GUI process may be created.
+  - It is gated like the UI suite, because a regression opens a window. A stray GUI is closed through
+    its close event and the case fails.
+- The first run found a real gap. vncviewer.exe checked only syntax, so launches macOS refuses in the
+  terminal started TidyVNC.exe (one window opened in the isolated test root before the script was
+  hardened):
+  - an oversized VNC_PASSWORD;
+  - an invalid listen port or no address family;
+  - an invalid server address;
+  - `via` combined with `-listen`, and VNC_VIA_CMD with a gateway;
+  - values that cannot be applied.
+  - `NativeInvocationLaunchCheck` now runs in the launcher in the macOS order: Log targets (before help
+    and version), then help/version, then the GUI's own command-line resolution against the built-in
+    defaults. That resolution covers the listen form, the address, SSH routing and VNC_VIA_CMD, and
+    the environment credentials are checked the way the app captures them. Monitor numbers still wait
+    for the app's displays.
+  - The messages are macOS's English texts, with "Argument N:" positions.
+- `vncviewer --help` now matches the macOS help: parameter defaults (encoding, MaxCutText,
+  PointerEventInterval, Log) and the alerts, logging, listen, credentials, adapters and SSH notes, with
+  Windows paths (`%TMP%\vncviewer.log`, `%USERPROFILE%\.ssh\config`).
+- Documented platform differences:
+  - A command line is UTF-16, so the invalid-UTF-8 case does not exist.
+  - The 65,537-byte argument cannot be passed (CreateProcess allows 32,767 characters). The core's byte
+    limit is checked in-process instead.
+- Tests:
+  - `InvocationLaunchCheckTests`, 32 cases: every macOS case, driven through the launcher's own sequence
+    without starting a process, ends in the terminal with the right status. Usable launches (no
+    arguments, an address, `-listen 5500`, `via` without VNC_VIA_CMD, monitor numbers, a 4096-byte
+    credential) still start the app. Activation tests pass too (36/36 together).
+  - `windows-invocation-terminal.py` on the Debug publish: 34 cases, 136 runs through direct, cmd,
+    powershell and pwsh. All pass, with no state, files or GUI process created.
+- Remaining for W0.10: Ctrl+C in cmd.exe and PowerShell (`windows-console-smoke.py`, next), and D8's
+  Explorer file open through the installed association (W7).

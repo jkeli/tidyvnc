@@ -35,11 +35,15 @@ internal static class Program
         {
             return Fail("Unable to initialize the native command line.");
         }
+        // The macOS order: Log targets, then help and version, then everything a launch needs.
+        if (NativeInvocationLaunchCheck.LogProblem(invocation) is { } logging) return Fail(logging);
         if (NativeInvocationTerminal.For(invocation) is { } terminal)
         {
             Console.Error.Write(terminal.Text);
             return terminal.ExitCode;
         }
+        if (NativeInvocationLaunchCheck.LaunchProblem(invocation, args, Environment.CurrentDirectory, Environment.GetEnvironmentVariable) is { } problem)
+            return Fail(problem);
 
         var gui = Path.Combine(AppContext.BaseDirectory, "TidyVNC.exe");
         if (!File.Exists(gui)) return Fail("TidyVNC.exe was not found beside vncviewer.exe.");
