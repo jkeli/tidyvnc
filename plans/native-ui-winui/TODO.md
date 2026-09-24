@@ -95,7 +95,7 @@ proven through the real app before substantial screen work.
 
 ## W4 — Windows services
 
-- [ ] W4.1 Stores: preferences, profiles/history, window state; schema, revision, `LockFileEx`, atomic replace, ACL check, sharing-violation retry, corruption and newer-schema recovery (D16).
+- [x] W4.1 Stores: preferences, profiles/history, window state; schema, revision, `LockFileEx`, atomic replace, ACL check, sharing-violation retry, corruption and newer-schema recovery (D16).
 - [ ] W4.2 Credentials: Credential Manager store, retention controller (use once / session / remember), replace/forget, launch credentials with Windows path rules (D15).
 - [ ] W4.3 Trust: TidyVNC trust stores, legacy `x509_known_hosts` adapters for both `%APPDATA%` locations, CA/CRL path handling.
 - [ ] W4.4 Documents: common file dialogs, bounded reads, atomic writes, launch routing; file dialog open during exit.
@@ -272,7 +272,7 @@ Add dated entries, newest last, in the macOS format:
   adapter suites repeat 15× clean; `utf8paths` proves non-ASCII and `\\?\` CA
   paths through GnuTLS under the app's UTF-8 manifest (the W1.9 choice).
 - Retained FLTK (W1.12, MinGW64 GCC 16.2, Debug, FLTK 1.4.5): builds
-  `vncviewer.exe`; unit 643/647. The 4 failures (DocumentABI allocation
+  `vncviewer.exe`; unit 643/647 (655/659 after W2). The 4 failures (DocumentABI allocation
   injection and three GDI `Surface` timeouts) also fail at the planning
   checkpoint `6972f720` built the same way, which additionally needed two
   fixes now committed (missing `<windows.h>` in `Fl_Suggestion_Input.cxx`,
@@ -377,3 +377,53 @@ Add dated entries, newest last, in the macOS format:
   feature bits (47-53) are now used, so W1.14, if D17 selects `ssh -W`, takes
   bit 54.
 
+### W4.1 — stores — 2026-09-23
+
+- Behaviour: `platform/windows/TidyVNC.Native/Storage`.
+  - `NativeRecordStore<T>` provides schema and revision records, strict decoding
+    (`Corrupt` / `UnsupportedFields` / `FutureSchema` / `TooLarge`), and
+    `Conflict` on a stale revision. Explicit `ReplaceCorruptAsync` never
+    replaces a valid record or a newer schema.
+  - Work is serialized off the UI thread, with typed `Cancelled` and `Closed`
+    results.
+  - `NativePrivateFiles` handles the on-disk rules:
+    - a protected user+SYSTEM DACL on create;
+    - owner, allow-ACE and reparse checks on every open;
+    - a `LockFileEx` writer lock on `<record>.lock`;
+    - write-through temp file + `Flush(true)` + `ReplaceFileW`/move;
+    - bounded retry on sharing, lock and replace errors, then `IOFailure`;
+    - removal of crash leftovers.
+  - The three records are `preferences.json`, `profiles-history.json` and
+    `window-state.json`, with schemas in `Storage/README.md`.
+  - Settings are canonical parameter maps validated by the core resolver
+    (W2.2) against an allow-list, plus stable display IDs for fullscreen.
+    Profiles carry the canonical SSH gateway (`NativeSshGateway`) and a
+    credential reference only.
+  - `NativeStateRoot` resolves `%LOCALAPPDATA%\TidyVNC`, with
+    `TIDYVNC_STATE_ROOT` honoured in Debug only.
+  - Records use `JsonDocument` / `Utf8JsonWriter` rather than source-generated
+    serializers. This is equally AOT-safe and keeps the strict unknown-field
+    rules.
+- Tests: `TidyVNC.Native.Tests` `StorageTests`, 16 cases, each in a private
+  temp root:
+  - round trip, revisions and conflicts;
+  - canonical and allow-listed settings;
+  - ten strict-decoding cases, where a failed commit leaves the file untouched;
+  - recovery and the future-schema guard; too large;
+  - a foreign allow ACE and a shared parent directory are `Denied`, while deny
+    ACEs are accepted;
+  - a junction with a private DACL is refused;
+  - 4 writers × 15 increments across separate lock handles lose no updates;
+  - a held lock times out as `Unavailable`;
+  - an exclusive "scanner" handle held for 150 ms is ridden out by both read
+    and replace, and a permanent one gives `IOFailure`;
+  - crash leftovers removed, and only this record's;
+  - closed and cancelled stores; profiles/history capacity and invariants;
+    window state; the Debug state-root override.
+
+  Result: 3 consecutive clean runs; full suite 42/42. Mutation-checked: removing
+  the reparse check, the allow-ACE check, leftover cleanup, the lock, the
+  revision compare, the future-schema guard or the canonical-value check each
+  fails the suite.
+- Retained FLTK rerun after W2 (MinGW Debug): builds; unit 655/659, with the same
+  4 known failures as the planning checkpoint (see W1.12 above).
