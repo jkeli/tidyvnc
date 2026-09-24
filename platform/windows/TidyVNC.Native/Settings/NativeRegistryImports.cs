@@ -20,6 +20,8 @@ public enum NativeImportIssue
     Failed,
     /// <summary>Omitted or converted settings must be acknowledged before importing.</summary>
     AcknowledgementRequired,
+    /// <summary>A chosen display is no longer connected; choose again.</summary>
+    DisplaysChanged,
 }
 
 /// <summary>An imported monitor number and the connected display it was mapped to (null: none, so omitted).</summary>
@@ -29,7 +31,7 @@ public sealed record NativeImportedMonitor(int Number, string? Display);
 public sealed record NativeDefaultsImportReview(
     Guid Id, NativeRegistrySource Source, NativeSettings Settings, IReadOnlyList<NativeImportAssignment> Imported,
     IReadOnlyList<NativeImportNotice> Notices, IReadOnlyList<string> Skipped, IReadOnlyList<NativeImportedMonitor> Monitors,
-    bool ReplacesExisting, Guid? Revision)
+    bool ReplacesExisting, Guid? Revision, IReadOnlyDictionary<int, string>? Assignments = null)
 {
     /// <summary>Omitted, unknown or converted values need an explicit acknowledgement (macOS review rules).</summary>
     public bool NeedsAcknowledgement => Notices.Count > 0 || Skipped.Count > 0 || Monitors.Count > 0;
@@ -56,6 +58,15 @@ public sealed partial class NativeDefaultsImport : ObservableObject
     [ObservableProperty] public partial bool IsBusy { get; private set; }
     [ObservableProperty] public partial NativeImportIssue? Issue { get; private set; }
     [ObservableProperty] public partial bool Imported { get; private set; }
+    /// <summary>
+    /// Imported monitor numbers that need a connected display each, chosen before the review
+    /// (macOS DefaultsImportMappingView): offered when a number has no display in the current
+    /// arrangement, or when the review's assignments are changed.
+    /// </summary>
+    [ObservableProperty] public partial NativeMonitorMappingRequest? Mapping { get; private set; }
+
+    // The source read for the current review or mapping, so assignments can rebuild it.
+    private (NativeRegistrySource Source, NativeRegistryDefaults Defaults, NativeRecordSnapshot<NativePreferencesRecord> Saved)? pending;
 
     /// <param name="root">The registry root (tests and isolated state roots use their own); null is the user's.</param>
     public NativeDefaultsImport(NativePreferencesStore store, Func<NativeDisplaySnapshot> displays, RegistryKey? root = null)
@@ -73,7 +84,7 @@ public sealed partial class NativeDefaultsImport : ObservableObject
     public void Begin(NativeRegistrySource source)
     {
         if (stopped || IsBusy) return;
-        IsBusy = true; Issue = null; Imported = false; Review = null;
+        IsBusy = true; Issue = null; Imported = false; Review = null; Mapping = null; pending = null;
         operation = Prepare(source);
     }
 
@@ -91,7 +102,11 @@ public sealed partial class NativeDefaultsImport : ObservableObject
                 return;
             }
             if (defaults is null) { Issue = NativeImportIssue.SourceUnreadable; return; }
-            Review = Build(source, defaults, saved);
+            pending = (source, defaults, saved);
+            var review = Build(source, defaults, saved, null);
+            // A monitor number with no display in the current arrangement is chosen first, as on macOS.
+            if (review.Monitors.Any(m => m.Display is null)) Mapping = MappingFor(review, null);
+            else Review = review;
         }
         catch (NativeStorageException) { if (!stopped) Issue = NativeImportIssue.Unavailable; }
         catch (Exception error) when (error is ArgumentException or NativeConfigFailure or NativeError)
@@ -104,7 +119,54 @@ public sealed partial class NativeDefaultsImport : ObservableObject
         }
     }
 
-    private NativeDefaultsImportReview Build(NativeRegistrySource source, NativeRegistryDefaults defaults, NativeRecordSnapshot<NativePreferencesRecord> saved)
+    private NativeMonitorMappingRequest MappingFor(NativeDefaultsImportReview review, IReadOnlyDictionary<int, string>? previous)
+    {
+        var current = NativeSessionDefaults.DisplaysOf(displays());
+        var suggested = (previous ?? review.Monitors.Where(m => m.Display is not null).ToDictionary(m => m.Number, m => m.Display!))
+            .Where(p => current.Available.Contains(p.Value)).ToDictionary(p => p.Key, p => p.Value);
+        return new NativeMonitorMappingRequest(Guid.NewGuid(), NativeOptionSource.Document, [.. review.Monitors.Select(m => m.Number).Distinct().Order()],
+                                               suggested, current);
+    }
+
+    /// <summary>Reopens the display choice from a review (Change display assignments).</summary>
+    public void EditMapping(Guid reviewId)
+    {
+        if (stopped || IsBusy || Review is not { } review || review.Id != reviewId || review.Monitors.Count == 0) return;
+        Mapping = MappingFor(review, review.Assignments);
+        Review = null; Issue = null;
+    }
+
+    /// <summary>Builds the review with the chosen displays; every number needs a connected display.</summary>
+    public void ResolveMapping(Guid id, IReadOnlyDictionary<int, string> assignments)
+    {
+        if (stopped || IsBusy || Mapping is not { } mapping || mapping.Id != id || pending is not { } read) return;
+        var available = NativeSessionDefaults.DisplaysOf(displays()).Available;
+        if (!mapping.Numbers.All(n => assignments.TryGetValue(n, out var display) && available.Contains(display)))
+        {
+            Issue = NativeImportIssue.DisplaysChanged;
+            Mapping = mapping with { Id = Guid.NewGuid(), Displays = NativeSessionDefaults.DisplaysOf(displays()) };
+            return;
+        }
+        try
+        {
+            Review = Build(read.Source, read.Defaults, read.Saved, assignments);
+            Mapping = null; Issue = null;
+        }
+        catch (Exception error) when (error is ArgumentException or NativeConfigFailure or NativeError)
+        {
+            Mapping = null; Issue = NativeImportIssue.SourceUnreadable;
+        }
+    }
+
+    /// <summary>Cancelling the display choice ends this import; nothing is written.</summary>
+    public void CancelMapping(Guid id)
+    {
+        if (IsBusy || Mapping?.Id != id) return;
+        Mapping = null; Review = null; pending = null; Issue = null;
+    }
+
+    private NativeDefaultsImportReview Build(NativeRegistrySource source, NativeRegistryDefaults defaults, NativeRecordSnapshot<NativePreferencesRecord> saved,
+                                             IReadOnlyDictionary<int, string>? assignments)
     {
         var parameters = new Dictionary<string, string>(StringComparer.Ordinal);
         var imported = new List<NativeImportAssignment>();
@@ -114,11 +176,13 @@ public sealed partial class NativeDefaultsImport : ObservableObject
         {
             if (assignment.Name == "FullScreenSelectedMonitors")
             {
-                // Monitor numbers become stable display IDs through the retained numbering of the connected displays.
+                // Monitor numbers become stable display IDs: the user's assignments, or else the retained
+                // numbering of the connected displays.
                 var legacy = NativeSessionDefaults.DisplaysOf(displays()).Legacy;
                 foreach (var item in assignment.Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                     if (int.TryParse(item, NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number >= 1)
-                        monitors.Add(new NativeImportedMonitor(number, number <= legacy.Count ? legacy[number - 1] : null));
+                        monitors.Add(new NativeImportedMonitor(number, assignments is not null ? assignments.GetValueOrDefault(number)
+                            : number <= legacy.Count ? legacy[number - 1] : null));
                 continue;
             }
             if (!NativeSettings.Allowed.Contains(assignment.Name))
@@ -132,7 +196,7 @@ public sealed partial class NativeDefaultsImport : ObservableObject
         var selected = monitors.Where(m => m.Display is not null).Select(m => m.Display!).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal);
         var settings = NativeSettings.Create(parameters, selected);
         return new NativeDefaultsImportReview(Guid.NewGuid(), source, settings, imported, notices, defaults.SkippedValues, monitors,
-            saved.IsStored, saved.Revision);
+            saved.IsStored, saved.Revision, assignments);
     }
 
     /// <summary>Writes exactly the reviewed settings; a review with omissions needs them acknowledged.</summary>
@@ -175,7 +239,7 @@ public sealed partial class NativeDefaultsImport : ObservableObject
     public void Cancel()
     {
         if (IsBusy) return;
-        Review = null; Issue = null;
+        Review = null; Mapping = null; pending = null; Issue = null;
     }
 
     public async Task CloseAsync()

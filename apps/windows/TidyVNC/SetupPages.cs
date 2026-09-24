@@ -100,22 +100,25 @@ internal static class SetupPages
     }
 
     /// <summary>Choose displays for monitor numbers (macOS DocumentMonitorMappingView and InvocationMonitorMappingView).</summary>
+    /// <summary>Catalog keys and automation prefix of a mapping page other than a file's or the command line's (imports).</summary>
+    public sealed record MappingTexts(string Title, string Description, string Primary, string Shared, string Prefix);
+
     public static FrameworkElement Mapping(NativeMonitorMappingRequest request, NativeText? issue, string endpoint,
-                                           Action<IReadOnlyDictionary<int, string>> resolve, Action cancel)
+                                           Action<IReadOnlyDictionary<int, string>> resolve, Action cancel, MappingTexts? texts = null)
     {
         var commandLine = request.Layer == NativeOptionSource.CommandLine;
-        var prefix = commandLine ? "invocation" : "document";
+        var prefix = texts?.Prefix ?? (commandLine ? "invocation" : "document");
         var panel = new StackPanel { Spacing = 16, Tag = "mapping:" + request.Id + ":" + issue?.Key };
-        panel.Children.Add(Ui.Title(Strings.Get(commandLine ? "document.choose.displays.for.command.line.options" : "document.choose.displays.for.this.file"),
+        panel.Children.Add(Ui.Title(Strings.Get(texts?.Title ?? (commandLine ? "document.choose.displays.for.command.line.options" : "document.choose.displays.for.this.file")),
             prefix + ".mapping.title"));
-        panel.Children.Add(Ui.Text(Strings.Get(commandLine
+        panel.Children.Add(Ui.Text(Strings.Get(texts?.Description ?? (commandLine
             ? "document.choose.which.connected.display.each.command.line.monitor.number.should.use.for"
-            : "document.monitor.numbers.belong.to.the.computer.that.saved.the.file.choose.which")));
+            : "document.monitor.numbers.belong.to.the.computer.that.saved.the.file.choose.which"))));
         var assignments = new Dictionary<int, string>(request.Suggested);
         var displays = App.Current.Displays;
-        var primary = Ui.Button(Strings.Get(commandLine
+        var primary = Ui.Button(Strings.Get(texts?.Primary ?? (commandLine
             ? endpoint.Length == 0 ? "profiles.open.connection" : "document.connect"
-            : "document.review.connection"), (_, _) => resolve(assignments), prefix + ".mapping.review", accent: true);
+            : "document.review.connection")), (_, _) => resolve(assignments), prefix + ".mapping.review", accent: true);
         void Validate() => primary.IsEnabled = request.Numbers.Count != 0 && displays.Snapshot.Error is null &&
                                                request.Numbers.All(n => assignments.TryGetValue(n, out var id) && displays.Snapshot.Find(id) is not null);
         var pickers = new StackPanel { Spacing = 12 };
@@ -147,7 +150,7 @@ internal static class SetupPages
         }
         Build();
         panel.Children.Add(pickers);
-        panel.Children.Add(Ui.Caption(Strings.Get("document.several.monitor.numbers.may.use.the.same.display.that.display.will.be")));
+        panel.Children.Add(Ui.Caption(Strings.Get(texts?.Shared ?? "document.several.monitor.numbers.may.use.the.same.display.that.display.will.be")));
         if (issue is not null)
         {
             var text = Ui.Text(issue);

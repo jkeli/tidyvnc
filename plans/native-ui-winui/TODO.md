@@ -1499,3 +1499,26 @@ Add dated entries, newest last, in the macOS format:
     - cancel blocks Start.
   - Gated UI test `ListenWithAFileReviewsItFirst`: review, accept, listening, and a reverse connection
     accepted. Passes, and `ListenAcceptsAReverseConnection` still passes.
+
+### W5.13 (progress) — display assignments for imported monitor numbers — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Before: imported monitor numbers without a display in the current arrangement were omitted with an
+  acknowledgement. Now, as macOS `DefaultsImportMappingView` does:
+  - `NativeDefaultsImport` offers a `Mapping` (a `NativeMonitorMappingRequest`) before the review whenever
+    a number has no connected display, suggesting the numbers that do map.
+  - `ResolveMapping` requires a connected display for every number; otherwise it reports
+    `DisplaysChanged` and asks again. It then builds the review from the assignments.
+  - The review has *Change display assignments* (`EditMapping`), which reopens the choice with the
+    previous assignments. `CancelMapping` ends the import without writing.
+  - The review says whether the numbering follows the current arrangement or the user's assignments.
+- `SetupPages.Mapping` takes optional texts, so the import window reuses it with the import titles and
+  automation prefix.
+- Test: `ImportTests.DefaultsAreReviewedAcknowledgedAndMarked` now covers:
+  - the suggestion;
+  - the refused incomplete choice;
+  - the resolved review's monitors and full-screen displays;
+  - edit with the previous assignments;
+  - cancel without writing;
+  - the existing acknowledgement, marker and stale-review checks.
+  - 7/7 import tests pass.

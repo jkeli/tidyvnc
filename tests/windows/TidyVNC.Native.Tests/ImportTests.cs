@@ -73,14 +73,31 @@ public sealed class ImportTests
             var import = new NativeDefaultsImport(store, Displays, root);
             Assert.AreEqual(NativeRegistrySource.TigerVnc, import.Sources.Single().Source);
             import.Begin(NativeRegistrySource.TigerVnc);
-            await Until(() => !import.IsBusy, "the review");
+            await Until(() => !import.IsBusy, "the mapping");
+            // Monitor 3 has no display in this arrangement, so the displays are chosen first (macOS
+            // DefaultsImportMappingView); monitor 2 is suggested as the right-hand display.
+            Assert.IsNull(import.Review);
+            var mapping = import.Mapping!;
+            CollectionAssert.AreEqual(new[] { 2, 3 }, mapping.Numbers.ToArray());
+            Assert.AreEqual("bbbbbbbbbbbbbbbb", mapping.Suggested[2]);
+            Assert.IsFalse(mapping.Suggested.ContainsKey(3));
+            import.ResolveMapping(mapping.Id, new Dictionary<int, string> { [2] = "bbbbbbbbbbbbbbbb" });
+            Assert.AreEqual(NativeImportIssue.DisplaysChanged, import.Issue, "every number needs a display");
+            import.ResolveMapping(import.Mapping!.Id, new Dictionary<int, string> { [2] = "bbbbbbbbbbbbbbbb", [3] = "aaaaaaaaaaaaaaaa" });
             var review = import.Review!;
+            Assert.IsNull(import.Mapping);
             Assert.AreEqual(("on", "7"), (review.Settings.Parameters["Shared"], review.Settings.Parameters["QualityLevel"]));
             Assert.IsTrue(review.Notices.Any(n => n.Name == "PasswordFile"), "excluded values are listed");
-            // Monitor 2 is the right-hand display in the retained numbering; monitor 3 does not exist.
-            CollectionAssert.AreEqual(new[] { new NativeImportedMonitor(2, "bbbbbbbbbbbbbbbb"), new NativeImportedMonitor(3, null) }, review.Monitors.ToArray());
-            CollectionAssert.AreEqual(new[] { "bbbbbbbbbbbbbbbb" }, review.Settings.FullscreenDisplays.ToArray());
+            CollectionAssert.AreEqual(new[] { new NativeImportedMonitor(2, "bbbbbbbbbbbbbbbb"), new NativeImportedMonitor(3, "aaaaaaaaaaaaaaaa") },
+                review.Monitors.ToArray());
+            CollectionAssert.AreEqual(new[] { "aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbb" }, review.Settings.FullscreenDisplays.ToArray());
+            Assert.IsNotNull(review.Assignments);
             Assert.IsFalse(review.ReplacesExisting);
+            // Change display assignments reopens the choice with the previous assignments.
+            import.EditMapping(review.Id);
+            Assert.AreEqual("aaaaaaaaaaaaaaaa", import.Mapping!.Suggested[3]);
+            import.ResolveMapping(import.Mapping.Id, new Dictionary<int, string> { [2] = "bbbbbbbbbbbbbbbb", [3] = "aaaaaaaaaaaaaaaa" });
+            review = import.Review!;
 
             import.Approve(review.Id, acknowledged: false);
             Assert.AreEqual(NativeImportIssue.AcknowledgementRequired, import.Issue);
@@ -91,9 +108,17 @@ public sealed class ImportTests
             var saved = (await store.ReadAsync()).Value;
             Assert.AreEqual((NativeImportOrigin.Registry, "on"), (saved.ImportedFrom, saved.Settings.Parameters["Shared"]));
 
+            // Cancelling the display choice ends the import without writing.
+            import.Begin(NativeRegistrySource.TigerVnc);
+            await Until(() => !import.IsBusy, "a second mapping");
+            import.CancelMapping(import.Mapping!.Id);
+            Assert.IsNull(import.Mapping);
+            Assert.IsNull(import.Review);
+
             // A review read before another save is refused rather than replacing it.
             import.Begin(NativeRegistrySource.TigerVnc);
-            await Until(() => !import.IsBusy, "a second review");
+            await Until(() => !import.IsBusy, "a third mapping");
+            import.ResolveMapping(import.Mapping!.Id, new Dictionary<int, string> { [2] = "bbbbbbbbbbbbbbbb", [3] = "aaaaaaaaaaaaaaaa" });
             Assert.IsTrue(import.Review!.ReplacesExisting);
             var current = await store.ReadAsync();
             await store.CommitAsync(current.Value with { Settings = NativeSettings.Create([new("ViewOnly", "on")]) }, current.Revision);

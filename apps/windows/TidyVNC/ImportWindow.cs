@@ -115,6 +115,7 @@ internal sealed partial class ImportWindow : Window
             NativeImportIssue.Unavailable => Strings.Get("import.defaults.native.settings.could.not.be.loaded.resolve.the.stored.settings.problem.before"),
             NativeImportIssue.AcknowledgementRequired => Strings.Get("import.defaults.review.all.omitted.or.converted.settings.before.importing"),
             NativeImportIssue.Failed => Strings.Get("import.defaults.settings.could.not.be.imported.reload.native.settings.and.review.the.source"),
+            NativeImportIssue.DisplaysChanged => "", // Shown on the mapping page.
             _ => "",
         };
         issue.Visibility = issue.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
@@ -151,6 +152,18 @@ internal sealed partial class ImportWindow : Window
                        ("action.done", "import.done", false, true, Close));
             return;
         }
+        if (model.Mapping is { } mapping)
+        {
+            // Monitor numbers without a display in this arrangement (macOS DefaultsImportMappingView).
+            body.Content = SetupPages.Mapping(mapping, model.Issue == NativeImportIssue.DisplaysChanged
+                    ? new NativeText("import.defaults.choose.a.connected.display.for.every.imported.monitor.before.continuing") : null, "",
+                assignments => model.ResolveMapping(mapping.Id, assignments), () => model.CancelMapping(mapping.Id),
+                new SetupPages.MappingTexts("import.defaults.choose.displays.for.imported.defaults",
+                    "import.defaults.choose.a.connected.display.for.each.monitor.number.in.these.defaults.you", "import.defaults.review.import",
+                    "import.defaults.several.monitor.numbers.may.use.the.same.display.that.display.will.be", "import"));
+            SetButtons(); // The mapping page has its own Cancel.
+            return;
+        }
         if (model.Review is not { } review)
         {
             body.Content = Sources(model.Sources, "import.defaults.bring.ordinary.connection.settings.into.this.native.app.saved.native.defaults.take",
@@ -178,6 +191,14 @@ internal sealed partial class ImportWindow : Window
                     ? Strings.Format("import.registry.monitor", monitor.Number.ToString(CultureInfo.CurrentCulture),
                         App.Current.Displays.Snapshot.Find(display)?.Name ?? Strings.Get("document.unavailable.display"))
                     : Strings.Format("import.registry.monitor.missing", monitor.Number.ToString(CultureInfo.CurrentCulture))));
+            if (review.Monitors.Count != 0)
+            {
+                panel.Children.Add(Ui.Caption(Strings.Get(review.Assignments is null
+                    ? "import.defaults.numbering.follows.the.current.arrangement.left.to.right.and.then.top.to"
+                    : "import.defaults.these.are.the.display.assignments.you.chose.for.imported.defaults")));
+                var reviewId = review.Id;
+                panel.Children.Add(Ui.Button(Strings.Get("document.change.display.assignments"), (_, _) => model.EditMapping(reviewId), "import.mapping.edit"));
+            }
             var check = new CheckBox { Content = Strings.Get("import.defaults.i.reviewed.the.omissions.and.conversions"), IsChecked = acknowledged };
             AutomationProperties.SetAutomationId(check, "import.acknowledge");
             check.Click += (_, _) => { acknowledged = check.IsChecked == true; Refresh(); };
