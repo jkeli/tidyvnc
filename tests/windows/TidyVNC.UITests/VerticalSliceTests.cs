@@ -322,6 +322,48 @@ public sealed class VerticalSliceTests
     }
 
     [TestMethod]
+    public async Task LargeRemoteCursorsAreDrawnOverTheDesktop()
+    {
+        // A 16x16 cursor on a 2x2 desktop scaled to the window is thousands of device pixels across,
+        // larger than any Windows cursor, so the view draws it over the desktop (DESKTOP.md section 3).
+        var red = ((byte)220, (byte)30, (byte)30);
+        await using var server = new RfbTestServer(width: 2, height: 2, cursor: (16, 16, red));
+        using var app = Launch(server.Endpoint, commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            Until(() => window.Title.Contains(server.Name, StringComparison.Ordinal), "the connected title");
+            var desktop = ById(window, "desktop.view");
+            Until(() => Near(PixelAt(desktop, 0.5, 0.5), RfbTestServer.Background), "the remote desktop on screen");
+
+            // The pointer at the centre: the cursor's top-left (its hotspot) is there, drawn down and right.
+            RequireForeground(window);
+            var bounds = desktop.BoundingRectangle;
+            var centre = new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
+            Mouse.MoveTo(new System.Drawing.Point(centre.X - 20, centre.Y - 20));
+            Mouse.MoveTo(centre);
+            Until(() => Near(PixelAt(desktop, 0.55, 0.55), red), "the cursor drawn at the pointer");
+            Assert.IsTrue(Near(PixelAt(desktop, 0.45, 0.45), RfbTestServer.Background), "nothing above and left of the hotspot");
+            // Clipped to the desktop: the square desktop is letterboxed in the wider window, and the bar stays black.
+            var bar = PixelAt(desktop, 0.995, 0.6);
+            Assert.IsTrue(bar is { R: < 8, G: < 8, B: < 8 }, $"letterbox beside the cursor {bar}");
+
+            // Leaving the view removes it.
+            Mouse.MoveTo(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y - 40));
+            Until(() => Near(PixelAt(desktop, 0.55, 0.55), RfbTestServer.Background), "the cursor gone with the pointer");
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    [TestMethod]
     public async Task ClosingDuringAuthenticationExitsCleanly()
     {
         await using var server = new RfbTestServer(password: "secret");

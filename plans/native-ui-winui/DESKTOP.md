@@ -77,9 +77,12 @@ SwapChainPanel (XAML) ← flip-model DXGI swap chain for composition
   with `CreateIconIndirect` and shows it while the pointer is over the view.
   Cursors are cached per shape and scale and destroyed when replaced.
 - Larger cursors, and the fallback if the spike cannot set a real cursor on the
-  WinUI input window, are drawn as software cursor tiles by the presenter with the
-  system cursor hidden over the view, using the macOS clipping and motion-reuse
-  rules.
+  WinUI input window, are drawn as software cursor tiles with the system cursor
+  hidden over the view, using the macOS clipping and motion-reuse rules.
+  *As built (W6.3):* the view draws the core's 256-pixel tiles as bitmaps in a
+  layer above the swap chain panel, on the device-pixel grid, clipped to the
+  visible desktop. They are not composited into the presenter's frame, so
+  desktop updates never redraw them. Over the letterbox the system arrow shows.
 - Empty or invisible remote cursors follow the fallback policy (hidden, dot or
   system arrow). View-only shows the system arrow, as on macOS.
 

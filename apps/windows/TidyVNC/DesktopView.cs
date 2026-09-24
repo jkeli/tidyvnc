@@ -23,6 +23,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     // SwapChainPanel takes no Background; the host grid is black and hit-testable.
     private readonly SwapChainPanel panel = new();
     private readonly Grid host = new() { Background = new SolidColorBrush(Colors.Black) };
+    // Cursors larger than Windows accepts are drawn here, over the desktop (DESKTOP.md section 3).
+    private readonly Canvas cursorLayer = new() { IsHitTestVisible = false };
     private readonly StatisticsOverlay statistics = new();
     private readonly DesktopRenderer renderer;
     private readonly NativeKeyboard keyboard = new();
@@ -58,6 +60,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         Microsoft.UI.Xaml.Automation.AutomationProperties.SetHelpText(this,
             Strings.Get("desktop.click.to.focus.keyboard.and.pointer.input.control.the.connected.computer"));
         host.Children.Add(panel);
+        host.Children.Add(cursorLayer);
         host.Children.Add(statistics);
         Content = host;
         renderer = new DesktopRenderer(App.Current.Dispatcher, AttachPresenter);
@@ -72,6 +75,12 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         host.PointerCaptureLost += (_, e) => { if (IsTouch(e)) OnTouch(e, TouchPhase.End); };
         host.PointerWheelChanged += OnWheel;
         host.PointerEntered += (_, _) => SurfaceEntered?.Invoke(this);
+        host.PointerExited += (_, e) =>
+        {
+            if (IsTouch(e)) return;
+            pointer = null;
+            DrawSoftwareCursor();
+        };
         GotFocus += (_, _) => SetKeyboardFocus(true);
         LostFocus += (_, _) => SetKeyboardFocus(false);
         altGrTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
@@ -133,6 +142,10 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
 
     private NativeCursorHandle? cursorHandle;
     private object? cursorKey;
+    private NativeCursorTiles? softwareCursor;
+    private readonly Dictionary<NativePixelRect, Image> softwareTiles = new();
+    /// <summary>The mouse or pen over the view, logical units in the panel; null when it is elsewhere.</summary>
+    private Windows.Foundation.Point? pointer;
     private NativeCursorFallback cursorFallback = NativeCursorFallback.Hidden;
 
     /// <summary>What a blank remote cursor becomes (AlwaysCursor/CursorType): nothing, the dot or the system arrow.</summary>
@@ -152,6 +165,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     /// <summary>
     /// The pointer over the desktop follows the retained rules: the remote cursor scaled like the desktop
     /// (device pixels per remote pixel, the connection's filter), the dot, the system arrow or nothing.
+    /// A remote cursor larger than Windows accepts is drawn over the desktop instead, with the pointer
+    /// hidden there.
     /// </summary>
     private void UpdateCursor()
     {
@@ -160,21 +175,34 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         var viewOnly = session?.IsViewOnly == true;
         if (!Live || geometry is not { } shape)
         {
+            UseSoftwareCursor(null);
             SetCursor("system", null);
             return;
         }
         double scaleX = (double)shape.BackingWidth / shape.RemoteWidth, scaleY = (double)shape.BackingHeight / shape.RemoteHeight;
         NativeCursorRaster? remote = null;
-        if (image is not null && !viewOnly)
+        NativeCursorTiles? large = null;
+        if (image is not null && !viewOnly && image.Width > 0 && image.Height > 0)
         {
             var (maxWidth, maxHeight) = NativeCursorHandle.Limits;
-            var (fitX, fitY) = NativeCursorPolicy.FitScale(image.Width, image.Height, scaleX, scaleY, maxWidth, maxHeight);
-            try { remote = image.Width == 0 || image.Height == 0 ? null : NativeCursorSampler.Sample(image, fitX, fitY, scaling.Filter); }
+            try
+            {
+                if (!NativeCursorPolicy.NeedsSoftware(image.Width, image.Height, scaleX, scaleY, maxWidth, maxHeight))
+                    remote = NativeCursorSampler.Sample(image, scaleX, scaleY, scaling.Filter);
+                else if (softwareCursor is { } current && current.Samples(image, scaleX, scaleY, scaling.Filter))
+                    large = current;
+                else
+                    large = new NativeCursorTiles(image, scaleX, scaleY, scaling.Filter);
+            }
             catch (NativeError) { remote = null; }
         }
-        var choice = NativeCursorPolicy.Choose(viewOnly, remote is null or { Blank: true }, cursorFallback);
+        var blank = large is not null ? large.Blank : remote is null or { Blank: true };
+        var choice = NativeCursorPolicy.Choose(viewOnly, blank, cursorFallback);
+        UseSoftwareCursor(choice == NativeCursorChoice.Remote ? large : null);
+        if (large is not null && !ReferenceEquals(large, softwareCursor)) large.Dispose();
         switch (choice)
         {
+            case NativeCursorChoice.Remote when softwareCursor is not null: DrawSoftwareCursor(); break;
             case NativeCursorChoice.Remote: SetCursor(("remote", image, scaleX, scaleY, scaling.Filter), remote); break;
             case NativeCursorChoice.Dot: SetCursor(("dot", shape.BackingScale), NativeCursorPolicy.Dot(shape.BackingScale)); break;
             case NativeCursorChoice.Hidden: SetCursor("hidden", NativeCursorPolicy.Hidden); break;
@@ -206,6 +234,69 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
             }
         }
         previous?.Dispose(); // The replaced InputCursor no longer uses it.
+    }
+
+    /// <summary>Switches to drawing these cursor tiles over the desktop, or back to real cursors (null).</summary>
+    private void UseSoftwareCursor(NativeCursorTiles? tiles)
+    {
+        if (ReferenceEquals(tiles, softwareCursor)) return;
+        softwareCursor?.Dispose();
+        softwareCursor = tiles;
+        softwareTiles.Clear();
+        cursorLayer.Children.Clear();
+    }
+
+    /// <summary>
+    /// The software cursor at the pointer (macOS clipping and motion reuse): only the tiles over the
+    /// visible desktop are drawn, tiles already drawn are moved rather than sampled again, and the
+    /// pointer is hidden while it is over the desktop and the system arrow elsewhere (the letterbox).
+    /// </summary>
+    private void DrawSoftwareCursor()
+    {
+        if (softwareCursor is not { } tiles || geometry is not { } shape) return;
+        var q = shape.BackingScale;
+        var clipLeft = Math.Max(0, shape.X);
+        var clipTop = Math.Max(0, shape.Y);
+        var clip = (X: clipLeft, Y: clipTop,
+                    Width: Math.Max(0, Math.Min(shape.X + shape.Width, shape.ViewportWidth) - clipLeft),
+                    Height: Math.Max(0, Math.Min(shape.Y + shape.Height, shape.ViewportHeight) - clipTop));
+        var inside = pointer is { } at && at.X >= clip.X && at.Y >= clip.Y && at.X < clip.X + clip.Width && at.Y < clip.Y + clip.Height;
+        if (inside) SetCursor("software", NativeCursorPolicy.Hidden);
+        else SetCursor("system", null);
+        var origin = pointer is { } p ? NativeCursorPolicy.SoftwareOrigin(p.X, p.Y, q, tiles.HotspotX, tiles.HotspotY) : (0.0, 0.0);
+        var region = inside ? NativeCursorPolicy.VisibleRegion(tiles.Width, tiles.Height, origin, q, clip) : new NativePixelRect(0, 0, 0, 0);
+        IReadOnlyList<NativeCursorTile> visible;
+        try { visible = tiles.Render(region).Tiles; }
+        catch (NativeError error)
+        {
+            System.Diagnostics.Trace.TraceWarning($"Software cursor not drawn: {error.Message}");
+            visible = [];
+        }
+        var shown = new HashSet<NativePixelRect>();
+        foreach (var tile in visible)
+        {
+            shown.Add(tile.Rect);
+            if (!softwareTiles.TryGetValue(tile.Rect, out var element))
+            {
+                var bitmap = new Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap((int)tile.Rect.Width, (int)tile.Rect.Height);
+                using (var pixels = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeBufferExtensions.AsStream(bitmap.PixelBuffer))
+                    pixels.Write(tile.PremultipliedBgra());
+                bitmap.Invalidate();
+                element = new Image { Source = bitmap, Stretch = Stretch.Fill, Width = tile.Rect.Width / q, Height = tile.Rect.Height / q };
+                // The pointer's picture, not content: hidden from Narrator and other assistive technology.
+                Microsoft.UI.Xaml.Automation.AutomationProperties.SetAccessibilityView(element, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
+                softwareTiles[tile.Rect] = element;
+                cursorLayer.Children.Add(element);
+            }
+            Microsoft.UI.Xaml.Controls.Canvas.SetLeft(element, origin.Item1 + tile.Rect.X / q);
+            Microsoft.UI.Xaml.Controls.Canvas.SetTop(element, origin.Item2 + tile.Rect.Y / q);
+        }
+        foreach (var gone in softwareTiles.Keys.Where(rect => !shown.Contains(rect)).ToList())
+        {
+            cursorLayer.Children.Remove(softwareTiles[gone]);
+            softwareTiles.Remove(gone);
+        }
+        cursorLayer.Clip = new RectangleGeometry { Rect = new Windows.Foundation.Rect(clip.X, clip.Y, clip.Width, clip.Height) };
     }
 
     private void AttachPresenter(NativePresenter presenter)
@@ -377,6 +468,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     private void OnPointer(object sender, PointerRoutedEventArgs e)
     {
         var point = e.GetCurrentPoint(panel);
+        pointer = point.Position;
+        if (softwareCursor is not null) DrawSoftwareCursor();
         if (point.Properties.PointerUpdateKind is PointerUpdateKind.LeftButtonPressed or PointerUpdateKind.MiddleButtonPressed
             or PointerUpdateKind.RightButtonPressed or PointerUpdateKind.XButton1Pressed or PointerUpdateKind.XButton2Pressed)
         {
@@ -573,6 +666,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         Session = null;
         altGrTimer.Stop();
         touchTimer.Stop();
+        UseSoftwareCursor(null);
         cursorHandle?.Dispose();
         cursorHandle = null;
         renderer.Dispose();

@@ -1704,3 +1704,43 @@ Add dated entries, newest last, in the macOS format:
   - `DesktopCommandTests.HeldModifiersAndTheSecureAttentionChordReachTheServer` failed once, after
     30 ms, in an earlier full run. It passed alone and in the next full run, and its message was not
     captured, so it is left unchanged and watched.
+
+### W6.3 (progress) — large remote cursors as a software cursor — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Before: a remote cursor larger than Windows accepts (1024 pixels, `tvw_cursor_limits`) at the view's
+  scale was shrunk to fit. DESKTOP.md section 3 asks for it to be drawn over the desktop instead.
+- `NativeCursorTiles` holds the shared cursor sampler open for one cursor, scale and filter, like the
+  macOS `NativeCursorRenderer`.
+  - It renders the 256-pixel grid tiles that cover a requested region, and reuses the previous call's
+    tiles with the same rectangle.
+  - `NativeCursorSampler.Sample` is now built on it.
+- `NativeCursorPolicy` gains:
+  - `NeedsSoftware`;
+  - `SoftwareOrigin`, the hotspot on the device pixel under the pointer;
+  - `VisibleRegion`, the macOS clipping rounded outwards to whole device pixels.
+  - `FitScale` is gone.
+- `DesktopView` switches to the software cursor for a remote cursor over the limit:
+  - The visible tiles are premultiplied-BGRA `WriteableBitmap` images in a canvas above the swap chain
+    panel, on the device-pixel grid and clipped to the visible desktop.
+  - Tiles already drawn are moved, not sampled again, as the pointer moves.
+  - The pointer is hidden over the desktop and is the arrow over the letterbox. Leaving the view removes
+    the drawing.
+  - The images are raw-view only, so assistive technology does not see them.
+  - DESKTOP.md section 3 now describes this as built: the view draws the tiles, not the presenter.
+- Tests:
+  - `CursorTests` 5/5:
+    - `LargeCursorsRenderOnlyVisibleTilesAndReuseThemWhileThePointerMoves` (a 4×4 cursor at 300× from a
+      loopback server): one tile for a small region, three new and one reused tile after a move, edge
+      tiles cut to the cursor, and every tile equal to the whole cursor sampled at once.
+    - The placement and clipping arithmetic, premultiplication, and the software threshold.
+  - `RfbTestServer` can send a solid cursor. The new gated UI test
+    `LargeRemoteCursorsAreDrawnOverTheDesktop` checks on screen, on a 2×2 desktop with a 16×16 cursor:
+    - the cursor drawn at the pointer;
+    - nothing above-left of the hotspot;
+    - a black letterbox beside it;
+    - the drawing gone after the pointer leaves.
+    - It connected and then timed out at "the remote desktop on screen", like the other
+      display-dependent tests, because the display was off.
+- Remaining: that UI test and the other on-screen cursor checks with the display on; density changes on
+  mixed-DPI hardware.

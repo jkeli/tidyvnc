@@ -11,8 +11,9 @@ namespace TidyVNC.Testing;
 /// <summary>
 /// A small RFB 3.8 server for app-level tests and manual runs (TODO W3.6): None
 /// or VncAuth, a synthetic desktop with a known background and a moving
-/// marker, Raw updates in the client's pixel format, and a log of every key,
-/// pointer and clipboard message. Serves any number of clients at once.
+/// marker, Raw updates in the client's pixel format, an optional solid cursor
+/// (Cursor pseudo-encoding, hotspot 0,0) and a log of every key, pointer and
+/// clipboard message. Serves any number of clients at once.
 /// </summary>
 public sealed class RfbTestServer : IAsyncDisposable
 {
@@ -29,12 +30,14 @@ public sealed class RfbTestServer : IAsyncDisposable
     private readonly ConcurrentBag<Task> clients = [];
     private readonly Lock gate = new();
     private readonly byte[] desktop; // RGB, row-major
+    private readonly (ushort Width, ushort Height, (byte R, byte G, byte B) Colour)? cursor;
     private int frame;
     private uint lastKeySym;
 
-    public RfbTestServer(ushort width = 1024, ushort height = 768, string? password = null, int port = 0, string name = "TidyVNC test desktop")
+    public RfbTestServer(ushort width = 1024, ushort height = 768, string? password = null, int port = 0, string name = "TidyVNC test desktop",
+                         (ushort Width, ushort Height, (byte R, byte G, byte B) Colour)? cursor = null)
     {
-        Width = width; Height = height; this.password = password; Name = name;
+        Width = width; Height = height; this.password = password; Name = name; this.cursor = cursor;
         desktop = new byte[width * height * 3];
         Draw();
         listener = new TcpListener(IPAddress.Loopback, port);
@@ -166,10 +169,18 @@ public sealed class RfbTestServer : IAsyncDisposable
             await stream.WriteAsync(init, token);
             Log?.Invoke("client connected");
 
+            var cursorSent = cursor is null;
             async Task SendUpdate(int x, int y, int w, int h)
             {
                 byte[] message;
                 lock (gate) message = RawUpdate(format, x, y, w, h);
+                if (!cursorSent)
+                {
+                    cursorSent = true;
+                    // The cursor rides in the same update as a second rectangle.
+                    message = [.. message, .. CursorRectangle(format, cursor!.Value)];
+                    message[3] = 2;
+                }
                 await writing.WaitAsync(token);
                 try { await stream.WriteAsync(message, token); }
                 finally { writing.Release(); }
@@ -288,6 +299,26 @@ public sealed class RfbTestServer : IAsyncDisposable
                 }
             }
         }
+        return message;
+    }
+
+    /// <summary>A Cursor pseudo-encoding rectangle (-239): a solid, fully opaque cursor with its hotspot at 0,0.</summary>
+    private static byte[] CursorRectangle(PixelFormat format, (ushort Width, ushort Height, (byte R, byte G, byte B) Colour) shape)
+    {
+        var bytesPerPixel = format.BitsPerPixel / 8;
+        int w = shape.Width, h = shape.Height, maskRow = (w + 7) / 8;
+        var message = new byte[12 + w * h * bytesPerPixel + maskRow * h];
+        BinaryPrimitives.WriteUInt16BigEndian(message.AsSpan(4), (ushort)w);
+        BinaryPrimitives.WriteUInt16BigEndian(message.AsSpan(6), (ushort)h);
+        BinaryPrimitives.WriteInt32BigEndian(message.AsSpan(8), -239);
+        var (r, g, b) = shape.Colour;
+        var value = (uint)(r * format.RedMax / 255) << format.RedShift | (uint)(g * format.GreenMax / 255) << format.GreenShift |
+                    (uint)(b * format.BlueMax / 255) << format.BlueShift;
+        var offset = 12;
+        for (var i = 0; i < w * h; i++)
+            for (var k = 0; k < bytesPerPixel; k++)
+                message[offset++] = (byte)(value >> (format.BigEndian ? (bytesPerPixel - 1 - k) * 8 : k * 8));
+        message.AsSpan(offset).Fill(0xff);
         return message;
     }
 
