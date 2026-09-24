@@ -42,6 +42,7 @@
 #include <rfb/CSecurityTLS.h>
 #include <rfb/CConnection.h>
 #include <rfb/Exception.h>
+#include <rfb/TLSFilePath.h>
 
 #include <rdr/TLSException.h>
 #include <rdr/TLSSocket.h>
@@ -275,7 +276,7 @@ void CSecurityTLS::setParam()
       vlog.error(_("Failed to load the system certificate trust store"));
 
     if (!options.caFile.empty()) {
-      ret = gnutls_certificate_set_x509_trust_file(cert_cred, options.caFile.c_str(), GNUTLS_X509_FMT_PEM);
+      ret = gnutls_certificate_set_x509_trust_file(cert_cred, rfb::tlsFilePath(options.caFile).c_str(), GNUTLS_X509_FMT_PEM);
       if (options.requireConfiguredFiles && ret <= 0)
         throw rdr::tls_error("Failed to load the selected certificate authority file",
                              ret < 0 ? ret : GNUTLS_E_CERTIFICATE_ERROR);
@@ -284,7 +285,7 @@ void CSecurityTLS::setParam()
     }
 
     if (!options.crlFile.empty()) {
-      ret = gnutls_certificate_set_x509_crl_file(cert_cred, options.crlFile.c_str(), GNUTLS_X509_FMT_PEM);
+      ret = gnutls_certificate_set_x509_crl_file(cert_cred, rfb::tlsFilePath(options.crlFile).c_str(), GNUTLS_X509_FMT_PEM);
       if (options.requireConfiguredFiles && ret <= 0)
         throw rdr::tls_error("Failed to load the selected certificate revocation list",
                              ret < 0 ? ret : GNUTLS_E_CERTIFICATE_ERROR);

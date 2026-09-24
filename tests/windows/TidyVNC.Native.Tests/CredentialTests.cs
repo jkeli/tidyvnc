@@ -336,6 +336,13 @@ public sealed partial class CredentialTests
             await File.WriteAllBytesAsync(file, [.. Obfuscate("password"), .. Obfuscate("viewonly"), 1, 2, 3]);
             using (var block = await reader.ReadAsync(file, default))
                 CollectionAssert.AreEqual(Obfuscate("password"), block.CopyBytes());
+            // PARITY W20: beyond MAX_PATH without the LongPathsEnabled setting.
+            var longFolder = Path.Combine(root, new string('a', 120), new string('b', 120));
+            Directory.CreateDirectory(longFolder);
+            var longFile = Path.Combine(longFolder, "passwd");
+            await File.WriteAllBytesAsync(longFile, Obfuscate("password"));
+            using (var block = await reader.ReadAsync(longFile, default))
+                CollectionAssert.AreEqual(Obfuscate("password"), block.CopyBytes());
             var shortFile = Path.Combine(root, "short");
             await File.WriteAllBytesAsync(shortFile, [1, 2, 3]);
             Assert.AreEqual(NativePasswordFileError.Truncated, await Refused(shortFile));

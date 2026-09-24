@@ -32,7 +32,7 @@ internal static unsafe class NativeFileHandles
     public const uint FileGenericRead = 0x00120089;
 
     public static SafeFileHandle Open(string path, uint access, FILE_SHARE_MODE share, bool directory = false)
-        => PInvoke.CreateFile(path, access, share, null, FILE_CREATION_DISPOSITION.OPEN_EXISTING,
+        => PInvoke.CreateFile(Platform.NativeWin32Path.For(path), access, share, null, FILE_CREATION_DISPOSITION.OPEN_EXISTING,
             FILE_FLAGS_AND_ATTRIBUTES.FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAGS_AND_ATTRIBUTES.FILE_FLAG_BACKUP_SEMANTICS, null);
 
     public static NativeFileIdentity? Identity(SafeFileHandle handle)
@@ -260,7 +260,7 @@ public sealed class NativeDocumentFileWriter : INativeDocumentWriter
                 if (FileIdentity(path) != destination.File || !SameFolder(FolderIdentity(path), destination.Folder))
                     throw new NativeDocumentSaveException(NativeDocumentSaveError.Changed);
                 bool replaced;
-                fixed (char* target = path) fixed (char* source = temporary)
+                fixed (char* target = Platform.NativeWin32Path.For(path)) fixed (char* source = Platform.NativeWin32Path.For(temporary))
                 {
                     replaced = destination.Exists
                         ? PInvoke.ReplaceFile(target, source, null, REPLACE_FILE_FLAGS.REPLACEFILE_IGNORE_MERGE_ERRORS | REPLACE_FILE_FLAGS.REPLACEFILE_IGNORE_ACL_ERRORS)

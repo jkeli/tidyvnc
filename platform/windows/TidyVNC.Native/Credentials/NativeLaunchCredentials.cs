@@ -228,7 +228,7 @@ public sealed unsafe class NativePasswordFileReader : INativePasswordFileReader
         Check();
         if (!Path.IsPathFullyQualified(path) || path.Contains('\0', StringComparison.Ordinal))
             throw new NativePasswordFileException(NativePasswordFileError.Unreadable);
-        using var handle = PInvoke.CreateFile(path, FileGenericRead,
+        using var handle = PInvoke.CreateFile(Platform.NativeWin32Path.For(path), FileGenericRead,
             FILE_SHARE_MODE.FILE_SHARE_READ | FILE_SHARE_MODE.FILE_SHARE_WRITE | FILE_SHARE_MODE.FILE_SHARE_DELETE, null,
             FILE_CREATION_DISPOSITION.OPEN_EXISTING,
             FILE_FLAGS_AND_ATTRIBUTES.FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAGS_AND_ATTRIBUTES.FILE_FLAG_BACKUP_SEMANTICS, null);

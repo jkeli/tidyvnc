@@ -228,7 +228,9 @@ PrivateFileLogger::~PrivateFileLogger() {
 
 void PrivateFileLogger::initialize() {
   PrivateSecurity security;
-  const std::wstring root = winio::widen(directory) + L"\\";
+  std::wstring root = winio::widen(directory) + L"\\";
+  // A folder whose entries would reach MAX_PATH is opened in its extended-length form.
+  if (root.size() + winio::widen(lockname).size() >= MAX_PATH) root = winio::extendedLength(root);
   const std::wstring logPath = root + winio::widen(filename), backupPath = root + winio::widen(backup),
     lockPath = root + winio::widen(lockname);
   // Trailing separator: "C:\" is a root; "C:" would be a working directory.

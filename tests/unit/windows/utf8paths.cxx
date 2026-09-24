@@ -3,8 +3,10 @@
 // (common/rfb/CSecurityTLS.cxx). The WinUI app declares UTF-8 as its active
 // code page, which makes those narrow paths UTF-8 for the CRT and for the
 // UCRT-based GnuTLS DLL alike. This executable carries the same manifest
-// (utf8.manifest) and proves non-ASCII (and, when Windows allows it, long)
-// CA/CRL paths load through the exact GnuTLS calls the core makes.
+// (utf8.manifest) and proves non-ASCII and long CA/CRL paths load through the
+// exact GnuTLS calls the core makes. Long paths load through the
+// extended-length form of rfb::tlsFilePath, which CSecurityTLS uses, whether or
+// not the LongPathsEnabled system setting is on.
 #include <gtest/gtest.h>
 #include <windows.h>
 #include <gnutls/gnutls.h>
@@ -14,6 +16,7 @@
 #include <fstream>
 #include <random>
 #include <string>
+#include <rfb/TLSFilePath.h>
 #include "../../viewer/trust-fixture.h"
 
 namespace {
@@ -71,10 +74,42 @@ TEST(WindowsPaths, UncStyleExtendedPathLoads)
   gnutls_certificate_free_credentials(credentials);
 }
 
+TEST(WindowsPaths, LongCaPathsLoadInTheirExtendedForm)
+{
+  // Created through \\?\ so the test does not depend on LongPathsEnabled either.
+  const std::wstring extendedPrefix = L"\\\\?\\";
+  std::random_device random;
+  const auto base = std::filesystem::temp_directory_path() / (L"tidyvnc-" + std::to_wstring(random()));
+  const auto folder = base / std::wstring(120, L'a') / std::wstring(120, L'b') / std::wstring(40, L'\u00e9');
+  const auto file = folder / L"ca.der";
+  std::filesystem::create_directories(extendedPrefix + folder.wstring());
+  std::ofstream(std::filesystem::path(extendedPrefix + file.wstring()), std::ios::binary)
+    .write(reinterpret_cast<const char*>(trust_fixture_certificate), sizeof(trust_fixture_certificate));
+  ASSERT_GT(file.wstring().size(), 260u);
+
+  const std::string plain = utf8(file), openable = rfb::tlsFilePath(plain);
+  EXPECT_EQ(openable.rfind("\\\\?\\", 0), 0u) << "a long drive path takes the extended-length form";
+  gnutls_certificate_credentials_t credentials = nullptr;
+  ASSERT_EQ(gnutls_certificate_allocate_credentials(&credentials), 0);
+  EXPECT_EQ(gnutls_certificate_set_x509_trust_file(credentials, openable.c_str(), GNUTLS_X509_FMT_DER), 1);
+  gnutls_certificate_free_credentials(credentials);
+
+  // Short and already-extended paths are unchanged; . and .. are resolved before extending.
+  EXPECT_EQ(rfb::tlsFilePath("C:\\ca.pem"), "C:\\ca.pem");
+  EXPECT_EQ(rfb::tlsFilePath("\\\\?\\" + plain), "\\\\?\\" + plain);
+  EXPECT_EQ(rfb::tlsFilePath(utf8(folder / L"." / L"sub" / L".." / L"ca.der")), openable);
+  // A long UNC path becomes \\?\UNC\server\share\...
+  const std::string tail = std::string(300, 'u') + "\\ca.pem";
+  EXPECT_EQ(rfb::tlsFilePath("\\\\server\\share\\" + tail), "\\\\?\\UNC\\server\\share\\" + tail);
+
+  std::error_code ignored;
+  std::filesystem::remove_all(extendedPrefix + base.wstring(), ignored);
+}
+
 TEST(WindowsPaths, LongCaFilePathLoadsWhenWindowsAllowsLongPaths)
 {
   if (!longPathsEnabled())
-    GTEST_SKIP() << "LongPathsEnabled is 0 on this machine; long paths need that system setting (W20 stays open)";
+    GTEST_SKIP() << "LongPathsEnabled is 0: plain long paths need it; the core opens the extended form instead (LongCaPathsLoadInTheirExtendedForm)";
   Directory directory(std::wstring(120, L'a') + L"\\" + std::wstring(120, L'b') + L"\\" + std::wstring(40, L'é'));
   const auto file = directory.path / L"ca.der";
   ASSERT_GT(utf8(file).size(), 260u);

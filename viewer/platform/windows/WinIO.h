@@ -139,6 +139,24 @@ inline std::wstring widen(const std::string& text)
   return result;
 }
 
+// The extended-length form (\\?\C:\... or \\?\UNC\server\share\...) of an
+// absolute path, which Win32 opens beyond MAX_PATH without the LongPathsEnabled
+// system setting (plans/native-ui-winui CORE.md section 4). \\?\ turns off
+// normalisation, so separators and . or .. segments are resolved first.
+// Already-extended and device paths, and paths that do not resolve, are
+// returned unchanged.
+inline std::wstring extendedLength(const std::wstring& path)
+{
+  if (path.compare(0, 4, L"\\\\?\\") == 0 || path.compare(0, 4, L"\\\\.\\") == 0) return path;
+  const DWORD needed = ::GetFullPathNameW(path.c_str(), 0, nullptr, nullptr);
+  if (needed == 0) return path;
+  std::wstring full(needed, L'\0');
+  const DWORD written = ::GetFullPathNameW(path.c_str(), needed, &full[0], nullptr);
+  if (written == 0 || written >= needed) return path;
+  full.resize(written);
+  return full.compare(0, 2, L"\\\\") == 0 ? L"\\\\?\\UNC\\" + full.substr(2) : L"\\\\?\\" + full;
+}
+
 inline std::string narrow(const std::wstring& text)
 {
   if (text.empty()) return std::string();

@@ -135,6 +135,24 @@ TEST(PrivateFileLogger, LazyRedactedCreationAndBackupPreserveExistingBytes) {
   EXPECT_EQ(read(backup), previous); EXPECT_NE(read(path).find("Initialisation done"), std::string::npos);
 }
 
+TEST(PrivateFileLogger, LongPathsLogWithoutTheLongPathsSetting) {
+  // A log folder beyond MAX_PATH, created through \\?\ so neither side needs LongPathsEnabled.
+  Directory directory;
+  const auto folder = directory.path / std::wstring(120, L'a') / std::wstring(120, L'b');
+  const std::wstring extended = L"\\\\?\\";
+  std::filesystem::create_directories(extended + folder.wstring());
+  const auto path = folder / L"viewer.log";
+  ASSERT_GT(path.wstring().size(), 260u);
+  {
+    viewer::PrivateFileLogger raw(path.u8string()); viewer::RedactedLogger logger("fixture", raw);
+    emit(logger, "Reading protocol version");
+  }
+  EXPECT_NE(read(extended + path.wstring()).find("Reading protocol version"), std::string::npos);
+  privateFile(extended + path.wstring());
+  std::error_code ignored;
+  std::filesystem::remove_all(extended + directory.path.wstring(), ignored);
+}
+
 TEST(PrivateFileLogger, SuppressedEventsAndUnusedSinksNeverTouchTheFilesystem) {
   Directory directory; const auto path = directory.path / "viewer.log";
   { viewer::PrivateFileLogger raw(path.string()); viewer::RedactedLogger logger("fixture", raw);

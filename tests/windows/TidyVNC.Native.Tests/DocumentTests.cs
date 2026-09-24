@@ -108,6 +108,24 @@ public sealed class DocumentTests
     }
 
     [TestMethod]
+    public async Task LongPathsSaveAndOpenWithoutTheLongPathsSetting()
+    {
+        // PARITY W20: a connection file beyond MAX_PATH. .NET creates the folder itself; the reader and
+        // writer's direct Win32 calls must open it too, whether or not LongPathsEnabled is set.
+        var folder = Path.Combine(root, new string('a', 120), new string('b', 120));
+        Directory.CreateDirectory(folder);
+        var path = Path.Combine(folder, "desk é.tidyvnc");
+        Assert.IsGreaterThan(260, path.Length);
+        var bytes = NativeConnectionDocument.Serialize([new("ServerName", "long")]);
+        var writer = new NativeDocumentFileWriter();
+        await writer.WriteAsync(bytes, await writer.PrepareAsync(path), overwrite: false);
+        CollectionAssert.AreEqual(bytes, await new NativeDocumentFileReader().ReadAsync(path, default));
+        var replacement = NativeConnectionDocument.Serialize([new("ServerName", "longer")]);
+        await writer.WriteAsync(replacement, await writer.PrepareAsync(path), overwrite: true);
+        CollectionAssert.AreEqual(replacement, await File.ReadAllBytesAsync(path));
+    }
+
+    [TestMethod]
     public async Task SavesAreAtomicAndDetectChangesSinceTheDialog()
     {
         var writer = new NativeDocumentFileWriter();
