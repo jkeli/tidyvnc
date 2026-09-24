@@ -1555,3 +1555,24 @@ Add dated entries, newest last, in the macOS format:
   - Round trips were p50 0.02–0.05 ms and p95 at most 0.22 ms.
   - This is a harness check, not the W6.10 comparison. That needs a Release build, the display on, the
     FLTK side in a test account, and present timing.
+
+### W6.2 (progress) — scaling fidelity at fractional scales — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `ScalingFidelityTests.PresentedPixelsEqualTheSharedRendererAtFractionalScales` covers 192 transforms:
+  - scales 100, 125, 150 and 175%;
+  - all eight scaling modes (`100`, `Auto`, `FixedRatio`, `FitWidth`, `FitHeight`, a fixed size, a
+    percentage, and per-axis percentages);
+  - the nearest, bilinear and area filters;
+  - logical and device units.
+  - A 64×48 patterned desktop, in which every pixel differs from its neighbours, goes through
+    `DesktopRenderer` into the Direct3D presenter and is read back.
+  - The whole surface must equal the shared renderer's output for the same geometry at its placement, with
+    opaque black elsewhere. So there is no Direct3D resampling, and the letterboxing and offsets are
+    correct. All 192 match exactly.
+- `RemotePixelCentresMapBackToThemselves`: for the same scales, modes and units, the centre of each
+  sampled remote pixel, placed through the transform, maps back to that pixel through the inverse input
+  mapping (`RemotePoint`). Exact.
+- `LoopbackPeer` gained a patterned first frame for these checks.
+- Remaining (hardware): a window dragged between monitors of different scale, and each scale on a real
+  display.

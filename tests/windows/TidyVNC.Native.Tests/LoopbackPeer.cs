@@ -20,6 +20,7 @@ public sealed class LoopbackPeer : IAsyncDisposable
     private readonly TcpListener? listener;
     private readonly bool authentication;
     private readonly ushort width, height;
+    private readonly bool pattern;
     private readonly CancellationTokenSource stopping = new();
     private readonly Task<string?> run;
     private readonly List<byte> received = [];
@@ -27,9 +28,11 @@ public sealed class LoopbackPeer : IAsyncDisposable
     private readonly SemaphoreSlim writing = new(1, 1);
     private NetworkStream? stream;
 
-    public LoopbackPeer(bool authentication = false, bool delayServerInit = false, ushort width = 2, ushort height = 2, int? reversePort = null)
+    /// <param name="pattern">The first frame is a deterministic colour pattern instead of one colour (scaling checks).</param>
+    public LoopbackPeer(bool authentication = false, bool delayServerInit = false, ushort width = 2, ushort height = 2, int? reversePort = null,
+                        bool pattern = false)
     {
-        this.authentication = authentication;
+        this.authentication = authentication; this.pattern = pattern;
         this.width = width; this.height = height;
         DelayServerInit = delayServerInit;
         if (reversePort is null)
@@ -133,6 +136,21 @@ public sealed class LoopbackPeer : IAsyncDisposable
         return message;
     }
 
+    /// <summary>A full-frame Raw update whose every pixel differs from its neighbours (checks filters and placement).</summary>
+    private byte[] PatternUpdate()
+    {
+        var message = RawUpdate(0, 0, 0);
+        for (var y = 0; y < height; y++)
+            for (var x = 0; x < width; x++)
+            {
+                var offset = 16 + (y * width + x) * 4;
+                message[offset] = (byte)(x * 37 + y * 11);       // blue
+                message[offset + 1] = (byte)(x * 5 + y * 53);    // green
+                message[offset + 2] = (byte)((x ^ y) * 29);      // red
+            }
+        return message;
+    }
+
     /// <summary>Closes the client connection from the server side.</summary>
     public void Drop() => stream?.Socket.Close();
 
@@ -167,7 +185,7 @@ public sealed class LoopbackPeer : IAsyncDisposable
             var init = new List<byte> { (byte)(width >> 8), (byte)width, (byte)(height >> 8), (byte)height,
                                         32, 24, 0, 1, 0, 255, 0, 255, 0, 255, 16, 8, 0, 0, 0, 0, 0, 0, 0, 4 };
             init.AddRange("peer"u8.ToArray());
-            init.AddRange(RawUpdate(10, 20, 30));
+            init.AddRange(pattern ? PatternUpdate() : RawUpdate(10, 20, 30));
             await SendAsync(init.ToArray());
             Established = true;
             var buffer = new byte[4096];
