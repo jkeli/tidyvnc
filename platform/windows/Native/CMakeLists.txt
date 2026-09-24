@@ -14,8 +14,13 @@ target_include_directories(tidyvnc_windows_keyboard
 target_compile_definitions(tidyvnc_windows_keyboard PUBLIC UNICODE _UNICODE)
 target_link_libraries(tidyvnc_windows_keyboard PUBLIC user32)
 
+# Touch gestures, also a static library for their equivalence test (W6.7).
+add_library(tidyvnc_windows_touch STATIC TouchGestures.cxx)
+target_include_directories(tidyvnc_windows_touch PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 add_library(tidyvnc_windows SHARED
   Keyboard.cxx
+  Touch.cxx
   KeyboardHooks.cxx
   Presenter.cxx
   Cursor.cxx
@@ -23,5 +28,5 @@ add_library(tidyvnc_windows SHARED
   tidyvnc_windows.h)
 target_compile_definitions(tidyvnc_windows PRIVATE TIDYVNC_WINDOWS_BUILDING)
 target_include_directories(tidyvnc_windows PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(tidyvnc_windows PRIVATE tidyvnc_windows_keyboard
+target_link_libraries(tidyvnc_windows PRIVATE tidyvnc_windows_keyboard tidyvnc_windows_touch
   d3d11 dxgi user32 gdi32 bcrypt shcore)

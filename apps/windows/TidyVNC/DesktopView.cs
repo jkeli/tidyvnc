@@ -28,6 +28,13 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     private readonly NativeKeyboard keyboard = new();
     private readonly NativeShortcutRouter shortcuts = new();
     private readonly DispatcherQueueTimer altGrTimer;
+    // Touch gestures (DESKTOP.md section 6) and the buttons they hold; wheel remainders (section 4).
+    private readonly NativeTouch touch = new();
+    private readonly DispatcherQueueTimer touchTimer;
+    private readonly NativeWheelAccumulator wheel = new();
+    private uint touchButtons;
+    /// <summary>A synthetic key identity for the pinch gesture's Ctrl, clear of real scan codes.</summary>
+    private const uint TouchControlId = 0x210000;
     private NativeSession? session;
     private NativeGeometry? geometry;
     private (uint Width, uint Height)? frameSize;
@@ -58,10 +65,11 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         AttachPresenter(renderer.Presenter);
         panel.SizeChanged += (_, _) => UpdateViewport();
         panel.CompositionScaleChanged += (_, _) => UpdateViewport();
-        host.PointerMoved += OnPointer;
-        host.PointerPressed += OnPointer;
-        host.PointerReleased += OnPointer;
-        host.PointerCanceled += OnPointer;
+        host.PointerMoved += (sender, e) => { if (IsTouch(e)) OnTouch(e, TouchPhase.Update); else OnPointer(sender, e); };
+        host.PointerPressed += (sender, e) => { if (IsTouch(e)) OnTouch(e, TouchPhase.Begin); else OnPointer(sender, e); };
+        host.PointerReleased += (sender, e) => { if (IsTouch(e)) OnTouch(e, TouchPhase.End); else OnPointer(sender, e); };
+        host.PointerCanceled += (sender, e) => { if (IsTouch(e)) OnTouch(e, TouchPhase.End); else OnPointer(sender, e); };
+        host.PointerCaptureLost += (_, e) => { if (IsTouch(e)) OnTouch(e, TouchPhase.End); };
         host.PointerWheelChanged += OnWheel;
         host.PointerEntered += (_, _) => SurfaceEntered?.Invoke(this);
         GotFocus += (_, _) => SetKeyboardFocus(true);
@@ -69,6 +77,9 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         altGrTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
         altGrTimer.IsRepeating = false;
         altGrTimer.Tick += (_, _) => Send(keyboard.Timeout().Events);
+        touchTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        touchTimer.IsRepeating = false;
+        touchTimer.Tick += (_, _) => Apply(touch.Timeout());
         systemKeys = new NativeWindowsKeyboardCapture(window);
         Capture = new NativeKeyboardCaptureController(systemKeys, () => keyboardFocused && !disposed && session is not null, ReleaseKeys);
     }
@@ -263,20 +274,26 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
 
     // ---- Pointer --------------------------------------------------------------------
 
-    private static uint ButtonMask(PointerPointProperties properties) =>
-        (properties.IsLeftButtonPressed ? 1u : 0) | (properties.IsMiddleButtonPressed ? 2u : 0) | (properties.IsRightButtonPressed ? 4u : 0);
+    /// <summary>Mouse buttons including back and forward; a pen as a mouse (tip left, barrel right, eraser ignored).</summary>
+    private static uint ButtonMask(PointerRoutedEventArgs e, PointerPointProperties properties) =>
+        e.Pointer.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Pen
+            ? NativePointerButtons.Pen(properties.IsLeftButtonPressed, properties.IsBarrelButtonPressed, properties.IsEraser)
+            : NativePointerButtons.Mouse(properties.IsLeftButtonPressed, properties.IsMiddleButtonPressed, properties.IsRightButtonPressed,
+                                         properties.IsXButton1Pressed, properties.IsXButton2Pressed);
+
+    private static bool IsTouch(PointerRoutedEventArgs e) => e.Pointer.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Touch;
 
     private void OnPointer(object sender, PointerRoutedEventArgs e)
     {
         var point = e.GetCurrentPoint(panel);
         if (point.Properties.PointerUpdateKind is PointerUpdateKind.LeftButtonPressed or PointerUpdateKind.MiddleButtonPressed
-            or PointerUpdateKind.RightButtonPressed)
+            or PointerUpdateKind.RightButtonPressed or PointerUpdateKind.XButton1Pressed or PointerUpdateKind.XButton2Pressed)
         {
             Focus(FocusState.Pointer);
             host.CapturePointer(e.Pointer);
         }
         if (!Live || geometry is null) return;
-        buttons = ButtonMask(point.Properties);
+        buttons = ButtonMask(e, point.Properties);
         SendPointer(point.Position.X, point.Position.Y, buttons);
         if (buttons == 0) host.ReleasePointerCapture(e.Pointer);
         e.Handled = true;
@@ -286,16 +303,79 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
     {
         if (!Live || geometry is null) return;
         var point = e.GetCurrentPoint(panel);
-        var delta = point.Properties.MouseWheelDelta;
+        var horizontal = point.Properties.IsHorizontalMouseWheel;
+        // Partial deltas (high-resolution wheels, precision touchpads) carry over to whole notches.
+        var notches = wheel.Add(point.Properties.MouseWheelDelta, horizontal);
+        e.Handled = true;
+        if (notches == 0) return;
         // RFB buttons 4/5 (up/down) and 6/7 (left/right), one click per notch.
-        var bit = point.Properties.IsHorizontalMouseWheel ? (delta > 0 ? 64u : 32u) : (delta > 0 ? 8u : 16u);
-        var clicks = Math.Max(1, Math.Abs(delta) / 120);
-        for (var i = 0; i < clicks; i++)
+        var bit = horizontal ? (notches > 0 ? NativePointerButtons.WheelRight : NativePointerButtons.WheelLeft)
+            : (notches > 0 ? NativePointerButtons.WheelUp : NativePointerButtons.WheelDown);
+        for (var i = 0; i < Math.Abs(notches); i++)
         {
             SendPointer(point.Position.X, point.Position.Y, buttons | bit);
             SendPointer(point.Position.X, point.Position.Y, buttons);
         }
         e.Handled = true;
+    }
+
+    // ---- Touch ----------------------------------------------------------------------
+
+    private enum TouchPhase { Begin, Update, End }
+
+    /// <summary>Touches go through the retained gesture model; they are converted to remote coordinates once, when sent.</summary>
+    private void OnTouch(PointerRoutedEventArgs e, TouchPhase phase)
+    {
+        e.Handled = true;
+        var id = (int)e.Pointer.PointerId;
+        if (phase == TouchPhase.Begin)
+        {
+            Focus(FocusState.Pointer);
+            host.CapturePointer(e.Pointer);
+        }
+        if (phase == TouchPhase.End) host.ReleasePointerCapture(e.Pointer);
+        if (disposed) return;
+        var point = e.GetCurrentPoint(panel).Position;
+        Apply(phase switch
+        {
+            TouchPhase.Begin => touch.Begin(id, point.X, point.Y),
+            TouchPhase.Update => touch.Update(id, point.X, point.Y),
+            _ => touch.End(id),
+        });
+    }
+
+    private void Apply(IReadOnlyList<NativeTouchAction> actions)
+    {
+        touchTimer.Stop();
+        if (touch.Deadline is { } due)
+        {
+            touchTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(0, (long)due - Environment.TickCount64));
+            touchTimer.Start();
+        }
+        if (!Live || geometry is null)
+        {
+            touchButtons = 0;
+            return;
+        }
+        foreach (var action in actions)
+        {
+            switch (action.Kind)
+            {
+                case NativeTouchAction.ActionKind.Motion:
+                    SendPointer(action.X, action.Y, touchButtons);
+                    break;
+                case NativeTouchAction.ActionKind.Button:
+                    var bit = NativePointerButtons.FromButtonNumber(action.Button);
+                    touchButtons = action.Press ? touchButtons | bit : touchButtons & ~bit;
+                    SendPointer(action.X, action.Y, touchButtons);
+                    break;
+                case NativeTouchAction.ActionKind.Key:
+                    // The pinch gesture's Ctrl (XK_Control_L, QEMU key code 0x1d), held around its wheel clicks.
+                    try { session!.SendKey(TouchControlId, action.KeySym, 0x1d, action.Press); }
+                    catch (NativeError) { }
+                    break;
+            }
+        }
     }
 
     private void SendPointer(double x, double y, uint mask)
@@ -386,6 +466,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         altGrTimer.Stop();
         keyboard.Reset();
         shortcuts.Reset();
+        wheel.Reset();
+        touchButtons = 0;
         try { if (session is { IsClosing: false } s) s.ReleaseInput(); }
         catch (NativeError) { }
     }
@@ -399,8 +481,10 @@ internal sealed partial class DesktopView : UserControl, IDisposable, INativeDes
         disposed = true;
         Session = null;
         altGrTimer.Stop();
+        touchTimer.Stop();
         renderer.Dispose();
         keyboard.Dispose();
+        touch.Dispose();
         shortcuts.Dispose();
     }
 }

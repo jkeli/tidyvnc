@@ -147,6 +147,34 @@ typedef struct {
 } tvw_display;
 TVW_API int32_t tvw_displays(tvw_display* displays, uint32_t capacity, uint32_t* count);
 
+/* ---- Touch gestures (DESKTOP.md section 6, W6.7) ------------------------------------
+ * The retained vncviewer/GestureHandler and BaseTouchHandler without core
+ * timers: touches in, the retained fake mouse and key events out (tap = left
+ * click, two-finger tap = right, three-finger tap = middle, drag = left drag,
+ * long press = right drag, two-finger drag = buttons 4-7, pinch = Ctrl with
+ * buttons 4/5). The caller supplies a millisecond clock and calls with
+ * TVW_TOUCH_TIMEOUT at or after the reported deadline. Actions that do not fit
+ * stay queued (result.more) until TVW_TOUCH_DRAIN. One per view, UI thread. */
+typedef struct tvw_touch tvw_touch;
+enum { TVW_TOUCH_BEGIN = 0, TVW_TOUCH_UPDATE = 1, TVW_TOUCH_END = 2, TVW_TOUCH_TIMEOUT = 3, TVW_TOUCH_DRAIN = 4 };
+enum { TVW_TOUCH_MOTION = 0, TVW_TOUCH_BUTTON = 1, TVW_TOUCH_KEY = 2 };
+typedef struct {
+  uint32_t kind;    /* TVW_TOUCH_MOTION, _BUTTON or _KEY */
+  uint32_t press;   /* Button or key press (1) or release (0) */
+  int32_t button;   /* 1..7 (RFB button number) */
+  uint32_t keysym;  /* Key actions */
+  double x, y;      /* Gesture position in the caller's coordinates */
+} tvw_touch_action;
+typedef struct {
+  uint32_t count;        /* Actions written */
+  uint32_t more;         /* Actions still queued */
+  uint64_t deadline_ms;  /* Next TVW_TOUCH_TIMEOUT, or UINT64_MAX */
+} tvw_touch_result;
+TVW_API int32_t tvw_touch_create(uint64_t now_ms, tvw_touch** out);
+TVW_API int32_t tvw_touch_handle(tvw_touch*, uint32_t phase, int32_t id, double x, double y, uint64_t now_ms,
+                                 tvw_touch_action* actions, uint32_t capacity, tvw_touch_result* result);
+TVW_API void tvw_touch_destroy(tvw_touch*);
+
 #ifdef __cplusplus
 }
 #endif

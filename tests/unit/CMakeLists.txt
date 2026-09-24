@@ -282,6 +282,13 @@ if(WIN32 AND MSVC)
       ${CMAKE_SOURCE_DIR}/vncviewer)
     target_link_libraries(keyboardtranslator tidyvnc_windows_keyboard core GTest::gtest_main)
     gtest_discover_tests(keyboardtranslator PROPERTIES TIMEOUT 60)
+    # The retained vncviewer/GestureHandler and BaseTouchHandler against the
+    # helper's extracted TouchGestures on a scripted clock (TODO W6.7).
+    add_executable(touchgestures windows/touchgestures.cxx)
+    target_include_directories(touchgestures BEFORE PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/windows/touch-stub
+      ${CMAKE_SOURCE_DIR}/vncviewer)
+    target_link_libraries(touchgestures tidyvnc_windows_touch core GTest::gtest_main)
+    gtest_discover_tests(touchgestures PROPERTIES TIMEOUT 60)
     add_executable(windowshelper windows/windowshelper.cxx)
     target_link_libraries(windowshelper tidyvnc_windows GTest::gtest_main)
     gtest_discover_tests(windowshelper PROPERTIES TIMEOUT 60)

@@ -57,6 +57,22 @@ internal struct TvwKeyResult
 }
 
 [StructLayout(LayoutKind.Sequential)]
+internal struct TvwTouchAction
+{
+    public uint kind, press;
+    public int button;
+    public uint keysym;
+    public double x, y;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct TvwTouchResult
+{
+    public uint count, more;
+    public ulong deadline_ms;
+}
+
+[StructLayout(LayoutKind.Sequential)]
 internal unsafe struct TvwDisplay
 {
     public ulong id;
@@ -88,6 +104,11 @@ internal static unsafe partial class WindowsMethods
     [LibraryImport(Library)] internal static partial int tvw_keyboard_keysyms(IntPtr keyboard, int systemKeyCode, uint* keysyms, uint capacity, uint* count);
     [LibraryImport(Library)] internal static partial uint tvw_keyboard_led_state();
     [LibraryImport(Library)] internal static partial int tvw_keyboard_set_led_state(uint state);
+
+    [LibraryImport(Library)] internal static partial int tvw_touch_create(ulong nowMs, IntPtr* touch);
+    [LibraryImport(Library)] internal static partial int tvw_touch_handle(IntPtr touch, uint phase, int id, double x, double y, ulong nowMs,
+                                                                          TvwTouchAction* actions, uint capacity, TvwTouchResult* result);
+    [LibraryImport(Library)] internal static partial void tvw_touch_destroy(IntPtr touch);
 
     [LibraryImport(Library)] internal static partial int tvw_hook_install(delegate* unmanaged[Cdecl]<IntPtr, TvwKeyMessage*, uint> callback, IntPtr context, IntPtr* hook);
     [LibraryImport(Library)] internal static partial void tvw_hook_enable(IntPtr hook, uint enabled);

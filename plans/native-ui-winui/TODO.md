@@ -1400,3 +1400,36 @@ Add dated entries, newest last, in the macOS format:
     override for the SSH configuration, because the app reads `%USERPROFILE%\.ssh\config` through the
     known-folder API.
   - The FLTK side of the comparison needs a test account or VM (no state isolation).
+
+### W6.4, W6.6, W6.7 (progress) — keyboard equivalence, pointer/wheel/pen, touch gestures — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- W6.7, touch: the WinUI desktop view had no gesture model; a touch was a raw left-button drag.
+  - `platform/windows/Native/TouchGestures.{h,cxx}` extracts the retained `vncviewer/GestureHandler` and
+    `BaseTouchHandler` into the helper DLL. The logic, constants and arithmetic types are unchanged; only
+    timers and `gettimeofday()` became an injected millisecond clock with explicit deadlines.
+  - The C API is `tvw_touch_*`, and `NativeTouch` is the C# binding.
+  - `DesktopView` routes touch pointers through it, with a dispatcher timer for the long-press and
+    pinch/scroll decisions. Coordinates are converted to remote coordinates once, when sent.
+    - The retained meanings: tap = left click, two-finger tap = right, three-finger tap = middle,
+      drag = left drag (50-pixel threshold), long press = right drag, two-finger drag = buttons 4–7, and
+      pinch = Ctrl with buttons 4/5.
+  - Test `touchgestures` (tests/unit/windows) compiles the retained sources with their clock redirected
+    and a stub `core::Timer`. It replays scripted and 3,000 random touch streams through both
+    implementations and requires identical events. 6/6 pass.
+  - `PointerInputTests` covers the managed binding through the DLL.
+- W6.6, pointer:
+  - Back and forward (X1/X2) map to the retained bits 1<<7 and 1<<8, and start pointer capture.
+  - A pen acts as a mouse: tip is left, barrel is right, and the eraser is ignored.
+  - Wheel deltas accumulate to whole 120-unit notches per axis. Before, every partial delta from a
+    high-resolution wheel or precision touchpad sent a full notch.
+  - Release-all clears the wheel remainders and touch-held buttons.
+  - `NativePointerButtons` and `NativeWheelAccumulator` are covered by `PointerInputTests`.
+- W6.4: the table-driven translator equivalence test (`keyboardtranslator`, W3.4) passes 10/10 against
+  the retained KeyboardWin32. The layout and IME matrix stays open (manual).
+- Regression:
+  - helper `windowshelper` 6 pass and 1 skipped (displays off);
+  - .NET pointer, desktop and pan tests 9/9;
+  - gated UI tests DesktopViewScrolls, ConnectionInformation and ClosingDuringAuthentication pass.
+- Remaining: touch, pen and precision-touchpad hands-on checks need that hardware, and the touch keyboard
+  from the full-screen connection bar is not done yet.
