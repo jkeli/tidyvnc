@@ -25,8 +25,10 @@ add_library(tidyvnc_windows SHARED
   Presenter.cxx
   Cursor.cxx
   Displays.cxx
+  Diagnostics.cxx
   tidyvnc_windows.h)
 target_compile_definitions(tidyvnc_windows PRIVATE TIDYVNC_WINDOWS_BUILDING)
-target_include_directories(tidyvnc_windows PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(tidyvnc_windows PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PRIVATE ${CMAKE_SOURCE_DIR}/common/compat/msvc)
 target_link_libraries(tidyvnc_windows PRIVATE tidyvnc_windows_keyboard tidyvnc_windows_touch
   d3d11 dxgi user32 gdi32 bcrypt shcore)

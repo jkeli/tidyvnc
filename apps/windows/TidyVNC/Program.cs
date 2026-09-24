@@ -45,6 +45,8 @@ internal static partial class Program
             _ = MessageBox(0, Strings.Get("app.windows.11.required"), "TidyVNC", IconError);
             return 1;
         }
+        // Test-launched runs (isolated state root) never stop on a Debug CRT dialog.
+        TidyVNC.Native.Platform.NativeUnattended.ApplyForTestRuns();
         WinRT.ComWrappersSupport.InitializeComWrappers();
         try { NativeActivation.ApplyAppUserModelId(); }
         catch (COMException error) { System.Diagnostics.Trace.TraceWarning($"AppUserModelID not set: {error.HResult:x8}"); }

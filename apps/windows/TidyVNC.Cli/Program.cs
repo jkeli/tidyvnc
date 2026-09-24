@@ -20,6 +20,8 @@ internal static class Program
         // D6: a copied folder on older Windows says why instead of failing later.
         if (!TidyVNC.Native.Platform.NativeWindowsVersion.IsSupported(TidyVNC.Native.Platform.NativeWindowsVersion.CurrentBuild))
             return Fail(TidyVNC.Native.Platform.NativeWindowsVersion.RefusalText);
+        // Test-launched runs (isolated state root) never stop on a Debug CRT dialog.
+        TidyVNC.Native.Platform.NativeUnattended.ApplyForTestRuns();
         NativeInvocation invocation;
         try
         {

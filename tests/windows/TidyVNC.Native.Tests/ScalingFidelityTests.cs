@@ -55,6 +55,15 @@ public sealed class ScalingFidelityTests
         return output;
     }
 
+    /// <summary>Whether the frame holds more than black: the peer's pattern has been drawn into it.</summary>
+    private static bool Painted(NativeImage image)
+    {
+        var pixels = Golden(image, new NativeGeometry(image.Width, image.Height, image.Width, image.Height, 1.0, "100"), NativeScalingFilter.Nearest);
+        for (var i = 0; i < pixels.Length; i += 4)
+            if (pixels[i] != 0 || pixels[i + 1] != 0 || pixels[i + 2] != 0) return true;
+        return false;
+    }
+
     /// <summary>The expected surface: the golden image at its placement, opaque black elsewhere.</summary>
     private static byte[] Expected(NativeImage image, NativeGeometry geometry, NativeScalingFilter filter, int surfaceWidth, int surfaceHeight, double scale)
     {
@@ -95,9 +104,11 @@ public sealed class ScalingFidelityTests
             try
             {
                 await session.ConnectAsync(peer.Endpoint);
+                // The framebuffer exists (blank) before the patterned update fills it; compare against the pattern.
                 var clock = Stopwatch.StartNew();
-                while (session.Frame is null && clock.Elapsed < TimeSpan.FromSeconds(10)) await Task.Delay(5);
+                while (!(session.Frame is { } frame && Painted(frame)) && clock.Elapsed < TimeSpan.FromSeconds(10)) await Task.Delay(5);
                 using var image = session.Frame!.Clone();
+                Assert.IsTrue(Painted(image), "the patterned frame arrived");
                 foreach (var scale in Scales)
                     foreach (var mode in Modes)
                         foreach (var filter in Filters)
@@ -124,9 +135,21 @@ public sealed class ScalingFidelityTests
                                 {
                                     var differ = shown.Length != expected.Length ? -1
                                         : Enumerable.Range(0, expected.Length / 4).Count(i => !shown.AsSpan(i * 4, 4).SequenceEqual(expected.AsSpan(i * 4, 4)));
-                                    failed.Add($"scale {scale} mode {mode} {filter} {(device ? "device" : "logical")}: {differ} pixels differ");
+                                    var first = shown.Length != expected.Length ? -1
+                                        : Enumerable.Range(0, expected.Length / 4).First(i => !shown.AsSpan(i * 4, 4).SequenceEqual(expected.AsSpan(i * 4, 4)));
+                                    var sample = first < 0 ? "" : $"; first at {first % width},{first / width}: shown " +
+                                        Convert.ToHexString(shown, first * 4, 4) + " expected " + Convert.ToHexString(expected, first * 4, 4);
+                                    failed.Add($"scale {scale} mode {mode} {filter} {(device ? "device" : "logical")}: {differ} pixels differ " +
+                                               $"(presenter {renderer.Presenter.Width}x{renderer.Presenter.Height}, wanted {width}x{height}){sample}");
                                 }
+                                // A failed renderer or a presenter that stopped following resizes fails at once, with the
+                                // cases so far, rather than waiting out every remaining case.
+                                if (failure is not null || failed.Count >= 5) throw new AbortComparison();
                             }
+            }
+            catch (AbortComparison)
+            {
+                failed.Add($"stopped after {count} of 192 transforms");
             }
             finally
             {
@@ -164,4 +187,6 @@ public sealed class ScalingFidelityTests
                 }
         Assert.AreEqual(0, failures.Count, string.Join(Environment.NewLine, failures.Take(20)));
     }
+
+    private sealed class AbortComparison : Exception;
 }

@@ -39,7 +39,9 @@ public sealed class LifecycleTests
         Assert.AreEqual(1, events.Deliver(QueryEndSession), "sign-out is never vetoed");
         Assert.IsTrue(events.EndingSession);
         Assert.AreEqual(1, events.Deliver(QueryEndSession));
-        Assert.AreEqual(1, starts, "one shutdown per sign-out");
+        // The shutdown starts on the thread pool, so a busy pool may run it a moment later.
+        SpinWait.SpinUntil(() => Volatile.Read(ref starts) > 0, TimeSpan.FromSeconds(5));
+        Assert.AreEqual(1, Volatile.Read(ref starts), "one shutdown per sign-out");
 
         // WM_ENDSESSION(TRUE) returns once the drain finishes...
         _ = Task.Delay(300).ContinueWith(_ => drained.SetResult(), TaskScheduler.Default);

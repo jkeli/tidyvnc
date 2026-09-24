@@ -120,6 +120,8 @@ internal static unsafe partial class WindowsMethods
     [LibraryImport(Library)] internal static partial void tvw_cursor_destroy(ulong cursor);
     [LibraryImport(Library)] internal static partial void tvw_cursor_limits(uint* maxWidth, uint* maxHeight);
 
+    [LibraryImport(Library)] internal static partial void tvw_quiet_crt_reports();
+
     [LibraryImport(Library)] internal static partial int tvw_displays(TvwDisplay* displays, uint capacity, uint* count);
 }
 

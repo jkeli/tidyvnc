@@ -1668,3 +1668,39 @@ Add dated entries, newest last, in the macOS format:
 - Remaining for W6.7:
   - pressing the button with the display on (the full-screen UI tests fail while the display is off);
   - hands-on touch, pen and touch-keyboard checks on touch hardware.
+
+### W3.2, W6.2 (test fixes) — no Debug CRT dialogs in unattended runs — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Reported by the owner: a Debug CRT "abort() has been called" Abort/Retry/Ignore dialog opened on the
+  desktop from `TidyVNC.Native.Tests.exe`. The C++ test executables already routed CRT reports to stderr
+  (`common/compat/msvc/crt_reports.cxx`), but the .NET test host and test-launched Debug apps load the
+  Debug `tidyvnc_viewer.dll` and `tidyvnc_windows.dll` without that. A modal dialog blocks the run until
+  someone clicks it. The four long-stuck test processes from earlier sessions were most likely waiting
+  on such dialogs; they are gone now.
+- Fix:
+  - `common/compat/msvc/crt_reports.h` holds the settings: SetErrorMode without fault boxes, no abort
+    message or fault report, and CRT warnings, errors and asserts on stderr.
+  - The helper exports it as `tvw_quiet_crt_reports`, and `NativeUnattended` wraps it.
+  - `TidyVNC.Native.Tests` calls it from `[AssemblyInitialize]`.
+  - `TidyVNC.exe` and `vncviewer.exe` call it when they run against an isolated `TIDYVNC_STATE_ROOT`, as
+    every UI test, smoke and measurement launch does. Interactive Debug runs keep the dialog, which
+    offers the debugger.
+  - Check: a process that loads the Debug helper, calls it and then calls the Debug CRT's `abort()` exits
+    at once with code 3 and no dialog. The case without the call was not run, to keep dialogs off the
+    owner's screen.
+- `ScalingFidelityTests` passed alone but timed out (10 min) in the full suite:
+  - The viewer publishes its blank framebuffer before the first update fills it. The test cloned that
+    blank frame as its reference whenever the pattern had not arrived yet, which depended on test
+    order, so all 192 cases waited out their 5 s.
+  - It now waits for the patterned frame, and stops after five mismatches or a renderer failure, naming
+    the first differing pixel.
+  - `LoopbackPeer`'s pattern mode now answers the viewer's first update request in the viewer's pixel
+    format, as a real server does.
+- `LifecycleTests.SignOutNeverVetoesAndWaitsBoundedlyForTheDrain` asserted the thread-pool shutdown start
+  without waiting for it. It now waits, bounded.
+- Result: the full .NET suite has 181 tests: 179 pass, 0 fail, and 2 skip (they need
+  `TIDYVNC_UI_TESTS=1`). The helper's `windowshelper` passes 7/7.
+  - `DesktopCommandTests.HeldModifiersAndTheSecureAttentionChordReachTheServer` failed once, after
+    30 ms, in an earlier full run. It passed alone and in the next full run, and its message was not
+    captured, so it is left unchanged and watched.

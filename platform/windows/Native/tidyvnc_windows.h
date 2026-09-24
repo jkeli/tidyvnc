@@ -131,6 +131,12 @@ TVW_API int32_t tvw_cursor_create(const uint8_t* rgba, uint32_t width, uint32_t 
 TVW_API void tvw_cursor_destroy(uint64_t cursor);
 TVW_API void tvw_cursor_limits(uint32_t* max_width, uint32_t* max_height);
 
+/* ---- Diagnostics -------------------------------------------------------------------
+ * For unattended runs (test hosts, isolated test roots): the process's CRT
+ * reports asserts, abort() and faults on standard error instead of modal
+ * dialogs, so a failure ends the run rather than waiting for a click. */
+TVW_API void tvw_quiet_crt_reports(void);
+
 /* ---- Displays (SERVICES.md section 7) ----------------------------------------------
  * Active monitors from QueryDisplayConfig joined with GetMonitorInfo and
  * GetDpiForMonitor. id is an opaque SHA-256 prefix of the monitor device path

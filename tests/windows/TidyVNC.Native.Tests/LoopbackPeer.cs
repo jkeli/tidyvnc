@@ -136,19 +136,66 @@ public sealed class LoopbackPeer : IAsyncDisposable
         return message;
     }
 
-    /// <summary>A full-frame Raw update whose every pixel differs from its neighbours (checks filters and placement).</summary>
-    private byte[] PatternUpdate()
+    /// <summary>The client's pixel format (SetPixelFormat), or the server's until it sends one.</summary>
+    private readonly record struct PixelFormat(int BitsPerPixel, bool BigEndian, int RedMax, int GreenMax, int BlueMax,
+                                               int RedShift, int GreenShift, int BlueShift)
     {
-        var message = RawUpdate(0, 0, 0);
+        public static PixelFormat Server { get; } = new(32, false, 255, 255, 255, 16, 8, 0);
+
+        public void Write(List<byte> output, byte red, byte green, byte blue)
+        {
+            var value = (uint)(red * RedMax / 255) << RedShift | (uint)(green * GreenMax / 255) << GreenShift |
+                        (uint)(blue * BlueMax / 255) << BlueShift;
+            var bytes = BitsPerPixel / 8;
+            for (var k = 0; k < bytes; k++) output.Add((byte)(value >> (BigEndian ? (bytes - 1 - k) * 8 : k * 8)));
+        }
+    }
+
+    /// <summary>
+    /// A full-frame Raw update whose every pixel differs from its neighbours (checks filters and placement),
+    /// in the client's pixel format.
+    /// </summary>
+    private byte[] PatternUpdate(PixelFormat format)
+    {
+        var message = new List<byte> { 0, 0, 0, 1, 0, 0, 0, 0, (byte)(width >> 8), (byte)width, (byte)(height >> 8), (byte)height, 0, 0, 0, 0 };
         for (var y = 0; y < height; y++)
             for (var x = 0; x < width; x++)
+                format.Write(message, red: (byte)((x ^ y) * 29), green: (byte)(x * 5 + y * 53), blue: (byte)(x * 37 + y * 11));
+        return [.. message];
+    }
+
+    /// <summary>
+    /// The pattern is exact only if the client decodes it in the format it was written in, so it waits,
+    /// like a real server, for the client's first FramebufferUpdateRequest and answers in the pixel format
+    /// the client set by then. The client's messages are recorded as usual.
+    /// </summary>
+    private async Task<byte[]> PatternAfterRequestAsync(CancellationToken token)
+    {
+        var format = PixelFormat.Server;
+        while (true)
+        {
+            var type = await ReadAsync(1, token);
+            var body = type[0] switch
             {
-                var offset = 16 + (y * width + x) * 4;
-                message[offset] = (byte)(x * 37 + y * 11);       // blue
-                message[offset + 1] = (byte)(x * 5 + y * 53);    // green
-                message[offset + 2] = (byte)((x ^ y) * 29);      // red
-            }
-        return message;
+                0 => await ReadAsync(19, token),
+                2 => await ReadEncodingsAsync(token),
+                3 => await ReadAsync(9, token),
+                4 => await ReadAsync(7, token),
+                5 => await ReadAsync(5, token),
+                _ => throw new InvalidDataException($"Unexpected client message {type[0]} before the first update request"),
+            };
+            lock (received) { received.AddRange(type); received.AddRange(body); }
+            if (type[0] == 0)
+                format = new PixelFormat(body[3], body[5] != 0, body[7] << 8 | body[8], body[9] << 8 | body[10], body[11] << 8 | body[12],
+                                         body[13], body[14], body[15]);
+            if (type[0] == 3) return PatternUpdate(format);
+        }
+    }
+
+    private async Task<byte[]> ReadEncodingsAsync(CancellationToken token)
+    {
+        var header = await ReadAsync(3, token);
+        return [.. header, .. await ReadAsync((header[1] << 8 | header[2]) * 4, token)];
     }
 
     /// <summary>
@@ -199,8 +246,9 @@ public sealed class LoopbackPeer : IAsyncDisposable
             var init = new List<byte> { (byte)(width >> 8), (byte)width, (byte)(height >> 8), (byte)height,
                                         32, 24, 0, 1, 0, 255, 0, 255, 0, 255, 16, 8, 0, 0, 0, 0, 0, 0, 0, 4 };
             init.AddRange("peer"u8.ToArray());
-            init.AddRange(pattern ? PatternUpdate() : RawUpdate(10, 20, 30));
+            if (!pattern) init.AddRange(RawUpdate(10, 20, 30));
             await SendAsync(init.ToArray());
+            if (pattern) await SendAsync(await PatternAfterRequestAsync(token));
             Established = true;
             var buffer = new byte[4096];
             while (!token.IsCancellationRequested)
