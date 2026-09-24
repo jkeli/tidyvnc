@@ -78,6 +78,8 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     public event Action<Exception>? RenderFailed;
     /// <summary>A viewer shortcut other than remote input (full screen, keyboard capture, context menu), raised after the key is handled.</summary>
     public event Action<DesktopView, NativeShortcutDecision.RouteKind>? Command;
+    /// <summary>This view's size, scale and scaling changed (automatic remote resize follows it).</summary>
+    public event Action<NativeResizeViewport>? ViewportChanged;
     /// <summary>The pointer entered this surface (full-screen surfaces follow the pointer).</summary>
     public event Action<DesktopView>? SurfaceEntered;
 
@@ -168,6 +170,18 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         renderer.Resize(new DesktopViewport((uint)Math.Ceiling(width * scale), (uint)Math.Ceiling(height * scale), width, height, scale,
             scaling.Canonical, scaling.Filter, scaling.DevicePixels, canvas));
         UpdateGeometry();
+        ViewportChanged?.Invoke(Viewport);
+    }
+
+    /// <summary>The current size for automatic resizing; a canvas region is never a source on its own.</summary>
+    public NativeResizeViewport Viewport
+    {
+        get
+        {
+            double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
+            return new NativeResizeViewport(width, height, scale, scaling.Mode == NativeScalingMode.Unscaled, scaling.DevicePixels,
+                width > 0 && height > 0 && scale > 0 && canvas is null && !disposed);
+        }
     }
 
     private void UpdateGeometry()

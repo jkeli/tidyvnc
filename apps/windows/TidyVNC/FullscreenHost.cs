@@ -29,6 +29,8 @@ internal sealed class FullscreenHost : IDisposable
     private readonly List<Surface> surfaces = [];
     private ImmutableArray<NativeDisplayInfo> topology = [];
     private bool presenter, closing, disposed;
+    private readonly Guid canvasSource = Guid.NewGuid();
+    private NativeRemoteResizeCoordinator Resize => owner.Controller.RemoteResize;
 
     public FullscreenHost(ConnectionWindow owner, NativeFullscreenState state, NativeDisplayService displays)
     {
@@ -104,6 +106,7 @@ internal sealed class FullscreenHost : IDisposable
         var main = selection.Displays.FirstOrDefault(d => d.Id == current) ?? selection.Displays.FirstOrDefault(d => d.IsPrimary) ?? selection.Displays[0];
         state.SetPhase(NativeFullscreenPhase.Entering);
         owner.Desktop.ReleaseKeys();
+        Resize.BeginCanvas(canvasSource);
         try
         {
             foreach (var display in selection.Displays.OrderBy(d => d.Id == main.Id ? 0 : 1))
@@ -118,6 +121,7 @@ internal sealed class FullscreenHost : IDisposable
         foreach (var surface in surfaces.AsEnumerable().Reverse()) surface.Window.Activate();
         surfaces[0].View.Focus(FocusState.Programmatic);
         state.SetPhase(NativeFullscreenPhase.Active);
+        Resize.UpdateCanvas(canvasSource, layout, scaling.Mode == NativeScalingMode.Unscaled, available: true);
     }
 
     private Surface CreateSurface(NativeSession session, NativeDisplayInfo display, NativeCanvasViewport canvas, NativeScaling scaling)
@@ -183,6 +187,7 @@ internal sealed class FullscreenHost : IDisposable
                 surface.View.Canvas = layout.Viewport(surface.Display.Id);
                 surface.View.Scaling = scaling;
             }
+            Resize.UpdateCanvas(canvasSource, layout, scaling.Mode == NativeScalingMode.Unscaled, available: true);
             owner.Desktop.Scaling = scaling;
         }
         catch (NativeError)
@@ -224,6 +229,7 @@ internal sealed class FullscreenHost : IDisposable
             var owned = surfaces.ToList();
             surfaces.Clear();
             foreach (var surface in owned) Dispose(surface);
+            Resize.EndCanvas(canvasSource);
             if (presenter)
             {
                 presenter = false;

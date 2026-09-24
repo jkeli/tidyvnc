@@ -100,6 +100,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     /// <summary>This connection's input policy and scaling (the Input and Scaling dialogs edit them).</summary>
     public NativeInputState Input { get; } = new();
     public NativeScalingState Scaling { get; } = new();
+    /// <summary>Automatic remote resize for this window's connection.</summary>
+    public Desktop.NativeRemoteResizeCoordinator RemoteResize { get; } = new();
     public NativeRecentHistory? History { get; }
     public bool IsReverse => reverse is not null;
     public NativeSession? Session => Defaults.Session;
@@ -211,6 +213,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         Credentials.Bind(session);
         Input.Bind(session, Defaults.Setup?.InactiveCursor ?? NativeCursorFallback.Dot);
         Scaling.Bind(session);
+        RemoteResize.Bind(session);
         if (reverse is not null) Endpoint = reverse.Endpoint;
         else if (Defaults.Setup is { } setup && (setup.Endpoint.Length != 0 || Defaults.DocumentRequest is not null)) Endpoint = setup.Endpoint;
         else if (Defaults.Profile is { } profile) Endpoint = profile.Endpoint;
@@ -621,6 +624,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         cancel?.Cancel();
         if (editor is { } open) EndEditor(open);
         Input.Stop(); Scaling.Stop();
+        var resizing = RemoteResize.CloseAsync();
         Defaults.Stop();
         var session = Session;
         var attempt = tunnel;
@@ -630,6 +634,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         async Task Run()
         {
             if (session is not null) { try { await session.CloseAsync(); } catch (NativeError) { } }
+            await resizing;
             if (running is not null) { try { await running; } catch (OperationCanceledException) { } }
             if (attempt is not null && session is not null) await attempt.DrainAsync(session);
             await Trust.CloseAsync(); await Credentials.CloseAsync();

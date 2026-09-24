@@ -203,6 +203,9 @@
             <StackPanel x:Name="StatusMessages" Grid.Column="1" Orientation="Horizontal" Spacing="16" HorizontalAlignment="Right">
                 <TextBlock x:Name="TunnelStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}"
                            TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
+                <TextBlock x:Name="ResizeStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                           TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"
+                           AutomationProperties.AutomationId="resize.status" />
                 <TextBlock x:Name="FullscreenStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}"
                            TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"
                            AutomationProperties.AutomationId="fullscreen.status" />

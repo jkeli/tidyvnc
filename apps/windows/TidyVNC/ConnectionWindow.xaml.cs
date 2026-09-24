@@ -52,6 +52,7 @@ public sealed partial class ConnectionWindow : Window
         Handle = window;
         desktop = new DesktopView(window);
         desktop.Command += DesktopCommand;
+        desktop.ViewportChanged += _ => ReportViewport();
         fullscreen = new FullscreenHost(this, new NativeFullscreenState(), App.Current.Displays);
         fullscreen.State.PropertyChanged += (_, _) => Update();
         fullscreen.State.AutomaticEntryDue += () => DispatcherQueue.TryEnqueue(TryAutomaticFullscreen);
@@ -78,6 +79,7 @@ public sealed partial class ConnectionWindow : Window
         scalingCheck = controller.Scaling.Register(desktop.CanRender);
         controller.Scaling.PropertyChanged += (_, _) => fullscreen.ScalingChanged(controller.Scaling.Value);
         controller.Input.PropertyChanged += (_, _) => InputChanged();
+        controller.RemoteResize.PropertyChanged += (_, _) => Update();
         if (controller.History is { } history)
         {
             history.PropertyChanged += (_, _) => Update();
@@ -229,6 +231,8 @@ public sealed partial class ConnectionWindow : Window
         ClipboardStatus.Visibility = ClipboardNotice is null ? Visibility.Collapsed : Visibility.Visible;
         FullscreenStatus.Text = fullscreen.State.Message is { } fullscreenNotice ? Strings.Resolve(fullscreenNotice) : "";
         FullscreenStatus.Visibility = FullscreenStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        ResizeStatus.Text = controller.RemoteResize.Message is { } resizeNotice ? Strings.Resolve(resizeNotice) : "";
+        ResizeStatus.Visibility = ResizeStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         DesktopSize.Text = session is { Snapshot.Width: > 0 } s
             ? Strings.Format("information.desktop.size", s.Snapshot.Width, s.Snapshot.Height) : "";
     }
@@ -583,8 +587,20 @@ public sealed partial class ConnectionWindow : Window
     private static (int Width, int Height) ScaledMinimum(NativeDisplayInfo display) =>
         ((int)Math.Round(MinimumClient.Width * display.Scale), (int)Math.Round(MinimumClient.Height * display.Scale));
 
+    private readonly Guid viewportSource = Guid.NewGuid();
+
+    /// <summary>The window's desktop size for automatic resizing; a minimized window is not a source.</summary>
+    private void ReportViewport()
+    {
+        if (closed) return;
+        var value = desktop.Viewport;
+        if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } || !AppWindow.IsVisible) value = value with { Available = false };
+        Controller.RemoteResize.Update(viewportSource, value);
+    }
+
     private void PlacementChanged(AppWindow sender, AppWindowChangedEventArgs args)
     {
+        if (args.DidPresenterChange || args.DidSizeChange || args.DidVisibilityChange) ReportViewport();
         if (!args.DidPositionChange && !args.DidSizeChange) return;
         if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Restored }) restoredFrame = Frame;
         if (shown && !placing) userPlaced = true;

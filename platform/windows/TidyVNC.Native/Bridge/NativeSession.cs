@@ -392,7 +392,22 @@ public sealed partial class NativeSession : ObservableObject
         return NativeRemoteDesktop.From(value);
     }
 
-    public unsafe Task<NativeCompletion> RequestDesktopLayoutAsync(NativeRemoteLayout layout, ulong expectedGeneration)
+    /// <summary>Raised when a manual layout request is admitted; automatic resizing then waits for the geometry to change.</summary>
+    public event Action? ManualResizeRequested;
+
+    /// <summary>A layout the user asked for (Resize remote desktop).</summary>
+    public Task<NativeCompletion> RequestDesktopLayoutAsync(NativeRemoteLayout layout, ulong expectedGeneration)
+    {
+        var task = RequestLayout(layout, expectedGeneration);
+        ManualResizeRequested?.Invoke();
+        return task;
+    }
+
+    /// <summary>A layout that follows the window or full-screen displays (NativeRemoteResizeCoordinator).</summary>
+    public Task<NativeCompletion> RequestAutomaticDesktopLayoutAsync(NativeRemoteLayout layout, ulong expectedGeneration)
+        => RequestLayout(layout, expectedGeneration);
+
+    private unsafe Task<NativeCompletion> RequestLayout(NativeRemoteLayout layout, ulong expectedGeneration)
         => SubmitAsync((operation, error) =>
         {
             var screens = layout.Screens.Select(s => s.ToAbi()).ToArray();
