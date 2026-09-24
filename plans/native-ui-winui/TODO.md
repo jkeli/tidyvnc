@@ -96,7 +96,7 @@ proven through the real app before substantial screen work.
 ## W4 — Windows services
 
 - [x] W4.1 Stores: preferences, profiles/history, window state; schema, revision, `LockFileEx`, atomic replace, ACL check, sharing-violation retry, corruption and newer-schema recovery (D16).
-- [ ] W4.2 Credentials: Credential Manager store, retention controller (use once / session / remember), replace/forget, launch credentials with Windows path rules (D15).
+- [x] W4.2 Credentials: Credential Manager store, retention controller (use once / session / remember), replace/forget, launch credentials with Windows path rules (D15).
 - [ ] W4.3 Trust: TidyVNC trust stores, legacy `x509_known_hosts` adapters for both `%APPDATA%` locations, CA/CRL path handling.
 - [ ] W4.4 Documents: common file dialogs, bounded reads, atomic writes, launch routing; file dialog open during exit.
 - [ ] W4.5 Registry import sources for defaults and history, read-only, feeding the core projection.
@@ -427,3 +427,64 @@ Add dated entries, newest last, in the macOS format:
   fails the suite.
 - Retained FLTK rerun after W2 (MinGW Debug): builds; unit 655/659, with the same
   4 known failures as the planning checkpoint (see W1.12 above).
+
+### W4.2 — credentials — 2026-09-23
+
+- Behaviour: `platform/windows/TidyVNC.Native/Credentials`.
+  - `NativeCredentialManagerBacking`: Credential Manager generic credentials
+    through CsWin32 (`CredReadW/WriteW/DeleteW/EnumerateW`).
+    - Entry shape: target `TidyVNC/credentials.v1/<core credential digest>`,
+      `CRED_PERSIST_LOCAL_MACHINE`, empty user name, UTF-8 blob of at most
+      2560 bytes, fixed comment.
+    - Result mapping as in SERVICES.md section 3. Create refuses an existing
+      entry (`Duplicate`); replace needs the explicit mode.
+  - `NativeCredentialStore`: one worker at a time, at most 16 pending
+    callers, cancellation before admission only, and a close that drains.
+  - `NativeCredentialSecret`: pinned and clearable. `NativeCredentialKey`
+    wraps the W2.3 identity digest.
+  - `NativeAuthenticationCredentials` ports the macOS retention controller:
+    - use once / session / remember / replace;
+    - saves only after `Connected` for the submitting generation;
+    - a rejected saved password gives a notice and is never deleted;
+    - explicit use-saved and forget-saved;
+    - reverse windows have no store;
+    - launch environment first, then a retained session password ahead of a
+      password file, then the password file for password-only prompts;
+    - endpoint and route changes revoke launch inputs.
+  - `NativeLaunchCredentialInputs` / `NativePasswordFileReader`:
+    - VNC_USERNAME / VNC_PASSWORD are captured once and removed from the
+      process environment block before anything can fail, so child processes
+      never inherit them. The app captures them in `OnLaunched`.
+    - PasswordFile follows Windows path rules: drive and UNC paths as given;
+      relative paths join the launch directory; `C:x` and `\x` are refused;
+      no expansion.
+    - The file reader opens without following reparse points, accepts disk
+      files only, reads 8 bytes, and checks before/after identity.
+- Tests: `TidyVNC.Native.Tests` `CredentialTests`, 15 cases.
+  - Real Credential Manager entries under a disposable
+    `TidyVNC-test-<guid>` prefix: create, read, duplicate, replace, list and
+    paging, oversize, delete, NotFound, and the raw `CREDENTIALW` fields
+    (type, persistence, comment, user name). All entries are removed
+    afterwards.
+  - Result mapping, keys, secrets, store admission (Busy, Cancelled,
+    Closed, drain), PasswordFile selection and environment capture.
+  - Password files: regular file, short file, missing, relative path,
+    directory, junction, named pipe, `\\.\NUL`, cancelled.
+  - Seven controller scenarios end to end against a VncAuth
+    `RfbTestServer`.
+
+  Result: 3 consecutive clean runs. Mutation-checked, 14 mutations, all fail
+  the suite: save gating, rejection notice, replace mode, launch revocation,
+  input wiping, use-once clearing, session drop on a new destination, the
+  Busy limit, the close/cancel admission, the duplicate check, environment
+  clearing, root-relative paths, and the disk-file check.
+- Open: ERROR_NO_SUCH_LOGON_SESSION → Unavailable is covered only by the
+  mapping test; running a real `runas /netonly` session is left for the VM
+  pass (W7). Entries surviving an app upgrade follows from Credential Manager
+  not depending on app identity; the check is part of the W7 installer
+  upgrade test.
+- Not in W4.2: the authentication dialog wiring (W5) consumes this
+  controller; the app currently holds the captured launch inputs for it.
+- Environment note: `DesktopTests.KeyboardDisplaysAndCursorsThroughTheBridge`
+  fails while the monitors are in power save (QueryDisplayConfig returns
+  E_INVALIDARG). W4.7 turns that into a typed Unavailable result.

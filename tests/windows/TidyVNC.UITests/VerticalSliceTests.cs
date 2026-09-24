@@ -28,16 +28,25 @@ public sealed class VerticalSliceTests
     /// These tests show windows, take the foreground and inject a click and
     /// keys, so they run only when asked (TIDYVNC_UI_TESTS=1) and only on a
     /// desktop nobody has touched for a minute (TIDYVNC_UI_TESTS_FORCE=1
-    /// skips the idle check). Injection also waits for the app to be in front.
+    /// skips the idle check). The check runs once per test run, because the
+    /// tests' own injected input resets the idle clock. Injection also waits
+    /// for the app to be in front.
     /// </summary>
     [TestInitialize]
     public void RequireIdleDesktop()
     {
         if (Environment.GetEnvironmentVariable("TIDYVNC_UI_TESTS") != "1")
             Assert.Inconclusive("UI automation takes over the desktop; set TIDYVNC_UI_TESTS=1 to run it");
-        if (Environment.GetEnvironmentVariable("TIDYVNC_UI_TESTS_FORCE") != "1" && NativeMethods.IdleTime() < TimeSpan.FromSeconds(60))
-            Assert.Inconclusive($"The desktop is in use (idle {NativeMethods.IdleTime().TotalSeconds:F0} s); not taking it over");
+        lock (DesktopGate)
+        {
+            desktopGranted ??= Environment.GetEnvironmentVariable("TIDYVNC_UI_TESTS_FORCE") == "1" || NativeMethods.IdleTime() >= TimeSpan.FromSeconds(60);
+            if (desktopGranted != true)
+                Assert.Inconclusive($"The desktop is in use (idle {NativeMethods.IdleTime().TotalSeconds:F0} s); not taking it over");
+        }
     }
+
+    private static readonly Lock DesktopGate = new();
+    private static bool? desktopGranted;
 
     private static string AppPath =>
         typeof(VerticalSliceTests).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().First(a => a.Key == "TidyVncApp").Value!;

@@ -2,3 +2,15 @@
 // Hand-written LibraryImport stays only for tidyvnc_viewer.dll and
 // tidyvnc_windows.dll; system APIs are listed here.
 GetAncestor
+CredReadW
+CredWriteW
+CredDeleteW
+CredEnumerateW
+CredFree
+CRED_MAX_CREDENTIAL_BLOB_SIZE
+CreateFileW
+GetFileInformationByHandleEx
+GetFileType
+FILE_BASIC_INFO
+FILE_STANDARD_INFO
+WIN32_ERROR

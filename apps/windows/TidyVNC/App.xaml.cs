@@ -2,6 +2,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using TidyVNC.Native;
+using TidyVNC.Native.Credentials;
 
 namespace TidyVNC;
 
@@ -38,12 +39,19 @@ public partial class App : Application
     internal UiDispatcher Dispatcher { get; private set; } = null!;
     internal NativeRuntime Runtime { get; private set; } = null!;
     internal KeyboardRouter Keyboard { get; private set; } = null!;
+    /// <summary>
+    /// VNC_USERNAME / VNC_PASSWORD and the PasswordFile, captured once at
+    /// launch and removed from the environment block; the first ordinary
+    /// connection window claims them (CREDENTIAL-INPUTS.md, SERVICES.md 3).
+    /// </summary>
+    internal NativeLaunchCredentialInputs? LaunchCredentials { get; private set; }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         Dispatcher = new UiDispatcher(DispatcherQueue.GetForCurrentThread());
         Runtime = new NativeRuntime(Dispatcher);
         Keyboard = new KeyboardRouter();
+        LaunchCredentials = CaptureLaunchCredentials();
         // vncviewer.exe (D9) signals this to close every window, e.g. on Ctrl+C.
         closeRequest = new EventWaitHandle(false, EventResetMode.ManualReset, $@"Local\TidyVNC-close-{Environment.ProcessId}");
         closeWait = ThreadPool.RegisterWaitForSingleObject(closeRequest, (_, _) => Dispatcher.TryEnqueue(CloseAll), null, -1, true);
@@ -71,6 +79,28 @@ public partial class App : Application
         }
     }
 
+    private static NativeLaunchCredentialInputs? CaptureLaunchCredentials()
+    {
+        string? passwordFile = null;
+        try
+        {
+            var invocation = NativeInvocation.Parse(Environment.GetCommandLineArgs().Skip(1).ToArray());
+            passwordFile = NativeLaunchCredentialInputs.PasswordFile(invocation, Environment.CurrentDirectory);
+        }
+        catch (Exception error) when (error is NativeInvocationFailure or NativeError or NativeLaunchCredentialException)
+        {
+            // The console launcher reports argument errors; fixed text only here.
+            System.Diagnostics.Trace.TraceWarning($"PasswordFile unavailable: {error.GetType().Name}");
+        }
+        try { return NativeLaunchCredentialInputs.Capture(passwordFile); }
+        catch (Exception error) when (error is NativeLaunchCredentialException or NativeCredentialException)
+        {
+            // Never echo a value; the variables are already cleared.
+            System.Diagnostics.Trace.TraceWarning($"Launch credentials unavailable: {error.GetType().Name}");
+            return null;
+        }
+    }
+
     private void CloseAll()
     {
         foreach (var window in windows.ToList()) _ = window.CloseGracefully();
@@ -93,6 +123,7 @@ public partial class App : Application
         try { await Runtime.ShutdownAsync(); }
         catch (Exception error) { System.Diagnostics.Trace.TraceError($"Runtime shutdown failed: {error}"); }
         Keyboard.Dispose();
+        LaunchCredentials?.Clear();
         closeWait?.Unregister(null);
         closeRequest?.Dispose();
         Exit();

@@ -22,6 +22,9 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\RfbTestServer.cs" Link="RfbTestServer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />
   </ItemGroup>
   <ItemGroup>
