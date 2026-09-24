@@ -25,7 +25,11 @@ internal sealed partial class FullscreenConnectionBar : UserControl
     private readonly DispatcherQueueTimer reveal;
     private bool menuOpen, over;
 
-    public FullscreenConnectionBar(ConnectionWindow window)
+    /// <param name="reveal">
+    /// The owner's reveal timer, lent to each bar. A DispatcherQueueTimer holds a waitable timer and a
+    /// thread-pool wait that are not released with the bar, so one per full-screen entry leaked two handles.
+    /// </param>
+    public FullscreenConnectionBar(ConnectionWindow window, DispatcherQueueTimer reveal)
     {
         this.window = window;
         HorizontalAlignment = HorizontalAlignment.Center;
@@ -58,10 +62,8 @@ internal sealed partial class FullscreenConnectionBar : UserControl
         PointerEntered += (_, _) => over = true;
         PointerExited += (_, _) => { over = false; HideUnlessNeeded(); };
 
-        reveal = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        reveal.Interval = TimeSpan.FromMilliseconds(500);
-        reveal.IsRepeating = false;
-        reveal.Tick += (_, _) => Show();
+        this.reveal = reveal;
+        reveal.Tick += RevealTick;
     }
 
     private static Button Icon(string glyph, string key, string id)
@@ -112,9 +114,12 @@ internal sealed partial class FullscreenConnectionBar : UserControl
         statistics.IsEnabled = window.Controller.CanToggleStatistics;
     }
 
+    private void RevealTick(DispatcherQueueTimer sender, object args) => Show();
+
     public void Stop()
     {
         reveal.Stop();
+        reveal.Tick -= RevealTick;
         menu.Hide();
         Visibility = Visibility.Collapsed;
     }

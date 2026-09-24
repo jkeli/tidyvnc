@@ -27,6 +27,10 @@ public partial class App : Application
     private bool exiting;
     private EventWaitHandle? closeRequest;
     private RegisteredWaitHandle? closeWait;
+#if DEBUG
+    private EventWaitHandle? collectRequest, collectDone;
+    private RegisteredWaitHandle? collectWait;
+#endif
 
     public App()
     {
@@ -88,6 +92,20 @@ public partial class App : Application
         // vncviewer.exe (D9) signals this to close every window, e.g. on Ctrl+C.
         closeRequest = new EventWaitHandle(false, EventResetMode.ManualReset, $@"Local\TidyVNC-close-{Environment.ProcessId}");
         closeWait = ThreadPool.RegisterWaitForSingleObject(closeRequest, (_, _) => Dispatcher.TryEnqueue(CloseAll), null, -1, true);
+#if DEBUG
+        // Leak checks (TESTING.md; W6.11): a test signals this to have the app collect garbage on its UI
+        // thread, so handle counts measure what is still referenced. Debug builds with a test state root only.
+        if (TidyVNC.Native.Storage.NativeStateRoot.IsIsolated)
+        {
+            collectRequest = new EventWaitHandle(false, EventResetMode.AutoReset, $@"Local\TidyVNC-collect-{Environment.ProcessId}");
+            collectDone = new EventWaitHandle(false, EventResetMode.AutoReset, $@"Local\TidyVNC-collected-{Environment.ProcessId}");
+            collectWait = ThreadPool.RegisterWaitForSingleObject(collectRequest, (_, _) => Dispatcher.TryEnqueue(() =>
+            {
+                for (var i = 0; i < 3; i++) { GC.Collect(); GC.WaitForPendingFinalizers(); }
+                collectDone!.Set();
+            }), null, -1, false);
+        }
+#endif
         CreateStores();
         Documents = new NativeDocumentLaunchRouter(Dispatcher);
         Documents.Install(OpenDocument);
@@ -551,6 +569,11 @@ public partial class App : Application
         LaunchCredentials?.Clear();
         closeWait?.Unregister(null);
         closeRequest?.Dispose();
+#if DEBUG
+        collectWait?.Unregister(null);
+        collectRequest?.Dispose();
+        collectDone?.Dispose();
+#endif
         // Release a waiting WM_ENDSESSION before the session thread stops.
         shutdownComplete.TrySetResult();
         sessionEvents?.Dispose();

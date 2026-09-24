@@ -154,7 +154,7 @@ automation is possible; the remaining manual checks are listed per row.
 - [ ] W6.8 Fullscreen current/all/selected with the connection bar and dialogs in place (D14).
 - [ ] W6.9 Physical checks: mixed-DPI monitors, hot-plug, portrait, negative origins, running inside RDP (W07). Stays open until run on hardware.
 - [ ] W6.10 Performance against FLTK on the same machine (DESKTOP.md §9).
-- [ ] W6.11 Stress: long reconnect, resize and attach cycles without leaks.
+- [x] W6.11 Stress: long reconnect, resize and attach cycles without leaks.
 - [ ] W6.12 Protocol baseline port (55 cases) and security, tunnel and reconnect smokes, for FLTK and WinUI.
 
 Exit: the macOS N5 exit on Windows, including the matched performance budget.
@@ -2057,3 +2057,42 @@ Add dated entries, newest last, in the macOS format:
   - Still failing: ConnectAuthenticateRenderTypeClickAndDisconnect and LargeRemoteCursorsAreDrawnOverTheDesktop
     (the screen capture of the desktop), and ConnectionMenuCommandsReachTheServer. They need the session
     displayed.
+
+### W6.11 — presenter and full-screen attach cycles; two leaks fixed — 2026-09-24
+
+- IDs/commit: `d2d3eecf` (shared device) and the commit carrying this entry.
+- New `StressTests.PresenterAttachCyclesDoNotLeak`. Each cycle attaches a new `DesktopRenderer` (Direct3D
+  device, composition swap chain and render thread) to a connected session at a changing size and scale,
+  loses the device every fourth cycle, and disposes it.
+  - It found about 3 handles and 100 KB leaked per cycle: 300 cycles took handles from 551 to 1398 and
+    private bytes from 55 to 84 MiB.
+  - A standalone C++ probe separated the causes. A bare D3D11 device cycle leaks nothing. Each device
+    that has had a `CreateSwapChainForComposition` keeps 2 process handles after release, whatever the
+    release order, even after presenting, trimming or waiting. Swap chains created and released on one
+    kept device leak nothing. The adapter here is an NVIDIA RTX 4090.
+  - Fix (`d2d3eecf`): every presenter now uses one process-wide device, replaced only when
+    `GetDeviceRemovedReason` reports it lost. Every context call names its resources, so presenters on
+    different render threads share it safely (it is multithread-protected). Destroy releases the
+    presenter's own objects and flushes, without resetting shared state.
+  - After the fix: 0.00 handles per cycle for presenter, presenter+resize, presenter+present and
+    renderer. The 300-cycle soak passes. Desktop, scaling-fidelity and cursor tests pass 13/13.
+    TwoWindowsConnectAtOnce, FullScreenFromTheCommandLine, DesktopViewScrolls, ConnectionInformation,
+    ListenAccepts and AuthenticateAndDisconnect pass on the shared device.
+- New gated UI test `FullScreenCyclesDoNotLeak`: Ctrl+Alt+Enter full-screen round trips, and the app's
+  handle and thread counts after collecting garbage.
+  - It uses a new Debug-only hook: with a test state root, the `Local\TidyVNC-collect-<pid>` event
+    makes the app collect on its UI thread and signal `…-collected-<pid>`.
+  - It found about 2.3 handles leaked per round trip after collection. A per-type handle count
+    (`NtQuerySystemInformation`, types identified by creating known objects) showed one Timer and one
+    thread-pool wait per round trip.
+  - The cause was the full-screen bar's `DispatcherQueueTimer`, created with each bar on every entry.
+    Its waitable timer and thread-pool wait are not released with the bar. `FullscreenHost` now owns
+    one reveal timer for the connection and lends it to each bar, which detaches its handler on Stop.
+  - After the fix, 30 round trips show Timer +1, no thread-pool wait growth and other types within ±11.
+    45 round trips pass the test's bounds (handles +40, threads +8). One earlier run failed after 22 s,
+    before completing its round trips; the next runs passed.
+- The render and large-cursor UI tests now bring their window to the foreground before reading screen
+  pixels. A newly opened window can start behind others, and a screen capture then reads whatever
+  covers it. The full-screen test passed its pixel check because its window covers the display.
+- W6.11 is complete: reconnect, resize and session attach cycles, presenter attach cycles with device
+  loss, and full-screen round trips, all without per-cycle growth.

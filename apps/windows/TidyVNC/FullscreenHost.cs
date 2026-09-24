@@ -1,4 +1,5 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
+using Microsoft.UI.Dispatching;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.UI.Windowing;
@@ -32,6 +33,16 @@ internal sealed class FullscreenHost : IDisposable
     private ImmutableArray<NativeDisplayInfo> topology = [];
     private bool presenter, closing, disposed;
     private FullscreenConnectionBar? bar;
+    // One reveal timer for the connection's lifetime, lent to each bar (see FullscreenConnectionBar).
+    private readonly DispatcherQueueTimer reveal = CreateRevealTimer();
+
+    private static DispatcherQueueTimer CreateRevealTimer()
+    {
+        var timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        timer.Interval = TimeSpan.FromMilliseconds(500);
+        timer.IsRepeating = false;
+        return timer;
+    }
     private Grid? barLayer;
     private readonly PointerEventHandler barPointer;
     private readonly Guid canvasSource = Guid.NewGuid();
@@ -216,7 +227,7 @@ internal sealed class FullscreenHost : IDisposable
 
     private void AddBar(Grid layer)
     {
-        bar = new FullscreenConnectionBar(owner);
+        bar = new FullscreenConnectionBar(owner, reveal);
         barLayer = layer;
         layer.Children.Add(bar);
         layer.AddHandler(UIElement.PointerMovedEvent, barPointer, handledEventsToo: true);

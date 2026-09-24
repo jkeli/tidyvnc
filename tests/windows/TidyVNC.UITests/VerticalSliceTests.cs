@@ -283,6 +283,8 @@ public sealed class VerticalSliceTests
             // Render: the test desktop's background fills the centre; FixedRatio
             // letterboxes the 4:3 desktop in the wider window.
             var desktop = ById(window, "desktop.view");
+            // Screen pixels are only this window's while nothing covers it (a new window can open behind others).
+            RequireForeground(window);
             Until(() => Near(PixelAt(desktop, 0.5, 0.5), RfbTestServer.Background), "the remote desktop on screen");
             var bar = PixelAt(desktop, 0.01, 0.5);
             Assert.IsTrue(bar is { R: < 8, G: < 8, B: < 8 }, $"letterbox {bar}");
@@ -335,10 +337,11 @@ public sealed class VerticalSliceTests
             var window = app.Application.GetMainWindow(automation, Patience)!;
             Until(() => window.Title.Contains(server.Name, StringComparison.Ordinal), "the connected title");
             var desktop = ById(window, "desktop.view");
+            // Screen pixels are only this window's while nothing covers it (a new window can open behind others).
+            RequireForeground(window);
             Until(() => Near(PixelAt(desktop, 0.5, 0.5), RfbTestServer.Background), "the remote desktop on screen");
 
             // The pointer at the centre: the cursor's top-left (its hotspot) is there, drawn down and right.
-            RequireForeground(window);
             var bounds = desktop.BoundingRectangle;
             var centre = new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
             Mouse.MoveTo(new System.Drawing.Point(centre.X - 20, centre.Y - 20));
@@ -828,6 +831,74 @@ public sealed class VerticalSliceTests
                 Until(() => library.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "trust.example::5901"), "the destination listed");
                 library.Close();
             }
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W6.11: entering and leaving full screen moves the desktop between the window and full-screen
+    /// surfaces (a presenter and swap chain attached to a new panel each time). Fifteen round trips must
+    /// not grow the app's handles or threads beyond a one-off step.
+    /// </summary>
+    [TestMethod]
+    public async Task FullScreenCyclesDoNotLeak()
+    {
+        await using var server = new RfbTestServer();
+        using var app = Launch(server.Endpoint, commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            Until(() => server.AuthenticatedClients == 1, "the connection");
+            var handle = window.Properties.NativeWindowHandle.Value;
+            var desktop = ById(window, "desktop.view");
+            RequireForeground(window);
+            var bounds = desktop.BoundingRectangle;
+            Mouse.Click(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            Until(() => server.Pointers.Any(p => p.Buttons == 1), "the desktop focused");
+            (int Handles, int Threads) Usage()
+            {
+                // The Debug app collects garbage first (its test-only collect event), so only what is still
+                // referenced counts.
+                using (var collect = EventWaitHandle.OpenExisting($@"Local\TidyVNC-collect-{app.Process.Id}"))
+                using (var collected = EventWaitHandle.OpenExisting($@"Local\TidyVNC-collected-{app.Process.Id}"))
+                {
+                    collect.Set();
+                    Assert.IsTrue(collected.WaitOne(TimeSpan.FromSeconds(30)), "the app collected");
+                }
+                using var process = System.Diagnostics.Process.GetProcessById(app.Process.Id);
+                return (process.HandleCount, process.Threads.Count);
+            }
+            void RoundTrip(int index)
+            {
+                Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.RETURN);
+                Until(() => NativeMethods.WindowRect(handle) == NativeMethods.MonitorRect(handle), $"full screen {index}");
+                Thread.Sleep(300);
+                Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.RETURN);
+                Until(() => NativeMethods.WindowRect(handle) != NativeMethods.MonitorRect(handle), $"restored {index}");
+                Thread.Sleep(300);
+            }
+            for (var i = 0; i < 3; i++) RoundTrip(i); // Warm-up: first full screen creates its host once.
+            var trips = int.TryParse(Environment.GetEnvironmentVariable("TIDYVNC_STRESS_CYCLES"), out var requested) && requested >= 15 ? requested : 15;
+            var before = Usage();
+            var samples = new List<string>();
+            for (var i = 0; i < trips; i++)
+            {
+                RoundTrip(i + 3);
+                if (i % 15 == 14) { Thread.Sleep(1000); var sample = Usage(); samples.Add($"{i + 1}: {sample.Handles}/{sample.Threads}"); }
+            }
+            var after = Usage();
+            TestContext.WriteLine($"{trips} full-screen round trips: handles {before.Handles} -> {after.Handles}, threads {before.Threads} -> {after.Threads}; " +
+                                  string.Join(", ", samples));
+            Assert.IsTrue(after.Handles - before.Handles <= 40, $"handles grew {before.Handles} -> {after.Handles}: {string.Join(", ", samples)}");
+            Assert.IsTrue(after.Threads - before.Threads <= 8, $"threads grew {before.Threads} -> {after.Threads}");
             window.Close();
             Exits(app);
         }
