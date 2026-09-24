@@ -996,3 +996,93 @@ Add dated entries, newest last, in the macOS format:
   must decide (not implemented)" with the decided Windows semantics, per
   service, pointing at SERVICES.md, DECISIONS.md and these tests.
 - Full native suite on this machine: 115 passed, 2 gated skips.
+
+### W5.1–W5.8 (progress), W5.16 (progress), W5.18 (catalog) — connection window and per-connection dialogs — 2026-09-24
+
+- IDs/commits: 00b3076a, 99bb06e4, 332642e3, d71777bc, 338835dd, c55aed71,
+  c9dc653f, ab0f2a19, efc2a504, c07c92f3. No item is checked: each still
+  has keyboard-only, Narrator or physical checks open (listed below).
+- Behaviour delivered and affected interfaces:
+  - Strings (D20): `apps/windows/strings.py` generates
+    `Strings/en-US/Resources.resw` from the macOS catalog plus
+    `Strings/windows.json`. It applies sentence case, .NET placeholders and
+    Windows terminology ("full screen" as a noun, "full-screen" as an
+    adjective, "scale" instead of "backing scale"). The audit flags macOS
+    terms. Typed `NativeText` keeps library text localizable.
+  - Session setup: `NativeSessionSetup.Resolve` layers app defaults,
+    profile, command line and document into the configuration and the
+    frontend policies, with typed setup failures and monitor mapping.
+  - Controller: `NativeConnectionController`, the ConnectionModel port. It
+    owns session defaults, recent history, SSH prompts, a single editor
+    slot with Connected/Disconnected/Any scopes, and close ordering.
+  - Connection window (W5.1): menu bar, address row, toolbar, gateway,
+    notices, pre-session pages (loading, problem, review, mapping) and the
+    status bar.
+    - `DialogPresenter` shows one ContentDialog at a time in the macOS
+      priority order: SSH, authentication/trust, editor, problem, message.
+    - Command-line launches connect on ready; shell address launches fill
+      the address; files open for review.
+  - Dialogs:
+    - authentication (W5.2) and trust (W5.3);
+    - encoding (W5.4), which waits for the core on cancel;
+    - security with TLS priority and certificate files (W5.5);
+    - input (W5.6) and scaling (W5.7); the desktop view refuses sizes it
+      cannot render (16384 backing limit).
+  - W5.8:
+    - connection options: shared access and Retry, inherit/on/off, while
+      disconnected;
+    - resize policy and Resize remote desktop: custom size, or one remote
+      screen per chosen display from `tidyvnc_display_layout_compute`,
+      reusing RFB screen IDs; close waits for the server's reply;
+    - full-screen displays: start in full screen, current/all/selected,
+      review of changed topology;
+    - `FullscreenHost`: the current display uses FullScreenPresenter with
+      the chrome collapsed; all or selected displays get owned full-screen
+      windows, each with its own swap chain drawing its region of a shared
+      canvas (`tidyvnc_desktop_canvas_geometry`/`_damage`); topology changes
+      and disconnects close full screen; automatic entry once per connection
+      while wanted; a user's exit sticks;
+    - mixed-DPI displays get a gap-free effective-pixel arrangement derived
+      from the physical desktop, because the core refuses overlapping
+      logical rectangles;
+    - automatic remote resize: `NativeRemoteResizeCoordinator`, the macOS
+      coordinator port with canvas ownership and manual holds;
+    - window placement: `window-state.json` restores only onto displays that
+      still exist; `-geometry` and `Maximize` apply once, never after the
+      user moves the window;
+    - viewer shortcuts: Ctrl+Alt+Enter toggles full screen; G and M reach
+      the desktop view through `NativeShortcutRouter`.
+  - Core: `-via` capability on WIN32 (`Invocation.cxx`). The last address
+    of a connect waits for the whole connect deadline, so a refused port is
+    reported as refused (`SocketConnector.cxx`, `tests/unit/windows`).
+- Tests, commands and results:
+  - `dotnet test` on `tests/windows/TidyVNC.Native.Tests`: 153 total, 151
+    passed, 2 gated skips. New classes: Setup, StringCatalog, Connection,
+    EncodingDraft, SecurityDraft, InputScaling, ResizeConnection, Placement,
+    Fullscreen, AutomaticResize. The resize/fullscreen classes were repeated
+    5× clean.
+  - `LoopbackPeer` speaks ExtendedDesktopSize: announcements, replies with
+    status, SetDesktopSize on the wire.
+  - `python apps/windows/strings.py audit`: 1066 strings, 270 referenced, no
+    problems.
+  - Core ctest (MSVC): 735/735 after the core edits.
+  - Retained FLTK (MinGW64 Debug) after the core edits: builds; unit
+    655/659, the same 4 known failures as the planning checkpoint
+    (DocumentABI allocation injection, three GDI `Surface` timeouts).
+  - UI tests (TIDYVNC_UI_TESTS=1, idle-gated):
+    - redirect/review, close during authentication and two windows pass;
+    - the render test fails;
+    - the new full-screen test (`-FullScreen`, Ctrl+Alt+Enter) fails with
+      "Displays unavailable". The only display was powered off, so
+      QueryDisplayConfig reports no active paths. Both tests are to be
+      rerun with the display awake.
+- Machine: Windows 11 Pro 25H2 (10.0.26200) x64, .NET 10.0.112, Debug x64,
+  one 3840×2160 display.
+- Remaining limitations and unchecked dependencies:
+  - W5.1–W5.8: keyboard-only and Narrator passes; W5.19 covers
+    Axe.Windows.
+  - W5.8: physical full screen on an awake display; all/selected displays
+    need a second monitor (hardware) and mixed-DPI hardware.
+  - W5.16: the retry and alert flows are wired; E-row checks remain.
+  - W5.18: the pseudo-locale checks.
+  - Context menu (M) and the full-screen connection bar are W5.11.
