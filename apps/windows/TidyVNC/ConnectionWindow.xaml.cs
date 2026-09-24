@@ -80,6 +80,8 @@ public sealed partial class ConnectionWindow : Window
         var fullscreenKey = new KeyboardAccelerator { Key = Windows.System.VirtualKey.F11 };
         fullscreenKey.Invoked += (_, e) => { e.Handled = true; if (CanToggleFullscreen) ToggleFullscreen(); };
         Root.KeyboardAccelerators.Add(fullscreenKey);
+        // The window-wide keys are listed in the menus; a tooltip naming them over the whole window is noise.
+        Root.KeyboardAcceleratorPlacementMode = KeyboardAcceleratorPlacementMode.Hidden;
         // F6 and Shift+F6 move between the window's areas (UX.md section 10).
         foreach (var backward in new[] { false, true })
         {

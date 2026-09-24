@@ -124,6 +124,7 @@ public sealed class RfbTestServer : IAsyncDisposable
         var writing = new SemaphoreSlim(1, 1);
         var format = new PixelFormat();
         var pendingIncremental = 0; // 1 while an incremental request waits for a change
+        var changedUnsent = 0; // 1 when the desktop changed while no incremental request was waiting
         (int X, int Y, int W, int H) pendingArea = (0, 0, Width, Height);
         Action notify = () => { };
         try
@@ -192,6 +193,7 @@ public sealed class RfbTestServer : IAsyncDisposable
                     var area = pendingArea;
                     _ = SendUpdate(area.X, area.Y, area.W, area.H).ContinueWith(_ => { }, TaskScheduler.Default);
                 }
+                else Volatile.Write(ref changedUnsent, 1);
             };
             Changed += notify;
 
@@ -227,7 +229,15 @@ public sealed class RfbTestServer : IAsyncDisposable
                         int w = BinaryPrimitives.ReadUInt16BigEndian(body.AsSpan(5)), h = BinaryPrimitives.ReadUInt16BigEndian(body.AsSpan(7));
                         w = Math.Min(w, Width - x); h = Math.Min(h, Height - y);
                         if (body[0] == 0) await SendUpdate(x, y, w, h);
-                        else { pendingArea = (x, y, w, h); Volatile.Write(ref pendingIncremental, 1); }
+                        else
+                        {
+                            // A change that arrived between the last update and this request is answered now;
+                            // otherwise the request waits (and a change racing this check is caught below).
+                            pendingArea = (x, y, w, h);
+                            Volatile.Write(ref pendingIncremental, 1);
+                            if (Interlocked.Exchange(ref changedUnsent, 0) == 1 && Interlocked.Exchange(ref pendingIncremental, 0) == 1)
+                                await SendUpdate(x, y, w, h);
+                        }
                         break;
                     }
                     case 4: // KeyEvent

@@ -347,7 +347,8 @@ public sealed class VerticalSliceTests
             var centre = new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
             Mouse.MoveTo(new System.Drawing.Point(centre.X - 20, centre.Y - 20));
             Mouse.MoveTo(centre);
-            Until(() => Near(PixelAt(desktop, 0.55, 0.55), red), "the cursor drawn at the pointer");
+            Until(() => Near(PixelAt(desktop, 0.55, 0.55), red),
+                  $"the cursor drawn at the pointer (view {bounds}, window {window.BoundingRectangle}, pointer {centre}, pixel {PixelAt(desktop, 0.55, 0.55)})");
             Assert.IsTrue(Near(PixelAt(desktop, 0.45, 0.45), RfbTestServer.Background), "nothing above and left of the hotspot");
             // Clipped to the desktop: the square desktop is letterboxed in the wider window, and the bar stays black.
             var bar = PixelAt(desktop, 0.995, 0.6);

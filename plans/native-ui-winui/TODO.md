@@ -2225,3 +2225,22 @@ Add dated entries, newest last, in the macOS format:
 - Native suite: 212 of 215 pass and 2 are gated skips. `KeyboardDisplaysAndCursorsThroughTheBridge`
   fails with 0x80070005 because display queries need a connected session; it does not use the SDK.
 - Remaining for W7.13: the display-dependent UI tests on 2.5.1 with the RDP window shown.
+
+### W7.13 (progress), W3.6 — UI suite on 2.5.1 with the display on; test server race; stray tooltip — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- With the RDP session displayed, 21 of 26 vertical-slice tests passed on 2.5.1, including F6, full screen
+  from the command line, both pseudo-locale tests, two windows and assistive-technology scrolling. The Axe
+  scan passes. The two leak tests failed once and passed on the rerun.
+- `RfbTestServer` dropped a change that arrived after an update and before the viewer's next incremental
+  request: the request then waited for another change that never came. That is why the render test never
+  saw its Escape stripe (the `q` stripe arrived; Escape's did not). The server now remembers such a change
+  and answers the next request with it. `ConnectAuthenticateRenderTypeClickAndDisconnect` passes on screen
+  for the first time. Native suite: 213 passed, 2 gated skips.
+- The window-wide F11 and F6 accelerators on the connection window's root grid put an "F11" tooltip
+  wherever the pointer rested. Their placement is now hidden; the menus already list the keys.
+- `LargeRemoteCursorsAreDrawnOverTheDesktop` reports the view and window bounds, the pointer and the
+  sampled pixel when it fails.
+- `LargeRemoteCursorsAreDrawnOverTheDesktop` and `ConnectionMenuCommandsReachTheServer` failed because
+  another app's window covered the test window: the test's pointer moves and one click landed on it. They
+  are rerun with the test area clear.
