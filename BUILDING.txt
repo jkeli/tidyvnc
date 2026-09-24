@@ -4,6 +4,9 @@
 
 
 Current macOS fork instructions and actual app/DMG names are in BUILD-MACOS.md.
+The Windows 11 viewer (WinUI 3, MSVC core) and its MSI are built as described
+in BUILD-WINDOWS.md; the MinGW sections below build the FLTK viewer, which
+remains the Windows 10 build.
 The platform-specific sections below retain upstream Windows/Linux build
 references while those rollout phases are deferred; they are not validation of
 TidyVNC installers or side-by-side installation on those platforms.

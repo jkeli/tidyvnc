@@ -1321,3 +1321,28 @@ Add dated entries, newest last, in the macOS format:
   - W7.5: starting TidyVNC.exe from the relocated copy, in a test account, because Release ignores the
     test state root.
   - W7.4: signing, deferred.
+
+### W7.9 (progress) — Windows build guide, README and Help — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `BUILD-WINDOWS.md` sits beside `BUILD-MACOS.md`. It covers:
+  - requirements;
+  - `build.py` stages and options;
+  - the core, .NET, UI-automation and strings checks, and the test environment variables;
+  - the package stage and its outputs;
+  - per-user MSI installation, with the optional PATH feature;
+  - upgrades and uninstall, and what is kept;
+  - unsigned-build behaviour.
+- `BUILDING.txt` points Windows 11 builds there and keeps the MinGW FLTK sections for Windows 10.
+- `README.rst`, which ships in the payload, explains the SmartScreen and Smart App Control behaviour and how
+  to remove kept data.
+- Help has a new guide topic, "Installing and removing", with the same content (PACKAGING.md sections 7
+  and 8).
+  - `strings.py` accepts `reviewed` entries for Windows-only keys: "Smart App Control" matches the macOS
+    term "Control".
+- The rebrand audit (`tests/rebrand/audit.py`, run with `PYTHONUTF8=1`) already fails on this Windows
+  checkout before these changes:
+  - old-brand mentions in macOS and Windows test files that are not in its baseline;
+  - the LICENCE.TXT hash, after CRLF conversion; the file itself is unchanged.
+  - This is left for the rebrand plan (R5).
+- Remaining: the handoff status for W7.9, once W7 is further along.

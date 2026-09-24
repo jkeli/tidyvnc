@@ -47,6 +47,8 @@
   },
   "windowsOnly": {
     "app.flow.direction": "LeftToRight",
+    "help.guide.install.title": "Installing and removing",
+    "help.guide.install.body": "TidyVNC installs for your Windows account only, in your local app data folder, without administrator rights. Installers are not yet code-signed: when you open a downloaded installer, Windows SmartScreen may say it protected your PC; choose More info, then Run anyway, if the installer came from the TidyVNC project. Where Smart App Control is on, Windows blocks unsigned apps, so TidyVNC cannot run there until it is signed. Uninstalling from Settings > Apps keeps your settings, profiles, history and trust decisions in %LOCALAPPDATA%\\TidyVNC and saved passwords in Credential Manager; delete that folder and the TidyVNC entries in Credential Manager to remove them.",
     "document.file.type": "TidyVNC connection file",
     "app.windows.11.required": "This version of TidyVNC requires Windows 11. On earlier versions of Windows, use the classic TidyVNC viewer (vncviewer) instead.",
     "tunnel.error.windows.client.missing": "The Windows OpenSSH Client is not installed. Add it in Settings > System > Optional features, then connect again.",
@@ -82,6 +84,7 @@
   },
   "reviewed": [
     "help.guide.input.title",
+    "help.guide.install.body",
     "desktop.return.to.top.left",
     "tunnel.error.ssh.configuration.contains.unsupported.settings.command.execution.proxy.hops.and.network.dependent"
   ],

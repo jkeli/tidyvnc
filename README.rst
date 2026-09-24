@@ -5,7 +5,12 @@ TidyVNC is a fork of TigerVNC, currently focused on the native macOS viewer,
 local desktop scaling and high-density display support. Project and support:
 https://github.com/jkeli/tidyvnc and https://github.com/jkeli/tidyvnc/issues.
 
-Build the current macOS application using BUILD-MACOS.md. Rebrand status and
+Build the current macOS application using BUILD-MACOS.md, and the Windows 11
+viewer (WinUI) and its per-user MSI using BUILD-WINDOWS.md. The Windows
+installer is not yet code-signed: Windows SmartScreen warns about a downloaded
+MSI (More info, then Run anyway), and Smart App Control, where it is on, blocks
+the app until it is signed. Uninstalling keeps %LOCALAPPDATA%\TidyVNC and the
+TidyVNC entries in Credential Manager; delete them to remove your data. Rebrand status and
 validation gaps are tracked in plans/rebrand/TODO.md. TidyVNC is native only;
 the Java viewer has been removed. Windows and Linux/server rebranding remain
 deferred. Existing copyrights and upstream history remain intact.

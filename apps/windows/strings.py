@@ -137,7 +137,8 @@ def build() -> tuple[dict[str, str], list[str]]:
     problems = []
     for section, keys in (("macOnly", mac_only), ("overrides", overrides), ("reviewed", reviewed), ("keepCase", keep_case)):
         for key in keys:
-            if key not in catalog:
+            # A Windows-only string may name a Windows term that looks like a macOS one (Smart App Control).
+            if key not in catalog and not (section == "reviewed" and key in windows_only):
                 problems.append(f"{section}: {key} is not a macOS key")
     for key in windows_only:
         if key in catalog:

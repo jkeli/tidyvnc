@@ -28,7 +28,7 @@ internal sealed partial class HelpWindow : Window
         ("help.guide.connect.title", "help.guide.connect.body"), ("help.guide.ssh.title", "help.guide.ssh.body"),
         ("help.guide.identity.title", "help.guide.identity.body"), ("help.guide.profiles.title", "help.guide.profiles.body"),
         ("help.guide.input.title", "help.guide.input.body"), ("help.guide.listen.title", "help.guide.listen.body"),
-        ("help.guide.failure.title", "help.guide.failure.body"),
+        ("help.guide.failure.title", "help.guide.failure.body"), ("help.guide.install.title", "help.guide.install.body"),
     ];
 
     private readonly SelectorBar topics = new();
