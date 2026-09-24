@@ -55,8 +55,8 @@ dotnet build tests\windows\TidyVNC.Native.Tests -c Debug -p:Platform=x64 -o <dir
 dotnet exec <dir>\TidyVNC.Native.Tests.dll
 
 rem Measurement builds (Release that honours TIDYVNC_STATE_ROOT; never packaged) and startup timing
-python apps\windowsuild.py --configuration Release --stages app --measurement --runtime jit|trimmed|aot
-python tests\perf\windows-viewer-workloads.py --winui build\winuipp-x64-measurementncviewer.exe --direct --startup 11
+python apps\windows\build.py --configuration Release --stages app --measurement --runtime jit|trimmed|aot
+python tests\perf\windows-viewer-workloads.py --winui build\winui\app-x64-measurement\vncviewer.exe --direct --startup 11
 
 rem UI automation and smokes: only with TIDYVNC_UI_TESTS=1 and an idle desktop (never TIDYVNC_UI_TESTS_FORCE)
 dotnet test --project tests\windows\TidyVNC.UITests -c Debug -p:Platform=x64
