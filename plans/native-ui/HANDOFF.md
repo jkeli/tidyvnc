@@ -3,9 +3,12 @@
 Updated 2026-09-23 (N6.14). This is the entry point for anyone building another
 native frontend (for example WinUI) on the portable viewer core that the macOS
 SwiftUI app uses. It summarizes the contracts and links to the authoritative
-detail. **No Windows frontend, Windows service backend or Windows execution of the
-native core is implemented or claimed.** The retained FLTK viewer remains the
-Windows and Linux UI.
+detail. **Windows (2026-09-24):** the WinUI 3 frontend planned in
+[plans/native-ui-winui](../native-ui-winui/README.md) now runs this core on
+Windows (MSVC build, Windows adapters, `platform/windows/TidyVNC.Native`,
+`apps/windows/TidyVNC`); its status and open checks are in that plan's
+[RESUME.md](../native-ui-winui/RESUME.md). The retained FLTK viewer remains the
+Windows 10 and Linux UI.
 
 Authoritative references:
 
@@ -274,8 +277,9 @@ the open notes that used to be listed here. Contract tests are in
 - Sanitizers: the full suite passes under ASan+UBSan+LSan and TSan (Linux) and
   ASan+UBSan and TSan (macOS). The glibc resolver tests skip under TSan.
 - Protocol baseline: `tests/integration/macos-scaling-smoke.py` drives an actual
-  executable against a scripted RFB peer. A Windows port would need its own
-  launcher and isolation.
+  executable against a scripted RFB peer. The Windows port is
+  `tests/integration/windows-scaling-smoke.py` (through `vncviewer.exe` with an
+  isolated state root), with `windows-security-smoke.py` beside it.
 
 A WinUI plan should start by making `headless.py` pass on Windows with MSVC,
 implement the Windows transport/connector/listener adapters, and run the unit

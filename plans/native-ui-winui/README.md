@@ -2,7 +2,8 @@
 
 Plan for a native Windows TidyVNC viewer built with WinUI 3 on the portable core
 and C ABI that the macOS SwiftUI app already uses. Created 2026-09-23 at commit
-`6972f720`. **Status: planning only; nothing is implemented.**
+`6972f720`. **Status (2026-09-24): implemented through W5 and much of W6 and W7;
+[RESUME.md](RESUME.md) has the checkpoint, what remains open and the exact commands.**
 
 ## Read in this order
 

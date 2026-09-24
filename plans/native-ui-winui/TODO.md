@@ -1640,3 +1640,15 @@ Add dated entries, newest last, in the macOS format:
     (`SessionTests.WrongPasswordEndsTheAttemptWithAuthenticationRejected`) and the security smokes, each
     automatable E row now has a test. E04 does not apply on Windows.
 - Remaining: seeing each alert on screen (display on), and a real driver reset.
+
+### W7.9 (progress) — status and resume point — 2026-09-24
+
+- `plans/native-ui-winui/RESUME.md` is the checkpoint the README asked for. It holds:
+  - the state;
+  - the owner-dependent items;
+  - exact build, test, smoke, package and strings commands;
+  - the standing rules.
+- The plan README status and the macOS handoff (`plans/native-ui/HANDOFF.md`) no longer say that nothing
+  is implemented on Windows. They point to the WinUI plan and the Windows smokes.
+- W7.9 now has all four parts: the build guide, the BUILDING.txt section, Help content and the status.
+  The item stays open until W7 finishes, because the handoff status must describe the released state.
