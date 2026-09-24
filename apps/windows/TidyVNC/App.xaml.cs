@@ -58,11 +58,19 @@ public partial class App : Application
     internal NativeDisplayService Displays { get; private set; } = null!;
     private NativeDisplayChangeListener? displayChanges;
     private readonly HashSet<ConnectionWindow> activeWindows = [];
+    private readonly TaskCompletionSource shutdownComplete = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private NativeSessionEvents? sessionEvents;
+    /// <summary>The bell, coalesced per delivery turn (SERVICES.md section 14).</summary>
+    internal NativeBell Bell { get; private set; } = null!;
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         Dispatcher = new UiDispatcher(DispatcherQueue.GetForCurrentThread());
+        ConfigureLogging();
         Runtime = new NativeRuntime(Dispatcher);
+        Bell = new NativeBell(Dispatcher);
+        sessionEvents = new NativeSessionEvents(EndSessionAsync);
+        sessionEvents.Changed += change => Dispatcher.TryEnqueue(() => SessionChanged(change));
         Keyboard = new KeyboardRouter();
         LaunchCredentials = CaptureLaunchCredentials();
         systemClipboard = new NativeWindowsClipboard();
@@ -184,10 +192,58 @@ public partial class App : Application
         if (wasActive != activeWindows.Count > 0) Clipboard.SetApplicationActive(activeWindows.Count > 0);
     }
 
+    /// <summary>
+    /// Exit order (SERVICES.md section 13, the macOS AppCoordinator): stop
+    /// document routing and any open file dialog, then close every window's
+    /// session; the last window closing drains the observers and the runtime.
+    /// </summary>
     private void CloseAll()
     {
+        Documents?.Stop();
+        NativeFileDialogs.CancelActive();
         foreach (var window in windows.ToList()) _ = window.CloseGracefully();
+        if (windows.Count == 0 && !exiting) _ = ShutdownAsync();
     }
+
+    /// <summary>Sign-out or restart: the same shutdown, which the session thread waits for (bounded).</summary>
+    private Task EndSessionAsync()
+    {
+        Dispatcher.TryEnqueue(CloseAll);
+        return shutdownComplete.Task;
+    }
+
+    /// <summary>Lock and suspend release captured keys and anything held on the remote side, as macOS does on sleep.</summary>
+    private void SessionChanged(NativeSessionEvent change)
+    {
+        if (change is not (NativeSessionEvent.Locked or NativeSessionEvent.Suspending)) return;
+        var reason = change == NativeSessionEvent.Locked ? NativeKeyboardCaptureRelease.Lock : NativeKeyboardCaptureRelease.Sleep;
+        foreach (var window in windows)
+        {
+            window.Desktop.Capture.Release(reason);
+            window.Desktop.ReleaseKeys();
+        }
+    }
+
+    /// <summary>Process logging from the last Log parameter, committed before the first runtime (SERVICES.md section 14).</summary>
+    private static void ConfigureLogging()
+    {
+        try
+        {
+            var invocation = NativeInvocation.Parse(Environment.GetCommandLineArgs().Skip(1).ToArray());
+            var policy = NativeProcessLogging.Selection(invocation);
+            // Isolated test roots (Debug) also move the log file (TESTING.md section 2).
+            if (TidyVNC.Native.Storage.NativeStateRoot.LogFile is { } file) NativeProcessLogging.Configure(policy, file);
+            else NativeProcessLogging.Configure(policy);
+        }
+        catch (Exception error) when (error is NativeInvocationFailure or NativeError)
+        {
+            // The console launcher reports invalid Log values; shell launches keep the default route.
+            System.Diagnostics.Trace.TraceWarning($"Logging not configured: {error.GetType().Name}");
+        }
+    }
+
+    /// <summary>Opens one of the fixed project links in the default browser.</summary>
+    internal static void OpenLink(NativeHelpLink link) => _ = Windows.System.Launcher.LaunchUriAsync(NativeHelpLinks.For(link));
 
     internal ConnectionWindow OpenWindow(string? address = null, bool connect = true)
     {
@@ -203,7 +259,13 @@ public partial class App : Application
         windows.Remove(window);
         WindowActivationChanged(window, false);
         if (windows.Count > 0 || exiting) return;
+        await ShutdownAsync();
+    }
+
+    private async Task ShutdownAsync()
+    {
         exiting = true;
+        Documents?.Stop();
         await Clipboard.CloseAsync();
         systemClipboard?.Dispose();
         Displays.Dispose();
@@ -214,6 +276,9 @@ public partial class App : Application
         LaunchCredentials?.Clear();
         closeWait?.Unregister(null);
         closeRequest?.Dispose();
+        // Release a waiting WM_ENDSESSION before the session thread stops.
+        shutdownComplete.TrySetResult();
+        sessionEvents?.Dispose();
         Exit();
     }
 }

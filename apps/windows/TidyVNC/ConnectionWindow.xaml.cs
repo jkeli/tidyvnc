@@ -82,6 +82,7 @@ public sealed partial class ConnectionWindow : Window
             session = App.Current.Runtime.CreateSession();
             session.PropertyChanged += SessionChanged;
             App.Current.Clipboard.Register(session, notice => ClipboardNotice = notice);
+            session.BellHandler = App.Current.Bell.Ring;
             desktop.Session = session;
         }
         connecting?.Dispose();

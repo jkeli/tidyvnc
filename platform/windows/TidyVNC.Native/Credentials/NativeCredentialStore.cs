@@ -34,9 +34,13 @@ public sealed unsafe class NativeCredentialManagerBacking : INativeCredentialBac
 
     private readonly string prefix;
 
-    /// <summary>Tests pass a disposable prefix so they never touch real entries.</summary>
-    public NativeCredentialManagerBacking(string prefix = DefaultPrefix)
+    /// <summary>
+    /// Null uses the state root's prefix (DefaultPrefix, or the isolated test
+    /// prefix under TIDYVNC_STATE_ROOT in Debug builds); tests may pass their own.
+    /// </summary>
+    public NativeCredentialManagerBacking(string? prefix = null)
     {
+        prefix ??= TidyVNC.Native.Storage.NativeStateRoot.CredentialPrefix;
         if (prefix.Length is 0 or > 256 || prefix.Contains('*', StringComparison.Ordinal)) throw new ArgumentException("Invalid prefix", nameof(prefix));
         this.prefix = prefix;
     }

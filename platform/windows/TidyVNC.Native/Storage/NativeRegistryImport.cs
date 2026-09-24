@@ -40,7 +40,8 @@ public static class NativeRegistryImport
     /// <summary>The sources present under root (HKCU by default); both can exist at once.</summary>
     public static IReadOnlyList<NativeRegistryImportSource> Available(RegistryKey? root = null)
     {
-        root ??= Registry.CurrentUser;
+        root ??= NativeStateRoot.ImportRoot();
+        if (root is null) return [];
         var result = new List<NativeRegistryImportSource>();
         foreach (var source in new[] { NativeRegistrySource.TidyVnc, NativeRegistrySource.TigerVnc })
         {
@@ -84,7 +85,8 @@ public static class NativeRegistryImport
     /// <summary>Defaults from the source's vncviewer key through the core projection; null when the key is absent.</summary>
     public static NativeRegistryDefaults? Defaults(NativeRegistrySource source, RegistryKey? root = null)
     {
-        root ??= Registry.CurrentUser;
+        root ??= NativeStateRoot.ImportRoot();
+        if (root is null) return null;
         using var key = root.OpenSubKey(KeyPath(source), writable: false);
         if (key is null) return null;
         var names = key.GetValueNames();
@@ -113,7 +115,8 @@ public static class NativeRegistryImport
     /// </summary>
     public static NativeHistoryProjection? History(NativeRegistrySource source, RegistryKey? root = null)
     {
-        root ??= Registry.CurrentUser;
+        root ??= NativeStateRoot.ImportRoot();
+        if (root is null) return null;
         using var key = root.OpenSubKey(KeyPath(source) + @"\history", writable: false);
         if (key is null) return null;
         var entries = new List<string>();

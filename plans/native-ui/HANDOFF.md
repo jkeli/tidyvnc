@@ -173,32 +173,93 @@ implementations; switching it to these exports is optional.
 Each has typed errors. The N1.9 audit in TODO.md records what is intentionally
 process-wide.
 
-### Semantics a Windows backend must decide (not implemented)
+### Windows semantics (decided; implemented in `platform/windows/TidyVNC.Native`)
 
-These are open design notes, not requirements met by this repository:
+The WinUI plan (`plans/native-ui-winui`, SERVICES.md, DECISIONS.md) settled
+the open notes that used to be listed here. Contract tests are in
+`tests/windows/TidyVNC.Native.Tests`; evidence is in that plan's TODO.md
+(W4.1-W4.12).
 
-- **Credentials:** Keychain semantics (distinct not-found/locked/denied/
-  cancelled/interaction-required results, local-only items, no plaintext
-  fallback) must map onto Credential Manager/DPAPI. Windows has no equivalent of
-  the per-call "interaction not allowed" policy, so the adapter must say how it
-  avoids surprise UI.
-- **Preferences and stores:** macOS uses a UserDefaults domain for defaults and
-  owner-only files under Application Support for profiles/history/trust.
-  Windows needs per-user AppData files with equivalent atomic replace, conflict
-  detection and ACLs; the registry is not a drop-in for the revisioned record.
-- **Paths:** PasswordFile/X509 resolution must adopt drive/UNC and
-  relative-to-working-directory rules; the POSIX "leading slash" policy does not
-  apply.
-- **Network privacy:** macOS Local Network consent has no Windows counterpart;
-  firewall prompts for listening sockets are the nearest analog and need their
-  own guidance text.
-- **Input capture:** the macOS Accessibility-gated event tap maps to low-level
-  keyboard hooks; typed "permission required" versus "failed" results should be kept.
-- **Clipboard:** remote-provenance marking uses a private pasteboard type on
-  macOS; Windows needs a registered clipboard format with the same echo
-  suppression.
-- **Tunnel:** the SSH helper and askpass flow assume OpenSSH on POSIX; Windows
-  OpenSSH differs in helper invocation and socket paths.
+- **Stores** (D16):
+  - versioned JSON records (`schema`, `revision`) in `%LOCALAPPDATA%\TidyVNC`;
+  - a protected owner-only DACL, plus owner and reparse checks on every
+    open;
+  - a `LockFileEx` writer lock and flushed temp-file `ReplaceFileW`;
+  - bounded retry on sharing violations;
+  - typed Corrupt, UnsupportedFields, FutureSchema, Conflict and Denied
+    results;
+  - explicit corrupt-record recovery, and a newer schema is never
+    overwritten.
+
+  The registry is only a read-only import source (FLTK defaults and
+  history).
+- **Credentials** (D15):
+  - Credential Manager generic credentials under
+    `TidyVNC/credentials.v1/<core digest>`, local-machine persistence, no user
+    name;
+  - Win32 errors map to NotFound, Unavailable (no logon session), Invalid,
+    Denied and IOFailure;
+  - Credential Manager never shows UI, so "interaction not allowed" holds by
+    construction;
+  - no plaintext fallback.
+
+  The macOS retention controller (use once, session, remember, replace) is
+  ported unchanged.
+- **Paths:**
+  - PasswordFile, CA/CRL and document paths take drive, UNC or `\\?\`
+    paths as given;
+  - plain relative paths resolve against the launch working directory (or
+    the document's folder);
+  - drive-relative (`C:x`) and root-relative (`\x`) forms are refused;
+  - no `~`, `%VAR%` or shell expansion.
+- **Launch credentials:** VNC_USERNAME and VNC_PASSWORD are captured once
+  and removed from the process environment block before anything can fail,
+  so child processes (ssh, askpass) never inherit them.
+- **Input capture:**
+  - the helper's `WH_KEYBOARD_LL` thread needs no permission, so start is
+    Active or Failed;
+  - the macOS capture rules (automatic once per fullscreen entry, explicit
+    command, suppression after release or failure) and typed release reasons
+    are kept;
+  - Ctrl+Alt+Del, Win+L and elevated windows cannot be captured.
+- **Clipboard:**
+  - a registered `TidyVNC.RemoteOrigin` format (process, session,
+    generation) replaces the private pasteboard type for echo suppression;
+  - every remote-origin write also sets `CanUploadToCloudClipboard` = 0 in the
+    same transaction, or is not made at all (D21);
+  - a clipboard listener replaces polling;
+  - `OpenClipboard` contention is retried off the UI thread.
+- **Displays:**
+  - stable IDs are a SHA-256 of the monitor device path, never HMONITOR or
+    an index;
+  - generations change only on real topology changes;
+  - a failed query (all displays powered off) is a typed, empty snapshot.
+- **Tunnel** (D17):
+  - Windows OpenSSH has no ControlMaster, so the owner runs `ssh -W` inside a
+    kill-on-close Job Object;
+  - it relays ssh's standard streams to a private AF_UNIX socket that only
+    this process may use, and the core's routed connect uses that socket;
+  - `tidyvnc-ssh-askpass.exe` serves both `SSH_ASKPASS` and
+    `KnownHostsCommand` over a per-attempt user-only named pipe;
+  - new host keys are reviewed from the structured observation, and approval
+    answers with the computed fingerprint;
+  - configuration is a private snapshot evaluated by `ssh -G`, with
+    command-running and proxy settings refused;
+  - ssh.exe needs `%ProgramData%` in its environment.
+- **Activation** (D8/D9):
+  - shell launches share one primary process (AppInstance redirection);
+  - `vncviewer.exe` launches are marked, keep their own process and never
+    redirect;
+  - operands containing `\` or `/` are files;
+  - the Jump List uses `ICustomDestinationList` (unpackaged).
+- **Lifecycle:**
+  - lock and suspend release capture and held input;
+  - `WM_QUERYENDSESSION` never vetoes and runs the normal shutdown with a
+    block reason, bounded at `WM_ENDSESSION`;
+  - no restart registration.
+- **Network privacy:** there is no Local Network consent. The Windows
+  Firewall prompt for listening sockets is the counterpart, covered by the
+  listener guidance (SERVICES.md section 10).
 
 ## Reusable tests
 

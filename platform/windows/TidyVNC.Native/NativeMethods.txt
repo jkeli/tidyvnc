@@ -80,3 +80,8 @@ IShellLinkW
 IPropertyStore
 PROPVARIANT
 PropVariantClear
+WTSRegisterSessionNotification
+WTSUnRegisterSessionNotification
+ShutdownBlockReasonCreate
+ShutdownBlockReasonDestroy
+MessageBeep

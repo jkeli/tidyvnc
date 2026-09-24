@@ -106,8 +106,8 @@ proven through the real app before substantial screen work.
 - [x] W4.8 Keyboard capture service: `WH_KEYBOARD_LL` thread, pass-through rules, release triggers, typed failures.
 - [x] W4.9 SSH tunnel owner with Job Object, askpass helper over a named pipe, configuration capture, host-key review (D17).
 - [x] W4.10 Activation: primary instance, Jump List, file association handling, console launcher (D8/D9).
-- [ ] W4.11 Lifecycle: close and exit ordering, `WM_QUERYENDSESSION`, lock and suspend, bell, logging, links.
-- [ ] W4.12 Service contract tests and a Windows semantics section in the handoff.
+- [x] W4.11 Lifecycle: close and exit ordering, `WM_QUERYENDSESSION`, lock and suspend, bell, logging, links.
+- [x] W4.12 Service contract tests and a Windows semantics section in the handoff.
 
 Exit: every service in SERVICES.md implemented with contract tests using isolated
 roots; none of them touches real user data in tests.
@@ -913,3 +913,86 @@ Add dated entries, newest last, in the macOS format:
     passes.
 - Open: D8's two-process confirmation for Explorer file opens through the
   real association waits for the W7 installer, which registers it.
+
+### W4.11 — lifecycle, power, session events, bell, logging, links — 2026-09-24
+
+- Behaviour:
+  - `NativeSessionEvents` (Platform) runs a hidden top-level window on its
+    own thread.
+    - It registers `WTSRegisterSessionNotification` and
+      `PowerRegisterSuspendResumeNotification` (Modern Standby) and reports
+      lock, unlock, suspend and resume.
+    - `WM_QUERYENDSESSION` never vetoes. It starts the app's shutdown once,
+      with `ShutdownBlockReasonCreate`.
+    - `WM_ENDSESSION(TRUE)` waits for the drain, at most 5 s;
+      `WM_ENDSESSION(FALSE)` returns at once.
+    - `RegisterApplicationRestart` is not used.
+  - `NativeBell`: `MessageBeep(MB_OK)`, coalesced per delivery turn.
+  - `NativeProcessLogging`:
+    - validates every `Log` value, and the last one wins, committed before
+      the first runtime;
+    - maps unsupported targets to Unavailable;
+    - reports the Windows default file path for Help (%TMP%, %TEMP%,
+      %USERPROFILE%).
+  - `NativeHelpLinks`: only the fixed project and issue URLs, opened with
+    `Launcher.LaunchUriAsync`.
+  - App:
+    - configures logging before the runtime and routes session bells to
+      the coalesced bell;
+    - lock and suspend release every desktop's capture (typed Lock/Sleep)
+      and held keys and buttons;
+    - exit order: document router, then any open file dialog, then every
+      window's session; the last window drains the clipboard, displays and
+      runtime, then signals a waiting `WM_ENDSESSION`, then stops the
+      session thread.
+- Tests: `LifecycleTests`, 4 cases:
+  - lock, unlock, suspend and resume reported, and unrelated messages not;
+  - sign-out never vetoed, one shutdown per sign-out, the drain awaited and
+    bounded, and a vetoed sign-out returning at once;
+  - bell coalescing;
+  - logging selection and errors, the default path and the fixed links.
+
+  Result: 3 consecutive clean runs. Mutations:
+  7 mutations, all fail the suite:
+  - vetoing sign-out;
+  - not waiting for the drain;
+  - waiting without the deadline (the test hung; killed by timeout);
+  - starting a second shutdown;
+  - bell coalescing;
+  - lock detection;
+  - last-Log-wins.
+- Open: a real sign-out, restart and Modern Standby cycle with live
+  connections is part of the W7 VM matrix.
+
+### W4.12 — service contracts, test isolation, handoff — 2026-09-24
+
+- Contract tests: every W4 service has its own MSTest class in
+  `tests/windows/TidyVNC.Native.Tests`, each mutation-checked as recorded in
+  its own evidence section:
+  - Storage, Credential, Trust, Document, RegistryImport, FileDialog;
+  - Clipboard, Display, KeyboardCapture;
+  - Tunnel, AskpassServer, SshSpike;
+  - Activation, Lifecycle.
+  Real peers are used wherever the macOS tests use them: `LoopbackPeer`,
+  `RfbTestServer`, the new `TlsPeer` and `SshTestServer`, real Credential
+  Manager entries under test prefixes, real registry test keys, and the real
+  ssh.exe and askpass helper.
+- Isolation (TESTING.md section 2), in Debug builds only: `TIDYVNC_STATE_ROOT`
+  now moves, together:
+  - the stores;
+  - the Credential Manager prefix (`TidyVNC-test-<run>/credentials.v1/`);
+  - the registry import root (`HKCU\Software\TidyVNC-Test\<run>`; no test
+    key means no sources);
+  - the log file (`<root>\vncviewer.log`, through
+    `tidyvnc_logging_configure_with_file`).
+
+  The run ID is a SHA-256 of the root path, case-insensitive. The app
+  configures logging from it. `IsolationTests`, 2 cases, cover the default
+  and isolated values, run separation, a real credential written only under
+  the isolated prefix, and imports read only from the isolated key.
+  Release builds compile the override out; W7's package audit checks the
+  Release binary.
+- Handoff: plans/native-ui/HANDOFF.md replaces "Semantics a Windows backend
+  must decide (not implemented)" with the decided Windows semantics, per
+  service, pointing at SERVICES.md, DECISIONS.md and these tests.
+- Full native suite on this machine: 115 passed, 2 gated skips.

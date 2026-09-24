@@ -26,17 +26,51 @@ public sealed class NativeStorageException(NativeStorageError error, int nativeC
 /// </summary>
 public static class NativeStateRoot
 {
-    public static string Directory
+    public const string OverrideVariable = "TIDYVNC_STATE_ROOT";
+
+    /// <summary>The Debug-only override (TESTING.md section 2); always null in Release builds.</summary>
+    private static string? Override
     {
         get
         {
 #if DEBUG
-            if (Environment.GetEnvironmentVariable("TIDYVNC_STATE_ROOT") is { Length: > 0 } root)
-                return Path.GetFullPath(root);
+            if (Environment.GetEnvironmentVariable(OverrideVariable) is { Length: > 0 } root) return Path.GetFullPath(root);
 #endif
+            return null;
+        }
+    }
+
+    public static string Directory
+    {
+        get
+        {
+            if (Override is { } root) return root;
             var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
             if (string.IsNullOrEmpty(local)) throw new NativeStorageException(NativeStorageError.Unavailable);
             return Path.Combine(local, "TidyVNC");
         }
     }
+
+    /// <summary>True when a Debug build runs against an isolated test root.</summary>
+    public static bool IsIsolated => Override is not null;
+
+    /// <summary>A short stable identifier of the isolated root, naming its other isolated resources.</summary>
+    public static string? RunId => Override is { } root
+        ? Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(root.ToUpperInvariant())))[..12].ToLowerInvariant()
+        : null;
+
+    /// <summary>Credential Manager target prefix: TidyVNC/credentials.v1/, or TidyVNC-test-&lt;run&gt;/credentials.v1/ when isolated.</summary>
+    public static string CredentialPrefix => RunId is { } run ? $"TidyVNC-test-{run}/credentials.v1/" : "TidyVNC/credentials.v1/";
+
+    /// <summary>
+    /// The registry root that FLTK import sources are read under (read-only):
+    /// HKCU, or HKCU\Software\TidyVNC-Test\&lt;run&gt; when isolated. Null when an
+    /// isolated root has no test key, which means no sources.
+    /// </summary>
+    public static Microsoft.Win32.RegistryKey? ImportRoot() => RunId is { } run
+        ? Microsoft.Win32.Registry.CurrentUser.OpenSubKey($@"Software\TidyVNC-Test\{run}", writable: false)
+        : Microsoft.Win32.Registry.CurrentUser;
+
+    /// <summary>The log file for the "file" target when isolated; null keeps the core's Windows default.</summary>
+    public static string? LogFile => Override is { } root ? Path.Combine(root, "vncviewer.log") : null;
 }
