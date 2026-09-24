@@ -1944,3 +1944,18 @@ Add dated entries, newest last, in the macOS format:
   and D7's responsiveness was measured.
 - W3.6 stays open: rendering, typing and clicking are checked on screen, which needs the session
   displayed.
+
+### W7.5 (progress) — relocated GUI start from a path with spaces and non-ASCII characters — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- PACKAGING.md section 6 needs TidyVNC.exe started from a relocated copy. It was blocked because
+  Release builds ignore the test state root. Measurement builds (W0.2) are Release builds that honour it.
+- The package stage's own `assemble`, `add_notices` and `audit` built a payload from the Release (JIT)
+  measurement build in `…\Tidy VNC Ünïcødé 秘密\payload`: 555 files, with the app-local VC++ runtime and
+  notices, and a clean audit, as the real package has.
+- `windows-console-smoke.py` ran against that copy. In cmd.exe, Windows PowerShell and PowerShell 7 the
+  GUI started from the relocated folder with an isolated state root, connected, received a frame,
+  closed on Ctrl+C in about 0.16 s and exited 0, leaving no process.
+- Still open for W7.5: the same start with the exact packaged binaries, which honour no test state
+  root. That needs a test account or VM, as section 6 says. The only difference in the binaries run
+  here is the compiled-in state-root override.
