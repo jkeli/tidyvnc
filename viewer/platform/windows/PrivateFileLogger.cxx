@@ -8,6 +8,7 @@
 // output is discarded), exactly like the POSIX adapter's fallback.
 #include <viewer/platform/PrivateFileLogger.h>
 #include "WinIO.h"
+#include "StandardStream.h"
 
 #include <aclapi.h>
 #include <sddl.h>
@@ -101,7 +102,8 @@ bool trustedWriter(PSID sid, const PrivateSecurity& security)
   if (::EqualSid(sid, const_cast<uint8_t*>(security.user.data())) ||
       ::EqualSid(sid, const_cast<uint8_t*>(security.owner.data())))
     return true;
-  for (auto kind : {WinLocalSystemSid, WinBuiltinAdministratorsSid, WinCreatorOwnerSid}) {
+  // OWNER RIGHTS (S-1-3-4) applies to the object's owner, which is itself checked.
+  for (auto kind : {WinLocalSystemSid, WinBuiltinAdministratorsSid, WinCreatorOwnerSid, WinCreatorOwnerRightsSid}) {
     BYTE buffer[SECURITY_MAX_SID_SIZE]; DWORD size = sizeof(buffer);
     if (::CreateWellKnownSid(kind, nullptr, buffer, &size) && ::EqualSid(sid, buffer)) return true;
   }
@@ -265,9 +267,7 @@ void PrivateFileLogger::useStandardError() {
   if (lockHandle) { ::CloseHandle(static_cast<HANDLE>(lockHandle)); lockHandle = nullptr; }
   // A GUI-subsystem process usually has no standard error; then nothing is
   // written, as the plan requires for stdio routes without a console.
-  const int source = ::_fileno(stderr);
-  if (source < 0) return;
-  const int fd = ::_dup(source);
+  const int fd = winio::duplicateStandardStream(stderr);
   if (fd < 0) return;
   FILE* stream = ::_fdopen(fd, "w");
   if (!stream) { ::_close(fd); return; }

@@ -256,6 +256,21 @@ if(WIN32 AND MSVC)
     target_link_libraries(utf8paths ${GNUTLS_LIBRARIES} GTest::gtest_main)
     gtest_discover_tests(utf8paths)
   endif()
+  # The app manifest makes argv and narrow paths UTF-8 (utf8.manifest).
+  add_executable(processloggingabi windows/processloggingabi.cxx ../viewer/c-abi-test-support.cxx windows/utf8.manifest)
+  target_link_libraries(processloggingabi tidyvnc_viewer_c tidyvnc_viewer_core Threads::Threads)
+  foreach(mode configure freeze default nostdio)
+    add_test(NAME ProcessLoggingABI.Windows.${mode} COMMAND processloggingabi ${mode})
+  endforeach()
+  set_tests_properties(ProcessLoggingABI.Windows.configure ProcessLoggingABI.Windows.freeze
+    ProcessLoggingABI.Windows.default ProcessLoggingABI.Windows.nostdio PROPERTIES TIMEOUT 30)
+  find_package(Python3 QUIET COMPONENTS Interpreter)
+  if(Python3_Interpreter_FOUND)
+    add_test(NAME ProcessLoggingABI.Windows.PrivateFileProcessOwnership
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/windows/processlogging-file.py
+        $<TARGET_FILE:processloggingabi>)
+    set_tests_properties(ProcessLoggingABI.Windows.PrivateFileProcessOwnership PROPERTIES TIMEOUT 60)
+  endif()
   add_executable(socketlistener socketlistener.cxx)
   target_link_libraries(socketlistener tidyvnc_viewer_core GTest::gtest_main Threads::Threads ws2_32)
   gtest_discover_tests(socketlistener PROPERTIES TIMEOUT 30)

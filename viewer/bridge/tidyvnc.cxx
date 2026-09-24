@@ -52,6 +52,9 @@
 #include <unistd.h>
 #elif defined(_WIN32)
 #include <io.h>
+#ifdef TIDYVNC_PLATFORM_SOCKETS
+#include <viewer/platform/windows/StandardStream.h>
+#endif
 #endif
 using namespace viewer;
 namespace {
@@ -392,8 +395,7 @@ std::unique_ptr<core::Logger> loggingDestination(const std::string& name, const 
   // output (a sink with no file and no file name writes nothing). The CLI
   // launcher forwards a console when there is one (plans/native-ui-winui D9).
   std::unique_ptr<core::Logger_File> sink(new core::Logger_File("native-stdio"));
-  const int source = _fileno(name == "stderr" ? stderr : stdout);
-  const int fd = source >= 0 ? _dup(source) : -1;
+  const int fd = winio::duplicateStandardStream(name == "stderr" ? stderr : stdout);
   if (fd >= 0) {
     FILE* stream = _fdopen(fd,"w");
     if (!stream) { _close(fd); throw std::system_error(errno,std::generic_category()); }
