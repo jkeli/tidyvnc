@@ -31,6 +31,10 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     private (uint Width, uint Height)? frameSize;
     private uint buttons;
     private bool disposed, keyboardFocused;
+    private NativeScaling scaling = NativeScaling.BuiltIn;
+
+    /// <summary>The largest backing store a Direct3D 11 texture can hold on any feature level we require.</summary>
+    private const uint MaximumBacking = 16384;
 
     public DesktopView(IntPtr window)
     {
@@ -97,11 +101,40 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         if (size != frameSize) { frameSize = size; UpdateGeometry(); }
     }
 
+    /// <summary>The connection's scaling (Z01-Z12): mode, units and filter reach the renderer and pointer mapping.</summary>
+    public NativeScaling Scaling
+    {
+        get => scaling;
+        set
+        {
+            if (scaling == value) return;
+            scaling = value;
+            UpdateViewport();
+        }
+    }
+
+    /// <summary>
+    /// Whether this view can render a scaling for its current desktop and
+    /// size (macOS validateScaling): the backing store must fit a texture.
+    /// </summary>
+    public bool CanRender(NativeScaling value)
+    {
+        double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
+        if (frameSize is not { } size || width <= 0 || height <= 0 || scale <= 0) return true;
+        try
+        {
+            var candidate = new NativeGeometry(size.Width, size.Height, width, height, scale, value.Canonical, value.DevicePixels);
+            return candidate.BackingWidth is > 0 and <= MaximumBacking && candidate.BackingHeight is > 0 and <= MaximumBacking;
+        }
+        catch (NativeError) { return false; }
+    }
+
     private void UpdateViewport()
     {
         double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
         if (width <= 0 || height <= 0 || scale <= 0) return;
-        renderer.Resize(new DesktopViewport((uint)Math.Ceiling(width * scale), (uint)Math.Ceiling(height * scale), width, height, scale));
+        renderer.Resize(new DesktopViewport((uint)Math.Ceiling(width * scale), (uint)Math.Ceiling(height * scale), width, height, scale,
+            scaling.Canonical, scaling.Filter, scaling.DevicePixels));
         UpdateGeometry();
     }
 
@@ -109,7 +142,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     {
         double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
         geometry = frameSize is { } size && width > 0 && height > 0 && scale > 0
-            ? new NativeGeometry(size.Width, size.Height, width, height, scale)
+            ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels)
             : null;
     }
 

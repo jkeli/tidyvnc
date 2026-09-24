@@ -25,6 +25,7 @@ public sealed partial class ConnectionWindow : Window
     private readonly DesktopView desktop;
     private readonly DialogPresenter dialogs;
     private NativeSession? session;
+    private readonly IDisposable scalingCheck;
     private bool closed, updatingFields;
 
     internal NativeConnectionController Controller { get; }
@@ -63,6 +64,9 @@ public sealed partial class ConnectionWindow : Window
         controller.Trust.PropertyChanged += (_, _) => dialogs.Update();
         controller.SshInteraction.PropertyChanged += (_, _) => dialogs.Update();
         controller.SessionReady += Attach;
+        // The desktop renders the connection's scaling and refuses sizes it cannot hold.
+        scalingCheck = controller.Scaling.Register(desktop.CanRender);
+        controller.Scaling.PropertyChanged += (_, _) => desktop.Scaling = controller.Scaling.Value;
         if (controller.History is { } history)
         {
             history.PropertyChanged += (_, _) => Update();
@@ -89,6 +93,7 @@ public sealed partial class ConnectionWindow : Window
         App.Current.Clipboard.Register(session, notice => { ClipboardNotice = notice; Update(); });
         session.BellHandler = App.Current.Bell.Ring;
         desktop.Session = session;
+        desktop.Scaling = Controller.Scaling.Value;
         updatingFields = true;
         Address.Text = Controller.Endpoint;
         Gateway.Text = Controller.SshGatewayText;
@@ -171,7 +176,7 @@ public sealed partial class ConnectionWindow : Window
         RecentButton.Visibility = controller.History is null ? Visibility.Collapsed : Visibility.Visible;
         RecentPanel.CanSelect = editable;
         ClipboardButton.IsEnabled = defaults.IsReady && session is not null;
-        EncodingButton.IsEnabled = CanOpenConnectedEditor;
+        EncodingButton.IsEnabled = InputButton.IsEnabled = ScalingButton.IsEnabled = CanOpenConnectedEditor;
 
         // Notices, in the macOS order.
         ReverseNotice.IsOpen = controller.IsReverse;
@@ -280,6 +285,8 @@ public sealed partial class ConnectionWindow : Window
         {
             NativeSessionEncodingDraft encoding => () => EncodingDialog.Create(encoding),
             NativeSessionSecurityDraft security => () => SecurityDialog.Create(security, this),
+            NativeInputDraft input => () => InputDialog.Create(input),
+            NativeScalingDraft scaling => () => ScalingDialog.Create(scaling),
             _ => null,
         };
         return create is null ? null : new DialogRequest(key, create, _ => Controller.EndEditor(editor), () => Controller.EndEditor(editor));
@@ -305,6 +312,20 @@ public sealed partial class ConnectionWindow : Window
         if (!Controller.BeginEditor(draft, NativeEditorScope.Disconnected, async () => { await draft.CloseAsync(); draft.Dispose(); })) { draft.Dispose(); return; }
         draft.Reload();
         dialogs.Update();
+    }
+
+    internal void OpenInput()
+    {
+        if (!CanOpenConnectedEditor) return;
+        var draft = new NativeInputDraft(Controller.Input);
+        if (Controller.BeginEditor(draft, NativeEditorScope.Connected, () => { draft.Cancel(); return Task.CompletedTask; })) dialogs.Update();
+    }
+
+    internal void OpenScaling()
+    {
+        if (!CanOpenConnectedEditor) return;
+        var draft = new NativeScalingDraft(Controller.Scaling);
+        if (Controller.BeginEditor(draft, NativeEditorScope.Connected, () => { draft.Cancel(); return Task.CompletedTask; })) dialogs.Update();
     }
 
     internal void OpenEncoding()
@@ -346,6 +367,8 @@ public sealed partial class ConnectionWindow : Window
 
     private void ConnectClick(object sender, RoutedEventArgs e) => Controller.Connect();
     private void EncodingClick(object sender, RoutedEventArgs e) => OpenEncoding();
+    private void InputClick(object sender, RoutedEventArgs e) => OpenInput();
+    private void ScalingClick(object sender, RoutedEventArgs e) => OpenScaling();
     private void DisconnectClick(object sender, RoutedEventArgs e) => Controller.Disconnect();
     private void CancelClick(object sender, RoutedEventArgs e) => Controller.Cancel();
     private void NewConnectionClick(object sender, RoutedEventArgs e) => App.Current.OpenWindow();
@@ -424,6 +447,7 @@ public sealed partial class ConnectionWindow : Window
         try { await Controller.CloseAsync(); }
         catch (Exception error) { System.Diagnostics.Trace.TraceError($"Connection close failed: {error}"); }
         Controller.Dispose();
+        scalingCheck.Dispose();
         desktop.Dispose();
         Close();
     }

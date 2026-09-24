@@ -120,12 +120,6 @@
                     </MenuFlyout>
                 </AppBarButton.Flyout>
             </AppBarButton>
-            <AppBarButton x:Name="EncodingButton" Label="{local:Str Key=app.encoding.settings}" ToolTipService.ToolTip="{local:Str Key=app.encoding.settings.for.this.connection}"
-                          Click="EncodingClick" AutomationProperties.AutomationId="connection.encoding">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE9E9;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
             <AppBarButton x:Name="ActionsButton" Label="{local:Str Key=app.connection.actions}" ToolTipService.ToolTip="{local:Str Key=app.connection.actions}"
                           AutomationProperties.AutomationId="connection.actions">
                 <AppBarButton.Icon>
@@ -134,6 +128,24 @@
                 <AppBarButton.Flyout>
                     <MenuFlyout x:Name="ActionsFlyout" Opening="ActionsOpening" />
                 </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarButton x:Name="InputButton" Label="{local:Str Key=app.input.settings}" ToolTipService.ToolTip="{local:Str Key=app.input.settings.for.this.connection}"
+                          Click="InputClick" AutomationProperties.AutomationId="connection.input">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE765;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Name="ScalingButton" Label="{local:Str Key=app.scaling.settings}" ToolTipService.ToolTip="{local:Str Key=app.scaling.settings.for.this.connection}"
+                          Click="ScalingClick" AutomationProperties.AutomationId="connection.scaling">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE71E;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Name="EncodingButton" Label="{local:Str Key=app.encoding.settings}" ToolTipService.ToolTip="{local:Str Key=app.encoding.settings.for.this.connection}"
+                          Click="EncodingClick" AutomationProperties.AutomationId="connection.encoding">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE9E9;" />
+                </AppBarButton.Icon>
             </AppBarButton>
         </CommandBar>
 

@@ -97,6 +97,9 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     public NativeAuthenticationCredentials Credentials { get; }
     public NativeCertificateTrust Trust { get; }
     public NativeSshInteraction SshInteraction { get; }
+    /// <summary>This connection's input policy and scaling (the Input and Scaling dialogs edit them).</summary>
+    public NativeInputState Input { get; } = new();
+    public NativeScalingState Scaling { get; } = new();
     public NativeRecentHistory? History { get; }
     public bool IsReverse => reverse is not null;
     public NativeSession? Session => Defaults.Session;
@@ -206,6 +209,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         if (change.PropertyName != nameof(NativeSessionDefaults.Session) || Defaults.Session is not { } session) return;
         Trust.Bind(session);
         Credentials.Bind(session);
+        Input.Bind(session, Defaults.Setup?.InactiveCursor ?? NativeCursorFallback.Dot);
+        Scaling.Bind(session);
         if (reverse is not null) Endpoint = reverse.Endpoint;
         else if (Defaults.Setup is { } setup && (setup.Endpoint.Length != 0 || Defaults.DocumentRequest is not null)) Endpoint = setup.Endpoint;
         else if (Defaults.Profile is { } profile) Endpoint = profile.Endpoint;
@@ -615,6 +620,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         Closing = true; ConnectionProblem = null; retryProblem = null; AttemptEndpoint = null; ShowsStatistics = false;
         cancel?.Cancel();
         if (editor is { } open) EndEditor(open);
+        Input.Stop(); Scaling.Stop();
         Defaults.Stop();
         var session = Session;
         var attempt = tunnel;

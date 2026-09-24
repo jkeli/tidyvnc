@@ -285,6 +285,8 @@ internal static class ConnectionMenu
         statistics.Click += (_, _) => controller.ToggleStatistics();
         var settings = new MenuFlyoutSubItem { Text = Strings.Get("desktop.connection.settings") };
         AutomationProperties.SetAutomationId(settings, "desktop.connectionSettings");
+        settings.Items.Add(Item("desktop.input", "desktop.input", window.CanOpenConnectedEditor, window.OpenInput));
+        settings.Items.Add(Item("desktop.scaling", "desktop.scaling", window.CanOpenConnectedEditor, window.OpenScaling));
         settings.Items.Add(Item("desktop.security", "desktop.security", window.CanOpenDisconnectedEditor, window.OpenSecurity));
         settings.Items.Add(Item("desktop.encoding", "desktop.encoding", window.CanOpenConnectedEditor, window.OpenEncoding));
         items.Add(settings);
