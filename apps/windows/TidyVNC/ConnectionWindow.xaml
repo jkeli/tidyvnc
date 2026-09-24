@@ -1,33 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The connection window (plans/native-ui-winui UX.md section 3; PARITY C01-C10, V01).
+     Rows follow the macOS order: title bar with menus, address, toolbar, gateway,
+     notices, desktop (or the pre-session page) and the status bar. -->
 <Window
     x:Class="TidyVNC.ConnectionWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TidyVNC"
     Title="TidyVNC">
     <Grid x:Name="Root">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid Padding="8" ColumnSpacing="8">
+
+        <TitleBar x:Name="AppTitleBar" Title="TidyVNC" IsBackButtonVisible="False" IsPaneToggleButtonVisible="False">
+            <TitleBar.IconSource>
+                <ImageIconSource x:Name="TitleIcon" />
+            </TitleBar.IconSource>
+            <TitleBar.Content>
+                <MenuBar x:Name="Menu" HorizontalAlignment="Left">
+                    <MenuBarItem x:Name="FileMenu" Title="{local:Str Key=app.menu.file}" AccessKey="F" AutomationProperties.AutomationId="menu.file">
+                        <MenuFlyoutItem x:Name="NewConnectionItem" Text="{local:Str Key=import.defaults.new.connection}" Click="NewConnectionClick"
+                                        AutomationProperties.AutomationId="menu.newConnection">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Modifiers="Control" Key="N" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="OpenFileItem" Text="{local:Str Key=app.open.connection.file.title}" Click="OpenFileClick"
+                                        AutomationProperties.AutomationId="menu.openConnectionFile">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Modifiers="Control" Key="O" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem x:Name="CloseWindowItem" Text="{local:Str Key=app.close.window}" Click="CloseWindowClick"
+                                        AutomationProperties.AutomationId="menu.closeWindow">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Modifiers="Control" Key="W" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="ExitItem" Text="{local:Str Key=app.quit.tidyvnc}" Click="ExitClick" AutomationProperties.AutomationId="menu.exit" />
+                    </MenuBarItem>
+                    <MenuBarItem x:Name="ConnectionMenuItem" Title="{local:Str Key=app.menu.connection}" AccessKey="C" AutomationProperties.AutomationId="menu.connection" />
+                    <MenuBarItem x:Name="HelpMenu" Title="{local:Str Key=app.menu.help}" AccessKey="H" AutomationProperties.AutomationId="menu.help">
+                        <MenuFlyoutItem Text="{local:Str Key=help.project}" Click="ProjectLinkClick" AutomationProperties.AutomationId="menu.project" />
+                        <MenuFlyoutItem Text="{local:Str Key=help.issue}" Click="IssueLinkClick" AutomationProperties.AutomationId="menu.issue" />
+                    </MenuBarItem>
+                </MenuBar>
+            </TitleBar.Content>
+        </TitleBar>
+
+        <!-- Address row -->
+        <Grid Grid.Row="1" Padding="14,10,14,6" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <FontIcon Glyph="&#xE7F4;" VerticalAlignment="Top" Margin="0,8,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                      AutomationProperties.AccessibilityView="Raw" />
+            <TextBox x:Name="Address" Grid.Column="1" PlaceholderText="{local:Str Key=profiles.server.address}"
+                     AutomationProperties.Name="{local:Str Key=profiles.server.address}" AutomationProperties.AutomationId="connection.endpoint"
+                     TextChanged="AddressChanged" KeyDown="AddressKeyDown" IsSpellCheckEnabled="False">
+                <TextBox.Description>
+                    <StackPanel x:Name="AddressIssuePanel" Orientation="Horizontal" Spacing="4" Visibility="Collapsed">
+                        <FontIcon Glyph="&#xEA39;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" AutomationProperties.AccessibilityView="Raw" />
+                        <TextBlock x:Name="AddressIssue" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                   AutomationProperties.AutomationId="endpoint.validation" />
+                    </StackPanel>
+                </TextBox.Description>
+            </TextBox>
+            <ProgressRing x:Name="BusyRing" Grid.Column="2" Width="20" Height="20" IsActive="False" VerticalAlignment="Top" Margin="0,6,0,0"
+                          AutomationProperties.Name="{local:Str Key=app.connecting}" />
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
+                <Button x:Name="ConnectButton" Content="{local:Str Key=document.connect}" Style="{StaticResource AccentButtonStyle}"
+                        Click="ConnectClick" AutomationProperties.AutomationId="connection.connect" />
+                <Button x:Name="DisconnectButton" Content="{local:Str Key=app.disconnect}" Click="DisconnectClick" Visibility="Collapsed"
+                        AutomationProperties.AutomationId="connection.disconnect" />
+                <Button x:Name="CancelButton" Content="{local:Str Key=action.cancel}" Click="CancelClick" Visibility="Collapsed"
+                        AutomationProperties.AutomationId="connection.cancel" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Toolbar: the macOS toolbar row, same order -->
+        <CommandBar x:Name="Toolbar" Grid.Row="2" HorizontalAlignment="Left" DefaultLabelPosition="Collapsed" IsDynamicOverflowEnabled="False"
+                    OverflowButtonVisibility="Collapsed" Margin="6,0,14,0">
+            <AppBarButton x:Name="RecentButton" Label="{local:Str Key=history.recent.connections}" ToolTipService.ToolTip="{local:Str Key=history.recent.connections}"
+                          AutomationProperties.AutomationId="connection.recent">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE81C;" />
+                </AppBarButton.Icon>
+                <AppBarButton.Flyout>
+                    <Flyout x:Name="RecentFlyout" Placement="BottomEdgeAlignedLeft" Opening="RecentOpening">
+                        <local:RecentConnectionsPanel x:Name="RecentPanel" />
+                    </Flyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarButton x:Name="ClipboardButton" Label="{local:Str Key=import.defaults.clipboard.sharing}"
+                          ToolTipService.ToolTip="{local:Str Key=app.clipboard.sharing.for.this.connection}" AutomationProperties.AutomationId="clipboard.options">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE77F;" />
+                </AppBarButton.Icon>
+                <AppBarButton.Flyout>
+                    <MenuFlyout x:Name="ClipboardFlyout" Opening="ClipboardOpening">
+                        <ToggleMenuFlyoutItem x:Name="ClipboardSendItem" Text="{local:Str Key=settings.defaults.send.clipboard.to.server}"
+                                              Click="ClipboardToggled" AutomationProperties.AutomationId="clipboard.send" />
+                        <ToggleMenuFlyoutItem x:Name="ClipboardReceiveItem" Text="{local:Str Key=settings.defaults.receive.clipboard.from.server}"
+                                              Click="ClipboardToggled" AutomationProperties.AutomationId="clipboard.receive" />
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem x:Name="ClipboardSendSource" IsEnabled="False" />
+                        <MenuFlyoutItem x:Name="ClipboardReceiveSource" IsEnabled="False" />
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+            <AppBarButton x:Name="ActionsButton" Label="{local:Str Key=app.connection.actions}" ToolTipService.ToolTip="{local:Str Key=app.connection.actions}"
+                          AutomationProperties.AutomationId="connection.actions">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE712;" />
+                </AppBarButton.Icon>
+                <AppBarButton.Flyout>
+                    <MenuFlyout x:Name="ActionsFlyout" Opening="ActionsOpening" />
+                </AppBarButton.Flyout>
+            </AppBarButton>
+        </CommandBar>
+
+        <!-- Gateway and notices -->
+        <StackPanel Grid.Row="3" Padding="14,4,14,8" Spacing="6">
+            <TextBox x:Name="Gateway" PlaceholderText="{local:Str Key=profiles.ssh.gateway.optional}" AutomationProperties.AutomationId="connection.sshGateway"
+                     AutomationProperties.Name="{local:Str Key=profiles.ssh.gateway.optional}" TextChanged="GatewayChanged" KeyDown="AddressKeyDown"
+                     ToolTipService.ToolTip="{local:Str Key=profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a}" IsSpellCheckEnabled="False">
+                <TextBox.Description>
+                    <StackPanel Spacing="2">
+                        <TextBlock x:Name="GatewayIssue" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Visibility="Collapsed" />
+                        <TextBlock x:Name="GatewayHelp" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="Collapsed"
+                                   Text="{local:Str Key=profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are}" />
+                    </StackPanel>
+                </TextBox.Description>
+            </TextBox>
+            <InfoBar x:Name="ReverseNotice" IsOpen="False" IsClosable="False" Severity="Informational"
+                     Message="{local:Str Key=app.incoming.connection.to.reconnect.ask.the.server.to.connect.to.the.listener}"
+                     AutomationProperties.AutomationId="connection.reverse" />
+            <InfoBar x:Name="HistoryNotice" IsOpen="False" IsClosable="False" Severity="Warning" AutomationProperties.AutomationId="history.status">
+                <InfoBar.ActionButton>
+                    <Button x:Name="ReloadHistoryButton" Content="{local:Str Key=history.reload.history}" Click="ReloadHistoryClick" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+            <InfoBar x:Name="CredentialNotice" IsOpen="False" IsClosable="True" Severity="Informational" CloseButtonClick="CredentialNoticeClosed"
+                     AutomationProperties.AutomationId="credentials.notice" />
+            <TextBlock x:Name="ProfileSource" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       Visibility="Collapsed" AutomationProperties.AutomationId="connection.profileSource" />
+        </StackPanel>
+
+        <!-- Desktop, or the page shown before a session exists -->
+        <Grid x:Name="DesktopArea" Grid.Row="4" Grid.RowSpan="2" BorderThickness="0,1,0,1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+            <Border x:Name="DesktopHost" Background="Black" />
+            <StackPanel x:Name="Placeholder" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" MaxWidth="480" IsHitTestVisible="False">
+                <FontIcon x:Name="PlaceholderIcon" Glyph="&#xE7F4;" FontSize="40" Foreground="White" AutomationProperties.AccessibilityView="Raw" />
+                <TextBlock x:Name="PlaceholderTitle" Style="{StaticResource SubtitleTextBlockStyle}" Foreground="White" TextAlignment="Center" TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite" />
+                <TextBlock x:Name="PlaceholderDescription" Foreground="White" TextAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+            <ScrollViewer x:Name="SetupPage" Visibility="Collapsed" Background="{ThemeResource SolidBackgroundFillColorBaseBrush}"
+                          HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto">
+                <ContentPresenter x:Name="SetupContent" Padding="24" MaxWidth="668" HorizontalAlignment="Left" />
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Status bar -->
+        <Grid Grid.Row="6" Padding="14,6,14,8" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="Address" PlaceholderText="VNC server (host:display or host::port)"
-                     AutomationProperties.Name="VNC server" AutomationProperties.AutomationId="connection.endpoint" KeyDown="AddressKeyDown" />
-            <Button x:Name="ConnectButton" Grid.Column="1" Content="Connect" Style="{StaticResource AccentButtonStyle}" AutomationProperties.AutomationId="connection.connect"
-                    Click="ConnectClick" />
-            <Button x:Name="DisconnectButton" Grid.Column="2" Content="Disconnect" IsEnabled="False" Click="DisconnectClick" AutomationProperties.AutomationId="connection.disconnect" />
-            <Button x:Name="NewWindowButton" Grid.Column="3" Content="New window" Click="NewWindowClick" AutomationProperties.AutomationId="connection.newWindow" />
-        </Grid>
-        <Grid Grid.Row="1">
-            <Border x:Name="DesktopHost" Background="Black" />
-            <TextBlock x:Name="Status" HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Foreground="White" TextWrapping="Wrap" MaxWidth="480" TextAlignment="Center"
+            <TextBlock x:Name="StatusText" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        AutomationProperties.LiveSetting="Polite" AutomationProperties.AutomationId="connection.status" />
+            <StackPanel x:Name="StatusMessages" Grid.Column="1" Orientation="Horizontal" Spacing="16" HorizontalAlignment="Right">
+                <TextBlock x:Name="TunnelStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                           TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
+                <TextBlock x:Name="ClipboardStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                           TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"
+                           AutomationProperties.AutomationId="clipboard.status" />
+            </StackPanel>
+            <TextBlock x:Name="DesktopSize" Grid.Column="2" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
         </Grid>
     </Grid>
 </Window>

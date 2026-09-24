@@ -9,6 +9,8 @@ using TidyVNC.Native.Documents;
 using TidyVNC.Native.Clipboard;
 using TidyVNC.Native.Credentials;
 using TidyVNC.Native.Platform;
+using TidyVNC.Native.Storage;
+using TidyVNC.Native.Trust;
 
 namespace TidyVNC;
 
@@ -81,9 +83,11 @@ public partial class App : Application
         // vncviewer.exe (D9) signals this to close every window, e.g. on Ctrl+C.
         closeRequest = new EventWaitHandle(false, EventResetMode.ManualReset, $@"Local\TidyVNC-close-{Environment.ProcessId}");
         closeWait = ThreadPool.RegisterWaitForSingleObject(closeRequest, (_, _) => Dispatcher.TryEnqueue(CloseAll), null, -1, true);
+        CreateStores();
         Documents = new NativeDocumentLaunchRouter(Dispatcher);
         Documents.Install(OpenDocument);
-        Execute(NativeActivation.Classify(Environment.GetCommandLineArgs().Skip(1).ToArray(), Environment.CurrentDirectory));
+        if (Program.CommandLineLaunch) ExecuteCommandLine();
+        else Execute(NativeActivation.Classify(Environment.GetCommandLineArgs().Skip(1).ToArray(), Environment.CurrentDirectory));
         if (!Program.CommandLineLaunch)
         {
             // The primary instance: later shell launches arrive here, on the UI thread.
@@ -94,6 +98,63 @@ public partial class App : Application
 
     /// <summary>Connection files from launches and redirected activations (reviewed before connecting).</summary>
     internal NativeDocumentLaunchRouter Documents { get; private set; } = null!;
+    /// <summary>App defaults, profiles and history, credentials and trust decisions (SERVICES.md sections 2-5).</summary>
+    internal NativePreferencesStore Preferences { get; private set; } = null!;
+    internal NativeProfileHistoryStore Profiles { get; private set; } = null!;
+    internal NativeRecentHistory History { get; private set; } = null!;
+    private NativeCredentialStore? credentialStore;
+    private NativeTrustStore? certificateTrust, hostKeyTrust;
+
+    /// <summary>What every connection window shares.</summary>
+    internal NativeConnectionServices Services => new(Runtime, Preferences)
+    {
+        Profiles = Profiles, History = History, Credentials = credentialStore, LegacyTrust = NativeLegacyTrustFiles.Default(),
+        Certificates = certificateTrust, HostKeys = hostKeyTrust,
+        Displays = () => { Displays.Refresh(); return NativeSessionDefaults.DisplaysOf(Displays.Snapshot); },
+    };
+
+    private void CreateStores()
+    {
+        var root = NativeStateRoot.Directory;
+        Preferences = new NativePreferencesStore(root);
+        Profiles = new NativeProfileHistoryStore(root);
+        History = new NativeRecentHistory(Dispatcher, Profiles);
+        History.Reload();
+        credentialStore = new NativeCredentialStore();
+        certificateTrust = new NativeTrustStore(NativeTrustKind.Certificate, root);
+        hostKeyTrust = new NativeTrustStore(NativeTrustKind.HostKey, root);
+    }
+
+    /// <summary>A launch through vncviewer.exe (D9): the retained viewer's behaviour, connecting a given address at once.</summary>
+    private void ExecuteCommandLine()
+    {
+        var arguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        NativeInvocation invocation;
+        try { invocation = NativeInvocation.Parse(arguments); }
+        catch (Exception error) when (error is NativeInvocationFailure or NativeError)
+        {
+            OpenWindow(); // vncviewer.exe has already reported the syntax error.
+            return;
+        }
+        var request = NativeActivation.Classify(arguments, Environment.CurrentDirectory);
+        if (request.Kind == NativeActivationKind.Document)
+        {
+            OpenWindow(new NativeConnectionRequest
+            {
+                Invocation = new NativeInvocationLayer(invocation, "", Environment.CurrentDirectory),
+                Document = new NativeDocumentOpenRequest(Guid.NewGuid(), request.DocumentPath!, Environment.CurrentDirectory),
+                LaunchCredentials = LaunchCredentials,
+            });
+            return;
+        }
+        var endpoint = request.Kind == NativeActivationKind.Address ? request.Address! : "";
+        OpenWindow(new NativeConnectionRequest
+        {
+            Invocation = new NativeInvocationLayer(invocation, endpoint, Environment.CurrentDirectory),
+            ConnectOnReady = endpoint.Length != 0,
+            LaunchCredentials = LaunchCredentials,
+        });
+    }
 
     /// <summary>Opens what a launch asked for (SERVICES.md section 12).</summary>
     private void Execute(NativeActivationRequest request)
@@ -101,7 +162,12 @@ public partial class App : Application
         switch (request.Kind)
         {
             case NativeActivationKind.Address:
-                OpenWindow(request.Address);
+                // A shell launch fills the address; connecting waits for the user (SERVICES.md section 12).
+                OpenWindow(new NativeConnectionRequest
+                {
+                    Invocation = new NativeInvocationLayer(NativeInvocation.Parse([]), request.Address!, null),
+                    LaunchCredentials = LaunchCredentials,
+                });
                 break;
             case NativeActivationKind.Document when Documents.Route([request.DocumentPath!], Environment.CurrentDirectory):
                 break;
@@ -135,31 +201,27 @@ public partial class App : Application
         Execute(request);
     }
 
-    /// <summary>
-    /// Opens a connection file in a new window without connecting. The full
-    /// review page (settings, monitor mapping, losses) is W5.14; until then
-    /// the window shows the file's server for the user to confirm.
-    /// </summary>
-    private async void OpenDocument(NativeDocumentOpenRequest request)
+    /// <summary>Opens a connection file for review in a new window (nothing connects until the user chooses Connect).</summary>
+    private void OpenDocument(NativeDocumentOpenRequest request) => OpenWindow(new NativeConnectionRequest { Document = request });
+
+    /// <summary>File > Open connection file… (C06): the common dialog with the Review button, then review in a new window.</summary>
+    internal void OpenConnectionFile(Window owner)
     {
-        var window = OpenWindow(null, connect: false);
-        try
-        {
-            var bytes = await new NativeDocumentFileReader().ReadAsync(request.Path, CancellationToken.None);
-            using var document = new NativeConnectionDocument(bytes);
-            var index = document.Entries.ToList().FindIndex(e => string.Equals(e.Name, "ServerName", StringComparison.OrdinalIgnoreCase));
-            window.ReviewDocument(index >= 0 ? document.DecodedValue(index) : null, null);
-        }
-        catch (Exception error) when (error is NativeDocumentOpenException or NativeDocumentFailure or NativeError)
-        {
-            window.ReviewDocument(null, "The connection file could not be opened.");
-        }
+        var text = new NativeFileDialogText(Strings.Get("app.open.connection.file"), Strings.Get("app.review"),
+            Strings.Get("document.files.tidyvnc"), Strings.Get("document.files.tigervnc"), AllFiles: Strings.Get("document.files.all"));
+        string? path;
+        try { path = NativeFileDialogs.Show(WinRT.Interop.WindowNative.GetWindowHandle(owner), NativeFileDialogKind.OpenConnection, text); }
+        catch (InvalidOperationException) { return; } // Another file dialog is already open.
+        if (path is not null && !exiting) Documents.Route([path], Environment.CurrentDirectory);
     }
+
+    /// <summary>File > Exit: the coordinated shutdown of every window.</summary>
+    internal void ExitApplication() => CloseAll();
 
     /// <summary>Jump List tasks for this app's taskbar button; each is a shell launch that reaches this primary.</summary>
     private static void PublishJumpList()
     {
-        try { NativeJumpList.Publish(NativeActivation.AppUserModelId, Environment.ProcessPath!, [new NativeJumpListTask("New connection", "")]); }
+        try { NativeJumpList.Publish(NativeActivation.AppUserModelId, Environment.ProcessPath!, [new NativeJumpListTask(Strings.Get("import.defaults.new.connection"), "")]); }
         catch (COMException error) { System.Diagnostics.Trace.TraceWarning($"Jump List not published: {error.HResult:x8}"); }
     }
 
@@ -246,9 +308,9 @@ public partial class App : Application
     /// <summary>Opens one of the fixed project links in the default browser.</summary>
     internal static void OpenLink(NativeHelpLink link) => _ = Windows.System.Launcher.LaunchUriAsync(NativeHelpLinks.For(link));
 
-    internal ConnectionWindow OpenWindow(string? address = null, bool connect = true)
+    internal ConnectionWindow OpenWindow(NativeConnectionRequest? request = null)
     {
-        var window = new ConnectionWindow(address, connect);
+        var window = new ConnectionWindow(new NativeConnectionController(Services, request));
         windows.Add(window);
         window.Closed += (_, _) => WindowClosed(window);
         window.Activate();
@@ -268,6 +330,9 @@ public partial class App : Application
         exiting = true;
         Documents?.Stop();
         await Clipboard.CloseAsync();
+        await History.CloseAsync();
+        if (credentialStore is not null) await credentialStore.DisposeAsync();
+        foreach (var store in new IDisposable?[] { Preferences, Profiles, certificateTrust, hostKeyTrust }) store?.Dispose();
         systemClipboard?.Dispose();
         Displays.Dispose();
         displayChanges?.Dispose();

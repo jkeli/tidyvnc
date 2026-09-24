@@ -17,6 +17,7 @@
   <data name="app_clipboard_send_source" xml:space="preserve"><value>Send: {0}</value></data>
   <data name="app_clipboard_settings_could_not_be_changed_try_again" xml:space="preserve"><value>Clipboard settings could not be changed. Try again.</value></data>
   <data name="app_clipboard_sharing_for_this_connection" xml:space="preserve"><value>Clipboard sharing for this connection</value></data>
+  <data name="app_close_window" xml:space="preserve"><value>Close window</value></data>
   <data name="app_connected" xml:space="preserve"><value>Connected</value></data>
   <data name="app_connecting" xml:space="preserve"><value>Connecting…</value></data>
   <data name="app_connection_actions" xml:space="preserve"><value>Connection actions</value></data>
@@ -40,6 +41,9 @@
   <data name="app_keyboard_captured" xml:space="preserve"><value>Keyboard captured</value></data>
   <data name="app_listen_for_connections" xml:space="preserve"><value>Listen for connections…</value></data>
   <data name="app_loading_connection_defaults" xml:space="preserve"><value>Loading connection defaults…</value></data>
+  <data name="app_menu_connection" xml:space="preserve"><value>Connection</value></data>
+  <data name="app_menu_file" xml:space="preserve"><value>File</value></data>
+  <data name="app_menu_help" xml:space="preserve"><value>Help</value></data>
   <data name="app_no_active_connection" xml:space="preserve"><value>No active connection</value></data>
   <data name="app_ok" xml:space="preserve"><value>OK</value></data>
   <data name="app_open_connection_file" xml:space="preserve"><value>Open connection file</value></data>
@@ -268,6 +272,9 @@
   <data name="document_fields_ignored_when_opening_the_original_file_will_not_be_copied_to" xml:space="preserve"><value>Fields ignored when opening the original file will not be copied to the exported file.</value></data>
   <data name="document_file_settings_override_saved_defaults_and_command_line_settings_for_every_accepted" xml:space="preserve"><value>File settings override saved defaults and command-line settings for every accepted incoming connection. Start listening binds this port; port 0 chooses an available port. Saved preferences are unchanged.</value></data>
   <data name="document_file_settings_override_saved_defaults_for_this_new_connection_opening_does_not" xml:space="preserve"><value>File settings override saved defaults for this new connection. Opening does not connect or change saved preferences.</value></data>
+  <data name="document_files_all" xml:space="preserve"><value>All files</value></data>
+  <data name="document_files_tidyvnc" xml:space="preserve"><value>TidyVNC connection files</value></data>
+  <data name="document_files_tigervnc" xml:space="preserve"><value>TigerVNC connection files</value></data>
   <data name="document_finish_the_current_connection_operation_or_settings_edit_before_exporting" xml:space="preserve"><value>Finish the current connection operation or settings edit before exporting.</value></data>
   <data name="document_help_and_version_requests_do_not_create_a_connection" xml:space="preserve"><value>Help and version requests do not create a connection.</value></data>
   <data name="document_ignore_listed_fields_and_listen" xml:space="preserve"><value>Ignore listed fields and listen</value></data>
@@ -658,6 +665,7 @@ stores; importing compatibility defaults/history is a separate explicit action.<
   <data name="profiles_settings_without_a_profile_override_use_app_defaults_for_each_new_connection" xml:space="preserve"><value>Settings without a profile override use app defaults for each new connection.</value></data>
   <data name="profiles_ssh_gateway_optional" xml:space="preserve"><value>SSH gateway (optional)</value></data>
   <data name="profiles_ssh_reads_supported_settings_from_ssh_config_commands_and_proxy_hops_are" xml:space="preserve"><value>SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected.</value></data>
+  <data name="profiles_ssh_windows_client_missing" xml:space="preserve"><value>Install the OpenSSH Client in Settings &gt; System &gt; Optional features to use an SSH gateway.</value></data>
   <data name="profiles_the_profile_could_not_be_saved_check_the_name_address_and_settings" xml:space="preserve"><value>The profile could not be saved. Check the name, address and settings, then reload.</value></data>
   <data name="profiles_the_profile_operation_could_not_be_confirmed_reload_to_check_the_saved" xml:space="preserve"><value>The profile operation could not be confirmed. Reload to check the saved profiles.</value></data>
   <data name="profiles_the_tls_priority_expression_is_invalid_correct_it_or_use_the_library" xml:space="preserve"><value>The TLS priority expression is invalid. Correct it or use the library default. The profile has not been changed.</value></data>

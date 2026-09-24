@@ -60,6 +60,35 @@ public sealed class StringCatalogTests
     }
 
     [TestMethod]
+    public void WindowTextsHaveStrings()
+    {
+        foreach (var issue in Enum.GetValues<NativeEndpointIssue>()) if (NativeTexts.Endpoint(issue) is { } text) Resolve(text);
+        foreach (var error in Enum.GetValues<Storage.NativeStorageError>())
+        {
+            Resolve(NativeTexts.Preferences(error)); Resolve(NativeTexts.Profile(error)); Resolve(NativeTexts.History(error));
+        }
+        foreach (var state in Enum.GetValues<NativeSessionState>()) Resolve(NativeTexts.Status(state));
+        foreach (var kind in Enum.GetValues<Credentials.NativeCredentialNoticeKind>())
+            foreach (var store in Enum.GetValues<Credentials.NativeCredentialError>())
+                Resolve(NativeTexts.Credential(new Credentials.NativeCredentialNotice(kind, store)));
+        foreach (var file in Enum.GetValues<Credentials.NativePasswordFileError>())
+            Resolve(NativeTexts.Credential(new Credentials.NativeCredentialNotice(Credentials.NativeCredentialNoticeKind.LaunchFailure, null, file)));
+        foreach (var error in Enum.GetValues<Tunnel.NativeSshTunnelError>()) Resolve(Tunnel.NativeTunnelTexts.Text(error));
+        Resolve(Tunnel.NativeTunnelTexts.InvalidRequest); Resolve(Tunnel.NativeTunnelTexts.UnsupportedTarget);
+        foreach (var error in Enum.GetValues<Documents.NativeDocumentOpenError>()) Resolve(NativeDocumentTexts.Text(error));
+        foreach (var problem in Enum.GetValues<NativeDocumentProblem>())
+            foreach (var line in new uint[] { 0, 3 }) Resolve(NativeDocumentTexts.Text(new NativeDocumentFailure(problem, line)));
+        Resolve(NativeDocumentTexts.TopologyChanged);
+        foreach (var notice in Enum.GetValues<Clipboard.NativeClipboardNotice>()) Resolve(NativeTexts.Clipboard(notice));
+        foreach (var reason in Enum.GetValues<NativeCertificateReason>().Where(r => r != NativeCertificateReason.None)) Resolve(NativeTrustTexts.Reason(reason));
+        foreach (var error in Enum.GetValues<Trust.NativeLegacyTrustError>()) Resolve(NativeTrustTexts.Issue(error, null)!);
+        foreach (var error in Enum.GetValues<Storage.NativeStorageError>()) Resolve(NativeTrustTexts.Storage(error));
+        foreach (var notice in Enum.GetValues<Trust.NativeTrustNotice>()) Resolve(NativeTrustTexts.Notice(notice));
+        Resolve(NativeTrustTexts.Expected(new NativeKnownHostsIdentity(true, 2, "ab"))); Resolve(NativeTrustTexts.Expected(new NativeKnownHostsIdentity(false, 0, "ab")));
+        Assert.AreEqual("Password saved on this PC.", Resolve(NativeTexts.Credential(new Credentials.NativeCredentialNotice(Credentials.NativeCredentialNoticeKind.Saved))));
+    }
+
+    [TestMethod]
     public void CatalogUsesWindowsTerms()
     {
         foreach (var (name, value) in Catalog.Value)

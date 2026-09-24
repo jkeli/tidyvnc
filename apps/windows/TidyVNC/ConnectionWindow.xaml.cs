@@ -1,37 +1,75 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 using System.ComponentModel;
-using System.Text;
+using System.Globalization;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Imaging;
 using TidyVNC.Native;
 using TidyVNC.Native.Clipboard;
+using TidyVNC.Native.Storage;
+using TidyVNC.Native.Tunnel;
 
 namespace TidyVNC;
 
 /// <summary>
-/// The W3 vertical-slice connection window (TODO W3.5/W3.6): address, Connect,
-/// the authentication dialog, the desktop and Disconnect. Closing waits for the
-/// session to drain; closing during authentication dismisses the dialog.
+/// A connection window (UX.md section 3, PARITY C01-C10 and V01) over one
+/// <see cref="NativeConnectionController"/>. The window only presents the
+/// controller's state and forwards commands; admission, retry, history and
+/// close ordering live in the controller. Prompts and alerts go through the
+/// window's <see cref="DialogPresenter"/> in the macOS priority order.
 /// </summary>
 public sealed partial class ConnectionWindow : Window
 {
     private readonly DesktopView desktop;
+    private readonly DialogPresenter dialogs;
     private NativeSession? session;
-    private CancellationTokenSource? connecting;
-    private ContentDialog? dialog;
-    private bool closed;
+    private bool closed, updatingFields;
 
-    internal ConnectionWindow(string? address, bool connect = true)
+    internal NativeConnectionController Controller { get; }
+    internal DesktopView Desktop => desktop;
+    internal NativeSession? Session => session;
+    /// <summary>The latest clipboard problem for this connection; the status bar shows it.</summary>
+    internal NativeClipboardNotice? ClipboardNotice { get; private set; }
+
+    internal ConnectionWindow(NativeConnectionController controller)
     {
         InitializeComponent();
+        Controller = controller;
         var window = WinRT.Interop.WindowNative.GetWindowHandle(this);
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+        TitleIcon.ImageSource = new BitmapImage(new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc_32.png")));
+        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));
+        WindowSizes.Apply(AppWindow, 960, 700, 640, 420);
         desktop = new DesktopView(window);
-        desktop.RenderFailed += error => Status.Text = $"Display error: {error.Message}";
+        desktop.RenderFailed += _ => ShowFatal(NativePresentationIssues.From(new NativeError(NativeStatus.Failed, "render"), NativePresentationContext.Desktop).Message());
         DesktopHost.Child = desktop;
-        Address.Text = address ?? "";
-        AppWindow.Resize(new Windows.Graphics.SizeInt32(1280, 800));
+        dialogs = new DialogPresenter(() => Content?.XamlRoot, DesiredDialog);
+        RecentPanel.Selected += destination => { Controller.SelectDestination(destination); RecentFlyout.Hide(); };
+        GatewayHelp.Visibility = Visibility.Collapsed;
+        if (NativeSshConfiguration.ClientPath is null)
+        {
+            // C09: without the Windows OpenSSH Client the gateway cannot work; say how to add it.
+            Gateway.IsEnabled = false;
+            GatewayIssue.Text = Strings.Get("profiles.ssh.windows.client.missing");
+            GatewayIssue.Visibility = Visibility.Visible;
+        }
+
+        controller.PropertyChanged += ControllerChanged;
+        controller.Defaults.PropertyChanged += (_, _) => Update();
+        controller.Credentials.PropertyChanged += (_, _) => { Update(); dialogs.Update(); };
+        controller.Trust.PropertyChanged += (_, _) => dialogs.Update();
+        controller.SshInteraction.PropertyChanged += (_, _) => dialogs.Update();
+        controller.SessionReady += Attach;
+        if (controller.History is { } history)
+        {
+            history.PropertyChanged += (_, _) => Update();
+            RecentPanel.History = history;
+        }
+        if (controller.Session is { } ready) Attach(ready);
+
         AppWindow.Closing += OnClosing;
         Activated += (_, e) =>
         {
@@ -39,151 +77,288 @@ public sealed partial class ConnectionWindow : Window
             if (!active) desktop.ReleaseKeys();
             App.Current.WindowActivationChanged(this, active);
         };
-        UpdateState();
-        // Dialogs need the loaded content's XamlRoot, so connect once it exists.
-        if (connect && !string.IsNullOrWhiteSpace(address))
-            Root.Loaded += (_, _) => _ = ConnectAsync();
+        Root.Loaded += (_, _) => { dialogs.Update(); Address.Focus(FocusState.Programmatic); };
+        Update();
     }
 
-    internal DesktopView Desktop => desktop;
-
-    /// <summary>A connection file opened for review: its server, or a fixed problem; nothing connects until Connect.</summary>
-    internal void ReviewDocument(string? address, string? problem)
+    private void Attach(NativeSession value)
     {
-        if (address is not null) Address.Text = address;
-        Status.Text = problem ?? "Review the connection, then choose Connect.";
-    }
-    internal NativeSession? Session => session;
-    /// <summary>The latest clipboard problem for this connection; the W5 status area shows it.</summary>
-    internal NativeClipboardNotice? ClipboardNotice { get; private set; }
-
-    private void AddressKeyDown(object sender, KeyRoutedEventArgs e)
-    {
-        if (e.Key == Windows.System.VirtualKey.Enter) { e.Handled = true; _ = ConnectAsync(); }
-    }
-
-    private void ConnectClick(object sender, RoutedEventArgs e) => _ = ConnectAsync();
-
-    private async void DisconnectClick(object sender, RoutedEventArgs e)
-    {
-        if (session is null) return;
-        try { await session.DisconnectAsync(); }
-        catch (Exception error) when (error is NativeError or NativeCommandFailure) { Status.Text = error.Message; }
+        if (ReferenceEquals(session, value)) return;
+        session = value;
+        session.PropertyChanged += SessionChanged;
+        App.Current.Clipboard.Register(session, notice => { ClipboardNotice = notice; Update(); });
+        session.BellHandler = App.Current.Bell.Ring;
+        desktop.Session = session;
+        updatingFields = true;
+        Address.Text = Controller.Endpoint;
+        Gateway.Text = Controller.SshGatewayText;
+        updatingFields = false;
+        Update();
+        dialogs.Update();
     }
 
-    private void NewWindowClick(object sender, RoutedEventArgs e) => App.Current.OpenWindow();
-
-    internal async Task ConnectAsync()
+    private void ControllerChanged(object? sender, PropertyChangedEventArgs e)
     {
-        var address = Address.Text.Trim();
-        if (address.Length == 0 || closed) return;
-        if (session is null)
+        switch (e.PropertyName)
         {
-            session = App.Current.Runtime.CreateSession();
-            session.PropertyChanged += SessionChanged;
-            App.Current.Clipboard.Register(session, notice => ClipboardNotice = notice);
-            session.BellHandler = App.Current.Bell.Ring;
-            desktop.Session = session;
+            case nameof(NativeConnectionController.Endpoint) when Address.Text != Controller.Endpoint:
+                updatingFields = true; Address.Text = Controller.Endpoint; updatingFields = false;
+                break;
+            case nameof(NativeConnectionController.SshGatewayText) when Gateway.Text != Controller.SshGatewayText:
+                updatingFields = true; Gateway.Text = Controller.SshGatewayText; updatingFields = false;
+                break;
+            case nameof(NativeConnectionController.ClosesAfterFailure) when Controller.ClosesAfterFailure:
+                _ = CloseGracefully();
+                return;
         }
-        connecting?.Dispose();
-        connecting = new CancellationTokenSource();
-        Status.Text = $"Connecting to {address}…";
-        try
-        {
-            await session.ConnectAsync(address, connecting.Token);
-            desktop.Focus(FocusState.Programmatic);
-        }
-        catch (OperationCanceledException) { Status.Text = "Connection cancelled"; }
-        catch (NativeCommandFailure failure) { Status.Text = Describe(failure.Snapshot); }
-        catch (NativeError error) { Status.Text = error.Message; }
-        UpdateState();
+        Update();
+        dialogs.Update();
     }
 
     private void SessionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (session is null) return;
-        switch (e.PropertyName)
-        {
-            case nameof(NativeSession.Snapshot):
-            case nameof(NativeSession.HasFrame):
-                UpdateState();
-                break;
-            case nameof(NativeSession.Prompt):
-                if (session.Prompt is { Kind: NativePrompt.PromptKind.Credentials } prompt) _ = AskCredentials(prompt);
-                else if (session.Prompt is null) dialog?.Hide();
-                break;
-        }
+        if (e.PropertyName is nameof(NativeSession.Snapshot) or nameof(NativeSession.HasFrame) or nameof(NativeSession.ClipboardSendEnabled)
+            or nameof(NativeSession.ClipboardReceiveEnabled)) Update();
+        if (e.PropertyName is nameof(NativeSession.Prompt) or nameof(NativeSession.Snapshot)) dialogs.Update();
+        if (e.PropertyName == nameof(NativeSession.Snapshot) && session?.Snapshot.State == NativeSessionState.Connected && session.HasFrame is false)
+            desktop.Focus(FocusState.Programmatic);
     }
 
-    private void UpdateState()
+    // ---- Presentation ---------------------------------------------------------------
+
+    private void Update()
     {
+        if (closed) return;
+        var controller = Controller;
+        var defaults = controller.Defaults;
         var state = session?.Snapshot.State ?? NativeSessionState.Idle;
-        var active = state is not (NativeSessionState.Idle or NativeSessionState.Closed or NativeSessionState.Failed);
-        ConnectButton.IsEnabled = !active && !closed;
-        DisconnectButton.IsEnabled = active && !closed;
-        Address.IsEnabled = !active;
-        if (state == NativeSessionState.Connected)
+        var connected = state == NativeSessionState.Connected;
+
+        // Title: the server first so taskbar thumbnails can be told apart (UX.md section 2).
+        var title = controller.IsReverse ? Strings.Get("app.incoming.connection")
+            : defaults.DocumentRequest is { } document && session is null ? Path.GetFileName(document.Path)
+            : connected ? (session!.Information?.DesktopName is { Length: > 0 } name ? name : controller.Endpoint) + " – TidyVNC" : "TidyVNC";
+        Title = title;
+        AppTitleBar.Title = title;
+
+        // Address row.
+        var editable = controller.CanEditDestination;
+        Address.IsReadOnly = !editable;
+        Gateway.IsReadOnly = !editable;
+        ToolTipService.SetToolTip(Address, Strings.Get(controller.IsReverse
+            ? "app.source.address.of.this.incoming.connection.it.is.not.an.outbound.destination"
+            : "profiles.enter.host.display.host.port.ipv6.display.or.a.unix.socket.path"));
+        var issue = NativeTexts.Endpoint(controller.EndpointIssue);
+        AddressIssue.Text = issue is null ? "" : Strings.Resolve(issue);
+        AddressIssuePanel.Visibility = issue is null ? Visibility.Collapsed : Visibility.Visible;
+        BusyRing.IsActive = controller.Busy;
+        CancelButton.Visibility = controller.Busy ? Visibility.Visible : Visibility.Collapsed;
+        DisconnectButton.Visibility = !controller.Busy && connected ? Visibility.Visible : Visibility.Collapsed;
+        ConnectButton.Visibility = !controller.Busy && !connected && !controller.IsReverse ? Visibility.Visible : Visibility.Collapsed;
+        ConnectButton.IsEnabled = controller.CanConnect;
+
+        // Gateway.
+        if (NativeSshConfiguration.ClientPath is not null)
         {
-            Status.Text = session!.HasFrame ? "" : "Waiting for the desktop…";
-            Title = $"{session.Information?.DesktopName ?? Address.Text} – TidyVNC";
+            GatewayIssue.Text = controller.GatewayIssue is { } gatewayIssue ? Strings.Resolve(gatewayIssue) : "";
+            GatewayIssue.Visibility = controller.GatewayIssue is null ? Visibility.Collapsed : Visibility.Visible;
         }
-        else if (state is NativeSessionState.Closed or NativeSessionState.Failed && session is not null)
+        GatewayHelp.Visibility = controller.SshGatewayText.Length != 0 ? Visibility.Visible : Visibility.Collapsed;
+        Gateway.Visibility = controller.IsReverse ? Visibility.Collapsed : Visibility.Visible;
+
+        // Toolbar and the Connection menu (the same items as the toolbar's More button).
+        ConnectionMenu.Fill(ConnectionMenuItem.Items, this);
+        RecentButton.Visibility = controller.History is null ? Visibility.Collapsed : Visibility.Visible;
+        RecentPanel.CanSelect = editable;
+        ClipboardButton.IsEnabled = defaults.IsReady && session is not null;
+
+        // Notices, in the macOS order.
+        ReverseNotice.IsOpen = controller.IsReverse;
+        if (controller.History is { Error: { } historyError } history)
         {
-            Status.Text = Describe(session.Snapshot);
-            Title = "TidyVNC";
+            HistoryNotice.Message = Strings.Resolve(NativeTexts.History(historyError));
+            ReloadHistoryButton.IsEnabled = !history.IsBusy;
+            HistoryNotice.IsOpen = true;
         }
-        else if (state == NativeSessionState.Authenticating) Status.Text = "Authenticating…";
+        else HistoryNotice.IsOpen = false;
+        if (controller.Credentials.Notice is { } notice)
+        {
+            CredentialNotice.Message = Strings.Resolve(NativeTexts.Credential(notice));
+            CredentialNotice.IsOpen = true;
+        }
+        else CredentialNotice.IsOpen = false;
+        ProfileSource.Text = defaults.Profile is { } profile ? Strings.Format("app.profile.source", profile.Name) : "";
+        ProfileSource.Visibility = defaults.Profile is null ? Visibility.Collapsed : Visibility.Visible;
+
+        // Desktop, placeholder and pre-session pages.
+        UpdateSetupPage();
+        var hasFrame = session?.HasFrame == true;
+        Placeholder.Visibility = session is not null && !hasFrame ? Visibility.Visible : Visibility.Collapsed;
+        PlaceholderTitle.Text = state == NativeSessionState.Idle ? Strings.Get("help.guide.connect.title") : Strings.Resolve(NativeTexts.Status(state));
+        PlaceholderDescription.Text = state == NativeSessionState.Idle ? Strings.Get("app.enter.a.vnc.server.address.to.begin") : "";
+        PlaceholderDescription.Visibility = PlaceholderDescription.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+        // Status bar.
+        StatusText.Text = Strings.Resolve(NativeTexts.Status(state));
+        ClipboardStatus.Text = ClipboardNotice is { } clipboard ? Strings.Resolve(NativeTexts.Clipboard(clipboard)) : "";
+        ClipboardStatus.Visibility = ClipboardNotice is null ? Visibility.Collapsed : Visibility.Visible;
+        DesktopSize.Text = session is { Snapshot.Width: > 0 } s
+            ? Strings.Format("information.desktop.size", s.Snapshot.Width, s.Snapshot.Height) : "";
     }
 
-    private static string Describe(NativeSnapshot snapshot) => snapshot.EndReason switch
+    private void UpdateSetupPage()
     {
-        NativeEndReason.None or NativeEndReason.Cancelled => "Disconnected",
-        NativeEndReason.PeerClosed => "The server closed the connection",
-        NativeEndReason.AuthenticationRejected => "Authentication failed",
-        NativeEndReason.Resolution or NativeEndReason.ResolutionTimeout => "The server name could not be resolved",
-        NativeEndReason.Connection or NativeEndReason.ConnectionTimeout => "Could not connect to the server",
-        NativeEndReason.InvalidEndpoint or NativeEndReason.UnsupportedEndpoint => "The server address is not valid",
-        NativeEndReason.PromptTimeout => "Authentication timed out",
-        _ => $"Connection ended ({snapshot.EndReason})",
-    };
-
-    private async Task AskCredentials(NativePrompt prompt)
-    {
-        dialog?.Hide();
-        if (Content.XamlRoot is null) return; // Not loaded: connections start after Loaded.
-        var username = new TextBox { Header = "Username", Visibility = prompt.UsernameRequired ? Visibility.Visible : Visibility.Collapsed };
-        var password = new PasswordBox { Header = "Password" };
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(username, "authentication.username");
-        Microsoft.UI.Xaml.Automation.AutomationProperties.SetAutomationId(password, "authentication.password");
-        var panel = new StackPanel { Spacing = 12, MinWidth = 320 };
-        panel.Children.Add(new TextBlock { Text = prompt.ServerName, TextWrapping = TextWrapping.Wrap });
-        panel.Children.Add(username);
-        panel.Children.Add(password);
-        dialog = new ContentDialog
+        var defaults = Controller.Defaults;
+        object? page = null;
+        if (session is null)
         {
-            XamlRoot = Content.XamlRoot,
-            Title = "Authentication",
-            Content = panel,
-            PrimaryButtonText = "OK",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Primary,
+            if (defaults.MonitorMapping is { } mapping)
+                page = SetupPages.Mapping(mapping, defaults.DocumentRequest is null ? defaults.InvocationIssue : defaults.DocumentIssue,
+                    defaults.InvocationRequest?.Endpoint ?? "", assignments => defaults.ResolveMapping(mapping.Id, assignments), () => defaults.CancelMapping(mapping.Id));
+            else if (defaults.DocumentReview is { } review)
+                page = SetupPages.Review(review, () => defaults.EditDocumentMapping(review.Id), () => defaults.AcceptDocument(review.Id),
+                    () => defaults.CancelDocument(review.Id));
+            else if (defaults.InvocationIssue is { } invocation)
+                page = SetupPages.Problem(invocation, "invocation.error", ("app.retry.command.line.options", "invocation.retry", defaults.Load));
+            else if (defaults.DocumentIssue is { } documentIssue)
+                page = SetupPages.Problem(documentIssue, "document.error", ("listener.reload.connection.file", "document.reload", defaults.Load));
+            else if (defaults.ProfileError is { } profileError)
+                page = SetupPages.Problem(NativeTexts.Profile(profileError), "profile.error", ("app.retry.profile", "profile.retry", defaults.Load));
+            else if (defaults.Error is { } error)
+                page = SetupPages.Problem(NativeTexts.Preferences(error), "defaults.error", ("listener.retry.defaults", "defaults.retry", defaults.Load),
+                    ("app.use.built.in.defaults.for.this.connection", "defaults.builtIn", defaults.UseBuiltInDefaults));
+            else page = SetupPages.Loading();
+        }
+        if (page is null)
+        {
+            SetupContent.Content = null;
+            SetupPage.Visibility = Visibility.Collapsed;
+            return;
+        }
+        // Keep the same page (and its focus) while its request is unchanged.
+        if (SetupContent.Content is FrameworkElement current && current.Tag is { } key && page is FrameworkElement next && Equals(key, next.Tag)) return;
+        SetupContent.Content = page;
+        SetupPage.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>The dialog that should be showing now, in the macOS sheet priority order.</summary>
+    private DialogRequest? DesiredDialog()
+    {
+        if (closed) return null;
+        if (Controller.SshInteraction.Question is { } question)
+            return new DialogRequest("ssh:" + question.Id, () => SshDialog.Create(Controller.SshInteraction, question),
+                _ => Controller.SshInteraction.Cancel(question.Id));
+        if (session?.Prompt is { } prompt)
+        {
+            if (prompt.Kind == NativePrompt.PromptKind.Credentials)
+                return new DialogRequest($"auth:{prompt.Generation}:{prompt.Id}", () => AuthenticationDialog.Create(Controller, prompt),
+                    result => { if (result != ContentDialogResult.Primary) Controller.Cancel(); });
+            return new DialogRequest($"trust:{prompt.Generation}:{prompt.Id}", () => TrustDialog.Create(Controller, prompt),
+                result => { if (result != ContentDialogResult.Primary) Controller.Cancel(); });
+        }
+        if (Controller.ConnectionProblem is { } problem)
+            return new DialogRequest("problem:" + problem.Id, () => ProblemDialog.Create(Controller, problem), result =>
+            {
+                if (result == ContentDialogResult.Primary && Controller.CanRetry(problem)) Controller.Retry(problem);
+                else Controller.DismissProblem(problem.Id);
+            });
+        if (Controller.Message is { } message)
+            return new DialogRequest("message:" + message.Key + string.Join('|', message.Arguments), () => ProblemDialog.Create(message),
+                _ => Controller.DismissMessage());
+        return null;
+    }
+
+    private void ShowFatal(NativeText text) => Controller.ReportFatal(text);
+
+    // ---- Commands -------------------------------------------------------------------
+
+    private void AddressChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!updatingFields) Controller.Endpoint = Address.Text;
+    }
+
+    private void GatewayChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!updatingFields) Controller.SshGatewayText = Gateway.Text;
+    }
+
+    private void AddressKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Windows.System.VirtualKey.Enter:
+                e.Handled = true;
+                if (Controller.CanConnect) Controller.Connect();
+                break;
+            case Windows.System.VirtualKey.Escape when Controller.Busy:
+                // C04: Escape in the address row cancels an attempt.
+                e.Handled = true;
+                Controller.Cancel();
+                break;
+        }
+    }
+
+    private void ConnectClick(object sender, RoutedEventArgs e) => Controller.Connect();
+    private void DisconnectClick(object sender, RoutedEventArgs e) => Controller.Disconnect();
+    private void CancelClick(object sender, RoutedEventArgs e) => Controller.Cancel();
+    private void NewConnectionClick(object sender, RoutedEventArgs e) => App.Current.OpenWindow();
+    private void OpenFileClick(object sender, RoutedEventArgs e) => App.Current.OpenConnectionFile(this);
+    private void CloseWindowClick(object sender, RoutedEventArgs e) => _ = CloseGracefully();
+    private void ExitClick(object sender, RoutedEventArgs e) => App.Current.ExitApplication();
+    private void ProjectLinkClick(object sender, RoutedEventArgs e) => App.OpenLink(NativeHelpLink.Project);
+    private void IssueLinkClick(object sender, RoutedEventArgs e) => App.OpenLink(NativeHelpLink.Issues);
+    private void ReloadHistoryClick(object sender, RoutedEventArgs e) => Controller.History?.Reload();
+    private void CredentialNoticeClosed(InfoBar sender, object args) => Controller.Credentials.DismissNotice();
+
+    private void RecentOpening(object? sender, object e)
+    {
+        if (Controller.History is { IsBusy: false } history) history.Reload();
+    }
+
+    private void ClipboardOpening(object? sender, object e)
+    {
+        if (session is null) return;
+        ClipboardSendItem.IsChecked = session.ClipboardSendEnabled;
+        ClipboardReceiveItem.IsChecked = session.ClipboardReceiveEnabled;
+        ClipboardSendSource.Text = Strings.Format("app.clipboard.send.source", Strings.Get(ClipboardSource("SendClipboard", session.ClipboardSendEnabled)));
+        ClipboardReceiveSource.Text = Strings.Format("app.clipboard.receive.source", Strings.Get(ClipboardSource("AcceptClipboard", session.ClipboardReceiveEnabled)));
+    }
+
+    /// <summary>Where a clipboard direction comes from (macOS source(): override, file, profile, app default, built-in).</summary>
+    private string ClipboardSource(string parameter, bool current)
+    {
+        var configured = Controller.Defaults.Prepared?.Configuration;
+        var initial = parameter == "SendClipboard" ? configured?.ClipboardSend : configured?.ClipboardReceive;
+        if (initial is { } value && value != current) return "settings.encoding.connection.override";
+        return Controller.Defaults.Setup?.Resolution[parameter]?.Source switch
+        {
+            NativeOptionSource.Document => "settings.encoding.connection.file",
+            NativeOptionSource.CommandLine => "settings.encoding.command.line",
+            NativeOptionSource.Profile => "settings.encoding.profile",
+            NativeOptionSource.AppDefaults => "settings.encoding.app.default",
+            _ => "settings.defaults.built.in.default",
         };
-        var shown = dialog;
-        shown.Opened += (_, _) => (prompt.UsernameRequired ? (Control)username : password).Focus(FocusState.Programmatic);
-        var result = await shown.ShowAsync();
-        if (!ReferenceEquals(dialog, shown)) return;
-        dialog = null;
-        if (session is null || session.Prompt?.Id != prompt.Id) return; // Dismissed by the session (timeout, close).
-        if (result == ContentDialogResult.Primary)
-        {
-            try { session.ReplyCredentials(prompt, Encoding.UTF8.GetBytes(username.Text), Encoding.UTF8.GetBytes(password.Password)); }
-            catch (NativeError error) { Status.Text = error.Message; }
-        }
-        else
-        {
-            connecting?.Cancel();
-        }
     }
+
+    private void ClipboardToggled(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (ReferenceEquals(sender, ClipboardSendItem)) Controller.Defaults.SetClipboard(send: ClipboardSendItem.IsChecked);
+            else Controller.Defaults.SetClipboard(receive: ClipboardReceiveItem.IsChecked);
+            ClipboardNotice = null;
+        }
+        catch (Exception error) when (error is NativeError or NativeStorageException)
+        {
+            ClipboardStatus.Text = Strings.Get("app.clipboard.settings.could.not.be.changed.try.again");
+            ClipboardStatus.Visibility = Visibility.Visible;
+        }
+        Update();
+    }
+
+    private void ActionsOpening(object? sender, object e) => ConnectionMenu.Fill(ActionsFlyout.Items, this);
+
+    // ---- Close ---------------------------------------------------------------------
 
     private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
@@ -192,22 +367,17 @@ public sealed partial class ConnectionWindow : Window
         _ = CloseGracefully();
     }
 
-    /// <summary>Dismisses prompts, closes and drains the session, then closes the window.</summary>
+    /// <summary>Dismisses dialogs, closes and drains the connection, then closes the window.</summary>
     internal async Task CloseGracefully()
     {
         if (closed) return;
         closed = true;
-        UpdateState();
-        dialog?.Hide();
-        connecting?.Cancel();
-        if (session is not null)
-        {
-            App.Current.Clipboard.Unregister(session);
-            try { await session.CloseAsync(); }
-            catch (Exception error) { System.Diagnostics.Trace.TraceError($"Session close failed: {error}"); }
-        }
+        dialogs.Close();
+        if (session is not null) App.Current.Clipboard.Unregister(session);
+        try { await Controller.CloseAsync(); }
+        catch (Exception error) { System.Diagnostics.Trace.TraceError($"Connection close failed: {error}"); }
+        Controller.Dispose();
         desktop.Dispose();
-        connecting?.Dispose();
         Close();
     }
 }

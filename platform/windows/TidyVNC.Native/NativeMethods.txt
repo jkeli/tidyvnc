@@ -85,3 +85,4 @@ WTSUnRegisterSessionNotification
 ShutdownBlockReasonCreate
 ShutdownBlockReasonDestroy
 MessageBeep
+GetDpiForWindow

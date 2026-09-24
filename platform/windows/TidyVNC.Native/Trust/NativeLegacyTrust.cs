@@ -38,9 +38,18 @@ public sealed unsafe class NativeLegacyTrustFiles
 
     public IReadOnlyList<string> Paths { get; }
 
-    /// <summary>The two roaming locations, current FLTK first.</summary>
+    /// <summary>
+    /// The two roaming locations, current FLTK first. An isolated test root
+    /// (TESTING.md section 2) has its own copies under the root instead, so
+    /// automation never reads the user's trust files.
+    /// </summary>
     public static NativeLegacyTrustFiles Default()
     {
+        if (Storage.NativeStateRoot.IsIsolated)
+        {
+            var root = Path.Combine(Storage.NativeStateRoot.Directory, "legacy-appdata");
+            return new([Path.Combine(root, "TidyVNC", "x509_known_hosts"), Path.Combine(root, "TigerVNC", "x509_known_hosts")]);
+        }
         var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.DoNotVerify);
         return string.IsNullOrEmpty(roaming) ? new([]) : new([
             Path.Combine(roaming, "TidyVNC", "x509_known_hosts"),

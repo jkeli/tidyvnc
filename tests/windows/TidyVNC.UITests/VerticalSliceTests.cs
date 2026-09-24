@@ -66,13 +66,29 @@ public sealed class VerticalSliceTests
         }
     }
 
+    /// <summary>
+    /// The isolated state root for this run (TESTING.md section 2): stores,
+    /// Credential Manager prefix, registry import root and log move with it,
+    /// so the app never reads or writes the user's own settings.
+    /// </summary>
+    private static readonly string StateRoot = Path.Combine(Path.GetTempPath(), "tidyvnc-ui-" + Guid.NewGuid().ToString("N"));
+
     private static LaunchedApp Launch(string arguments, bool commandLine = false)
     {
         if (!File.Exists(AppPath)) Assert.Inconclusive($"Build the app first: {AppPath}");
         var start = new ProcessStartInfo(AppPath, arguments) { WorkingDirectory = Path.GetDirectoryName(AppPath)!, UseShellExecute = false };
+        start.Environment["TIDYVNC_STATE_ROOT"] = StateRoot;
         // vncviewer.exe marks its launches this way (D8/D9); plain launches are shell-style.
         if (commandLine) start.Environment["TIDYVNC_COMMAND_LINE"] = "1";
         return new LaunchedApp(Process.Start(start)!);
+    }
+
+    [ClassCleanup]
+    public static void RemoveStateRoot()
+    {
+        try { if (Directory.Exists(StateRoot)) Directory.Delete(StateRoot, recursive: true); }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
     }
 
     private static T WaitFor<T>(Func<T?> probe, string what, TimeSpan? timeout = null) where T : class
@@ -124,8 +140,8 @@ public sealed class VerticalSliceTests
             password.Focus();
             Keyboard.Type(secret);
         }
-        WaitFor(() => window.FindFirstDescendant(cf => cf.ByName("OK").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))), "OK")
-            .AsButton().Invoke();
+        // The dialog's primary button (Authenticate) is the ContentDialog template part.
+        ById(window, "PrimaryButton").AsButton().Invoke();
     }
 
     /// <summary>Dumps the UIA tree and a screenshot of every app window into the test results.</summary>
@@ -189,10 +205,15 @@ public sealed class VerticalSliceTests
                 {
                     Exits(third);
                 }
-                Until(() => primary.Application.GetAllTopLevelWindows(automation).Any(w =>
-                    w.FindFirstDescendant(cf => cf.ByAutomationId("connection.endpoint"))?.AsTextBox().Text == "review.example::5999"),
-                    "the connection file for review in the primary");
+                // The file opens on its review page (F01); nothing connects until it is accepted.
+                var reviewing = WaitFor(() => primary.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w =>
+                    w.FindFirstDescendant(cf => cf.ByAutomationId("document.review.title")) is not null), "the connection file for review in the primary");
+                StringAssert.Contains(ById(reviewing, "document.server").Name, "review.example::5999");
                 Assert.AreEqual(3, primary.Application.GetAllTopLevelWindows(automation).Length);
+                ById(reviewing, "document.accept").AsButton().Invoke();
+                Until(() => reviewing.FindFirstDescendant(cf => cf.ByAutomationId("connection.endpoint"))?.AsTextBox().Text == "review.example::5999",
+                    "the file's address installed after review");
+                Assert.AreEqual("Ready", ById(reviewing, "connection.status").Name, "accepting a file never connects");
             }
             finally { File.Delete(file); }
 
@@ -213,7 +234,7 @@ public sealed class VerticalSliceTests
     public async Task ConnectAuthenticateRenderTypeClickAndDisconnect()
     {
         await using var server = new RfbTestServer(password: "secret");
-        using var app = Launch(server.Endpoint);
+        using var app = Launch(server.Endpoint, commandLine: true);
         using var automation = new UIA3Automation();
         try
         {
@@ -267,7 +288,7 @@ public sealed class VerticalSliceTests
     public async Task ClosingDuringAuthenticationExitsCleanly()
     {
         await using var server = new RfbTestServer(password: "secret");
-        using var app = Launch(server.Endpoint);
+        using var app = Launch(server.Endpoint, commandLine: true);
         using var automation = new UIA3Automation();
         try
         {
@@ -290,13 +311,16 @@ public sealed class VerticalSliceTests
     public async Task TwoWindowsConnectAtOnce()
     {
         await using var server = new RfbTestServer();
-        using var app = Launch(server.Endpoint);
+        using var app = Launch(server.Endpoint, commandLine: true);
         using var automation = new UIA3Automation();
         try
         {
             var first = app.Application.GetMainWindow(automation, Patience)!;
             Until(() => server.AuthenticatedClients == 1, "the first connection");
-            ById(first, "connection.newWindow").AsButton().Invoke();
+            // File > New connection.
+            ById(first, "menu.file").Patterns.ExpandCollapse.Pattern.Expand();
+            WaitFor(() => first.FindFirstDescendant(cf => cf.ByAutomationId("menu.newConnection")) ??
+                          automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId("menu.newConnection")), "New connection").AsMenuItem().Invoke();
             var second = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "TidyVNC"), "the second window");
             var endpoint = ById(second, "connection.endpoint").AsTextBox();
             endpoint.Text = server.Endpoint;

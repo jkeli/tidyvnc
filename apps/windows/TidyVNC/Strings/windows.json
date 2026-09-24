@@ -44,7 +44,15 @@
     "presentation.issue.keyboardCaptureFailed": "Keyboard capture could not start. Try again, or exit and reopen TidyVNC if it keeps failing."
   },
   "windowsOnly": {
-    "tunnel.error.windows.client.missing": "The Windows OpenSSH Client is not installed. Add it in Settings > System > Optional features, then connect again."
+    "tunnel.error.windows.client.missing": "The Windows OpenSSH Client is not installed. Add it in Settings > System > Optional features, then connect again.",
+    "app.menu.file": "File",
+    "app.menu.connection": "Connection",
+    "app.menu.help": "Help",
+    "app.close.window": "Close window",
+    "document.files.tidyvnc": "TidyVNC connection files",
+    "document.files.tigervnc": "TigerVNC connection files",
+    "document.files.all": "All files",
+    "profiles.ssh.windows.client.missing": "Install the OpenSSH Client in Settings > System > Optional features to use an SSH gateway."
   },
   "reviewed": [
     "help.guide.input.title",

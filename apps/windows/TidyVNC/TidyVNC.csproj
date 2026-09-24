@@ -29,4 +29,9 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Window and title bar icons, loaded from the app folder. -->
+    <Content Include="$(RepoRoot)media\icons\tidyvnc_32.png" Link="Assets\tidyvnc_32.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(RepoRoot)media\icons\tidyvnc.ico" Link="Assets\tidyvnc.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
