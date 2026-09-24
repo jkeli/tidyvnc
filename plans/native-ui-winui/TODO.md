@@ -75,7 +75,7 @@ Requires the macOS host for the Swift half of each conformance check.
 - [ ] W2.5 `LegacyKnownHosts` parse and match; macOS vectors plus Windows path cases.
 - [ ] W2.6 `LegacyMonitorNumbering`; checked against the retained FLTK numbering on Windows in W6.
 - [ ] W2.7 `ExportLoss` for canonical parameters.
-- [ ] W2.8 Update the handoff, bridge README and PARITY references for the new exports.
+- [x] W2.8 Update the handoff, bridge README and PARITY references for the new exports.
 
 Exit: CORE.md §8, W2 paragraph.
 
@@ -348,4 +348,32 @@ Add dated entries, newest last, in the macOS format:
   and injects input, so it runs only with `TIDYVNC_UI_TESTS=1` on an idle
   desktop; the owner was using this machine, so W3.2 (DispatcherQueue path),
   W3.5, W3.6 and W0.2 startup timing stay open until it runs.
+
+### W2.1-W2.8 (core half) — shared policy in the core — 2026-09-23
+
+- IDs/commits: `0d7f4bac`, `cc455246`, `f1aac6f9`, `028ad657`, `1fa4ba64`.
+- Behaviour: new core modules with additive exports and feature bits 1<<48..1<<53:
+  `IdentityDigest` (credential, trust-scope, SSH route/resolved/intent digests
+  over an internal FIPS 180-4 SHA-256), `LegacyKnownHosts` (read-only g0/c0
+  lookup), `LegacyMonitorNumbering` (x-then-y, ambiguous origins refused),
+  `ExportLoss` (losses and parameter catalog), `ImportProjection` (defaults and
+  history from files or registry values) and `ConfigurationLayers`
+  (five-layer precedence, migrations, provenance, dormant values), each with
+  a C# wrapper in `TidyVNC.Native`. `canonicalParameter` is now shared by the
+  command line and the resolver.
+- Conformance: `tests/conformance/{identity-digest,legacy-known-hosts,
+  legacy-monitor-numbering,export-loss,import-projection,configuration-layers}.json`
+  (about 160 cases) carry the macOS test cases and pinned goldens; expected
+  digests were computed independently in Python from the documented
+  encoding, which also reproduces all six pinned macOS values. They run in
+  `tests/unit` through the C ABI and in `TidyVNC.Native.Tests` through .NET.
+  The known-hosts lookup is also checked against files GnuTLS itself writes.
+- Tests (this machine): `build.py --test` Debug and Release: viewer 7/7, unit
+  735/735; `headless.py --build-dir build/winui/headless-x64-w2` clean
+  (718/718, header and dependency audits); `TidyVNC.Native.Tests` 26/26.
+- Open: the Swift half of each conformance check (W2.1-W2.7 stay open until the
+  macOS native suite runs the same corpus on a macOS host); the Linux/macOS
+  builds of the new shared sources have not been run here. The seven reserved
+  feature bits (47-53) are now used, so W1.14, if D17 selects `ssh -W`, takes
+  bit 54.
 
