@@ -12,3 +12,24 @@ add_executable(viewer-c-abi-smoke c-abi-smoke.c c-abi-test-support.cxx)
 target_link_libraries(viewer-c-abi-smoke PRIVATE tidyvnc_viewer_c)
 add_test(NAME ViewerABI.PureCConsumer COMMAND viewer-c-abi-smoke)
 set_tests_properties(ViewerABI.PureCConsumer PROPERTIES TIMEOUT 60)
+
+# Windows: the same C smoke through tidyvnc_viewer.dll's import library, the
+# DLL's export list against the header, and run-time loading as .NET does.
+if(TARGET tidyvnc_viewer_shared)
+  add_executable(viewer-c-abi-dll-smoke c-abi-smoke.c c-abi-test-support.cxx)
+  target_link_libraries(viewer-c-abi-dll-smoke PRIVATE tidyvnc_viewer_shared)
+  add_test(NAME ViewerABI.PureCConsumerThroughDLL COMMAND viewer-c-abi-dll-smoke)
+  set_tests_properties(ViewerABI.PureCConsumerThroughDLL PROPERTIES TIMEOUT 60)
+  add_executable(viewer-c-abi-dll-load c-abi-dll-load.c)
+  target_include_directories(viewer-c-abi-dll-load PRIVATE ${CMAKE_SOURCE_DIR}/viewer/bridge)
+  add_dependencies(viewer-c-abi-dll-load tidyvnc_viewer_shared)
+  add_test(NAME ViewerABI.DLLLoadsAtRunTime
+    COMMAND viewer-c-abi-dll-load $<TARGET_FILE:tidyvnc_viewer_shared>)
+  get_filename_component(TIDYVNC_LINKER_DIR "${CMAKE_LINKER}" DIRECTORY)
+  find_program(TIDYVNC_DUMPBIN dumpbin HINTS "${TIDYVNC_LINKER_DIR}")
+  if(Python3_Interpreter_FOUND AND TIDYVNC_DUMPBIN)
+    add_test(NAME ViewerABI.DLLExportsMatchHeader
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/dll-exports.py
+        ${CMAKE_SOURCE_DIR}/viewer/bridge/tidyvnc.h $<TARGET_FILE:tidyvnc_viewer_shared> ${TIDYVNC_DUMPBIN})
+  endif()
+endif()

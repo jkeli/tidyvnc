@@ -84,4 +84,15 @@ target_link_libraries(tidyvnc_viewer_core PUBLIC
 
 add_library(tidyvnc_viewer_c STATIC bridge/tidyvnc.cxx)
 target_include_directories(tidyvnc_viewer_c PUBLIC ${CMAKE_SOURCE_DIR}/viewer/bridge)
+target_compile_definitions(tidyvnc_viewer_c PUBLIC TIDYVNC_STATIC)
 target_link_libraries(tidyvnc_viewer_c PRIVATE tidyvnc_viewer_core)
+
+# The WinUI app loads the core and C ABI as one DLL exporting exactly the
+# tidyvnc_* functions (plans/native-ui-winui/CORE.md section 4).
+if(WIN32 AND MSVC)
+  add_library(tidyvnc_viewer_shared SHARED bridge/tidyvnc.cxx)
+  set_target_properties(tidyvnc_viewer_shared PROPERTIES OUTPUT_NAME tidyvnc_viewer)
+  target_include_directories(tidyvnc_viewer_shared PUBLIC ${CMAKE_SOURCE_DIR}/viewer/bridge)
+  target_compile_definitions(tidyvnc_viewer_shared PRIVATE TIDYVNC_BUILDING_DLL)
+  target_link_libraries(tidyvnc_viewer_shared PRIVATE tidyvnc_viewer_core)
+endif()

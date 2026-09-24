@@ -6,6 +6,22 @@
 extern "C" {
 #endif
 #define TIDYVNC_ABI_VERSION 1u
+/* Export annotation. Windows: the DLL build exports, DLL consumers import and
+ * static consumers (TIDYVNC_STATIC, set by the static CMake target) use plain
+ * declarations. Elsewhere the functions keep default visibility. */
+#if defined(_WIN32)
+#if defined(TIDYVNC_BUILDING_DLL)
+#define TIDYVNC_API __declspec(dllexport)
+#elif defined(TIDYVNC_STATIC)
+#define TIDYVNC_API
+#else
+#define TIDYVNC_API __declspec(dllimport)
+#endif
+#elif defined(__GNUC__)
+#define TIDYVNC_API __attribute__((visibility("default")))
+#else
+#define TIDYVNC_API
+#endif
 /* Internal versioned ABI. All calls are thread-safe and nonblocking with respect
  * to protocol work; create may allocate/start threads. No caller thread joins.
  * IDs are opaque, process-local, typed by the implementation, and never reused.
@@ -365,11 +381,11 @@ typedef struct { uint32_t size, version, length, reserved; uint8_t bytes[64]; } 
 /* Validate RSA-AES public-key encoding (declared 1024..8192 bits), returning
  * actual modulus bits (the retained server rounds its header). No crypto or
  * filesystem IO. On failure bits is unchanged. This does not establish trust. */
-tidyvnc_status tidyvnc_host_key_validate(tidyvnc_bytes key, uint32_t* bits, tidyvnc_error* error);
-tidyvnc_status tidyvnc_certificate_key_create(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_certificate_key_get(tidyvnc_handle, tidyvnc_certificate_key_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_host_key_validate(tidyvnc_bytes key, uint32_t* bits, tidyvnc_error* error);
+TIDYVNC_API tidyvnc_status tidyvnc_certificate_key_create(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_certificate_key_get(tidyvnc_handle, tidyvnc_certificate_key_info*, tidyvnc_error*);
 /* Algorithm numbers are the existing gnutls known_hosts c0 commitment IDs. */
-tidyvnc_status tidyvnc_certificate_key_digest(tidyvnc_handle, uint32_t, tidyvnc_key_digest*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_certificate_key_digest(tidyvnc_handle, uint32_t, tidyvnc_key_digest*, tidyvnc_error*);
 
 /* Portable presentation reasons. These are not the TLS status bit values. */
 enum {
@@ -389,7 +405,7 @@ typedef struct {
 /* Classifies the certificate_status value of a prompt. No IO/global state;
  * output is unchanged on failure. Zero/unknown statuses never allow an exception.
  * Trust reply enforces this policy independently of the frontend's presentation. */
-tidyvnc_status tidyvnc_certificate_policy_get(uint32_t, tidyvnc_certificate_policy*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_certificate_policy_get(uint32_t, tidyvnc_certificate_policy*, tidyvnc_error*);
 
 /* Readiness only: no borrowed payload pointers escape a callback. Notifications
  * coalesce; on each wake drain event/view/prompt/clipboard mailboxes and check session
@@ -512,38 +528,38 @@ typedef struct {
  * NUL is not. A remote-origin lease suppresses echoes, even across sessions.
  * Completion means protocol announcement/send, not a remote OS pasteboard write.
  * Clear withdraws a local offer; it never erases the host's native pasteboard. */
-tidyvnc_status tidyvnc_session_clipboard_policy(tidyvnc_handle, uint64_t generation, uint32_t send, uint32_t receive, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_clipboard_offer(tidyvnc_handle, uint64_t generation, tidyvnc_bytes text, tidyvnc_handle origin, uint64_t change_id, tidyvnc_operation*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_clipboard_clear(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_clipboard_policy(tidyvnc_handle, uint64_t generation, uint32_t send, uint32_t receive, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_clipboard_offer(tidyvnc_handle, uint64_t generation, tidyvnc_bytes text, tidyvnc_handle origin, uint64_t change_id, tidyvnc_operation*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_clipboard_clear(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
 /* A readiness subscription also signals clipboard changes. One consumer. */
-tidyvnc_status tidyvnc_session_take_clipboard(tidyvnc_handle, tidyvnc_clipboard_update*, tidyvnc_error*);
-tidyvnc_status tidyvnc_clipboard_get(tidyvnc_handle text, tidyvnc_clipboard_info*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_clipboard_check(tidyvnc_handle, const tidyvnc_clipboard_route*, uint32_t sending, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_take_clipboard(tidyvnc_handle, tidyvnc_clipboard_update*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_clipboard_get(tidyvnc_handle text, tidyvnc_clipboard_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_clipboard_check(tidyvnc_handle, const tidyvnc_clipboard_route*, uint32_t sending, tidyvnc_error*);
 
 /* Optional errors must also have initialized headers. Never throws across C. */
-tidyvnc_status tidyvnc_get_abi(tidyvnc_abi_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_get_abi(tidyvnc_abi_info*, tidyvnc_error*);
 /* Stateless, thread-safe; outputs unchanged on failure or NO_CHANGE. Catalog
  * includes known uncompiled choices as available=0. No globals, IO or handles.
  * defaults=1 requires empty text; defaults=0 parses <=1024 UTF-8/ASCII token bytes.
  * The allow-list never changes the server's security negotiation preference. */
-tidyvnc_status tidyvnc_security_choice_at(uint32_t index, tidyvnc_security_choice*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_security_choice_at(uint32_t index, tidyvnc_security_choice*, tidyvnc_error*);
 /* At most 4096 UTF-8 bytes; empty means library defaults. Nonempty requires
  * GnuTLS. Validates X509 or anonymous TLS syntax/usable suites, not peer
  * compatibility. May read GnuTLS configuration; use off the UI thread. */
-tidyvnc_status tidyvnc_tls_priority_validate(tidyvnc_bytes, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_tls_priority_validate(tidyvnc_bytes, tidyvnc_error*);
 /* Owned snapshot. set_security commits synchronously only between drained
  * attempts, with generation/revision CAS. No completion event; no parsing/file IO
  * except bounded method-list parsing. Preflight TLS priorities separately.
  * Input types is an exact list; empty denies all. Failure preserves outputs. */
 /* RFB ClientInit shared flag, default false. Atomic disconnected-only update;
  * synchronous revision change, no completion event. Outputs preserved on failure. */
-tidyvnc_status tidyvnc_session_sharing(tidyvnc_handle, tidyvnc_sharing*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_set_shared(tidyvnc_handle, uint64_t generation, uint64_t revision,
+TIDYVNC_API tidyvnc_status tidyvnc_session_sharing(tidyvnc_handle, tidyvnc_sharing*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_set_shared(tidyvnc_handle, uint64_t generation, uint64_t revision,
   uint32_t shared, uint64_t* new_revision, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_security(tidyvnc_handle, tidyvnc_security_configuration*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_set_security(tidyvnc_handle, uint64_t generation, uint64_t revision,
+TIDYVNC_API tidyvnc_status tidyvnc_session_security(tidyvnc_handle, tidyvnc_security_configuration*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_set_security(tidyvnc_handle, uint64_t generation, uint64_t revision,
   const tidyvnc_security_update*, uint64_t* new_revision, tidyvnc_error*);
-tidyvnc_status tidyvnc_security_resolve(tidyvnc_bytes text, uint32_t defaults, tidyvnc_security_selection*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_security_resolve(tidyvnc_bytes text, uint32_t defaults, tidyvnc_security_selection*, tidyvnc_error*);
 
 /* Renderer handles serialize calls with an internal mutex. Run render/clear off
  * the UI thread: area filtering can inspect every source pixel. Create admits a
@@ -558,9 +574,9 @@ tidyvnc_status tidyvnc_security_resolve(tidyvnc_bytes text, uint32_t defaults, t
  * history, changed source/generation/size/transform/filter clears the cache.
  * Result/output are untouched on validation failure. Cache allocation failure
  * drops the cache and still returns the rendered tile successfully. */
-tidyvnc_status tidyvnc_renderer_create(uint64_t cache_bytes, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_renderer_clear(tidyvnc_handle, tidyvnc_error*);
-tidyvnc_status tidyvnc_renderer_render(tidyvnc_handle, tidyvnc_handle image, const tidyvnc_tile_options*,
+TIDYVNC_API tidyvnc_status tidyvnc_renderer_create(uint64_t cache_bytes, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_renderer_clear(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_renderer_render(tidyvnc_handle, tidyvnc_handle image, const tidyvnc_tile_options*,
                                       tidyvnc_mutable_bytes output, tidyvnc_tile_result*, tidyvnc_error*);
 /* Immutable cursor sampler using shared premultiplied-alpha filtering. Create
  * copies at most 4 MiB of packed straight RGBA from a retained cursor image;
@@ -573,40 +589,40 @@ tidyvnc_status tidyvnc_renderer_render(tidyvnc_handle, tidyvnc_handle image, con
  * not interruptible. Calls on one immutable sampler may run concurrently with
  * separate output spans. Keep an owned handle throughout each call. Release
  * frees the original-sized premultiplied source. Outputs are untouched on failure. */
-tidyvnc_status tidyvnc_cursor_renderer_create(tidyvnc_handle image, const tidyvnc_cursor_options*,
+TIDYVNC_API tidyvnc_status tidyvnc_cursor_renderer_create(tidyvnc_handle image, const tidyvnc_cursor_options*,
                                              tidyvnc_handle*, tidyvnc_cursor_geometry*, tidyvnc_error*);
-tidyvnc_status tidyvnc_cursor_renderer_render(tidyvnc_handle, const tidyvnc_cursor_tile*, tidyvnc_mutable_bytes, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_cursor_renderer_render(tidyvnc_handle, const tidyvnc_cursor_tile*, tidyvnc_mutable_bytes, tidyvnc_error*);
 
 /* Stateless, thread-safe, synchronous; borrowed input <=64 UTF-8 bytes.
  * No runtime/handles or IO. Output is untouched on failure. Parsing does not
  * prove that a particular framebuffer/viewport fits the geometry limits. */
-tidyvnc_status tidyvnc_scaling_parse(tidyvnc_bytes, tidyvnc_scaling*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_scaling_parse(tidyvnc_bytes, tidyvnc_scaling*, tidyvnc_error*);
 /* Synchronous, stateless damage mapping. Source bounds/quality and struct
  * headers are validated; empty damage maps to an empty rectangle. No input/output
  * memory is retained, and output is untouched on failure. */
-tidyvnc_status tidyvnc_desktop_damage(const tidyvnc_geometry_options*, const tidyvnc_damage*, tidyvnc_rectangle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_desktop_damage(const tidyvnc_geometry_options*, const tidyvnc_damage*, tidyvnc_rectangle*, tidyvnc_error*);
 /* Synchronous value calculation, no session or handle lifetime. Point mapping
  * uses the same rounded placement as rendering, clamped to remote bounds. */
-tidyvnc_status tidyvnc_desktop_geometry(const tidyvnc_geometry_options*, double point_x, double point_y, tidyvnc_geometry*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_desktop_geometry(const tidyvnc_geometry_options*, double point_x, double point_y, tidyvnc_geometry*, tidyvnc_error*);
 /* Canvas variants reuse DesktopTransform::placeOnCanvas for pixels, inverse
  * pointer mapping and damage. Pure value calls; outputs unchanged on failure. */
-tidyvnc_status tidyvnc_desktop_canvas_geometry(const tidyvnc_geometry_options*, const tidyvnc_canvas_viewport*,
+TIDYVNC_API tidyvnc_status tidyvnc_desktop_canvas_geometry(const tidyvnc_geometry_options*, const tidyvnc_canvas_viewport*,
   double pointer_x, double pointer_y, tidyvnc_geometry*, tidyvnc_error*);
-tidyvnc_status tidyvnc_desktop_canvas_damage(const tidyvnc_geometry_options*, const tidyvnc_canvas_viewport*,
+TIDYVNC_API tidyvnc_status tidyvnc_desktop_canvas_damage(const tidyvnc_geometry_options*, const tidyvnc_canvas_viewport*,
   const tidyvnc_damage*, tidyvnc_rectangle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_retain(tidyvnc_handle, tidyvnc_error*);
-tidyvnc_status tidyvnc_release(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_retain(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_release(tidyvnc_handle, tidyvnc_error*);
 /* Initializers populate validated construction defaults, without global config. */
-tidyvnc_status tidyvnc_runtime_options_init(tidyvnc_runtime_options*, tidyvnc_error*);
-tidyvnc_status tidyvnc_logging_validate(tidyvnc_bytes policy, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_runtime_options_init(tidyvnc_runtime_options*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_logging_validate(tidyvnc_bytes policy, tidyvnc_error*);
 /* Numeric local viewport metadata at debug level 100, writer NativeDesktop.
  * All dimensions are 1..INT_MAX, rounded down by the host independently for
  * logical units and backing pixels. No strings, endpoint, input or screen ID is
  * accepted. Uses the existing process logging route; never changes its policy.
  * A disabled route is a successful no-op. Callable after runtime creation. */
-tidyvnc_status tidyvnc_logging_viewport(uint32_t logical_width, uint32_t logical_height,
+TIDYVNC_API tidyvnc_status tidyvnc_logging_viewport(uint32_t logical_width, uint32_t logical_height,
   uint32_t backing_width, uint32_t backing_height, tidyvnc_error*);
-tidyvnc_status tidyvnc_logging_configure(tidyvnc_bytes policy, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_logging_configure(tidyvnc_bytes policy, tidyvnc_error*);
 /* FILE_LOGGING: same startup gate, with a copied absolute UTF-8 file path for
  * embedding hosts. The path is validated even when file is unused; configuration
  * performs no file IO. Parent must be owned by this user or root and not writable
@@ -614,12 +630,12 @@ tidyvnc_status tidyvnc_logging_configure(tidyvnc_bytes policy, tidyvnc_error*);
  * owned, single-link files; .lock must already be private or newly created.
  * Extended macOS parent ACLs are refused before creation; file ACLs are cleared.
  * No path is returned in errors. No connection/session file-path setting exists. */
-tidyvnc_status tidyvnc_logging_configure_with_file(tidyvnc_bytes policy, tidyvnc_bytes file_path, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_options_init(tidyvnc_session_options*, tidyvnc_error*);
-tidyvnc_status tidyvnc_connect_options_init(tidyvnc_connect_options*, tidyvnc_error*);
-tidyvnc_status tidyvnc_runtime_create(const tidyvnc_runtime_options*, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_runtime_shutdown(tidyvnc_handle, tidyvnc_error*);
-tidyvnc_status tidyvnc_runtime_poll_drained(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_logging_configure_with_file(tidyvnc_bytes policy, tidyvnc_bytes file_path, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_options_init(tidyvnc_session_options*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_connect_options_init(tidyvnc_connect_options*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_runtime_create(const tidyvnc_runtime_options*, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_runtime_shutdown(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_runtime_poll_drained(tidyvnc_handle, tidyvnc_error*);
 /* LISTENER (macOS/Linux): separate lifecycle; four listeners per runtime, created
  * lazily. Defaults: port 5500, both families, backlog 16, pending 8, events 32,
  * pending timeout 30000 ms. Port zero requests a shared ephemeral port. Bounds:
@@ -629,31 +645,31 @@ tidyvnc_status tidyvnc_runtime_poll_drained(tidyvnc_handle, tidyvnc_error*);
  * Snapshots/events are copied values with no borrowed memory. Stop/final release
  * closes unclaimed peers; accepted sessions survive listener stop. Runtime drain
  * includes listeners and sessions. No protocol bytes are read before acceptance. */
-tidyvnc_status tidyvnc_listener_options_init(tidyvnc_listener_options*, tidyvnc_error*);
-tidyvnc_status tidyvnc_listener_create(tidyvnc_handle runtime, const tidyvnc_listener_options*, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_listener_get_snapshot(tidyvnc_handle, tidyvnc_listener_snapshot*, tidyvnc_error*);
-tidyvnc_status tidyvnc_listener_take_event(tidyvnc_handle, tidyvnc_listener_event*, tidyvnc_error*);
-tidyvnc_status tidyvnc_listener_reject(tidyvnc_handle, uint64_t incoming_id, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_options_init(tidyvnc_listener_options*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_create(tidyvnc_handle runtime, const tidyvnc_listener_options*, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_get_snapshot(tidyvnc_handle, tidyvnc_listener_snapshot*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_take_event(tidyvnc_handle, tidyvnc_listener_event*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_reject(tidyvnc_handle, uint64_t incoming_id, tidyvnc_error*);
 /* Hand off once to an existing, configured reusable session. Preflight invalid
  * handles/output leave the peer pending. Once claimed, a session admission or
  * allocation failure closes the peer; it is never requeued. Accepted events mark
  * the ownership transfer, not successful RFB authentication. The operation uses
  * normal session events/prompts/cancellation. Numeric peer host is TLS identity
  * (IPv6 scope excluded). Incoming source port is not a stable saved-server key. */
-tidyvnc_status tidyvnc_listener_accept(tidyvnc_handle listener, uint64_t incoming_id,
+TIDYVNC_API tidyvnc_status tidyvnc_listener_accept(tidyvnc_handle listener, uint64_t incoming_id,
   tidyvnc_handle session, tidyvnc_operation*, tidyvnc_error*);
-tidyvnc_status tidyvnc_listener_stop(tidyvnc_handle, tidyvnc_error*);
-tidyvnc_status tidyvnc_listener_poll_drained(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_stop(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_poll_drained(tidyvnc_handle, tidyvnc_error*);
 /* Same retained/coalesced dispatcher and unsubscribe/drain contract as session
  * subscriptions. Readiness starts immediately; drain events through take_event.
  * Listener handles do not restart: callback generation is always 1. Final release
  * cancels subscriptions; stop alone preserves terminal event delivery. */
-tidyvnc_status tidyvnc_listener_subscribe(tidyvnc_handle, const tidyvnc_callbacks*, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_create(tidyvnc_handle runtime, const tidyvnc_session_options*, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_listener_subscribe(tidyvnc_handle, const tidyvnc_callbacks*, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_create(tidyvnc_handle runtime, const tidyvnc_session_options*, tidyvnc_handle*, tidyvnc_error*);
 /* Query the latest published connected observation. Generation must match;
  * NOT_CONNECTED before/after connection, STALE after attempt replacement. No
  * allocation/borrowed text or new handle. Statistics use existing throttling. */
-tidyvnc_status tidyvnc_session_information(tidyvnc_handle session, uint64_t generation,
+TIDYVNC_API tidyvnc_status tidyvnc_session_information(tidyvnc_handle session, uint64_t generation,
                                           tidyvnc_connection_info*, tidyvnc_error*);
 /* Schema/choices are enumerated from zero; NO_CHANGE marks the end. No borrowed
  * text. Encoding handles own immutable validated snapshots, independent of a
@@ -671,7 +687,7 @@ tidyvnc_status tidyvnc_session_information(tidyvnc_handle session, uint64_t gene
  * meaning; UI clients may separately require explicit entry. Syntax failures use
  * DOMAIN_ENDPOINT/detail reasons; malformed spans/text use DOMAIN_BRIDGE.
  * Validation does not establish reachability, authorization or server identity. */
-tidyvnc_status tidyvnc_endpoint_validate(tidyvnc_bytes endpoint, uint32_t allow_unix_sockets, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_endpoint_validate(tidyvnc_bytes endpoint, uint32_t allow_unix_sockets, tidyvnc_error*);
 /* Immutable destination identity from the same parser; no DNS/filesystem IO.
  * Input spans are bounded UTF-8 without NUL, each at most 4096 bytes. Route is an
  * opaque, non-secret identity supplied by the host, never a tunnel command.
@@ -681,12 +697,12 @@ tidyvnc_status tidyvnc_endpoint_validate(tidyvnc_bytes endpoint, uint32_t allow_
  * borrows immutable spans valid while the caller retains that handle. Copy or
  * consume spans before release. This does not verify the server, authorize
  * credential reuse or identify a tunnel target from its local forwarding port. */
-tidyvnc_status tidyvnc_endpoint_create(tidyvnc_bytes endpoint, tidyvnc_bytes route,
+TIDYVNC_API tidyvnc_status tidyvnc_endpoint_create(tidyvnc_bytes endpoint, tidyvnc_bytes route,
   uint32_t allow_unix_sockets, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_endpoint_get(tidyvnc_handle, tidyvnc_endpoint_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_endpoint_get(tidyvnc_handle, tidyvnc_endpoint_info*, tidyvnc_error*);
 /* Strict decimal port 0..65535: digits only, no sign/whitespace/trailing text.
  * Invalid text leaves *port unchanged. */
-tidyvnc_status tidyvnc_port_parse(tidyvnc_bytes, uint32_t* port, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_port_parse(tidyvnc_bytes, uint32_t* port, tidyvnc_error*);
 /* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most
  * 4096 bytes. Pure validation and canonicalization; nothing is resolved or run.
  * host/scope are the endpoint name and IPv6 zone; user is present only with
@@ -696,8 +712,8 @@ typedef struct {
   uint32_t size, version, port, flags;
   tidyvnc_bytes host, scope, user, canonical_uri;
 } tidyvnc_ssh_gateway_info;
-tidyvnc_status tidyvnc_ssh_gateway_create(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_ssh_gateway_get(tidyvnc_handle, tidyvnc_ssh_gateway_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_ssh_gateway_create(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_ssh_gateway_get(tidyvnc_handle, tidyvnc_ssh_gateway_info*, tidyvnc_error*);
 /* Toolkit-independent file syntax, no IO/runtime/session/global mutation. All
  * operations are synchronous and thread safe. Parse borrows at most 1 MiB of
  * opaque bytes and returns one owned immutable handle (retain/release normally).
@@ -714,7 +730,7 @@ tidyvnc_status tidyvnc_ssh_gateway_get(tidyvnc_handle, tidyvnc_ssh_gateway_info*
  * entire output; no terminator is appended. Size and buffer remain unchanged on
  * any failure. Inputs/outputs must not overlap. Spans are copied before return.
  * Native text clients must reject invalid UTF-8, never silently replace bytes. */
-tidyvnc_status tidyvnc_document_parse(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_document_parse(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_error*);
 /* Stateless invocation syntax; arguments excludes argv[0]. At most 4096 args,
  * 65536 bytes each, 1 MiB total. Opaque bytes without NUL, no file line limit or
  * escaping. No settings validation/application, IO, environment, registry access,
@@ -733,7 +749,7 @@ tidyvnc_status tidyvnc_document_parse(tidyvnc_bytes, tidyvnc_handle*, tidyvnc_er
  * in error messages. Schema describes compiled/platform availability; frontend
  * application support must be checked separately. UTF-8 clients reject invalid
  * text rather than replacing it. All calls synchronous and thread safe. */
-tidyvnc_status tidyvnc_invocation_parse(const tidyvnc_bytes*, uint32_t count, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_invocation_parse(const tidyvnc_bytes*, uint32_t count, tidyvnc_handle*, tidyvnc_error*);
 /* Return a new owned invocation with each occurrence validated/canonicalized.
  * Input owner is unchanged; invalid earlier values cannot be hidden by later
  * duplicates or help/version. Same get/assignment lifetime contract. Paths,
@@ -741,12 +757,12 @@ tidyvnc_status tidyvnc_invocation_parse(const tidyvnc_bytes*, uint32_t count, ti
  * triple structure, not registry targets. Host semantic interpretation, deprecated
  * migrations, platform-adapter readiness and launch authorization remain required.
  * No IO, global mutation, TLS handshake or connection is performed. */
-tidyvnc_status tidyvnc_invocation_validate(tidyvnc_handle, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_invocation_get(tidyvnc_handle, tidyvnc_invocation_info*, tidyvnc_error*);
-tidyvnc_status tidyvnc_invocation_assignment_at(tidyvnc_handle, uint32_t index, tidyvnc_invocation_assignment*, tidyvnc_error*);
-tidyvnc_status tidyvnc_invocation_option_at(uint32_t index, tidyvnc_invocation_option*, tidyvnc_error*);
-tidyvnc_status tidyvnc_document_get(tidyvnc_handle, tidyvnc_document_info*, tidyvnc_error*);
-tidyvnc_status tidyvnc_document_entry_at(tidyvnc_handle, uint32_t index, uint32_t decode_value, tidyvnc_document_entry*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_invocation_validate(tidyvnc_handle, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_invocation_get(tidyvnc_handle, tidyvnc_invocation_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_invocation_assignment_at(tidyvnc_handle, uint32_t index, tidyvnc_invocation_assignment*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_invocation_option_at(uint32_t index, tidyvnc_invocation_option*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_document_get(tidyvnc_handle, tidyvnc_document_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_document_entry_at(tidyvnc_handle, uint32_t index, uint32_t decode_value, tidyvnc_document_entry*, tidyvnc_error*);
 /* Canonical shared semantic validation for one understood historical field.
  * Same copied entry layout. Unknown names (including CLI-only aliases/options)
  * and out-of-range indices return NO_CHANGE without decoding or writing. Applies
@@ -754,20 +770,20 @@ tidyvnc_status tidyvnc_document_entry_at(tidyvnc_handle, uint32_t index, uint32_
  * Recognized invalid/unavailable values return DOCUMENT errors at their line.
  * Cross-field deprecated migration, endpoint validation and local path/display
  * resolution are host responsibilities after validating every entry. */
-tidyvnc_status tidyvnc_document_option_at(tidyvnc_handle, uint32_t index, tidyvnc_document_entry*, tidyvnc_error*);
-tidyvnc_status tidyvnc_document_serialize(const tidyvnc_document_assignment*, uint32_t count, tidyvnc_mutable_bytes output, uint64_t* size, tidyvnc_error*);
-tidyvnc_status tidyvnc_encoding_schema_at(uint32_t index, tidyvnc_encoding_schema*, tidyvnc_error*);
-tidyvnc_status tidyvnc_encoding_choice_at(uint32_t index, tidyvnc_encoding_choice*, tidyvnc_error*);
-tidyvnc_status tidyvnc_encoding_create(tidyvnc_handle base, const tidyvnc_encoding_assignment*, uint32_t count, uint32_t source, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_encoding_get(tidyvnc_handle, uint32_t option, tidyvnc_encoding_value*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_create_with_encoding(tidyvnc_handle runtime, const tidyvnc_session_options*, tidyvnc_handle encoding, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_document_option_at(tidyvnc_handle, uint32_t index, tidyvnc_document_entry*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_document_serialize(const tidyvnc_document_assignment*, uint32_t count, tidyvnc_mutable_bytes output, uint64_t* size, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_encoding_schema_at(uint32_t index, tidyvnc_encoding_schema*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_encoding_choice_at(uint32_t index, tidyvnc_encoding_choice*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_encoding_create(tidyvnc_handle base, const tidyvnc_encoding_assignment*, uint32_t count, uint32_t source, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_encoding_get(tidyvnc_handle, uint32_t option, tidyvnc_encoding_value*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_create_with_encoding(tidyvnc_handle runtime, const tidyvnc_session_options*, tidyvnc_handle encoding, tidyvnc_handle*, tidyvnc_error*);
 /* Init selects the shared viewer default (17 ms). Zero disables motion delay;
  * values through INT_MAX are accepted. Buttons/wheel bypass the delay; pending
  * motion flushes before keys and is discarded on focus/policy/lifetime changes.
  * Creation copies timing for all attempts. Existing create functions preserve
  * their original unthrottled input behavior. No live policy mutation is exposed. */
-tidyvnc_status tidyvnc_input_timing_init(tidyvnc_input_timing*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_create_with_input_timing(tidyvnc_handle runtime, const tidyvnc_session_options*,
+TIDYVNC_API tidyvnc_status tidyvnc_input_timing_init(tidyvnc_input_timing*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_create_with_input_timing(tidyvnc_handle runtime, const tidyvnc_session_options*,
   tidyvnc_handle encoding, const tidyvnc_input_timing*, tidyvnc_handle*, tidyvnc_error*);
 /* Init selects the shared incoming clipboard default (256 KiB). Values 0..INT_MAX
  * apply to plain wire bytes, extended wire payload and each decompressed format
@@ -781,7 +797,7 @@ tidyvnc_status tidyvnc_session_create_with_input_timing(tidyvnc_handle runtime, 
  * Dimensions are 1..INT32_MAX; coordinates INT32_MIN..INT32_MAX. No display or UI
  * access; the host owns work-area clamping, coordinate conversion and placement.
  * Invalid text (including NUL/over 65536 bytes) leaves output unchanged. */
-tidyvnc_status tidyvnc_window_geometry_parse(tidyvnc_bytes, tidyvnc_window_geometry*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_window_geometry_parse(tidyvnc_bytes, tidyvnc_window_geometry*, tidyvnc_error*);
 /* Initial remote desktop size (DesktopSize). LEGACY is the retained command-line
  * "%dx%d" form (C whitespace/'+' before each number, trailing text ignored);
  * STRICT is exactly decimal WxH of at most 32 bytes, for settings and profiles.
@@ -791,73 +807,73 @@ enum { TIDYVNC_DESKTOP_SIZE_LEGACY = 1, TIDYVNC_DESKTOP_SIZE_STRICT = 2 };
 typedef struct {
   uint32_t size, version, width, height;
 } tidyvnc_desktop_size;
-tidyvnc_status tidyvnc_desktop_size_parse(tidyvnc_bytes, uint32_t syntax, tidyvnc_desktop_size*, tidyvnc_error*);
-tidyvnc_status tidyvnc_message_limits_init(tidyvnc_message_limits*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_create_with_message_limits(tidyvnc_handle runtime, const tidyvnc_session_options*,
+TIDYVNC_API tidyvnc_status tidyvnc_desktop_size_parse(tidyvnc_bytes, uint32_t syntax, tidyvnc_desktop_size*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_message_limits_init(tidyvnc_message_limits*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_create_with_message_limits(tidyvnc_handle runtime, const tidyvnc_session_options*,
   tidyvnc_handle encoding, const tidyvnc_input_timing*, const tidyvnc_message_limits*, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_encoding(tidyvnc_handle, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_apply_encoding(tidyvnc_handle, uint64_t generation, tidyvnc_handle encoding, tidyvnc_operation*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_connect(tidyvnc_handle, const tidyvnc_connect_options*, tidyvnc_operation*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_encoding(tidyvnc_handle, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_apply_encoding(tidyvnc_handle, uint64_t generation, tidyvnc_handle encoding, tidyvnc_operation*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_connect(tidyvnc_handle, const tidyvnc_connect_options*, tidyvnc_operation*, tidyvnc_error*);
 /* Connect through an already prepared, host-owned local tunnel socket. target is
  * an endpoint handle with TCP transport and a nonempty route identity. options
  * describes only the forwarding socket: Unix or numeric 127.0.0.1/::1, no scope,
  * nonzero TCP port. TLS uses target's host, never the forwarding address. Copies
  * both endpoints before return. The host owns tunnel startup/cancellation/drain
  * and must key credentials/trust by target + route. Direct connect is unchanged. */
-tidyvnc_status tidyvnc_session_connect_routed(tidyvnc_handle, tidyvnc_handle target,
+TIDYVNC_API tidyvnc_status tidyvnc_session_connect_routed(tidyvnc_handle, tidyvnc_handle target,
   const tidyvnc_connect_options*, tidyvnc_operation*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_disconnect(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_refresh(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_disconnect(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_refresh(tidyvnc_handle, uint64_t generation, tidyvnc_operation*, tidyvnc_error*);
 /* Stateless shared geometry validation. Bounds 1..65535; unique screen IDs,
  * positive enclosed screens; gaps/overlap and all flag bits are preserved. */
 /* Pure shared DesktopLayout mapping, without a session or OS calls. Preserves
  * logical gaps/order; device units normalize mixed-density regions to avoid
  * overlap. Mirrored/overlapping monitors fail. Outputs unchanged on failure. */
-tidyvnc_status tidyvnc_display_layout_compute(const tidyvnc_display_layout_request*, tidyvnc_display_layout*, tidyvnc_error*);
-tidyvnc_status tidyvnc_desktop_layout_validate(const tidyvnc_desktop_layout_request*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_display_layout_compute(const tidyvnc_display_layout_request*, tidyvnc_display_layout*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_desktop_layout_validate(const tidyvnc_desktop_layout_request*, tidyvnc_error*);
 /* Copies the current connected layout and coherent snapshot. STALE for another
  * generation, NOT_CONNECTED before/after connection; no borrowed output memory. */
-tidyvnc_status tidyvnc_session_desktop_layout(tidyvnc_handle, uint64_t generation, tidyvnc_desktop_layout*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_desktop_layout(tidyvnc_handle, uint64_t generation, tidyvnc_desktop_layout*, tidyvnc_error*);
 /* Copies input before return. Admission checks generation, connection, server
  * capability, view-only, buffer limits and one pending resize. Completion means
  * server reply, timeout or teardown, not just wire submission. Server rejection
  * carries its numeric result. Cancellation can win only before wire submission;
  * after timeout a late reply is consumed before accepting another resize. */
-tidyvnc_status tidyvnc_session_request_desktop_layout(tidyvnc_handle, uint64_t generation,
+TIDYVNC_API tidyvnc_status tidyvnc_session_request_desktop_layout(tidyvnc_handle, uint64_t generation,
   const tidyvnc_desktop_layout_request*, tidyvnc_operation*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_cancel_operation(tidyvnc_handle, uint64_t generation, uint64_t operation, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_close(tidyvnc_handle, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_poll_drained(tidyvnc_handle, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_snapshot(tidyvnc_handle, tidyvnc_snapshot*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_subscribe(tidyvnc_handle, const tidyvnc_callbacks*, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_cancel_operation(tidyvnc_handle, uint64_t generation, uint64_t operation, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_close(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_poll_drained(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_snapshot(tidyvnc_handle, tidyvnc_snapshot*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_subscribe(tidyvnc_handle, const tidyvnc_callbacks*, tidyvnc_handle*, tidyvnc_error*);
 /* Cancel queued delivery; an already-started callback may finish. Idempotent,
  * never waits, including from inside ready(). Final subscription/session release
  * also cancels. Explicit session close/runtime shutdown still permits terminal
  * notifications: protocol drain and callback drain are separate obligations. */
-tidyvnc_status tidyvnc_subscription_unsubscribe(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_subscription_unsubscribe(tidyvnc_handle, tidyvnc_error*);
 /* OK only after unsubscribe and context release have finished. Host work queued
  * by a callback is outside this drain: it must own its captures and validate
  * subscription/generation before changing UI. Returns PENDING otherwise. */
-tidyvnc_status tidyvnc_subscription_poll_drained(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_subscription_poll_drained(tidyvnc_handle, tidyvnc_error*);
 /* Advisory delivery check: CANCELLED after unsubscribe, STALE for another
  * generation. Serialize UI teardown/delivery on the host executor as well. */
-tidyvnc_status tidyvnc_subscription_validate(tidyvnc_handle, uint64_t generation, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_subscription_validate(tidyvnc_handle, uint64_t generation, tidyvnc_error*);
 /* Exactly one consumer per session for each event/view/prompt/clipboard mailbox. */
-tidyvnc_status tidyvnc_session_take_event(tidyvnc_handle, tidyvnc_event*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_take_view(tidyvnc_handle, tidyvnc_view_update*, tidyvnc_error*);
-tidyvnc_status tidyvnc_image_get(tidyvnc_handle, tidyvnc_image_info*, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_key(tidyvnc_handle, uint64_t generation, uint32_t key_id, uint32_t keysym, uint32_t keycode, uint32_t down, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_pointer(tidyvnc_handle, uint64_t generation, int32_t x, int32_t y, uint32_t buttons, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_focus(tidyvnc_handle, uint64_t generation, uint32_t focused, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_take_event(tidyvnc_handle, tidyvnc_event*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_take_view(tidyvnc_handle, tidyvnc_view_update*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_image_get(tidyvnc_handle, tidyvnc_image_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_key(tidyvnc_handle, uint64_t generation, uint32_t key_id, uint32_t keysym, uint32_t keycode, uint32_t down, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_pointer(tidyvnc_handle, uint64_t generation, int32_t x, int32_t y, uint32_t buttons, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_focus(tidyvnc_handle, uint64_t generation, uint32_t focused, tidyvnc_error*);
 /* Release queued/held input and invalidate delayed routing, preserving focus and
  * view-only policy. Allowed while view-only/unfocused; generation must be current. */
-tidyvnc_status tidyvnc_session_release_input(tidyvnc_handle, uint64_t generation, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_view_only(tidyvnc_handle, uint32_t enabled, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_release_input(tidyvnc_handle, uint64_t generation, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_view_only(tidyvnc_handle, uint32_t enabled, tidyvnc_error*);
 /* Atomic connection policy; boolean arguments. Default emulation is off.
  * Left/right chord delay is 50 ms on the session executor. A policy change
  * cancels unsent input and releases held keys/buttons when emulation changes
  * or view-only is enabled. Policy survives reconnect; delayed events do not. */
-tidyvnc_status tidyvnc_session_input_policy(tidyvnc_handle, uint32_t view_only,
+TIDYVNC_API tidyvnc_status tidyvnc_session_input_policy(tidyvnc_handle, uint32_t view_only,
                                           uint32_t emulate_middle, tidyvnc_error*);
 /* Shared shortcut classifier, independent of a session. One handle per input
  * surface. Operations serialize on that handle; there are no timers/callbacks.
@@ -870,33 +886,33 @@ tidyvnc_status tidyvnc_session_input_policy(tidyvnc_handle, uint32_t view_only,
  * keysym. Reset discards pressed state and keeps selected modifiers. */
 enum { TIDYVNC_SHORTCUT_NORMAL = 0, TIDYVNC_SHORTCUT_UNARM = 1,
        TIDYVNC_SHORTCUT_ACTION = 2, TIDYVNC_SHORTCUT_IGNORE = 3 };
-tidyvnc_status tidyvnc_shortcut_create(uint32_t modifiers, tidyvnc_handle*, tidyvnc_error*);
-tidyvnc_status tidyvnc_shortcut_modifiers(tidyvnc_handle, uint32_t modifiers, tidyvnc_error*);
-tidyvnc_status tidyvnc_shortcut_key(tidyvnc_handle, int32_t physical_id, uint32_t keysym,
+TIDYVNC_API tidyvnc_status tidyvnc_shortcut_create(uint32_t modifiers, tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_shortcut_modifiers(tidyvnc_handle, uint32_t modifiers, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_shortcut_key(tidyvnc_handle, int32_t physical_id, uint32_t keysym,
                                   uint32_t down, uint32_t* action, tidyvnc_error*);
-tidyvnc_status tidyvnc_shortcut_reset(tidyvnc_handle, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_shortcut_reset(tidyvnc_handle, tidyvnc_error*);
 
 /* Any thread. Takes the session's next pending credential/trust request as a new
  * immutable prompt handle owned by the caller (release with tidyvnc_release);
  * NO_CHANGE when none is pending. Taking does not answer the request: reply with
  * its id/generation. prompt_get copies the fields; server_name, identity and
  * fingerprint are borrowed from the prompt handle until it is released. */
-tidyvnc_status tidyvnc_session_take_prompt(tidyvnc_handle, tidyvnc_handle* prompt, tidyvnc_error*);
-tidyvnc_status tidyvnc_prompt_get(tidyvnc_handle, tidyvnc_prompt_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_take_prompt(tidyvnc_handle, tidyvnc_handle* prompt, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_prompt_get(tidyvnc_handle, tidyvnc_prompt_info*, tidyvnc_error*);
 /* Immutable negotiated credential subtype; zero for trust/legacy prompts.
  * Output remains unchanged on failure. No session or active prompt required. */
-tidyvnc_status tidyvnc_prompt_security_type(tidyvnc_handle, uint32_t*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_prompt_security_type(tidyvnc_handle, uint32_t*, tidyvnc_error*);
 /* Credentials are copied into the rendezvous. Both mutable input spans are wiped
  * on every return, including rejection, when non-null and length <= 4096. The
  * caller owns/frees their storage. No zeroization guarantee for caller copies or
  * foreign runtimes. Plain immutable text submission is deliberately absent. */
-tidyvnc_status tidyvnc_session_reply_credentials(tidyvnc_handle, uint64_t id, uint64_t generation,
+TIDYVNC_API tidyvnc_status tidyvnc_session_reply_credentials(tidyvnc_handle, uint64_t id, uint64_t generation,
   tidyvnc_mutable_bytes username, tidyvnc_mutable_bytes password, tidyvnc_error*);
 /* CREDENTIAL_BYTES: same consuming prompt reply, accepting bounded non-NUL
  * legacy byte strings without UTF-8 conversion (for captured environment inputs).
  * Each span is bounded to 4096 bytes and wiped under the same ownership contract.
  * The ordinary credential text API remains UTF-8. No persistence or reuse. */
-tidyvnc_status tidyvnc_session_reply_credential_bytes(tidyvnc_handle, uint64_t id, uint64_t generation,
+TIDYVNC_API tidyvnc_status tidyvnc_session_reply_credential_bytes(tidyvnc_handle, uint64_t id, uint64_t generation,
   tidyvnc_mutable_bytes username, tidyvnc_mutable_bytes password, tidyvnc_error*);
 /* PASSWORD_FILE_REPLY: decode exactly the first 8 bytes of a legacy VNC password
  * file through the shared codec, then answer only a current password-only prompt.
@@ -905,9 +921,9 @@ tidyvnc_status tidyvnc_session_reply_credential_bytes(tidyvnc_handle, uint64_t i
  * Mutable input is wiped on every return when non-null and length <= 4096,
  * including invalid size, stale/wrong-kind requests and invalid error headers.
  * Host must gate file access on a current prompt and discard cancelled reads. */
-tidyvnc_status tidyvnc_session_reply_password_file(tidyvnc_handle, uint64_t id, uint64_t generation,
+TIDYVNC_API tidyvnc_status tidyvnc_session_reply_password_file(tidyvnc_handle, uint64_t id, uint64_t generation,
   tidyvnc_mutable_bytes obfuscated, tidyvnc_error*);
-tidyvnc_status tidyvnc_session_reply_trust(tidyvnc_handle, uint64_t id, uint64_t generation, uint32_t allowed, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_session_reply_trust(tidyvnc_handle, uint64_t id, uint64_t generation, uint32_t allowed, tidyvnc_error*);
 #ifdef __cplusplus
 }
 #endif
