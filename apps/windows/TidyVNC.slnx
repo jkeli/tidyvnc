@@ -6,6 +6,7 @@
   <Folder Name="/apps/">
     <Project Path="TidyVNC/TidyVNC.csproj" />
     <Project Path="TidyVNC.Cli/TidyVNC.Cli.csproj" />
+    <Project Path="TidyVNC.SshAskpass/TidyVNC.SshAskpass.csproj" />
   </Folder>
   <Folder Name="/platform/">
     <Project Path="../../platform/windows/TidyVNC.Native/TidyVNC.Native.csproj" />

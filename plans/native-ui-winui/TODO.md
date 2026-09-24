@@ -60,7 +60,7 @@ before W0.2–W0.5 are accepted.
 - [x] W1.11 AddressSanitizer build of the core and unit suite.
 - [ ] W1.12 FLTK MinGW build and unit run still pass; ARM64 cross-build of the core succeeds.
 - [x] W1.13 End-to-end C program through the DLL: loopback connect, VncAuth, TLS, frames, disconnect, drain.
-- [ ] W1.14 Only if D17 selects `ssh -W`: routed stream transport with the routed-connect contract, one feature bit and one export.
+- [x] W1.14 Only if D17 selects `ssh -W`: routed stream transport with the routed-connect contract, one feature bit and one export. *(Not needed: D17 chose `-W` with an app relay into the existing routed connect over a private AF_UNIX socket; see the W4.9 evidence.)*
 
 Exit: CORE.md §8 criteria 1–6.
 
@@ -104,7 +104,7 @@ proven through the real app before substantial screen work.
   - [ ] Manual check with cloud clipboard on: remote text appears in local history and never on a second device
 - [x] W4.7 Display service: `QueryDisplayConfig` topology, stable IDs, friendly names, change notifications.
 - [x] W4.8 Keyboard capture service: `WH_KEYBOARD_LL` thread, pass-through rules, release triggers, typed failures.
-- [ ] W4.9 SSH tunnel owner with Job Object, askpass helper over a named pipe, configuration capture, host-key review (D17).
+- [x] W4.9 SSH tunnel owner with Job Object, askpass helper over a named pipe, configuration capture, host-key review (D17).
 - [ ] W4.10 Activation: primary instance, Jump List, file association handling, console launcher (D8/D9).
 - [ ] W4.11 Lifecycle: close and exit ordering, `WM_QUERYENDSESSION`, lock and suspend, bell, logging, links.
 - [ ] W4.12 Service contract tests and a Windows semantics section in the handoff.
@@ -766,3 +766,98 @@ Add dated entries, newest last, in the macOS format:
   once-per-entry rule, and the eligibility gate.
 - Open: which keys the hook actually captures in fullscreen (Alt+Tab, Win
   and the rest of DESKTOP.md section 5) is W6 physical verification.
+
+### W0.11 (partial), W1.14, W4.9 — SSH gateway tunnels — 2026-09-24
+
+- Spike (D17, now recorded in DECISIONS.md): Windows OpenSSH 9.5p2 against
+  `tests/windows/Shared/SshTestServer.cs`.
+  - The test server is a minimal SSH-2 server written for this purpose:
+    ecdh-sha2-nistp256, an ECDSA host key, aes128-ctr, hmac-sha2-256,
+    "none" or password authentication, and direct-tcpip channels.
+  - It shows that `-W` carries RFB, that `SSH_ASKPASS_REQUIRE=force`
+    askpass answers passwords, and that `KnownHostsCommand` (`%I %H %t %K`)
+    reports the offered key while the new-key question accepts the computed
+    fingerprint.
+  - It also shows `ssh -G` evaluation, and that a Job Object assigned at
+    creation ends ssh and its helpers.
+  - ssh.exe needs `%ProgramData%` in its environment.
+  - Shape chosen: `-W` with an app relay, so W1.14 is not needed.
+  - W0.11 stays open for the `ssh-agent` service (disabled on this machine;
+    enabling it is a system change) and real servers and key types (VM or
+    owner).
+- Behaviour: `platform/windows/TidyVNC.Native/Tunnel`.
+  - `NativeOwnedProcess`:
+    - `CreateProcessW` with CRT-quoted argv and an explicit environment
+      block;
+    - `PROC_THREAD_ATTRIBUTE_HANDLE_LIST` limited to the three pipes;
+    - `PROC_THREAD_ATTRIBUTE_JOB_LIST` with kill-on-close;
+    - `Contains(pid)` for job membership.
+  - `NativeSshConfiguration` handles the configuration:
+    - a private snapshot of `%USERPROFILE%\.ssh\config`, never created
+      when absent;
+    - `Include`, `Match exec` and `Match localnetwork` refused before
+      evaluation;
+    - `ssh -G` for the effective host, user, port and alias, with effective
+      proxy, command, forward, PKCS#11 and tunnel settings refused;
+    - explicit user and port win over the configuration;
+    - the ssh-v2 route identity from the resolved values.
+  - `NativeSshAskpassServer` and `tidyvnc-ssh-askpass.exe`
+    (`apps/windows/TidyVNC.SshAskpass`, published with the app):
+    - a per-attempt named pipe with an owner-only DACL, created as the first
+      instance;
+    - a 32-byte token and client admission by job membership;
+    - the helper refuses a pipe served by any process but the app;
+    - bounded frames; answers never contain NUL, CR or LF and are at most
+      1023 bytes;
+    - `KnownHostsCommand` HOSTNAME observations are recorded, and a new-key
+      question is reviewed only when it names that host, key family and
+      fingerprint;
+    - approval answers with exactly the computed fingerprint, and anything
+      else is refused without asking.
+  - `NativeSshTunnel` runs a connection:
+    - explicit `-o` controls: BatchMode or askpass, StrictHostKeyChecking
+      yes or ask, no forwards, no control master, no local commands,
+      UpdateHostKeys=no, LogLevel=ERROR;
+    - the effective HostName, HostKeyAlias, user and port are enforced,
+      with the alias kept as the destination;
+    - readiness is the first RFB bytes, within 20 s, or 5 min once a prompt
+      is shown;
+    - a private AF_UNIX relay accepts only this process
+      (`SIO_AF_UNIX_GETPEERPID`) and serves the core's routed connect;
+    - stderr is reduced to typed errors in constant space without keeping
+      text;
+    - close ends the relay, lets ssh exit, ends the job and removes the
+      attempt directory.
+- Tests:
+  - `TunnelTests`, 6 cases with the real ssh.exe and helper:
+    - a routed `NativeSession` to RFB over the tunnel, with close ending
+      ssh and removing the directory;
+    - native host-key review and password;
+    - declined key (typed, never written) and wrong password;
+    - batch-mode unknown key, password and closed forward;
+    - configuration aliases, explicit user, six refused configurations and
+      an absent config;
+    - startup deadline, cancellation and bad targets;
+    - cancelling during a prompt ends the helper process.
+  - `AskpassServerTests`, 4 cases: the fingerprint-only answer,
+    mismatched questions never asked, wrong tokens and foreign clients
+    ignored, structural key parsing.
+  - `SshSpikeTests`, 3 cases recording the D17 spike.
+
+  Result: 3 consecutive clean runs. Mutations:
+  17 mutations, all fail the suite:
+  - the fingerprint match, host match and family match;
+  - answering with the fingerprint;
+  - the token check and job admission;
+  - HOSTNAME-only observations;
+  - the relay peer check;
+  - StrictHostKeyChecking;
+  - effective proxy refusal, Include refusal and Match exec refusal;
+  - the explicit user;
+  - the interactive deadline;
+  - the stderr-based typed errors (covered by the failure cases above).
+  
+  Full native suite: 105 passed, 2 gated skips.
+- Open: the gateway field, the prompt and host-key dialogs, and the
+  connection controller wiring are W5. The installed app's askpass path is
+  covered by the W7 package audit.

@@ -15,6 +15,11 @@
     <PackageReference Include="MSTest" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The askpass helper that ssh.exe starts in the tunnel tests. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>TidyVncAskpass</_Parameter1>
+      <_Parameter2>$(RepoRoot)apps\windows\TidyVNC.SshAskpass\bin\$(Platform)\$(Configuration)\$(TidyVncTargetFramework)\win-$(Platform.ToLowerInvariant())\tidyvnc-ssh-askpass.exe</_Parameter2>
+    </AssemblyAttribute>
     <!-- The shared conformance corpus (tests/conformance), read in place. -->
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>TidyVncConformance</_Parameter1>
@@ -23,9 +28,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\RfbTestServer.cs" Link="RfbTestServer.cs" />
+    <Compile Include="..\Shared\SshTestServer.cs" Link="SshTestServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />
+    <!-- tidyvnc-ssh-askpass.exe is started by ssh.exe in the tunnel tests. -->
+    <ProjectReference Include="..\..\..\apps\windows\TidyVNC.SshAskpass\TidyVNC.SshAskpass.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(TidyVncNativeBin)\tidyvnc-abi-layout.exe" CopyToOutputDirectory="PreserveNewest" Visible="false"

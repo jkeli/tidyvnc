@@ -272,13 +272,13 @@ behaviour and changes the mechanism (DECISIONS.md D17):
 | macOS | Windows |
 | --- | --- |
 | `/usr/bin/ssh` | `%SystemRoot%\System32\OpenSSH\ssh.exe`; its absence disables the gateway field with guidance |
-| ControlMaster + `-O forward` | Not supported by Windows OpenSSH. Preferred: `ssh -W host:port` carrying RFB over stdin/stdout. Fallback: `-L 127.0.0.1:<port>:host:port -N -o ExitOnForwardFailure=yes`, accepting only a connection from the owned ssh process |
-| Private Unix forwarding socket (0600) | No listening socket (preferred) or loopback TCP with owner verification (fallback) |
+| ControlMaster + `-O forward` | Not supported by Windows OpenSSH. Chosen (D17 spike): `ssh -W host:port`; the app relays its stdin/stdout to a private AF_UNIX socket that the core's routed connect uses. First bytes from the RFB server mark readiness |
+| Private Unix forwarding socket (0600) | Private AF_UNIX relay socket in an owner-only per-attempt directory, accepting only the app's own process (`SIO_AF_UNIX_GETPEERPID`); no TCP port |
 | `posix_spawn` with a process group | `CreateProcessW` with an explicit argument vector, a restricted environment block, `bInheritHandles` limited to the pipes, all inside a Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` |
 | Askpass over a private Unix socket | `tidyvnc-ssh-askpass.exe` talking to the app over a per-attempt named pipe whose DACL allows only the current user, with a random per-attempt token |
 | `SSH_AUTH_SOCK` | The Windows `ssh-agent` service pipe (`\\.\pipe\openssh-ssh-agent`), used by ssh.exe directly |
-| `~/.ssh/config` capture via a bounded probe | Same, with `%USERPROFILE%\.ssh\config` and `ssh -G` |
-| Known hosts | `%USERPROFILE%\.ssh\known_hosts`; review of new keys through the askpass prompt, as on macOS |
+| `~/.ssh/config` capture via a bounded probe | A private snapshot of `%USERPROFILE%\.ssh\config` evaluated by `ssh -G`. `Include`, `Match exec` and `Match localnetwork` are refused before evaluation, and effective proxy, command or forwarding settings after it. The connection uses the same snapshot |
+| Known hosts | `%USERPROFILE%\.ssh\known_hosts`. The helper doubles as `KnownHostsCommand` to observe the offered key, and the new-key question is reviewed only when it names that host, algorithm and fingerprint. Approval answers with the computed fingerprint, as on macOS |
 
 Unchanged rules: argument vectors only, no shell strings; `VNC_VIA_CMD` and
 proxy/command directives rejected visibly; VNC credentials never in ssh's

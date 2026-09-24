@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- tidyvnc-ssh-askpass.exe (plans/native-ui-winui SERVICES.md section 11,
+       D17): OpenSSH's SSH_ASKPASS helper and KnownHostsCommand observer. It
+       relays one prompt or host key observation to the app over the
+       per-attempt named pipe and prints only the answer. No dependency on
+       the core; the frame format is shared as source. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(TidyVncTargetFramework)</TargetFramework>
+    <AssemblyName>tidyvnc-ssh-askpass</AssemblyName>
+    <RootNamespace>TidyVNC.SshAskpass</RootNamespace>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Platform)' != 'ARM64'">win-x64</RuntimeIdentifier>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);CA1303</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)platform\windows\TidyVNC.Native\Tunnel\NativeSshAskpassProtocol.cs" Link="NativeSshAskpassProtocol.cs" />
+  </ItemGroup>
+</Project>

@@ -24,7 +24,7 @@ can still be needed to prove the chosen option works, but not to choose it.
 | D14 | Fullscreen and multi-monitor windows | Proposed | W0.7 |
 | D15 | Credential storage | Proposed | W0.8 |
 | D16 | Preference, profile and trust storage | Proposed | W4.1 |
-| D17 | SSH gateway tunnels | Proposed | W0.11 |
+| D17 | SSH gateway tunnels | Proposed; forwarding shape chosen (`ssh -W` with an app relay) | W0.11 |
 | D18 | Unix-domain socket endpoints | Proposed | W1.6 |
 | D19 | H.264 and audio | Audio owner-decided (none); H.264 proposed off | W0.1 |
 | D20 | Localization format | Proposed | W5.18 |
@@ -369,6 +369,31 @@ current user. Host-key review follows the macOS flow.
 Object cleanup. If `-W` is chosen, W1 adds a routed stream transport to the core
 (CORE.md §4). If `ssh.exe` is missing, the gateway field is disabled with a
 message that points to Settings > System > Optional features.
+
+**Spike outcome (2026-09-24, W0.11).** Windows OpenSSH 9.5p2 on this machine,
+against an in-process SSH-2 test server:
+- `-W` carries RFB over standard input and output.
+- `SSH_ASKPASS` with `SSH_ASKPASS_REQUIRE=force` answers password prompts
+  through the helper.
+- `KnownHostsCommand` reports the offered key (reason, host, type, key), and
+  the new-key question accepts the computed fingerprint as the answer.
+  OpenSSH then saves the key itself.
+- `ssh -G` evaluates configuration without a server.
+- A Job Object assigned at creation ends ssh and its askpass children.
+- ssh.exe needs `%ProgramData%` in its environment (exit 255 without it).
+
+Chosen shape: `-W`, with the app relaying ssh's standard streams to a
+private AF_UNIX socket in an owner-only per-attempt directory. The socket
+accepts only a connection from the app's own process
+(`SIO_AF_UNIX_GETPEERPID`), and the core's existing routed connect uses it.
+This keeps "no listening TCP port" without a new core transport, so W1.14 is
+not needed. `-L` was not exercised.
+
+Still open, needing the owner or a VM:
+- the `ssh-agent` service, which is disabled here, and enabling it is a
+  system change;
+- real servers and key types beyond the test server's ECDSA host key and
+  password authentication.
 
 ## D18 — Unix-domain sockets where Windows supports them
 
