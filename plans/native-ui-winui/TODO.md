@@ -1452,3 +1452,25 @@ Add dated entries, newest last, in the macOS format:
   655/659 with the same 4 known failures (DocumentABI allocation injection and three GDI Surface
   timeouts).
 - Remaining: hands-on lock, sleep and Alt+Tab checks with a held key on a real server.
+
+### W6.11 (progress) — reconnect, resize and attach stress — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- `StressTests.ReconnectResizeAndAttachCyclesDoNotLeak` exercises TidyVNC.Native and the core DLL. Each
+  cycle:
+  - connects to a fresh loopback server and receives frames;
+  - takes a server-side ExtendedDesktopSize resize and 5 updates, then sends input;
+  - disconnects, then reconnects the same session.
+  - Every fifth cycle closes the session and attaches a new one.
+  - After 15 warm-up cycles, handles, threads, managed memory and private bytes must stay within a fixed
+    allowance or a small per-cycle rate. The default is 60 cycles (about 1 s); `TIDYVNC_STRESS_CYCLES` sets
+    a soak.
+- Soak on this machine, 4,000 cycles in 75 s: no per-cycle growth.
+  - Private bytes rose from 21 to about 50 MiB over the first 250 cycles (the native heap settling), then
+    stayed at 50–54 MiB.
+  - Managed memory stayed about 1.0–1.2 MiB.
+  - Handles and threads made one step (+132 handles, +8 threads near cycle 1,700, the thread pool adding
+    workers), then stayed flat.
+  - With criteria that allow one-off steps like that, the default and soak runs both pass.
+- Remaining: attach cycles of the app's Direct3D presenter and swap chains, meaning desktop views
+  detaching and reattaching and full-screen surfaces. These need the display on, through the UI suite.
