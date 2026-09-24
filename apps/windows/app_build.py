@@ -6,7 +6,11 @@ Publishes apps/windows/TidyVNC (the WinUI app), apps/windows/TidyVNC.Cli
 started by ssh.exe for SSH gateways) self-contained for one architecture into
 one directory, next
 to the core DLLs from the `core` stage, and runs the .NET suites for x64 when
---test is given. The payload curation, dependency audit and MSI are the
+--test is given. --measurement publishes a Release build that honours
+TIDYVNC_STATE_ROOT, for startup and workload timing, into its own directory
+(app-<arch>-measurement, or app-<arch>-measurement-trimmed/-aot when --runtime
+trims or AOT-compiles the WinUI app; a trimmed build holds the app alone); the
+package stage refuses it. The payload curation, dependency audit and MSI are the
 `package` stage (W7).
 """
 from pathlib import Path
@@ -28,21 +32,37 @@ def run(command, cwd=ROOT):
 def publish(args, core):
     """Returns the published app directory."""
     platform = PLATFORMS[args.arch]
-    configuration = "Release" if args.configuration != "Debug" else "Debug"
+    measurement, runtime = getattr(args, "measurement", False), getattr(args, "runtime", "jit")
+    configuration = "Release" if args.configuration != "Debug" or measurement else "Debug"
     native = Path(core) / "bin"
-    output = (ROOT / "build/winui" / f"app-{args.arch}-{configuration.lower()}").resolve()
+    name = (f"app-{args.arch}-measurement{'' if runtime == 'jit' else '-' + runtime}" if measurement
+            else f"app-{args.arch}-{configuration.lower()}")
+    output = (ROOT / "build/winui" / name).resolve()
     stamp = output / "tidyvnc-app.json"
     expected = {"arch": args.arch, "configuration": configuration, "core": str(Path(core).resolve())}
+    if measurement:
+        expected.update(measurement=True, runtime=runtime)
     if output.exists():
         if not (stamp.exists() and json.loads(stamp.read_text()) == expected):
             raise SystemExit(f"{output} exists and was not created by app_build.py for {expected}")
         shutil.rmtree(output)
     output.mkdir(parents=True)
     stamp.write_text(json.dumps(expected))
-    for project in PROJECTS:
+    # Trimming rewrites the framework assemblies the untrimmed launcher and askpass helper share, so a
+    # trimmed measurement build holds the WinUI app alone (time it with windows-viewer-workloads.py --direct).
+    projects = PROJECTS[:1] if runtime == "trimmed" else PROJECTS
+    for project in projects:
+        extra = ["-p:TidyVncMeasurement=true"] if measurement else []
+        if project == PROJECTS[0]:
+            # Trimming reports IL2104 for Microsoft.Windows.SDK.NET and WinRT.Runtime (recorded under D1);
+            # a measurement build keeps them as warnings.
+            extra += {"jit": [], "trimmed": ["-p:PublishTrimmed=true", "-p:WarningsNotAsErrors=IL2104"],
+                      "aot": ["-p:PublishAot=true"]}[runtime]
         run(["dotnet", "publish", ROOT / project, "-c", configuration, f"-p:Platform={platform}",
-             f"-p:TidyVncNativeBin={native}", "-o", output, "-nologo"])
-    for name in ("TidyVNC.exe", "vncviewer.exe", "tidyvnc-ssh-askpass.exe", "tidyvnc_viewer.dll", "tidyvnc_windows.dll"):
+             f"-p:TidyVncNativeBin={native}", "-o", output, "-nologo", *extra])
+    expected_files = ("TidyVNC.exe", "tidyvnc_viewer.dll", "tidyvnc_windows.dll") + (
+        () if runtime == "trimmed" else ("vncviewer.exe", "tidyvnc-ssh-askpass.exe"))
+    for name in expected_files:
         if not (output / name).exists():
             raise SystemExit(f"Publishing did not produce {name}")
     if getattr(args, "test", False):

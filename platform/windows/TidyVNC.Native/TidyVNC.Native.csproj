@@ -12,6 +12,8 @@
     <RootNamespace>TidyVNC.Native</RootNamespace>
     <!-- Interop names follow tidyvnc.h (snake_case) on purpose. -->
     <NoWarn>$(NoWarn);CA1707;CA1711;CA1716;CA1720;CA1051;CA1034;CA1815;CA1028;CA1008;CA2201;CA1062;CA1031;CA1710</NoWarn>
+    <!-- Measurement builds (build.py, option measurement): a Release build that keeps the isolated state root for timing runs; never packaged. -->
+    <DefineConstants Condition="'$(TidyVncMeasurement)' == 'true'">$(DefineConstants);TIDYVNC_MEASUREMENT</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="TidyVNC.Native.Tests" />

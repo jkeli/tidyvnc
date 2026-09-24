@@ -77,6 +77,13 @@ AOT only if the full app later builds without warnings (tracked in W7).
 - Adopting AOT would need that hang found and fixed, and the full suite rerun with the display on. Until
   then the MSI ships the JIT build, which runs the same automated evidence. The `build.py` stages keep
   AOT one property away.
+- Startup (W0.2, 2026-09-24; Release x64, TidyVNC.exe started directly, warm medians of 10 launches;
+  time to the first frame):
+  - JIT: 442 ms;
+  - trimmed: 589 ms. The trimmed framework assemblies lose their ReadyToRun code, and a trimmed app
+    cannot share its folder with the untrimmed launcher;
+  - Native AOT: 248 ms.
+  - Trimming is therefore not pursued. AOT's roughly 190 ms is the gain on offer once its hang is fixed.
 
 ## D2 — Build the core with MSVC as a DLL
 

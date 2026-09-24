@@ -27,7 +27,7 @@ Rules (the macOS rules, unchanged):
   - [x] Install vcpkg, WiX and MSYS2 and record their versions
   - [x] Owner decisions, 2026-09-23: D5 per-user install; D6 Windows 11 only; D19 no audio; D21 remote clipboard text excluded from cloud sync; D22 no updater for now; D23 unsigned for now, signing added later. See the evidence log
   - [ ] Availability of a second serviced Windows 11 release in a VM, an ARM64 device or VM, a second monitor at a different scale, and a touch screen
-- [ ] W0.2 D1 spike: WinUI 3 on .NET 10 calls `tidyvnc_get_abi` and a parser export through `LibraryImport`, receives a `ready` callback and marshals it to the UI thread; trimmed and Native AOT builds with startup time, size and warnings recorded.
+- [x] W0.2 D1 spike: WinUI 3 on .NET 10 calls `tidyvnc_get_abi` and a parser export through `LibraryImport`, receives a `ready` callback and marshals it to the UI thread; trimmed and Native AOT builds with startup time, size and warnings recorded.
 - [ ] W0.3 D2/D3 spike: MSVC x64 build of the core via `headless.py`-style configure with vcpkg dependencies; ARM64 cross-build; GnuTLS and nettle work (TLS and RSA-AES unit tests), or the MinGW-DLL fallback is chosen and recorded.
 - [ ] W0.4 D12 spike: message-hook versus routed-event keyboard path, run against the full checklist in DECISIONS.md D12; record the retained FLTK behaviour for each case first.
 - [ ] W0.5 D11 spike: `SwapChainPanel` presenter with core tiles; 1080p and 4K at 30/s; p50/p95 present latency and CPU versus FLTK GDI; device-lost recovery; resize across two scales.
@@ -1778,3 +1778,44 @@ Add dated entries, newest last, in the macOS format:
   long), the native error domain and the Winsock/DNS categories, all with tests.
 - W20 (PARITY) still needs hands-on checks: files, CA/CRL and PasswordFile chosen in the app, on UNC
   shares.
+
+### W0.2 — startup, size and warnings for JIT, trimmed and Native AOT builds — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- Measurement builds:
+  - `build.py --stages app --measurement [--runtime jit|trimmed|aot]` publishes a Release build that
+    honours `TIDYVNC_STATE_ROOT` into `build/winui/app-<arch>-measurement[-trimmed|-aot]`.
+  - The override is compiled in only with `-p:TidyVncMeasurement=true`. Both `build.py` and
+    `package.py` refuse to package such a build; a check confirms `package.build` rejects a
+    measurement stamp.
+  - A trimmed build holds the WinUI app alone. Trimming rewrites framework assemblies that the untrimmed
+    `vncviewer.exe` and askpass helper share: in one folder the launcher failed with
+    `MissingMethodException` (Console.get_Error) and the app with a missing `System.Runtime`.
+- `tests/perf/windows-viewer-workloads.py --startup N [--direct]`, gated like the UI suite. For N
+  launches it measures from process creation to:
+  - the first visible titled window;
+  - the accepted connection;
+  - the first FramebufferUpdateRequest;
+  - the request after the first full 1080p frame.
+  - `--direct` starts TidyVNC.exe itself with the launcher's command-line marker.
+  - The first launch is reported apart from the median of the other ten.
+  - The temporary state folder no longer crashes the harness when a killed viewer still holds a file.
+- Results (this machine, Release x64, display off, warm medians of 10; TidyVNC.exe started directly):
+
+  | Build | First window | First frame | TidyVNC.exe | Folder | Trim/AOT warnings |
+  | --- | --- | --- | --- | --- | --- |
+  | JIT, as shipped | 371 ms | 441–442 ms (two runs) | 0.3 MB | 188 MB, 408 files, with launcher and askpass | none |
+  | Trimmed (app alone) | 513 ms | 589 ms | 0.3 MB | 96 MB, 239 files | IL2104 in Microsoft.Windows.SDK.NET and WinRT.Runtime |
+  | Native AOT | 223 ms | 248 ms | 12.5 MB | 251 MB, 377 files; launcher and askpass stay JIT, each with its own runtime | none |
+
+  - Through `vncviewer.exe`, the first frame took 483 ms for JIT (two runs) and 298 ms for AOT.
+  - Trimming is slower than JIT here. The trimmed framework assemblies lose their ReadyToRun code, so
+    more is compiled at startup.
+  - Native AOT roughly halves startup (about 190 ms saved).
+- The rest of W0.2 is covered by the app itself rather than a throwaway spike:
+  - `LibraryImport` calls to `tidyvnc_get_abi` and the parsers (`InteropTests`);
+  - `ready` callbacks marshalled to the UI thread (the `DispatcherQueue` adapter, D7's responsiveness
+    measurement, and the connected UI tests that pass);
+  - the AOT build of the full app with no warnings (W7.8).
+- D1 stays as decided in W7.8: ship JIT, not trimmed. Native AOT remains the way to faster startup once
+  its multi-window hang is fixed. This measurement puts a number on what that fix would buy.

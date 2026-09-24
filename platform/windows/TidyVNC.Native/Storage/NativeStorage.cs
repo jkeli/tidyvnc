@@ -26,18 +26,19 @@ public sealed class NativeStorageException(NativeStorageError error, int nativeC
 /// The per-user state directory, %LOCALAPPDATA%\TidyVNC (DECISIONS.md D16),
 /// resolved through the known-folder API rather than the environment. Debug
 /// builds honour TIDYVNC_STATE_ROOT so tests never touch real user data
-/// (TESTING.md section 2); Release builds compile the override out.
+/// (TESTING.md section 2); Release builds compile the override out, except the
+/// measurement builds of build.py --measurement, which the package stage refuses.
 /// </summary>
 public static class NativeStateRoot
 {
     public const string OverrideVariable = "TIDYVNC_STATE_ROOT";
 
-    /// <summary>The Debug-only override (TESTING.md section 2); always null in Release builds.</summary>
+    /// <summary>The Debug-only override (TESTING.md section 2); always null in packaged Release builds.</summary>
     private static string? Override
     {
         get
         {
-#if DEBUG
+#if DEBUG || TIDYVNC_MEASUREMENT
             if (Environment.GetEnvironmentVariable(OverrideVariable) is { Length: > 0 } root) return Path.GetFullPath(root);
 #endif
             return null;

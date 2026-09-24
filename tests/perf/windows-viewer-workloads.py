@@ -18,8 +18,16 @@ from the end of each update to the viewer's next request (p50/p95; a protocol
 signal, not presentation latency); the viewer process's CPU seconds per second;
 its peak working set and private bytes.
 
---winui takes vncviewer.exe of a Debug publish (Release ignores the isolated
-TIDYVNC_STATE_ROOT); the measured process is the TidyVNC.exe it starts.
+--startup N instead launches each viewer N times against the same peer and
+reports, from process creation: its first visible titled window, the accepted
+connection, the first FramebufferUpdateRequest after the handshake and the
+request that follows the first full frame (D1's startup time; the first launch
+is reported apart from the median of the rest).
+
+--winui takes vncviewer.exe of a Debug publish or of a measurement publish
+(apps/windows/build.py --stages app --measurement [--runtime ...]); packaged Release
+builds ignore the isolated TIDYVNC_STATE_ROOT. The measured process is the
+TidyVNC.exe it starts.
 --fltk takes the retained FLTK vncviewer.exe. It has no state isolation on
 Windows (it writes its history to HKCU), so it runs only when
 TIDYVNC_TEST_ACCOUNT=1 says this is a dedicated test account or VM.
@@ -46,6 +54,7 @@ from pathlib import Path
 WORKLOADS = {'idle': (1920, 1080), 'full1080': (1920, 1080), 'full4k': (3840, 2160), 'scroll': (1920, 1080), 'patch': (1920, 1080)}
 
 kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+user32 = ctypes.WinDLL('user32', use_last_error=True)
 psapi = ctypes.WinDLL('psapi', use_last_error=True)
 PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ = 0x1000, 0x0010
 TH32CS_SNAPPROCESS = 0x2
@@ -108,6 +117,24 @@ class Measured:
 
     def close(self):
         kernel32.CloseHandle(self.handle)
+
+
+WindowCallback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+
+
+def has_visible_window(pid):
+    """True once the process owns a visible top-level window with a title."""
+    found = []
+
+    def visit(hwnd, _):
+        owner = wintypes.DWORD()
+        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+        if owner.value == pid and user32.IsWindowVisible(hwnd) and user32.GetWindowTextLengthW(hwnd) > 0:
+            found.append(hwnd)
+            return False
+        return True
+    user32.EnumWindows(WindowCallback(visit), 0)
+    return bool(found)
 
 
 def idle_seconds():
@@ -240,23 +267,99 @@ def serve(peer, workload, width, height, seconds, process, rate):
             'peakPrivateMiB': round(max(peaks[1], final[1]) / 1048576, 1)}
 
 
+# --direct: start TidyVNC.exe beside the given vncviewer.exe the way the launcher does
+# (its command-line marker set), so the app is measured without the launcher.
+DIRECT = False
+
+
+def launch(executable, port, state):
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith(('VNC_', 'TIDYVNC_'))}
+    if DIRECT:
+        executable = Path(executable).parent / 'TidyVNC.exe'
+        env['TIDYVNC_COMMAND_LINE'] = '1'
+    args = [str(executable), '-SendClipboard=0', '-AcceptClipboard=0', '-AlertOnFatalError=0', '-ReconnectOnError=0',
+            '-SecurityTypes=None', '-ScalingFactor=100', '-RemoteResize=0', f'127.0.0.1::{port}']
+    env['TIDYVNC_STATE_ROOT'] = str(state)
+    return subprocess.Popen(args, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def stop(launcher):
+    if launcher.poll() is None:
+        subprocess.run(['taskkill', '/T', '/F', '/PID', str(launcher.pid)], capture_output=True)
+        launcher.wait(10)
+
+
+def next_request(peer):
+    while True:
+        message = peer.next_message(60)
+        assert message, 'viewer sent nothing for 60 s'
+        if message[0] == 'request':
+            return
+
+
+def startup(frontend, executable, index, work):
+    """Milliseconds from process creation to window, connection, first request and first frame."""
+    width, height = WORKLOADS['full1080']
+    with socket.socket() as listener:
+        listener.bind(('127.0.0.1', 0))
+        listener.listen(1)
+        listener.settimeout(60)
+        started = time.perf_counter()
+        launcher = launch(executable, listener.getsockname()[1], work / f'{frontend}-startup-{index}')
+        marks, done = {}, threading.Event()
+
+        def watch_window():
+            gui = None
+            while not done.is_set() and time.perf_counter() - started < 60:
+                if gui is None:
+                    gui = launcher.pid if frontend == 'fltk' or DIRECT else next(
+                        (p for p, name in children(launcher.pid) if name.lower() == 'tidyvnc.exe'), None)
+                if gui is not None and has_visible_window(gui):
+                    marks['window'] = time.perf_counter()
+                    return
+                time.sleep(0.002)
+        watcher = threading.Thread(target=watch_window, daemon=True)
+        watcher.start()
+        try:
+            client, _ = listener.accept()
+            with client:
+                marks['connected'] = time.perf_counter()
+                peer = Peer(client)
+                peer.handshake(width, height)
+                next_request(peer)
+                marks['firstRequest'] = time.perf_counter()
+                peer.update([peer.raw(0, 0, width, height, (40, 120, 200))])
+                next_request(peer)
+                marks['firstFrame'] = time.perf_counter()
+                watcher.join(30)
+        finally:
+            done.set()
+            stop(launcher)
+    return {name: round((marks[name] - started) * 1000, 1) if name in marks else None
+            for name in ('window', 'connected', 'firstRequest', 'firstFrame')}
+
+
+def measure_startup(frontend, executable, launches, work):
+    runs = [startup(frontend, executable, index, work) for index in range(launches)]
+    warm = runs[1:] or runs
+    median = {name: percentile([r[name] for r in warm if r[name] is not None], .5) for name in runs[0]}
+    return {'frontend': frontend, 'executable': str(executable), 'launches': launches, 'first': runs[0],
+            'warmMedianMs': median, 'runs': runs}
+
+
 def run(frontend, executable, workload, seconds, rate, work):
     width, height = WORKLOADS[workload]
     with socket.socket() as listener:
         listener.bind(('127.0.0.1', 0))
         listener.listen(1)
         listener.settimeout(30)
-        args = [str(executable), '-SendClipboard=0', '-AcceptClipboard=0', '-AlertOnFatalError=0', '-ReconnectOnError=0',
-                '-SecurityTypes=None', '-ScalingFactor=100', '-RemoteResize=0', f'127.0.0.1::{listener.getsockname()[1]}']
-        env = {k: v for k, v in os.environ.items() if not k.upper().startswith(('VNC_', 'TIDYVNC_'))}
-        env['TIDYVNC_STATE_ROOT'] = str(work / f'{frontend}-{workload}')
-        launcher = subprocess.Popen(args, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        launcher = launch(executable, listener.getsockname()[1], work / f'{frontend}-{workload}')
         measured = None
         try:
             client, _ = listener.accept()
             with client:
                 pid = launcher.pid
-                if frontend == 'winui':
+                if frontend == 'winui' and not DIRECT:
                     gui = [p for p, name in children(launcher.pid) if name.lower() == 'tidyvnc.exe']
                     assert gui, 'vncviewer.exe did not start TidyVNC.exe'
                     pid = gui[0]
@@ -268,9 +371,7 @@ def run(frontend, executable, workload, seconds, rate, work):
         finally:
             if measured:
                 measured.close()
-            if launcher.poll() is None:
-                subprocess.run(['taskkill', '/T', '/F', '/PID', str(launcher.pid)], capture_output=True)
-                launcher.wait(10)
+            stop(launcher)
 
 
 def main():
@@ -280,6 +381,9 @@ def main():
     parser.add_argument('--workload', action='append', choices=sorted(WORKLOADS))
     parser.add_argument('--seconds', type=float, default=10)
     parser.add_argument('--rate', type=float, default=30)
+    parser.add_argument('--startup', type=int, metavar='N', help='measure startup over N launches instead of the workloads')
+    parser.add_argument('--direct', action='store_true', help='start TidyVNC.exe itself rather than through vncviewer.exe')
+    parser.add_argument('--label', help='a name for this build in the report (for example jit or aot)')
     parser.add_argument('--report', type=Path, help='JSON report path')
     args = parser.parse_args()
     if not (args.winui or args.fltk):
@@ -292,10 +396,19 @@ def main():
         parser.exit(2, f'The desktop is in use (idle {idle_seconds():.0f} s); not opening windows on it.\n')
     workloads = args.workload or ['idle', 'full1080', 'full4k', 'scroll', 'patch']
     report = {'windows': platform.version(), 'machine': platform.machine(), 'processor': platform.processor(),
-              'rate': args.rate, 'seconds': args.seconds, 'results': []}
-    with tempfile.TemporaryDirectory(prefix='tidyvnc-workloads-') as temporary:
+              'rate': args.rate, 'seconds': args.seconds, 'label': args.label, 'results': []}
+    global DIRECT
+    DIRECT = args.direct
+    report['direct'] = args.direct
+    # A just-killed viewer can still hold a file in its state folder for a moment.
+    with tempfile.TemporaryDirectory(prefix='tidyvnc-workloads-', ignore_cleanup_errors=True) as temporary:
         for frontend, executable in (('fltk', args.fltk), ('winui', args.winui)):
             if not executable:
+                continue
+            if args.startup:
+                result = measure_startup(frontend, executable.resolve(), args.startup, Path(temporary))
+                report['results'].append(result)
+                print(json.dumps({k: v for k, v in result.items() if k != 'runs'}), flush=True)
                 continue
             for workload in workloads:
                 result = run(frontend, executable.resolve(), workload, args.seconds, args.rate, Path(temporary))

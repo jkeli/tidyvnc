@@ -521,6 +521,10 @@ def build_msi(staging, work, arch, product_version):
 
 def build(args, core, app):
     arch = args.arch
+    stamp = Path(app) / "tidyvnc-app.json"
+    published = json.loads(stamp.read_text()) if stamp.exists() else {}
+    if published.get("configuration") != "Release" or published.get("measurement"):
+        raise PackageError(f"Only a Release publish from app_build.py is packaged, not {app}")
     product_version = version()
     output = (getattr(args, "output", None) or ROOT / "build/winui/release" / f"TidyVNC-{product_version}-{arch}").resolve()
     if output.exists():

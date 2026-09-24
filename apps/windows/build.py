@@ -110,12 +110,19 @@ def main():
     parser.add_argument("--output", type=Path, help="package: new output directory (default build/winui/release/TidyVNC-<version>-<arch>); never replaced")
     parser.add_argument("--no-msi", action="store_true", help="package: audit and report without building the MSI")
     parser.add_argument("--sign", metavar="SHA1", help="package: code-signing certificate thumbprint (D23; unsigned without it)")
+    parser.add_argument("--measurement", action="store_true", help="app: Release publish that honours TIDYVNC_STATE_ROOT, for timing runs; never packaged")
+    parser.add_argument("--runtime", choices=("jit", "trimmed", "aot"), default="jit",
+                        help="app with --measurement: publish the WinUI app trimmed or with Native AOT (D1; the shipped app is jit)")
     parser.add_argument("--timestamp-url", default="http://timestamp.digicert.com", help="package: RFC 3161 timestamp server for --sign")
     args = parser.parse_args()
     stages = [stage.strip() for stage in args.stages.split(",") if stage.strip()]
     unknown = set(stages) - {"core", "app", "package"}
     if unknown:
         parser.error(f"unknown stages: {sorted(unknown)}")
+    if args.measurement and "package" in stages:
+        parser.error("a --measurement build honours TIDYVNC_STATE_ROOT and is never packaged")
+    if args.runtime != "jit" and not args.measurement:
+        parser.error("--runtime is for --measurement builds (D1: the shipped app is JIT)")
     core = build_core(args)
     print(f"Core: {core}", flush=True)
     if "app" in stages or "package" in stages:

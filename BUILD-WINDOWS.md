@@ -71,6 +71,20 @@ Environment variables for development and tests:
 | `TIDYVNC_TEST_WINDOWS_BUILD` | Simulates another Windows build for the start-up check |
 | `TIDYVNC_CRASH_LOG` | Appends unhandled UI exceptions to a file |
 
+`TIDYVNC_STATE_ROOT` works only in Debug builds and in measurement builds.
+Measurement builds are Release publishes for timing runs, built into their own
+folder, `build\winui\app-<arch>-measurement[-trimmed|-aot]`:
+
+```bat
+python apps\windows\build.py --configuration Release --stages app --measurement [--runtime trimmed|aot]
+```
+
+The package stage refuses them. `--runtime` publishes the WinUI app trimmed or
+with Native AOT, for comparison with the shipped JIT build (D1). The measurements use
+`tests\perf\windows-viewer-workloads.py`: the workloads, or `--startup N` for
+start-up times. Like the UI tests, they run only with `TIDYVNC_UI_TESTS=1` on an
+idle desktop.
+
 ### Package
 
 ```bat
