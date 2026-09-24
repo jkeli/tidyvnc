@@ -100,6 +100,8 @@ public partial class App : Application
     internal NativeDocumentLaunchRouter Documents { get; private set; } = null!;
     /// <summary>App defaults, profiles and history, credentials and trust decisions (SERVICES.md sections 2-5).</summary>
     internal NativePreferencesStore Preferences { get; private set; } = null!;
+    internal NativeWindowPlacementMemory WindowPlacements { get; private set; } = null!;
+    private NativeWindowStateStore? windowState;
     internal NativeProfileHistoryStore Profiles { get; private set; } = null!;
     internal NativeRecentHistory History { get; private set; } = null!;
     private NativeCredentialStore? credentialStore;
@@ -117,6 +119,9 @@ public partial class App : Application
     {
         var root = NativeStateRoot.Directory;
         Preferences = new NativePreferencesStore(root);
+        // A small bounded file read off the UI thread; the first window needs it before it is shown.
+        windowState = new NativeWindowStateStore(root);
+        WindowPlacements = NativeWindowPlacementMemory.LoadAsync(windowState).GetAwaiter().GetResult();
         Profiles = new NativeProfileHistoryStore(root);
         History = new NativeRecentHistory(Dispatcher, Profiles);
         History.Reload();
@@ -311,6 +316,8 @@ public partial class App : Application
     internal ConnectionWindow OpenWindow(NativeConnectionRequest? request = null)
     {
         var window = new ConnectionWindow(new NativeConnectionController(Services, request));
+        // Only a lone window returns to the saved place; others keep the system's cascade.
+        if (windows.Count == 0) window.RestorePlacement();
         windows.Add(window);
         window.Closed += (_, _) => WindowClosed(window);
         window.Activate();
@@ -332,7 +339,8 @@ public partial class App : Application
         await Clipboard.CloseAsync();
         await History.CloseAsync();
         if (credentialStore is not null) await credentialStore.DisposeAsync();
-        foreach (var store in new IDisposable?[] { Preferences, Profiles, certificateTrust, hostKeyTrust }) store?.Dispose();
+        await WindowPlacements.FlushAsync();
+        foreach (var store in new IDisposable?[] { Preferences, Profiles, certificateTrust, hostKeyTrust, windowState }) store?.Dispose();
         systemClipboard?.Dispose();
         Displays.Dispose();
         displayChanges?.Dispose();

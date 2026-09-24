@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using TidyVNC.Native;
 using TidyVNC.Native.Clipboard;
+using TidyVNC.Native.Platform;
 using TidyVNC.Native.Storage;
 using TidyVNC.Native.Tunnel;
 
@@ -27,6 +28,9 @@ public sealed partial class ConnectionWindow : Window
     private NativeSession? session;
     private readonly IDisposable scalingCheck;
     private bool closed, updatingFields;
+    // Placement (DESKTOP.md section 8): the last restored frame, and whether the user has placed the window.
+    private NativeWindowFrame? restoredFrame;
+    private bool shown, placing, userPlaced, startupApplied;
 
     internal NativeConnectionController Controller { get; }
     internal DesktopView Desktop => desktop;
@@ -75,8 +79,11 @@ public sealed partial class ConnectionWindow : Window
         if (controller.Session is { } ready) Attach(ready);
 
         AppWindow.Closing += OnClosing;
+        AppWindow.Changed += PlacementChanged;
         Activated += (_, e) =>
         {
+            if (!shown && restoredFrame is null && !Maximized) restoredFrame = Frame;
+            shown = true;
             var active = e.WindowActivationState != WindowActivationState.Deactivated;
             if (!active) desktop.ReleaseKeys();
             App.Current.WindowActivationChanged(this, active);
@@ -89,6 +96,7 @@ public sealed partial class ConnectionWindow : Window
     {
         if (ReferenceEquals(session, value)) return;
         session = value;
+        ApplyStartupPlacement(value.InitialWindowStartupPolicy);
         session.PropertyChanged += SessionChanged;
         App.Current.Clipboard.Register(session, notice => { ClipboardNotice = notice; Update(); });
         session.BellHandler = App.Current.Bell.Ring;
@@ -462,6 +470,75 @@ public sealed partial class ConnectionWindow : Window
 
     private void ActionsOpening(object? sender, object e) => ConnectionMenu.Fill(ActionsFlyout.Items, this);
 
+    // ---- Placement -----------------------------------------------------------------
+
+    private const string PlacementKey = "connection";
+    private static readonly (int Width, int Height) MinimumClient = (640, 420);
+
+    private NativeWindowFrame Frame => new(AppWindow.Position.X, AppWindow.Position.Y, AppWindow.Size.Width, AppWindow.Size.Height);
+    private bool Maximized => AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Maximized };
+
+    private static (int Width, int Height) ScaledMinimum(NativeDisplayInfo display) =>
+        ((int)Math.Round(MinimumClient.Width * display.Scale), (int)Math.Round(MinimumClient.Height * display.Scale));
+
+    private void PlacementChanged(AppWindow sender, AppWindowChangedEventArgs args)
+    {
+        if (!args.DidPositionChange && !args.DidSizeChange) return;
+        if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Restored }) restoredFrame = Frame;
+        if (shown && !placing) userPlaced = true;
+    }
+
+    private void Place(NativeWindowFrame frame, bool maximize)
+    {
+        placing = true;
+        try
+        {
+            AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(frame.X, frame.Y, frame.Width, frame.Height));
+            restoredFrame = frame;
+            if (maximize && AppWindow.Presenter is OverlappedPresenter presenter) presenter.Maximize();
+        }
+        finally { placing = false; }
+    }
+
+    /// <summary>Returns the window to its saved place when that display still exists (D01).</summary>
+    internal void RestorePlacement()
+    {
+        if (App.Current.WindowPlacements.Get(PlacementKey) is not { } saved) return;
+        var displays = App.Current.Displays;
+        displays.Refresh();
+        if (saved.Display is null || displays.Snapshot.Find(saved.Display) is not { } display) return;
+        if (NativeWindowPlacements.Restore(saved, displays.Snapshot, ScaledMinimum(display)) is { } frame) Place(frame, saved.Maximized);
+    }
+
+    /// <summary>
+    /// -geometry and Maximize (D12): once, for the window's first connection,
+    /// and never after the user has moved or resized the window.
+    /// </summary>
+    private void ApplyStartupPlacement(NativeWindowStartupPolicy policy)
+    {
+        if (startupApplied) return;
+        startupApplied = true;
+        if (!policy.HasPlacement || userPlaced || closed) return;
+        var displays = App.Current.Displays;
+        displays.Refresh();
+        var snapshot = displays.Snapshot;
+        var frame = Frame;
+        var current = NativeWindowPlacements.Capture(frame, false, snapshot).Display;
+        var position = NativeWindowPlacements.Position(policy.Geometry, snapshot);
+        if (NativeWindowPlacements.Target(snapshot, position, current) is not { } target) return;
+        var client = AppWindow.ClientSize;
+        var side = Math.Max(0, (frame.Width - client.Width) / 2);
+        var borders = new NativeInsets(side, Math.Max(0, frame.Height - client.Height - side), side, side);
+        if (AppWindow.Presenter is OverlappedPresenter { State: not OverlappedPresenterState.Restored } presenter) presenter.Restore();
+        Place(NativeWindowPlacements.Startup(policy, frame, borders, target, ScaledMinimum(target), position), policy.Maximize);
+    }
+
+    private void RememberPlacement()
+    {
+        if (restoredFrame is not { } frame) return;
+        App.Current.WindowPlacements.Remember(PlacementKey, NativeWindowPlacements.Capture(frame, Maximized, App.Current.Displays.Snapshot));
+    }
+
     // ---- Close ---------------------------------------------------------------------
 
     private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
@@ -476,6 +553,7 @@ public sealed partial class ConnectionWindow : Window
     {
         if (closed) return;
         closed = true;
+        RememberPlacement();
         dialogs.Close();
         if (session is not null) App.Current.Clipboard.Unregister(session);
         try { await Controller.CloseAsync(); }
