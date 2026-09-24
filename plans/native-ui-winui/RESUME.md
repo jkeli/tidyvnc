@@ -22,8 +22,16 @@ their remaining checks run. These are mostly the following, and each item lists 
 - a clean VM or test account: installing, FLTK comparisons, relocated GUI start;
 - owner reviews.
 
-Checked or decided so far: W1–W4 (with named exceptions), W7.8 (Native AOT not adopted yet; see
-DECISIONS.md D1).
+Checked or decided so far:
+
+- W0.2 (startup, size and warnings for JIT, trimmed and AOT builds);
+- W1.9 (long paths now work without the LongPathsEnabled setting);
+- W1–W4, with named exceptions;
+- W7.8 (Native AOT not adopted yet; see DECISIONS.md D1).
+
+Native AOT status (D1): the earlier hang was a .NET runtime deadlock in Debug AOT builds only. After an
+AOT-only presenter fix, Release AOT matches JIT on every automated check. It saves about 190 ms of
+startup. Adopting it waits only for the full UI suite with the display on.
 
 ## Owner-dependent items
 
@@ -45,6 +53,10 @@ python apps\windows\build.py --configuration Release --stages package
 rem .NET tests (four stuck test processes from an earlier session lock the default output; use -o)
 dotnet build tests\windows\TidyVNC.Native.Tests -c Debug -p:Platform=x64 -o <dir>
 dotnet exec <dir>\TidyVNC.Native.Tests.dll
+
+rem Measurement builds (Release that honours TIDYVNC_STATE_ROOT; never packaged) and startup timing
+python apps\windowsuild.py --configuration Release --stages app --measurement --runtime jit|trimmed|aot
+python tests\perf\windows-viewer-workloads.py --winui build\winuipp-x64-measurementncviewer.exe --direct --startup 11
 
 rem UI automation and smokes: only with TIDYVNC_UI_TESTS=1 and an idle desktop (never TIDYVNC_UI_TESTS_FORCE)
 dotnet test --project tests\windows\TidyVNC.UITests -c Debug -p:Platform=x64
@@ -71,3 +83,6 @@ failures since the planning checkpoint.
 - Do not install into the owner's account.
 - Do not accept EULAs.
 - Do not change system settings.
+- Unattended runs never show modal dialogs. The .NET test host, and apps launched against an isolated
+  state root, route Debug CRT asserts and `abort()` to stderr (`NativeUnattended`). New tools must do
+  the same.
