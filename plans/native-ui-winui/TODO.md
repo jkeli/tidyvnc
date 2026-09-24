@@ -168,7 +168,7 @@ Exit: the macOS N5 exit on Windows, including the matched performance budget.
 - [ ] W7.5 Relocation and launch checks (PACKAGING.md §6).
 - [ ] W7.6 Installed-app acceptance (PACKAGING.md §9).
 - [ ] W7.7 OS and architecture matrix: serviced Windows 11 releases on x64 and ARM64; refusal on Windows 10 (D6).
-- [ ] W7.8 Final Native AOT decision (D1).
+- [x] W7.8 Final Native AOT decision (D1).
 - [ ] W7.9 Documentation: `BUILDING.txt` Windows section, a Windows build guide beside `BUILD-MACOS.md`, Help content, handoff status.
 - [ ] W7.10 Rollback: WinUI and FLTK installed side by side; uninstalling WinUI leaves FLTK and its data untouched.
 - [ ] W7.11 Owner review of remaining differences (audio loss versus FLTK is already accepted, D19).
@@ -1522,3 +1522,23 @@ Add dated entries, newest last, in the macOS format:
   - cancel without writing;
   - the existing acknowledgement, marker and stale-review checks.
   - 7/7 import tests pass.
+
+### W7.8 — Native AOT decision; W6.10 (progress) — 2026-09-24
+
+- IDs/commit: the commit carrying this entry.
+- W7.8: the D1 final is recorded in DECISIONS.md: ship the self-contained JIT build; Native AOT is not
+  adopted yet.
+  - Evidence: the full-app AOT publish has 0 warnings (12.9 MB TidyVNC.exe, 140 MB/175 files).
+  - The Debug AOT build passes the quick protocol smoke (8/8) and the security smokes (10/10).
+  - Its UI suite is 12/19. The failures are the 4 display-dependent tests; saved profiles (flaky, passed on
+    rerun); and the two pseudo-locale runs, where an AOT-only hang left the app unable to exit after the
+    multi-window sequence.
+  - The item is checked because the decision is made with evidence. Revisiting AOT means fixing that hang.
+- W6.10: `tests/perf/windows-viewer-workloads.py` ports the workload harness. It uses the same scripted
+  peer and the idle, full1080, full4k, scroll and patch workloads at an offered 30/s. Metrics come from
+  Win32 through ctypes: TidyVNC.exe CPU seconds per second, peak working set and private bytes, updates
+  per second, and round-trip p50/p95.
+  - The FLTK side needs a test account or VM (`TIDYVNC_TEST_ACCOUNT=1`), because the FLTK viewer writes
+    HKCU.
+  - The script is gated like the UI suite. Presentation timing (PresentMon/ETW) and the 10% gate stay
+    open.

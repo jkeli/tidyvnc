@@ -63,6 +63,21 @@ dispatcher thread, and marshals it to the UI thread. Build it trimmed and with
 Native AOT; record startup time, size and any trimming warnings. Adopt Native
 AOT only if the full app later builds without warnings (tracked in W7).
 
+**Final (W7.8, 2026-09-24): ship self-contained JIT; Native AOT not adopted yet.**
+- The full app (TidyVNC.exe, vncviewer.exe and the askpass helper) publishes with `PublishAot=true` with
+  no trimming or AOT warnings.
+  - Release x64 gives a 12.9 MB native TidyVNC.exe in a 140 MB, 175-file folder, against the JIT
+    payload's 186 MB and 407 files.
+- A Debug AOT publish passes the 8-case quick protocol smoke and all 10 security smokes. It also passes
+  12 of the 19 gated UI tests.
+  - The 4 display-dependent failures are the same as with JIT, and saved profiles passed on rerun.
+  - The qps-ploc and qps-plocm pseudo-locale runs failed under AOT only. After opening and closing the
+    settings, profiles, listener, import and help windows, the app did not exit, and the next run hit a
+    UI Automation timeout. The same test passes on the JIT build.
+- Adopting AOT would need that hang found and fixed, and the full suite rerun with the display on. Until
+  then the MSI ships the JIT build, which runs the same automated evidence. The `build.py` stages keep
+  AOT one property away.
+
 ## D2 — Build the core with MSVC as a DLL
 
 **Decision.** Build `tidyvnc_viewer_core`, `tidyvnc_viewer_platform` (with new
