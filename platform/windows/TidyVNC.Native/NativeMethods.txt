@@ -50,3 +50,8 @@ TranslateMessage
 DispatchMessageW
 DestroyWindow
 PostQuitMessage
+RegisterPowerSettingNotification
+UnregisterPowerSettingNotification
+SendMessageW
+SetThreadDpiAwarenessContext
+RECT

@@ -102,7 +102,7 @@ proven through the real app before substantial screen work.
 - [x] W4.5 Registry import sources for defaults and history, read-only, feeding the core projection.
 - [x] W4.6 Clipboard adapter and coordinator: listener window, contention retry, remote-origin format, focus routing, `CanUploadToCloudClipboard = 0` on every remote-origin write (D21).
   - [ ] Manual check with cloud clipboard on: remote text appears in local history and never on a second device
-- [ ] W4.7 Display service: `QueryDisplayConfig` topology, stable IDs, friendly names, change notifications.
+- [x] W4.7 Display service: `QueryDisplayConfig` topology, stable IDs, friendly names, change notifications.
 - [ ] W4.8 Keyboard capture service: `WH_KEYBOARD_LL` thread, pass-through rules, release triggers, typed failures.
 - [ ] W4.9 SSH tunnel owner with Job Object, askpass helper over a named pipe, configuration capture, host-key review (D17).
 - [ ] W4.10 Activation: primary instance, Jump List, file association handling, console launcher (D8/D9).
@@ -684,3 +684,48 @@ Add dated entries, newest last, in the macOS format:
   notice.
 - Open: D21's confirmation that remote text never reaches a second device
   needs a test account with cloud clipboard sync on two devices (owner).
+
+### W4.7 — display service — 2026-09-23
+
+- Behaviour: `platform/windows/TidyVNC.Native/Platform/NativeDisplayService.cs`.
+  - The source is the helper DLL's QueryDisplayConfig topology.
+    - Each display has a stable ID: 16 lowercase hex digits of the SHA-256
+      of the monitor device path, which is the format the preferences
+      record stores.
+    - Friendly names, with a numbered fallback.
+    - Physical rectangles plus logical (effective-pixel) rectangles and
+      the scale.
+    - Mirrored outputs are reported as one display.
+  - `NativeDisplayService` publishes immutable snapshots.
+    - The generation advances only on a real change. Ordering and monitor
+      handle changes alone keep it.
+    - Whole-snapshot validation: unique IDs, exactly one primary, the work
+      area inside the bounds, and at most 64 displays.
+    - A failed read publishes an empty snapshot with a typed error (for
+      example `Unavailable` while every display is powered off, when
+      QueryDisplayConfig returns E_INVALIDARG), never stale geometry.
+  - `Resolve` keeps surviving saved choices in their order and reports the
+    missing ones without rewriting the preference. Only when none survive
+    does it fall back to the current display, then the primary.
+  - `NativeDisplayChangeListener` runs a hidden top-level window on its own
+    per-monitor-v2-aware thread. It receives `WM_DISPLAYCHANGE`,
+    `WM_SETTINGCHANGE`, `WM_DPICHANGED` and console display on/off power
+    notifications (message-only windows get no broadcasts), and coalesces
+    refreshes onto the UI thread.
+  - The app owns one service.
+- Tests: `DisplayTests`, 5 cases:
+  - resolution, including a single survivor;
+  - generation rules;
+  - invalid topologies refused whole;
+  - each notification message refreshing on the UI thread, while unrelated
+    power messages do not;
+  - the real topology, either valid or typed `Unavailable`.
+
+  `DesktopTests` now tolerates the powered-off case. Result: 3 consecutive
+  clean runs; full native suite 88 passed, 2 gated skipped. Mutation-checked,
+  6 mutations, all fail the suite: survivor resolution, current-display
+  fallback, generation dedupe, the primary rule, the power message filter,
+  and stable ordering.
+- Open: W6 checks the legacy monitor numbering against the FLTK viewer on
+  multi-monitor hardware, and real DPI and topology changes (hot-plug,
+  scale change) on that hardware.

@@ -62,7 +62,11 @@ public sealed class DesktopTests
         Assert.AreEqual(0xff1bu, keyboard.KeySyms(0x01)[0]);
         Assert.AreEqual(0u, NativeKeyboard.LedState & ~7u);
 
-        var displays = NativeDisplays.Query();
+        IReadOnlyList<NativeDisplay> displays;
+        // With every display powered off QueryDisplayConfig fails (E_INVALIDARG);
+        // the display service reports that as Unavailable (DisplayTests).
+        try { displays = NativeDisplays.Query(); }
+        catch (WindowsHelperException error) when (error.Message.Contains("0x80070057", StringComparison.Ordinal)) { displays = []; }
         if (displays.Count > 0)
         {
             Assert.AreEqual(1, displays.Count(d => d.Primary));
