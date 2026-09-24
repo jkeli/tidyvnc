@@ -1542,3 +1542,16 @@ Add dated entries, newest last, in the macOS format:
     HKCU.
   - The script is gated like the UI suite. Presentation timing (PresentMon/ETW) and the 10% gate stay
     open.
+- W6.10 first run (this machine, Debug publish, display powered off, 6 s per workload, offered 30/s):
+
+  | Workload | Updates/s | CPU s/s | Peak working set | Peak private |
+  | --- | --- | --- | --- | --- |
+  | idle | 0 | 0.031 | 270 MiB | 195 MiB |
+  | full1080 | 30.16 | 0.424 | 362 MiB | 278 MiB |
+  | full4k | 30.15 | 0.802 | 697 MiB | 621 MiB |
+  | scroll | 30.16 | 0.359 | 306 MiB | 230 MiB |
+  | patch | 30.17 | 0.172 | 295 MiB | 217 MiB |
+
+  - Round trips were p50 0.02–0.05 ms and p95 at most 0.22 ms.
+  - This is a harness check, not the W6.10 comparison. That needs a Release build, the display on, the
+    FLTK side in a test account, and present timing.
