@@ -57,7 +57,7 @@ enum { TIDYVNC_DOMAIN_BRIDGE = 1, TIDYVNC_DOMAIN_ENDPOINT = 2,
        TIDYVNC_DOMAIN_AUTHENTICATION = 5, TIDYVNC_DOMAIN_ENCODING = 6, TIDYVNC_DOMAIN_SECURITY = 7,
        TIDYVNC_DOMAIN_DOCUMENT = 8, TIDYVNC_DOMAIN_INVOCATION = 9, TIDYVNC_DOMAIN_LOGGING = 10,
        TIDYVNC_DOMAIN_IDENTITY = 11, TIDYVNC_DOMAIN_KNOWN_HOSTS = 12, TIDYVNC_DOMAIN_MONITORS = 13,
-       TIDYVNC_DOMAIN_EXPORT = 14 };
+       TIDYVNC_DOMAIN_EXPORT = 14, TIDYVNC_DOMAIN_IMPORT = 15 };
 enum { TIDYVNC_ENDPOINT_TOO_LONG = 1, TIDYVNC_ENDPOINT_INVALID_HOST = 2,
        TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3, TIDYVNC_ENDPOINT_INVALID_PORT = 4,
        TIDYVNC_ENDPOINT_INVALID_PATH = 5, TIDYVNC_ENDPOINT_INVALID_ROUTE = 6,
@@ -94,6 +94,7 @@ enum { TIDYVNC_FEATURE_RUNTIME = 1, TIDYVNC_FEATURE_TCP_UNIX_CONNECT = 2,
 #define TIDYVNC_FEATURE_KNOWN_HOSTS 562949953421312ULL
 #define TIDYVNC_FEATURE_MONITOR_NUMBERING 1125899906842624ULL
 #define TIDYVNC_FEATURE_EXPORT_LOSS 2251799813685248ULL
+#define TIDYVNC_FEATURE_IMPORT_PROJECTION 4503599627370496ULL
 typedef struct { const uint8_t* data; uint64_t length; } tidyvnc_bytes;
 enum { TIDYVNC_LOGGING_TOO_LARGE = 1, TIDYVNC_LOGGING_NULL_BYTE = 2,
        TIDYVNC_LOGGING_INVALID_RULE = 3, TIDYVNC_LOGGING_LEVEL_OVERFLOW = 4,
@@ -806,6 +807,54 @@ typedef struct {
 } tidyvnc_export_loss_info;
 TIDYVNC_API tidyvnc_status tidyvnc_export_losses(const tidyvnc_export_request*, uint32_t* losses, tidyvnc_error*);
 TIDYVNC_API tidyvnc_status tidyvnc_export_loss_at(uint32_t index, tidyvnc_export_loss_info*, tidyvnc_error*);
+/* IMPORT_PROJECTION: the first step of an explicit import of the retained
+ * viewer's defaults or history (the macOS NativeDefaultsImportProjection and
+ * NativeHistoryImport). The source is either file bytes (connection-file
+ * syntax for defaults; one entry per line for history, as the XDG files) or
+ * decoded values (the Windows registry: defaults as name/value strings,
+ * history as the values "0", "1", ... in order, each at most 255 bytes).
+ * Pass exactly one: file.data non-NULL, or values with count > 0 (count 0
+ * with a NULL file is an empty source).
+ *   Defaults: only ordinary viewing preferences are kept (connection sharing
+ *   and reconnect, clipboard directions, encoding, input, cursor, scaling and
+ *   fullscreen, including the deprecated DotWhenNoCursor and
+ *   FullScreenAllMonitors for the resolver's migrations). Security, trust,
+ *   endpoint, credential and tunnel fields are reported EXCLUDED, unknown
+ *   names UNKNOWN (never decoded) and platform-only names PLATFORM_ONLY, each
+ *   with its line (or one-based value position); understood fields are
+ *   validated even when excluded, and any other understood field fails as
+ *   UNREPRESENTABLE. Values are canonical; order is the source's.
+ *   History: the first 20 distinct non-empty entries, spelling kept exactly;
+ *   duplicates and older entries past 20 are counted for review.
+ * File syntax errors use DOMAIN_DOCUMENT; the rest DOMAIN_IMPORT with detail
+ * (line << 8) | reason. Results are immutable handles (release normally);
+ * returned spans are borrowed from the handle. No IO or settings change. */
+enum { TIDYVNC_IMPORT_EXCLUDED = 1, TIDYVNC_IMPORT_UNKNOWN = 2, TIDYVNC_IMPORT_PLATFORM_ONLY = 3 };
+enum { TIDYVNC_IMPORT_UNREPRESENTABLE = 1, TIDYVNC_IMPORT_TOO_LARGE = 2, TIDYVNC_IMPORT_INVALID_TEXT = 3,
+       TIDYVNC_IMPORT_LINE_TOO_LONG = 4, TIDYVNC_IMPORT_TOO_MANY_ENTRIES = 5 };
+typedef struct { tidyvnc_bytes name, value; } tidyvnc_import_value;
+typedef struct { uint32_t size, version, assignment_count, notice_count; } tidyvnc_import_info;
+typedef struct {
+  uint32_t size, version, line, reserved;
+  char name[64];       /* Canonical parameter name */
+  tidyvnc_bytes value; /* Canonical value */
+} tidyvnc_import_assignment;
+typedef struct {
+  uint32_t size, version, line, kind;
+  tidyvnc_bytes name;  /* As written in the source */
+} tidyvnc_import_notice;
+typedef struct {
+  uint32_t size, version, count, duplicates, omitted_older, reserved;
+  tidyvnc_bytes endpoints[20];
+} tidyvnc_import_history_info;
+TIDYVNC_API tidyvnc_status tidyvnc_import_defaults(tidyvnc_bytes file, const tidyvnc_import_value* values, uint32_t count,
+  tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_import_defaults_get(tidyvnc_handle, tidyvnc_import_info*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_import_assignment_at(tidyvnc_handle, uint32_t index, tidyvnc_import_assignment*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_import_notice_at(tidyvnc_handle, uint32_t index, tidyvnc_import_notice*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_import_history(tidyvnc_bytes file, const tidyvnc_bytes* values, uint32_t count,
+  tidyvnc_handle*, tidyvnc_error*);
+TIDYVNC_API tidyvnc_status tidyvnc_import_history_get(tidyvnc_handle, tidyvnc_import_history_info*, tidyvnc_error*);
 TIDYVNC_API tidyvnc_status tidyvnc_known_hosts_lookup(tidyvnc_bytes file, tidyvnc_bytes host, tidyvnc_bytes spki,
   tidyvnc_handle certificate_key, uint64_t now, tidyvnc_known_hosts_match*, tidyvnc_error*);
 /* SSH gateway ("via") grammar: [user@]host or ssh://[user@]host[:port], at most

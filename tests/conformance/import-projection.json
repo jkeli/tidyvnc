@@ -1,0 +1,582 @@
+{
+ "format": "tidyvnc-conformance-v1",
+ "module": "ImportProjection",
+ "about": [
+  "Shared cases for the core (tests/unit/importprojection.cxx) and the macOS",
+  "NativeDefaultsImportProjection/NativeHistoryImport. 'file' is file bytes",
+  "(or {repeat, count, prefix, suffix}); 'values' are decoded registry values.",
+  "Assignment values are canonical; the later resolver applies migrations."
+ ],
+ "cases": [
+  {
+   "name": "defaults.macos-projection",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nServerName=private-fixture::0\nSecurityTypes=None\nX509CA=private-fixture.pem\nX509CRL=/private-fixture/crl\nPassword=private-fixture\\q\nTLSPriority=private-fixture\\q\nVia=private-fixture\\q\nFuture=private-fixture\\q\nAudio=private-fixture\\q\nShared=yes\nReconnectOnError=no\nSendClipboard=off\nAcceptClipboard=on\nQualityLevel=3\nViewOnly=on\nEmulateMiddleButton=on\nFullscreenSystemKeys=off\nShortcutModifiers=Ctrl,Alt\nAlwaysCursor=off\nCursorType=System\nScalingFactor=125%\nScalingQuality=AREA\nDesktopPixelUnits=Device\nFullScreen=on\nFullScreenMode=Selected\nFullScreenSelectedMonitors=2",
+   "about": "tests/macos/NativeDefaultsImportTests.swift projection(): excluded lines 2-8",
+   "notices": [
+    {
+     "line": 2,
+     "name": "ServerName",
+     "kind": "excluded"
+    },
+    {
+     "line": 3,
+     "name": "SecurityTypes",
+     "kind": "excluded"
+    },
+    {
+     "line": 4,
+     "name": "X509CA",
+     "kind": "excluded"
+    },
+    {
+     "line": 5,
+     "name": "X509CRL",
+     "kind": "excluded"
+    },
+    {
+     "line": 6,
+     "name": "Password",
+     "kind": "excluded"
+    },
+    {
+     "line": 7,
+     "name": "TLSPriority",
+     "kind": "excluded"
+    },
+    {
+     "line": 8,
+     "name": "Via",
+     "kind": "excluded"
+    },
+    {
+     "line": 9,
+     "name": "Future",
+     "kind": "unknown"
+    },
+    {
+     "line": 10,
+     "name": "Audio",
+     "kind": "platformOnly"
+    }
+   ],
+   "assignments": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "line": 11
+    },
+    {
+     "name": "ReconnectOnError",
+     "value": "off",
+     "line": 12
+    },
+    {
+     "name": "SendClipboard",
+     "value": "off",
+     "line": 13
+    },
+    {
+     "name": "AcceptClipboard",
+     "value": "on",
+     "line": 14
+    },
+    {
+     "name": "QualityLevel",
+     "value": "3",
+     "line": 15
+    },
+    {
+     "name": "ViewOnly",
+     "value": "on",
+     "line": 16
+    },
+    {
+     "name": "EmulateMiddleButton",
+     "value": "on",
+     "line": 17
+    },
+    {
+     "name": "FullscreenSystemKeys",
+     "value": "off",
+     "line": 18
+    },
+    {
+     "name": "ShortcutModifiers",
+     "value": "Ctrl,Alt",
+     "line": 19
+    },
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "line": 20
+    },
+    {
+     "name": "CursorType",
+     "value": "System",
+     "line": 21
+    },
+    {
+     "name": "ScalingFactor",
+     "value": "125",
+     "line": 22
+    },
+    {
+     "name": "ScalingQuality",
+     "value": "Area",
+     "line": 23
+    },
+    {
+     "name": "DesktopPixelUnits",
+     "value": "Device",
+     "line": 24
+    },
+    {
+     "name": "FullScreen",
+     "value": "on",
+     "line": 25
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "Selected",
+     "line": 26
+    },
+    {
+     "name": "FullScreenSelectedMonitors",
+     "value": "2",
+     "line": 27
+    }
+   ]
+  },
+  {
+   "name": "defaults.deprecated-kept-for-resolver",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nDotWhenNoCursor=on\nAlwaysCursor=off\nCursorType=System\nFullScreenAllMonitors=on\nFullScreenMode=Current",
+   "notices": [],
+   "assignments": [
+    {
+     "name": "DotWhenNoCursor",
+     "value": "on",
+     "line": 2
+    },
+    {
+     "name": "AlwaysCursor",
+     "value": "off",
+     "line": 3
+    },
+    {
+     "name": "CursorType",
+     "value": "System",
+     "line": 4
+    },
+    {
+     "name": "FullScreenAllMonitors",
+     "value": "on",
+     "line": 5
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "Current",
+     "line": 6
+    }
+   ]
+  },
+  {
+   "name": "defaults.excluded-only",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nPassword=private-fixture\\q",
+   "notices": [
+    {
+     "line": 2,
+     "name": "Password",
+     "kind": "excluded"
+    }
+   ],
+   "assignments": []
+  },
+  {
+   "name": "defaults.platform-only-case",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nsendPrimary=1\nSETPRIMARY=0",
+   "notices": [
+    {
+     "line": 2,
+     "name": "sendPrimary",
+     "kind": "platformOnly"
+    },
+    {
+     "line": 3,
+     "name": "SETPRIMARY",
+     "kind": "platformOnly"
+    }
+   ],
+   "assignments": []
+  },
+  {
+   "name": "defaults.duplicate-keeps-order",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nShared=on\nShared=off",
+   "notices": [],
+   "assignments": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "line": 2
+    },
+    {
+     "name": "Shared",
+     "value": "off",
+     "line": 3
+    }
+   ]
+  },
+  {
+   "name": "defaults.malformed-known-0",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nShared=private-fixture\nShared=on",
+   "about": "Malformed understood fields fail at their line, excluded ones included",
+   "documentError": {
+    "line": 2
+   }
+  },
+  {
+   "name": "defaults.malformed-known-1",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nSecurityTypes=private-fixture",
+   "about": "Malformed understood fields fail at their line, excluded ones included",
+   "documentError": {
+    "line": 2
+   }
+  },
+  {
+   "name": "defaults.malformed-known-2",
+   "source": "file",
+   "file": "TidyVNC Configuration file Version 1.0\nX509CA=private-fixture\\q",
+   "about": "Malformed understood fields fail at their line, excluded ones included",
+   "documentError": {
+    "line": 2
+   }
+  },
+  {
+   "name": "defaults.limit-size-without-final-newline",
+   "source": "file",
+   "file": {
+    "repeat": "\n",
+    "count": 1048528,
+    "prefix": "TidyVNC Configuration file Version 1.0\n",
+    "suffix": "Shared=on"
+   },
+   "notices": [],
+   "assignments": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "line": 1048530
+    }
+   ]
+  },
+  {
+   "name": "defaults.over-limit",
+   "source": "file",
+   "file": {
+    "repeat": "\n",
+    "count": 1048529,
+    "prefix": "TidyVNC Configuration file Version 1.0\n",
+    "suffix": "Shared=on"
+   },
+   "documentError": {
+    "line": 0
+   }
+  },
+  {
+   "name": "defaults.registry-values",
+   "source": "values",
+   "about": "The retained Windows viewer's registry: DWORD booleans and integers arrive as decimal text",
+   "values": [
+    [
+     "Shared",
+     "1"
+    ],
+    [
+     "SecurityTypes",
+     "VncAuth"
+    ],
+    [
+     "QualityLevel",
+     "6"
+    ],
+    [
+     "ViewOnly",
+     "0"
+    ],
+    [
+     "ServerName",
+     "private-fixture"
+    ],
+    [
+     "FutureValue",
+     "x"
+    ],
+    [
+     "FullScreenMode",
+     "all"
+    ],
+    [
+     "ScalingFactor",
+     "Auto"
+    ]
+   ],
+   "notices": [
+    {
+     "line": 2,
+     "name": "SecurityTypes",
+     "kind": "excluded"
+    },
+    {
+     "line": 5,
+     "name": "ServerName",
+     "kind": "excluded"
+    },
+    {
+     "line": 6,
+     "name": "FutureValue",
+     "kind": "unknown"
+    }
+   ],
+   "assignments": [
+    {
+     "name": "Shared",
+     "value": "on",
+     "line": 1
+    },
+    {
+     "name": "QualityLevel",
+     "value": "6",
+     "line": 3
+    },
+    {
+     "name": "ViewOnly",
+     "value": "off",
+     "line": 4
+    },
+    {
+     "name": "FullScreenMode",
+     "value": "All",
+     "line": 7
+    },
+    {
+     "name": "ScalingFactor",
+     "value": "Auto",
+     "line": 8
+    }
+   ]
+  },
+  {
+   "name": "defaults.registry-malformed",
+   "source": "values",
+   "values": [
+    [
+     "Shared",
+     "on"
+    ],
+    [
+     "QualityLevel",
+     "eleven"
+    ]
+   ],
+   "documentError": {
+    "line": 2
+   }
+  },
+  {
+   "name": "defaults.registry-too-long",
+   "source": "values",
+   "values": [
+    [
+     "Shared",
+     "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    ]
+   ],
+   "error": {
+    "reason": "tooLarge",
+    "line": 1
+   }
+  },
+  {
+   "name": "defaults.registry-nul",
+   "source": "values",
+   "values": [
+    [
+     "Shared",
+     "o\u0000n"
+    ]
+   ],
+   "error": {
+    "reason": "invalidText",
+    "line": 1
+   }
+  },
+  {
+   "name": "history.macos-parsing",
+   "source": "file",
+   "history": true,
+   "file": "HOST:0\r\nhost::5900\nHOST:0\n[fe80::1%en0]:1\n/path with spaces/socket\n\n spaced-host \r\n",
+   "endpoints": [
+    "HOST:0",
+    "host::5900",
+    "[fe80::1%en0]:1",
+    "/path with spaces/socket",
+    " spaced-host "
+   ],
+   "duplicates": 1,
+   "omittedOlder": 0
+  },
+  {
+   "name": "history.first-twenty",
+   "source": "file",
+   "history": true,
+   "file": "host0\nhost1\nhost2\nhost3\nhost4\nhost5\nhost6\nhost7\nhost8\nhost9\nhost10\nhost11\nhost12\nhost13\nhost14\nhost15\nhost16\nhost17\nhost18\nhost19\nhost20\nhost21\nhost22\nhost23\nhost24\nhost24\nhost0\n",
+   "endpoints": [
+    "host0",
+    "host1",
+    "host2",
+    "host3",
+    "host4",
+    "host5",
+    "host6",
+    "host7",
+    "host8",
+    "host9",
+    "host10",
+    "host11",
+    "host12",
+    "host13",
+    "host14",
+    "host15",
+    "host16",
+    "host17",
+    "host18",
+    "host19"
+   ],
+   "duplicates": 2,
+   "omittedOlder": 5
+  },
+  {
+   "name": "history.blank-lines",
+   "source": "file",
+   "history": true,
+   "file": "\n\r\n",
+   "endpoints": [],
+   "duplicates": 0,
+   "omittedOlder": 0
+  },
+  {
+   "name": "history.utf8-byte-bound",
+   "source": "file",
+   "history": true,
+   "file": "\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\r\n",
+   "endpoints": [
+    "\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9"
+   ],
+   "duplicates": 0,
+   "omittedOlder": 0
+  },
+  {
+   "name": "history.line-too-long",
+   "source": "file",
+   "history": true,
+   "file": "host\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "error": {
+    "reason": "lineTooLong",
+    "line": 2
+   }
+  },
+  {
+   "name": "history.nul",
+   "source": "file",
+   "history": true,
+   "file": "host\nprivate-secret\u0000value",
+   "error": {
+    "reason": "invalidText",
+    "line": 2
+   }
+  },
+  {
+   "name": "history.invalid-utf8",
+   "source": "file",
+   "history": true,
+   "fileHex": "680aff",
+   "error": {
+    "reason": "invalidText",
+    "line": 2
+   }
+  },
+  {
+   "name": "history.validated-past-capacity",
+   "source": "file",
+   "history": true,
+   "file": "h0\nh1\nh2\nh3\nh4\nh5\nh6\nh7\nh8\nh9\nh10\nh11\nh12\nh13\nh14\nh15\nh16\nh17\nh18\nh19\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "error": {
+    "reason": "lineTooLong",
+    "line": 21
+   }
+  },
+  {
+   "name": "history.exact-maximum",
+   "source": "file",
+   "history": true,
+   "file": {
+    "repeat": "\n",
+    "count": 1048576
+   },
+   "endpoints": [],
+   "duplicates": 0,
+   "omittedOlder": 0
+  },
+  {
+   "name": "history.over-maximum",
+   "source": "file",
+   "history": true,
+   "file": {
+    "repeat": "\n",
+    "count": 1048577
+   },
+   "error": {
+    "reason": "tooLarge",
+    "line": 0
+   }
+  },
+  {
+   "name": "history.registry-values",
+   "source": "values",
+   "history": true,
+   "values": [
+    "HOST:0",
+    "host::5900",
+    "HOST:0",
+    "",
+    "[fe80::1%en0]:1"
+   ],
+   "endpoints": [
+    "HOST:0",
+    "host::5900",
+    "[fe80::1%en0]:1"
+   ],
+   "duplicates": 1,
+   "omittedOlder": 0
+  },
+  {
+   "name": "history.registry-255-bytes",
+   "source": "values",
+   "history": true,
+   "values": [
+    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   ],
+   "endpoints": [
+    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+   ],
+   "duplicates": 0,
+   "omittedOlder": 0
+  }
+ ]
+}

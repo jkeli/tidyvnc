@@ -72,6 +72,68 @@ public sealed class ConformanceTests
     }
 
     [TestMethod]
+    public void ImportProjectionCorpus()
+    {
+        using var document = JsonDocument.Parse(File.ReadAllBytes(Corpus("import-projection.json")));
+        var ran = 0;
+        foreach (var entry in document.RootElement.GetProperty("cases").EnumerateArray())
+        {
+            var name = entry.GetProperty("name").GetString()!;
+            var history = entry.TryGetProperty("history", out var h) && h.GetBoolean();
+            var fromFile = entry.GetProperty("source").GetString() == "file";
+            byte[] file = !fromFile ? [] : entry.TryGetProperty("fileHex", out var hex) ? Convert.FromHexString(hex.GetString()!)
+                : Encoding.UTF8.GetBytes(FileText(entry.GetProperty("file")));
+            Func<object> run = (history, fromFile) switch
+            {
+                (true, true) => () => NativeImport.HistoryFromFile(file),
+                (true, false) => () => NativeImport.HistoryFromValues(entry.GetProperty("values").EnumerateArray().Select(v => v.GetString()!).ToList()),
+                (false, true) => () => NativeImport.DefaultsFromFile(file),
+                _ => () => NativeImport.DefaultsFromValues(entry.GetProperty("values").EnumerateArray()
+                    .Select(v => (v[0].GetString()!, v[1].GetString()!)).ToList()),
+            };
+            ran++;
+            if (entry.TryGetProperty("documentError", out var documentError))
+            {
+                var failure = Assert.ThrowsExactly<NativeError>(() => run(), name);
+                Assert.AreEqual(documentError.GetProperty("line").GetUInt32(), failure.Detail >> 8, name);
+                continue;
+            }
+            if (entry.TryGetProperty("error", out var error))
+            {
+                var failure = Assert.ThrowsExactly<NativeImportFailure>(() => run(), name);
+                Assert.AreEqual(error.GetProperty("reason").GetString(), JsonNamingPolicy.CamelCase.ConvertName(failure.Reason.ToString()), name);
+                Assert.AreEqual(error.GetProperty("line").GetUInt32(), failure.Line, name);
+                continue;
+            }
+            if (run() is NativeHistoryProjection projection)
+            {
+                CollectionAssert.AreEqual(entry.GetProperty("endpoints").EnumerateArray().Select(e => e.GetString()).ToArray(), projection.Endpoints.ToArray(), name);
+                Assert.AreEqual(entry.GetProperty("duplicates").GetUInt32(), projection.Duplicates, name);
+                Assert.AreEqual(entry.GetProperty("omittedOlder").GetUInt32(), projection.OmittedOlder, name);
+            }
+            else
+            {
+                var defaults = (NativeDefaultsProjection)run();
+                CollectionAssert.AreEqual(entry.GetProperty("assignments").EnumerateArray()
+                    .Select(a => new NativeImportAssignment(a.GetProperty("name").GetString()!, a.GetProperty("value").GetString()!, a.GetProperty("line").GetUInt32())).ToArray(),
+                    defaults.Assignments.ToArray(), name);
+                CollectionAssert.AreEqual(entry.GetProperty("notices").EnumerateArray()
+                    .Select(n => $"{n.GetProperty("line").GetUInt32()}:{n.GetProperty("name").GetString()}:{n.GetProperty("kind").GetString()}").ToArray(),
+                    defaults.Notices.Select(n => $"{n.Line}:{n.Name}:{JsonNamingPolicy.CamelCase.ConvertName(n.Kind.ToString())}").ToArray(), name);
+            }
+        }
+        Assert.IsGreaterThanOrEqualTo(25, ran);
+    }
+
+    private static string FileText(JsonElement value)
+    {
+        if (value.ValueKind != JsonValueKind.Object) return value.GetString()!;
+        var builder = new StringBuilder(value.TryGetProperty("prefix", out var prefix) ? prefix.GetString() : "");
+        builder.Insert(builder.Length, value.GetProperty("repeat").GetString(), value.GetProperty("count").GetInt32());
+        return builder.Append(value.TryGetProperty("suffix", out var suffix) ? suffix.GetString() : "").ToString();
+    }
+
+    [TestMethod]
     public void ExportLossCorpus()
     {
         using var document = JsonDocument.Parse(File.ReadAllBytes(Corpus("export-loss.json")));

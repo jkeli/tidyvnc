@@ -182,16 +182,25 @@ inline Json load(const std::string& path)
   return Reader(text).document();
 }
 
-// Corpus strings may be literal or {"repeat": "x", "count": N} for long inputs.
+// Corpus strings may be literal or {"repeat": "x", "count": N} (with optional
+// "prefix" and "suffix") for long inputs.
 inline std::string text(const Json& value)
 {
   if (value.type == Json::Type::Object) {
-    std::string out;
+    std::string out = value.string("prefix", "");
     const auto& unit = value["repeat"].string();
     for (uint32_t i = 0, n = value["count"].u32(); i < n; ++i) out += unit;
-    return out;
+    return out + value.string("suffix", "");
   }
   return value.string();
+}
+
+// Binary corpus input as lowercase hex.
+inline std::string hexBytes(const std::string& hex)
+{
+  std::string out;
+  for (size_t i = 0; i + 1 < hex.size(); i += 2) out += char(std::stoul(hex.substr(i, 2), nullptr, 16));
+  return out;
 }
 
 inline std::string text(const Json& value, const std::string& name, const std::string& fallback)

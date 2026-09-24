@@ -9,6 +9,7 @@
 #include <viewer/core/LegacyKnownHosts.h>
 #include <viewer/core/LegacyMonitorNumbering.h>
 #include <viewer/core/ExportLoss.h>
+#include <viewer/core/ImportProjection.h>
 #include <viewer/core/StartupLogging.h>
 #include <core/Logger_file.h>
 #include "tidyvnc.h"
@@ -73,7 +74,7 @@ constexpr uint64_t features = TIDYVNC_FEATURE_PARAMETER_GRAMMARS | TIDYVNC_FEATU
   | TIDYVNC_FEATURE_CERTIFICATE_KEY
 #endif
   | TIDYVNC_FEATURE_NATIVE_ERROR_CATEGORY | TIDYVNC_FEATURE_IDENTITY_DIGEST | TIDYVNC_FEATURE_KNOWN_HOSTS | TIDYVNC_FEATURE_MONITOR_NUMBERING
-  | TIDYVNC_FEATURE_EXPORT_LOSS
+  | TIDYVNC_FEATURE_EXPORT_LOSS | TIDYVNC_FEATURE_IMPORT_PROJECTION
   | TIDYVNC_FEATURE_CREDENTIAL_BYTES | TIDYVNC_FEATURE_PASSWORD_FILE_REPLY | TIDYVNC_FEATURE_CONNECTION_INFO | TIDYVNC_FEATURE_ENDPOINT_IDENTITY | TIDYVNC_FEATURE_PROMPT_SECURITY | TIDYVNC_FEATURE_CERTIFICATE_POLICY | TIDYVNC_FEATURE_HOST_KEY_ENCODING | TIDYVNC_FEATURE_REQUIRED_TLS_FILES | TIDYVNC_FEATURE_SECURITY_SELECTION | TIDYVNC_FEATURE_TLS_PRIORITY_VALIDATION | TIDYVNC_FEATURE_SECURITY_RECONFIGURATION | TIDYVNC_FEATURE_SHARED_SESSION | TIDYVNC_FEATURE_DESKTOP_LAYOUT | TIDYVNC_FEATURE_DISPLAY_LAYOUT | TIDYVNC_FEATURE_CANVAS_GEOMETRY | TIDYVNC_FEATURE_CONNECTION_DOCUMENT | TIDYVNC_FEATURE_DOCUMENT_OPTIONS | TIDYVNC_FEATURE_INVOCATION_SYNTAX | TIDYVNC_FEATURE_INVOCATION_VALUES | TIDYVNC_FEATURE_INPUT_TIMING | TIDYVNC_FEATURE_MESSAGE_LIMITS | TIDYVNC_FEATURE_WINDOW_GEOMETRY
 #ifdef TIDYVNC_PLATFORM_SOCKETS
   | TIDYVNC_FEATURE_PROCESS_LOGGING | TIDYVNC_FEATURE_FILE_LOGGING
@@ -229,6 +230,11 @@ template<class F> tidyvnc_status call(tidyvnc_error* error,F body) noexcept {
     return TIDYVNC_INVALID_ARGUMENT;
   } catch (const InvocationError& problem) {
     const auto fault = invocationFault(problem); if (writable) errorValue(error,fault); return fault.status;
+  } catch (const ImportError& problem) {
+    const auto status = problem.problem == ImportProblem::TooLarge || problem.problem == ImportProblem::TooManyEntries ||
+      problem.problem == ImportProblem::LineTooLong ? TIDYVNC_RESOURCE_LIMIT : TIDYVNC_INVALID_ARGUMENT;
+    if (writable) errorValue(error,Fault(status,TIDYVNC_DOMAIN_IMPORT,(problem.line << 8) | (static_cast<uint32_t>(problem.problem)+1)));
+    return status;
   } catch (const ExportError& problem) {
     if (writable) errorValue(error,Fault(TIDYVNC_INVALID_ARGUMENT,TIDYVNC_DOMAIN_EXPORT,static_cast<uint32_t>(problem.problem)+1));
     return TIDYVNC_INVALID_ARGUMENT;
@@ -320,7 +326,8 @@ RemoteDesktopLayout desktopLayout(const tidyvnc_desktop_layout_request* input) {
   }
   return RemoteDesktopLayout(input->width,input->height,std::move(screens));
 }
-enum class Kind { Runtime, Session, Listener, Image, Prompt, Subscription, Clipboard, Encoding, Renderer, CursorSampler, Shortcut, Endpoint, CertificateKey, Document, Invocation, SSHGateway };
+enum class Kind { Runtime, Session, Listener, Image, Prompt, Subscription, Clipboard, Encoding, Renderer, CursorSampler, Shortcut, Endpoint, CertificateKey, Document, Invocation, SSHGateway,
+  ImportDefaults, ImportHistory };
 struct Object { virtual ~Object() = default; virtual void released() noexcept {} };
 struct Registry {
   struct Entry { Kind kind; uint64_t references = 0; std::shared_ptr<Object> object; };
@@ -722,6 +729,14 @@ struct EndpointIdentity : Object {
 struct SSHGatewayValue : Object {
   explicit SSHGatewayValue(viewer::SSHGateway value_) : value(std::move(value_)) {}
   const viewer::SSHGateway value;
+};
+struct ImportDefaultsValue : Object {
+  explicit ImportDefaultsValue(DefaultsProjection input) : value(std::move(input)) {}
+  const DefaultsProjection value;
+};
+struct ImportHistoryValue : Object {
+  explicit ImportHistoryValue(HistoryProjection input) : value(std::move(input)) {}
+  const HistoryProjection value;
 };
 struct Invocation : Object {
   explicit Invocation(InvocationSyntax input) : value(std::move(input)) {}
@@ -1898,6 +1913,102 @@ static_assert(static_cast<unsigned>(MonitorNumberingProblem::Empty)+1 == TIDYVNC
 static_assert(static_cast<uint32_t>(ExportLoss::FailureAlerts) == TIDYVNC_EXPORT_FAILURE_ALERTS &&
   static_cast<uint32_t>(ExportLoss::SshGateway) == TIDYVNC_EXPORT_SSH_GATEWAY &&
   static_cast<uint32_t>(ExportLoss::WindowPlacement) == TIDYVNC_EXPORT_WINDOW_PLACEMENT, "Export loss bits changed");
+static_assert(static_cast<unsigned>(ImportProblem::Unrepresentable)+1 == TIDYVNC_IMPORT_UNREPRESENTABLE &&
+  static_cast<unsigned>(ImportProblem::TooManyEntries)+1 == TIDYVNC_IMPORT_TOO_MANY_ENTRIES &&
+  static_cast<unsigned>(ImportNoticeKind::Excluded) == TIDYVNC_IMPORT_EXCLUDED &&
+  static_cast<unsigned>(ImportNoticeKind::PlatformOnly) == TIDYVNC_IMPORT_PLATFORM_ONLY, "Import IDs changed");
+extern "C++" { // Helpers inside the exported C block.
+namespace {
+std::string spanText(tidyvnc_bytes input) {
+  require(input.data || !input.length);
+  return input.length ? std::string(reinterpret_cast<const char*>(input.data),static_cast<size_t>(input.length)) : std::string();
+}
+// Exactly one source: file bytes, or values; counts are checked before copies.
+bool fileSource(tidyvnc_bytes file,const void* values,uint32_t count) {
+  require(!(file.data && count) && (values || !count));
+  if (count > ConnectionDocument::maximumEntries) throw ImportError(ImportProblem::TooManyEntries,0);
+  return file.data != nullptr || !count;
+}
+}
+}
+tidyvnc_status tidyvnc_import_defaults(tidyvnc_bytes file,const tidyvnc_import_value* values,uint32_t count,tidyvnc_handle* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    require(out != nullptr);
+    DefaultsProjection projection;
+    if (fileSource(file,values,count)) {
+      if (file.length > ConnectionDocument::maximumBytes) throw DocumentError(DocumentErrorCode::TooLarge);
+      projection = projectDefaultsFile(spanText(file));
+    } else {
+      std::vector<ImportValue> input;
+      for (uint32_t i = 0; i < count; ++i) {
+        if (values[i].name.length > 255 || values[i].value.length > 255) throw ImportError(ImportProblem::TooLarge,i+1);
+        input.push_back({spanText(values[i].name),spanText(values[i].value)});
+      }
+      projection = projectDefaultsValues(input);
+    }
+    Reservation slot(Kind::ImportDefaults);
+    *out = slot.commit(std::make_shared<ImportDefaultsValue>(std::move(projection))); return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_import_defaults_get(tidyvnc_handle id,tidyvnc_import_info* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<ImportDefaultsValue>(id,Kind::ImportDefaults);
+    auto value = output<tidyvnc_import_info>();
+    value.assignment_count = static_cast<uint32_t>(owner->value.assignments.size());
+    value.notice_count = static_cast<uint32_t>(owner->value.notices.size());
+    *out = value; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_import_assignment_at(tidyvnc_handle id,uint32_t index,tidyvnc_import_assignment* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<ImportDefaultsValue>(id,Kind::ImportDefaults);
+    if (index >= owner->value.assignments.size()) return TIDYVNC_NO_CHANGE;
+    const auto& entry = owner->value.assignments[index];
+    auto value = output<tidyvnc_import_assignment>();
+    value.line = entry.line; copyText(value.name,entry.name); value.value = bytes(entry.value);
+    *out = value; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_import_notice_at(tidyvnc_handle id,uint32_t index,tidyvnc_import_notice* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<ImportDefaultsValue>(id,Kind::ImportDefaults);
+    if (index >= owner->value.notices.size()) return TIDYVNC_NO_CHANGE;
+    const auto& entry = owner->value.notices[index];
+    auto value = output<tidyvnc_import_notice>();
+    value.line = entry.line; value.kind = static_cast<uint32_t>(entry.kind); value.name = bytes(entry.name);
+    *out = value; return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_import_history(tidyvnc_bytes file,const tidyvnc_bytes* values,uint32_t count,tidyvnc_handle* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    require(out != nullptr);
+    HistoryProjection projection;
+    if (fileSource(file,values,count)) {
+      if (file.length > historyMaximumBytes) throw ImportError(ImportProblem::TooLarge,0);
+      projection = projectHistoryFile(spanText(file));
+    } else {
+      std::vector<std::string> input;
+      for (uint32_t i = 0; i < count; ++i) {
+        if (values[i].length > 255) throw ImportError(ImportProblem::LineTooLong,i+1);
+        input.push_back(spanText(values[i]));
+      }
+      projection = projectHistoryValues(input);
+    }
+    Reservation slot(Kind::ImportHistory);
+    *out = slot.commit(std::make_shared<ImportHistoryValue>(std::move(projection))); return TIDYVNC_OK;
+  });
+}
+tidyvnc_status tidyvnc_import_history_get(tidyvnc_handle id,tidyvnc_import_history_info* out,tidyvnc_error* error) {
+  return call(error,[&]() -> uint32_t {
+    header(out); auto owner = get<ImportHistoryValue>(id,Kind::ImportHistory);
+    auto value = output<tidyvnc_import_history_info>();
+    require(owner->value.endpoints.size() <= 20,TIDYVNC_INTERNAL);
+    value.count = static_cast<uint32_t>(owner->value.endpoints.size());
+    value.duplicates = owner->value.duplicates; value.omitted_older = owner->value.omittedOlder;
+    for (uint32_t i = 0; i < value.count; ++i) value.endpoints[i] = bytes(owner->value.endpoints[i]);
+    *out = value; return TIDYVNC_OK;
+  });
+}
 tidyvnc_status tidyvnc_export_losses(const tidyvnc_export_request* request,uint32_t* losses,tidyvnc_error* error) {
   return call(error,[&]() -> uint32_t {
     header(request); require(losses != nullptr);

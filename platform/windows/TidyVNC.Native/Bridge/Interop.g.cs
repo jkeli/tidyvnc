@@ -32,6 +32,7 @@ public static class Tidyvnc
     public const ulong TIDYVNC_FEATURE_KNOWN_HOSTS = 562949953421312UL;
     public const ulong TIDYVNC_FEATURE_MONITOR_NUMBERING = 1125899906842624UL;
     public const ulong TIDYVNC_FEATURE_EXPORT_LOSS = 2251799813685248UL;
+    public const ulong TIDYVNC_FEATURE_IMPORT_PROJECTION = 4503599627370496UL;
     public const uint TIDYVNC_OK = 0U;
     public const uint TIDYVNC_NO_CHANGE = 1U;
     public const uint TIDYVNC_PENDING = 2U;
@@ -69,6 +70,7 @@ public static class Tidyvnc
     public const uint TIDYVNC_DOMAIN_KNOWN_HOSTS = 12U;
     public const uint TIDYVNC_DOMAIN_MONITORS = 13U;
     public const uint TIDYVNC_DOMAIN_EXPORT = 14U;
+    public const uint TIDYVNC_DOMAIN_IMPORT = 15U;
     public const uint TIDYVNC_ENDPOINT_TOO_LONG = 1U;
     public const uint TIDYVNC_ENDPOINT_INVALID_HOST = 2U;
     public const uint TIDYVNC_ENDPOINT_UNMATCHED_BRACKET = 3U;
@@ -333,6 +335,14 @@ public static class Tidyvnc
     public const uint TIDYVNC_EXPORT_IGNORED_INPUT = 128U;
     public const uint TIDYVNC_EXPORT_SSH_GATEWAY = 256U;
     public const uint TIDYVNC_EXPORT_SECURITY_POLICY = 1U;
+    public const uint TIDYVNC_IMPORT_EXCLUDED = 1U;
+    public const uint TIDYVNC_IMPORT_UNKNOWN = 2U;
+    public const uint TIDYVNC_IMPORT_PLATFORM_ONLY = 3U;
+    public const uint TIDYVNC_IMPORT_UNREPRESENTABLE = 1U;
+    public const uint TIDYVNC_IMPORT_TOO_LARGE = 2U;
+    public const uint TIDYVNC_IMPORT_INVALID_TEXT = 3U;
+    public const uint TIDYVNC_IMPORT_LINE_TOO_LONG = 4U;
+    public const uint TIDYVNC_IMPORT_TOO_MANY_ENTRIES = 5U;
     public const uint TIDYVNC_SSH_GATEWAY_USER = 1U;
     public const uint TIDYVNC_SSH_GATEWAY_EXPLICIT_PORT = 2U;
     public const uint TIDYVNC_DESKTOP_SIZE_LEGACY = 1U;
@@ -1170,6 +1180,55 @@ public unsafe partial struct tidyvnc_export_loss_info
 }
 
 [StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_import_value
+{
+    public tidyvnc_bytes name;
+    public tidyvnc_bytes value;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_import_info
+{
+    public uint size;
+    public uint version;
+    public uint assignment_count;
+    public uint notice_count;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_import_assignment
+{
+    public uint size;
+    public uint version;
+    public uint line;
+    public uint reserved;
+    public fixed byte name[64];
+    public tidyvnc_bytes value;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_import_notice
+{
+    public uint size;
+    public uint version;
+    public uint line;
+    public uint kind;
+    public tidyvnc_bytes name;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public unsafe partial struct tidyvnc_import_history_info
+{
+    public uint size;
+    public uint version;
+    public uint count;
+    public uint duplicates;
+    public uint omitted_older;
+    public uint reserved;
+    public tidyvnc_bytes_Array20 endpoints;
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public unsafe partial struct tidyvnc_ssh_gateway_info
 {
     public uint size;
@@ -1189,6 +1248,12 @@ public unsafe partial struct tidyvnc_desktop_size
     public uint version;
     public uint width;
     public uint height;
+}
+
+[InlineArray(20)]
+public struct tidyvnc_bytes_Array20
+{
+    private tidyvnc_bytes _element0;
 }
 
 [InlineArray(16)]
@@ -1463,6 +1528,30 @@ public static unsafe partial class NativeMethods
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
     public static partial uint tidyvnc_export_loss_at(uint index, tidyvnc_export_loss_info* p1, tidyvnc_error* p2);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_import_defaults(tidyvnc_bytes file, tidyvnc_import_value* values, uint count, ulong* p3, tidyvnc_error* p4);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_import_defaults_get(ulong p0, tidyvnc_import_info* p1, tidyvnc_error* p2);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_import_assignment_at(ulong p0, uint index, tidyvnc_import_assignment* p2, tidyvnc_error* p3);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_import_notice_at(ulong p0, uint index, tidyvnc_import_notice* p2, tidyvnc_error* p3);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_import_history(tidyvnc_bytes file, tidyvnc_bytes* values, uint count, ulong* p3, tidyvnc_error* p4);
+
+    [LibraryImport(Library)]
+    [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
+    public static partial uint tidyvnc_import_history_get(ulong p0, tidyvnc_import_history_info* p1, tidyvnc_error* p2);
 
     [LibraryImport(Library)]
     [UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
