@@ -3,6 +3,8 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using TidyVNC.Native;
 using TidyVNC.Native.Desktop;
 using TidyVNC.Native.Platform;
@@ -29,6 +31,9 @@ internal sealed class FullscreenHost : IDisposable
     private readonly List<Surface> surfaces = [];
     private ImmutableArray<NativeDisplayInfo> topology = [];
     private bool presenter, closing, disposed;
+    private FullscreenConnectionBar? bar;
+    private Grid? barLayer;
+    private readonly PointerEventHandler barPointer;
     private readonly Guid canvasSource = Guid.NewGuid();
     private NativeRemoteResizeCoordinator Resize => owner.Controller.RemoteResize;
 
@@ -36,6 +41,7 @@ internal sealed class FullscreenHost : IDisposable
     {
         this.owner = owner; this.state = state; this.displays = displays;
         displays.PropertyChanged += DisplaysChanged;
+        barPointer = (sender, e) => { if (sender is UIElement layer) bar?.PointerMovedOnSurface(e, layer); };
     }
 
     public NativeFullscreenState State => state;
@@ -96,6 +102,7 @@ internal sealed class FullscreenHost : IDisposable
             owner.SetFullscreenChrome(true);
             owner.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
             owner.Desktop.Capture.SetFullscreen(true);
+            AddBar(owner.DesktopLayer);
             state.SetPhase(NativeFullscreenPhase.Active);
             return;
         }
@@ -140,10 +147,20 @@ internal sealed class FullscreenHost : IDisposable
             view.Capture.SetFullscreenSystemKeys(owner.Controller.Input.Value.FullscreenSystemKeys);
             view.Capture.SetFullscreen(true);
             view.Command += owner.DesktopCommand;
+            owner.HookView(view);
             view.SurfaceEntered += SurfaceEntered;
             view.RenderFailed += _ => owner.DispatcherQueue.TryEnqueue(() => Exit());
-            window.Content = view;
+            if (window.Content is null) window.Content = view;
             window.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));
+            if (surfaces.Count == 0)
+            {
+                // The first surface is the primary one: it carries the connection bar.
+                var layer = new Grid();
+                window.Content = null;
+                layer.Children.Add(view);
+                window.Content = layer;
+                AddBar(layer);
+            }
             var bounds = display.Bounds;
             window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32((int)bounds.X, (int)bounds.Y, (int)bounds.Width, (int)bounds.Height));
             window.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
@@ -197,6 +214,33 @@ internal sealed class FullscreenHost : IDisposable
         }
     }
 
+    private void AddBar(Grid layer)
+    {
+        bar = new FullscreenConnectionBar(owner);
+        barLayer = layer;
+        layer.Children.Add(bar);
+        layer.AddHandler(UIElement.PointerMovedEvent, barPointer, handledEventsToo: true);
+    }
+
+    private void RemoveBar()
+    {
+        if (bar is null || barLayer is null) return;
+        bar.Stop();
+        barLayer.RemoveHandler(UIElement.PointerMovedEvent, barPointer);
+        barLayer.Children.Remove(bar);
+        bar = null; barLayer = null;
+    }
+
+    /// <summary>The bar's title and statistics follow the window.</summary>
+    public void Refresh() => bar?.Refresh();
+
+    /// <summary>Minimizes every surface of the connection; restoring shows them in full screen again.</summary>
+    public void Minimize()
+    {
+        if (surfaces.Count == 0) NativeWindows.Minimize(owner.Handle);
+        else foreach (var surface in surfaces) NativeWindows.Minimize(WinRT.Interop.WindowNative.GetWindowHandle(surface.Window));
+    }
+
     public void Exit()
     {
         if (!IsFullscreen) return;
@@ -226,6 +270,7 @@ internal sealed class FullscreenHost : IDisposable
         closing = true;
         try
         {
+            RemoveBar();
             var owned = surfaces.ToList();
             surfaces.Clear();
             foreach (var surface in owned) Dispose(surface);

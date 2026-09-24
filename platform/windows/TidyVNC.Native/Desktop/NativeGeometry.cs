@@ -6,6 +6,9 @@ namespace TidyVNC.Native.Desktop;
 
 public enum NativeScalingFilter : uint { Nearest = 0, Bilinear = 1, Area = 2 }
 
+/// <summary>Pan desktop (PARITY M12): a step of 80% of the view, or back to the top left.</summary>
+public enum NativeDesktopPan { Left, Right, Up, Down, Origin }
+
 /// <summary>
 /// One display's region of a shared fullscreen canvas (tidyvnc_canvas_viewport):
 /// the canvas size and the region, in the geometry's selected units. Fitting
@@ -108,6 +111,33 @@ public sealed unsafe class NativeGeometry
             else Abi.Check(NativeMethods.tidyvnc_desktop_geometry(&input, pointX, pointY, &output, &error), &error);
         }
         return output;
+    }
+
+    // Pan uses the selected sizing units, while the view and pointer use logical
+    // coordinates; the limit matches the shared transform's rounded canvas.
+    private double PanUnits => options.units == 1 ? BackingScale : 1;
+
+    /// <summary>How far the desktop can pan: zero on an axis where it fits the view.</summary>
+    public (double X, double Y) PanLimit => (
+        Math.Min(65535, Math.Max(0, Width * PanUnits - (Canvas is { } c ? c.Width : Math.Ceiling(ViewportWidth * PanUnits)))),
+        Math.Min(65535, Math.Max(0, Height * PanUnits - (Canvas is { } d ? d.Height : Math.Ceiling(ViewportHeight * PanUnits)))));
+
+    /// <summary>The pan in effect, within the limit.</summary>
+    public (double X, double Y) PanPosition => (Math.Min(options.pan_x, PanLimit.X), Math.Min(options.pan_y, PanLimit.Y));
+
+    /// <summary>The pan after one step in a direction (macOS NativeGeometry.panned).</summary>
+    public (double X, double Y) Panned(NativeDesktopPan direction)
+    {
+        var (x, y) = PanPosition;
+        var (limitX, limitY) = PanLimit;
+        return direction switch
+        {
+            NativeDesktopPan.Left => (Math.Max(0, x - ViewportWidth * PanUnits * 0.8), y),
+            NativeDesktopPan.Right => (Math.Min(limitX, x + ViewportWidth * PanUnits * 0.8), y),
+            NativeDesktopPan.Up => (x, Math.Max(0, y - ViewportHeight * PanUnits * 0.8)),
+            NativeDesktopPan.Down => (x, Math.Min(limitY, y + ViewportHeight * PanUnits * 0.8)),
+            _ => (0, 0),
+        };
     }
 
     /// <summary>The remote pixel under a logical point (clamped to the desktop).</summary>

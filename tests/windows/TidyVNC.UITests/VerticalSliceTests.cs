@@ -115,6 +115,31 @@ public sealed class VerticalSliceTests
         Assert.AreEqual(0, app.Process.ExitCode, "exit code");
     }
 
+    /// <summary>A menu bar item, opening its menu again until the item appears (menus can close while the app settles).</summary>
+    private static FlaUI.Core.AutomationElements.MenuItem MenuItem(Window window, UIA3Automation automation, string menu, string item) =>
+        WaitFor(() =>
+        {
+            if (window.FindFirstDescendant(cf => cf.ByAutomationId(item)) is { } found) return found;
+            var bar = ById(window, menu);
+            try
+            {
+                // Expanding an open menu can close it; only a collapsed one is opened.
+                if (bar.Patterns.ExpandCollapse.Pattern.ExpandCollapseState.Value != FlaUI.Core.Definitions.ExpandCollapseState.Expanded)
+                    bar.Patterns.ExpandCollapse.Pattern.Expand();
+            }
+            catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException
+                                              or System.ComponentModel.Win32Exception) { return null; }
+            return window.FindFirstDescendant(cf => cf.ByAutomationId(item)) ?? automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId(item));
+        }, item).AsMenuItem();
+
+    /// <summary>Opens a menu; a window that has just appeared may refuse until its content is ready.</summary>
+    private static void Expand(AutomationElement menu) => Until(() =>
+    {
+        try { menu.Patterns.ExpandCollapse.Pattern.Expand(); return true; }
+        catch (Exception error) when (error is FlaUI.Core.Exceptions.FlaUIException or System.Runtime.InteropServices.COMException
+                                          or System.ComponentModel.Win32Exception) { return false; }
+    }, "the menu to open");
+
     /// <summary>Input is injected only while our window is in the foreground.</summary>
     private static void RequireForeground(Window window)
     {
@@ -347,6 +372,210 @@ public sealed class VerticalSliceTests
         }
     }
 
+    /// <summary>
+    /// W5.9 / P01-P05: File > Settings opens the connection defaults; a
+    /// section edit is only a draft until Apply, which writes preferences.json
+    /// in the isolated state root; Cancel edits returns to what was saved.
+    /// </summary>
+    [TestMethod]
+    public void SettingsApplyAndCancelEdits()
+    {
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            MenuItem(window, automation, "menu.file", "menu.settings").Invoke();
+            var settings = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "Settings"), "the Settings window");
+
+            ById(settings, "preferences.section.connection").Patterns.SelectionItem.Pattern.Select();
+            var shared = ById(settings, "preferences.connection.shared").AsComboBox();
+            Until(() => shared.IsEnabled, "the defaults read");
+            shared.Select(1); // On
+            var apply = ById(settings, "preferences.apply").AsButton();
+            Until(() => apply.IsEnabled, "Apply enabled");
+            var preferences = Path.Combine(StateRoot, "preferences.json");
+            Assert.IsFalse(File.Exists(preferences) && File.ReadAllText(preferences).Contains("\"Shared\"", StringComparison.Ordinal), "a draft until Apply");
+            apply.Invoke();
+            Until(() => File.Exists(preferences) && File.ReadAllText(preferences).Contains("\"Shared\": \"on\"", StringComparison.Ordinal), "Shared saved");
+            Until(() => !apply.IsEnabled, "nothing left to apply");
+
+            // Cancel edits returns to what was saved.
+            ById(settings, "preferences.connection.retry").AsComboBox().Select(2); // Off
+            Until(() => apply.IsEnabled, "a new edit");
+            ById(settings, "preferences.cancel").AsButton().Invoke();
+            Until(() => ById(settings, "preferences.connection.retry").AsComboBox().SelectedItem?.Text?.StartsWith("Built-in", StringComparison.Ordinal) == true,
+                  "the edit discarded");
+            Assert.IsFalse(File.ReadAllText(preferences).Contains("ReconnectOnError", StringComparison.Ordinal));
+            settings.Close();
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.10 / P07-P08: File > Saved profiles creates a profile with an
+    /// address and a settings override, opens a connection window for it
+    /// without connecting, and deletes it through the confirmation flyout.
+    /// </summary>
+    [TestMethod]
+    public void SavedProfilesCreateOpenAndDelete()
+    {
+        using var app = Launch("");
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            MenuItem(window, automation, "menu.file", "menu.savedProfiles").Invoke();
+            var library = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "Saved profiles"), "the profiles window");
+            var create = ById(library, "profiles.new").AsButton();
+            Until(() => create.IsEnabled, "profiles read");
+            create.Invoke();
+            ById(library, "profiles.name").AsTextBox().Text = "UI test profile";
+            ById(library, "profiles.endpoint").AsTextBox().Text = "127.0.0.1::5999";
+            ById(library, "profiles.section.connection").Patterns.SelectionItem.Pattern.Select();
+            ById(library, "profiles.connection.shared").AsComboBox().Select(1); // On
+            var save = ById(library, "profiles.save").AsButton();
+            Until(() => save.IsEnabled, "Save enabled");
+            save.Invoke();
+            var history = Path.Combine(StateRoot, "profiles-history.json");
+            Until(() => File.Exists(history) && File.ReadAllText(history).Contains("UI test profile", StringComparison.Ordinal), "the profile saved");
+            StringAssert.Contains(File.ReadAllText(history), "\"Shared\": \"on\"");
+
+            var open = ById(library, "profiles.open").AsButton();
+            Until(() => open.IsEnabled, "Open connection enabled");
+            open.Invoke();
+            Until(() => app.Application.GetAllTopLevelWindows(automation).Any(w =>
+                w.FindFirstDescendant(cf => cf.ByAutomationId("connection.endpoint"))?.AsTextBox().Text == "127.0.0.1::5999"), "a window for the profile");
+
+            // Activating the library window reloads it, briefly disabling Delete.
+            var delete = ById(library, "profiles.delete").AsButton();
+            Until(() =>
+            {
+                try { delete.Invoke(); return true; }
+                catch (FlaUI.Core.Exceptions.ElementNotEnabledException) { return false; }
+            }, "Delete invoked");
+            WaitFor(() => library.FindFirstDescendant(cf => cf.ByAutomationId("profiles.confirmDelete")) ??
+                          automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId("profiles.confirmDelete")), "the delete confirmation").AsButton().Invoke();
+            Until(() => !File.ReadAllText(history).Contains("UI test profile", StringComparison.Ordinal), "the profile deleted");
+            foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.11 / M05-M07, K: the viewer chord + M opens the Connection menu over
+    /// the desktop without sending M; Hold Ctrl and Send Ctrl+Alt+Del from the
+    /// menus reach the server; Ctrl+N inside the desktop goes to the server
+    /// rather than opening a window.
+    /// </summary>
+    [TestMethod]
+    public async Task ConnectionMenuCommandsReachTheServer()
+    {
+        await using var server = new RfbTestServer();
+        using var app = Launch(server.Endpoint, commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var window = app.Application.GetMainWindow(automation, Patience)!;
+            Until(() => server.AuthenticatedClients == 1, "the connection");
+            var desktop = ById(window, "desktop.view");
+            RequireForeground(window);
+            var bounds = desktop.BoundingRectangle;
+            Mouse.Click(new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2));
+            Until(() => server.Pointers.Any(p => p.Buttons == 1), "the desktop focused");
+
+            // Ctrl+N inside the desktop is remote input.
+            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
+            Until(() => server.Keys.Contains(new RfbTestServer.KeyRecord(true, 0x6e)), "n reaches the server");
+            Assert.AreEqual(1, app.Application.GetAllTopLevelWindows(automation).Length, "no new window from inside the desktop");
+
+            // The chord + M opens the Connection menu; M stays local.
+            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.ALT, VirtualKeyShort.KEY_M);
+            var hold = WaitFor(() => automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId("desktop.holdControl")), "the context menu");
+            Assert.IsFalse(server.Keys.Any(k => k.KeySym is 0x6d or 0x4d), "M stays local");
+            hold.AsMenuItem().Invoke();
+            Until(() => server.Keys.Contains(new RfbTestServer.KeyRecord(true, 0xffe3)), "Ctrl held on the server");
+
+            MenuItem(window, automation, "menu.connection", "desktop.controlAltDelete").Invoke();
+            Until(() => server.Keys.Contains(new RfbTestServer.KeyRecord(false, 0xffff)), "Delete released on the server");
+            var keys = server.Keys.ToArray();
+            var delete = Array.IndexOf(keys, new RfbTestServer.KeyRecord(true, 0xffff));
+            Assert.IsTrue(delete > 0 && Array.IndexOf(keys, new RfbTestServer.KeyRecord(true, 0xffe9)) is >= 0 and var alt && alt < delete, string.Join(", ", keys));
+            window.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// W5.12 / L07-L08: vncviewer -listen starts a listener window at once; a
+    /// server dialling in waits until accepted, then gets its own connection
+    /// window; Stop listening leaves that connection open.
+    /// </summary>
+    [TestMethod]
+    public async Task ListenAcceptsAReverseConnection()
+    {
+        await using var server = new RfbTestServer();
+        // "-listen 0" would read as listen=off (the retained boolean parsing), so pick a free port.
+        var probe = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        probe.Start();
+        var free = ((System.Net.IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        using var app = Launch("-listen " + free.ToString(System.Globalization.CultureInfo.InvariantCulture), commandLine: true);
+        using var automation = new UIA3Automation();
+        try
+        {
+            var listener = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "Listen for connections"),
+                "the listener window");
+            Until(() => ById(listener, "listener.status").Name == "Listening for connections", "listening");
+            var address = WaitFor(() => listener.FindAllDescendants().Select(e => e.Properties.Name.ValueOrDefault)
+                .FirstOrDefault(name => name?.StartsWith("IPv4 port ", StringComparison.Ordinal) == true), "the address");
+            var port = int.Parse(address["IPv4 port ".Length..], System.Globalization.CultureInfo.InvariantCulture);
+            Assert.AreEqual(free, port, "the -listen operand is the port");
+
+            await server.ConnectReverseAsync(port);
+            var accept = WaitFor(() => listener.FindAllDescendants().FirstOrDefault(e =>
+                e.Properties.AutomationId.ValueOrDefault?.StartsWith("listener.accept.", StringComparison.Ordinal) == true), "the incoming connection");
+            Assert.AreEqual(0, server.AuthenticatedClients, "nothing happens before Accept");
+            accept.AsButton().Invoke();
+            Until(() => server.AuthenticatedClients == 1, "the accepted connection");
+            // An incoming connection's window is titled for the incoming connection, not the server.
+            bool Connected() => app.Application.GetAllTopLevelWindows(automation).Any(w => w.Title != "Listen for connections" &&
+                w.FindFirstDescendant(cf => cf.ByAutomationId("connection.status"))?.Name == "Connected");
+            Until(Connected, "its window");
+
+            ById(listener, "listener.stop").AsButton().Invoke();
+            Until(() => ById(listener, "listener.status").Name == "Listener stopped", "stopped");
+            Assert.IsTrue(Connected(), "the connection stays");
+            foreach (var each in app.Application.GetAllTopLevelWindows(automation)) each.Close();
+            Exits(app);
+        }
+        catch
+        {
+            try { _ = Task.Run(() => Diagnose(app, automation)).Wait(TimeSpan.FromSeconds(30)); }
+            catch (Exception) { }
+            throw;
+        }
+    }
+
     [TestMethod]
     public async Task TwoWindowsConnectAtOnce()
     {
@@ -358,9 +587,7 @@ public sealed class VerticalSliceTests
             var first = app.Application.GetMainWindow(automation, Patience)!;
             Until(() => server.AuthenticatedClients == 1, "the first connection");
             // File > New connection.
-            ById(first, "menu.file").Patterns.ExpandCollapse.Pattern.Expand();
-            WaitFor(() => first.FindFirstDescendant(cf => cf.ByAutomationId("menu.newConnection")) ??
-                          automation.GetDesktop().FindFirstDescendant(cf => cf.ByAutomationId("menu.newConnection")), "New connection").AsMenuItem().Invoke();
+            MenuItem(first, automation, "menu.file", "menu.newConnection").Invoke();
             var second = WaitFor(() => app.Application.GetAllTopLevelWindows(automation).FirstOrDefault(w => w.Title == "TidyVNC"), "the second window");
             var endpoint = ById(second, "connection.endpoint").AsTextBox();
             endpoint.Text = server.Endpoint;

@@ -1086,3 +1086,60 @@ Add dated entries, newest last, in the macOS format:
   - W5.16: the retry and alert flows are wired; E-row checks remain.
   - W5.18: the pseudo-locale checks.
   - Context menu (M) and the full-screen connection bar are W5.11.
+
+### W5.9–W5.12 (progress) — settings, profiles, Connection menu, full-screen bar, listener — 2026-09-24
+
+- IDs/commit: the commit carrying this entry. No item is checked yet: keyboard-only and Narrator passes, and the
+  tests that need the display awake, remain.
+- Behaviour delivered and affected interfaces:
+  - W5.9 Settings: `NativePreferencesDraft` edits canonical parameters checked by the core as they are set (an
+    invalid GnuTLS priority is refused by the core's preflight at once), commits against the revision it read,
+    reports conflicts and unreadable records without overwriting, and knows each parameter's built-in value.
+    `SettingsWindow` has a NavigationView with the macOS sections (Security with Certificate files), settings
+    cards with the effective value and its source, tri-state fields, and a footer (Restore built-in defaults,
+    Cancel edits, Apply, Reload). File > Settings, Ctrl+,. `CommunityToolkit.WinUI.Controls.SettingsControls`
+    (pinned in the plan) is now referenced.
+  - W5.10 Saved profiles: `NativeProfileLibrary` (macOS NativeProfileLibrary) implements the same
+    `INativeSettingsEditor` as the defaults draft, so `SettingsSections` serves both windows; profile values
+    inherit the app defaults. `ProfilesWindow` covers the list, name/address/gateway checks, Delete with a
+    confirmation flyout (P07) and Open connection, which opens a window without connecting. File > Saved
+    profiles, Ctrl+Shift+P.
+  - W5.11 Connection menu:
+    - the full UX.md section 6 order: Disconnect, Full screen (F11), Minimize, Resize window to desktop, Resize
+      remote desktop, Pan desktop, Hold Ctrl/Alt, Capture/Release keyboard, Send Ctrl+Alt+Del, Refresh, the
+      seven connection settings, statistics;
+    - `NativeDesktopCommands` for the held modifiers and the chord;
+    - pan limits in `NativeGeometry`, with pan in the renderer's viewport;
+    - the viewer chord + M opens the menu over the desktop;
+    - `FullscreenConnectionBar` in full screen;
+    - Minimize minimizes all full-screen surfaces;
+    - the menu bar's Connection menu is rebuilt only when its state changes. Rebuilding it on every snapshot
+      closed open menus and kept the UI thread busy.
+  - W5.12 Listen for connections: `NativeListenerModel` (macOS ListenerModel) and `ListenerWindow`:
+    - port and families are checked before binding; a stopped or failed listener finishes closing before
+      binding again;
+    - peers are reserved while their window opens;
+    - AlertOnFatalError=off closes silently;
+    - `vncviewer -listen [port]` starts one, as do the File menu (Ctrl+Shift+L), the Listen activation and a
+      new "Listen for connections" Jump List task;
+    - the app stays running while a listener is open.
+  - Strings: sentence case now lowers hyphenated words with a lowercase tail ("Built-in"); new Windows-only
+    strings; "Send Ctrl+Alt+Del".
+- Tests, commands and results:
+  - Native suite: 161 total, 159 passed, 2 gated skips. New classes: PreferencesDraft, ProfileLibrary,
+    DesktopCommand (key events on the wire), Pan, ListenerModel (real TCP peers, busy port).
+  - Gated UI tests (TIDYVNC_UI_TESTS=1, idle-gated), passing:
+    - Settings apply/cancel (preferences.json in the isolated root);
+    - Saved profiles create/open/delete;
+    - listener accepts a reverse connection (`RfbTestServer.ConnectReverseAsync`);
+    - two windows;
+    - close during authentication;
+    - shell launches.
+  - UI tests failing only because the display was powered off: the render test, the full-screen test, and
+    the new Connection-menu test (it cannot take the foreground). Rerun them with the display awake.
+  - Strings audit: 1068 strings, 340 referenced, no problems.
+- Remaining limitations and unchecked dependencies:
+  - A listener started from a listener file (-listen file.tidyvnc) does not yet review the file first.
+  - Connection information (W5.15) is not yet in the Connection menu.
+  - The connection bar and multi-surface Minimize need physical checks (display awake; a second monitor for
+    all/selected displays).

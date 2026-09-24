@@ -20,6 +20,7 @@
     "desktop.enter.full.screen": "Full screen",
     "desktop.hold.control": "Hold Ctrl",
     "desktop.keyboard.capture.is.unavailable.allow.tidyvnc.in.macos.accessibility.settings.and.try": "Keyboard capture is unavailable. Focus the desktop and try again.",
+    "desktop.send.ctrl.alt.delete": "Send Ctrl+Alt+Del",
     "document.notice.platform": "Line {0}: {1} — Unavailable on Windows",
     "document.the.file.format.uses.monitor.numbers.instead.of.saved.display.identities.assign": "The file format uses monitor numbers instead of saved display identities. Assign the numbers the receiving viewer should use, including for displays currently disconnected from this PC.",
     "help.guide.failure.body": "Check the address, gateway, server availability and authentication details. Retry is explicit. Use Disconnect or Cancel to stop the current attempt; exiting the app closes its connections.",
@@ -54,7 +55,9 @@
     "document.files.tigervnc": "TigerVNC connection files",
     "document.files.all": "All files",
     "profiles.ssh.windows.client.missing": "Install the OpenSSH Client in Settings > System > Optional features to use an SSH gateway.",
-    "document.files.certificates": "Certificate files"
+    "document.files.certificates": "Certificate files",
+    "app.menu.settings": "Settings",
+    "desktop.bar.pin": "Keep the connection bar open"
   },
   "reviewed": [
     "help.guide.input.title",

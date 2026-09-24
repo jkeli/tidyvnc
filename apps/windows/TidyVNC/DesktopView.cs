@@ -18,7 +18,7 @@ namespace TidyVNC;
 /// transform, and keyboard input from the <see cref="KeyboardRouter"/> hook
 /// through the retained Windows translator.
 /// </summary>
-internal sealed partial class DesktopView : UserControl, IDisposable
+internal sealed partial class DesktopView : UserControl, IDisposable, INativeDesktopCommandHost
 {
     // SwapChainPanel takes no Background; the host grid is black and hit-testable.
     private readonly SwapChainPanel panel = new();
@@ -35,6 +35,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     private NativeScaling scaling = NativeScaling.BuiltIn;
     private NativeCanvasViewport? canvas;
     private NativeShortcutModifiers shortcutModifiers = NativeShortcutModifiers.BuiltIn;
+    private (double X, double Y) pan;
 
     /// <summary>The largest backing store a Direct3D 11 texture can hold on any feature level we require.</summary>
     private const uint MaximumBacking = 16384;
@@ -80,6 +81,12 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     public event Action<DesktopView, NativeShortcutDecision.RouteKind>? Command;
     /// <summary>This view's size, scale and scaling changed (automatic remote resize follows it).</summary>
     public event Action<NativeResizeViewport>? ViewportChanged;
+    /// <summary>This view gained keyboard focus (menu commands then act on it).</summary>
+    public event Action<DesktopView>? FocusAcquired;
+    /// <summary>A physical Ctrl or Alt release was sent to the server (Hold Ctrl/Alt press it again).</summary>
+    public event Action<uint>? ModifierReleased;
+    /// <summary>A viewer shortcut released the remote keys.</summary>
+    public event Action? InputReleased;
     /// <summary>The pointer entered this surface (full-screen surfaces follow the pointer).</summary>
     public event Action<DesktopView>? SurfaceEntered;
 
@@ -118,6 +125,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         set
         {
             if (scaling == value) return;
+            if (scaling.Canonical != value.Canonical || scaling.DevicePixels != value.DevicePixels) pan = (0, 0);
             scaling = value;
             UpdateViewport();
         }
@@ -168,7 +176,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
         if (width <= 0 || height <= 0 || scale <= 0) return;
         renderer.Resize(new DesktopViewport((uint)Math.Ceiling(width * scale), (uint)Math.Ceiling(height * scale), width, height, scale,
-            scaling.Canonical, scaling.Filter, scaling.DevicePixels, canvas));
+            scaling.Canonical, scaling.Filter, scaling.DevicePixels, canvas, pan.X, pan.Y));
         UpdateGeometry();
         ViewportChanged?.Invoke(Viewport);
     }
@@ -188,8 +196,41 @@ internal sealed partial class DesktopView : UserControl, IDisposable
     {
         double width = panel.ActualWidth, height = panel.ActualHeight, scale = panel.CompositionScaleX;
         geometry = frameSize is { } size && width > 0 && height > 0 && scale > 0
-            ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels, canvas: canvas)
+            ? new NativeGeometry(size.Width, size.Height, width, height, scale, scaling.Canonical, scaling.DevicePixels, pan.X, pan.Y, canvas)
             : null;
+    }
+
+    // ---- Commands (Connection menu) ------------------------------------------------------
+
+    /// <summary>The desktop's size in effective pixels at the current scaling (Resize window to desktop).</summary>
+    public (double Width, double Height)? DesktopSize => geometry is { } value ? (value.Width, value.Height) : null;
+
+    /// <summary>The desktop view's own size in effective pixels.</summary>
+    public (double Width, double Height) ViewSize => (panel.ActualWidth, panel.ActualHeight);
+
+    public bool CanPan(NativeDesktopPan direction) => Live && geometry is { } value && value.Panned(direction) != value.PanPosition;
+
+    public bool Pan(NativeDesktopPan direction)
+    {
+        if (!CanPan(direction)) return false;
+        pan = geometry!.Panned(direction);
+        UpdateViewport();
+        return true;
+    }
+
+    public bool FocusForCommand()
+    {
+        if (disposed || session is null) return false;
+        if (!keyboardFocused) Focus(FocusState.Programmatic);
+        return keyboardFocused;
+    }
+
+    public void ClearCommandInput()
+    {
+        if (disposed) return;
+        altGrTimer.Stop();
+        keyboard.Reset();
+        shortcuts.Reset();
     }
 
     private bool Live => session is { IsClosing: false } s && s.Snapshot.State == NativeSessionState.Connected;
@@ -277,12 +318,14 @@ internal sealed partial class DesktopView : UserControl, IDisposable
             {
                 try { session.ReleaseInput(); }
                 catch (NativeError) { }
+                InputReleased?.Invoke();
             }
             switch (decision.Route)
             {
                 case NativeShortcutDecision.RouteKind.Remote:
                     try { session.SendKey((uint)key.SystemKeyCode, key.KeySym, key.KeyCode, key.Press); }
                     catch (NativeError) { return; }
+                    if (!key.Press && key.KeySym is 0xffe3 or 0xffe4 or 0xffe9 or 0xffea) ModifierReleased?.Invoke(key.KeySym);
                     break;
                 case NativeShortcutDecision.RouteKind.ReleaseKeyboard:
                     Capture.ReleaseForCommand();
@@ -307,6 +350,7 @@ internal sealed partial class DesktopView : UserControl, IDisposable
         catch (NativeError) { }
         keyboardFocused = focused;
         Capture?.FocusChanged(focused);
+        if (focused) FocusAcquired?.Invoke(this);
     }
 
     /// <summary>Window deactivation and focus loss release everything held.</summary>

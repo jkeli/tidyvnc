@@ -25,6 +25,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)platform\windows\TidyVNC.Native\TidyVNC.Native.csproj" />

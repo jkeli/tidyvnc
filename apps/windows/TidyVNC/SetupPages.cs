@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using TidyVNC.Native;
+using TidyVNC.Native.Desktop;
 using TidyVNC.Native.Platform;
 using TidyVNC.Native.Storage;
 
@@ -271,6 +272,26 @@ public sealed partial class RecentConnectionsPanel : UserControl
 /// </summary>
 internal static class ConnectionMenu
 {
+    /// <summary>
+    /// Everything the menu shows, so a menu that stays in the menu bar is
+    /// rebuilt only when it would change (rebuilding closes open menus).
+    /// </summary>
+    public static string State(ConnectionWindow window)
+    {
+        var controller = window.Controller;
+        var connected = controller.Session?.Snapshot.State == NativeSessionState.Connected;
+        bool[] flags =
+        [
+            !controller.Closing && !controller.Busy && connected, window.IsFullscreen, window.CanToggleFullscreen, window.CanMinimize,
+            window.CanFitWindow, window.CanResizeRemote, connected, window.CanPan(NativeDesktopPan.Left), window.CanPan(NativeDesktopPan.Right),
+            window.CanPan(NativeDesktopPan.Up), window.CanPan(NativeDesktopPan.Down), window.CanPan(NativeDesktopPan.Origin),
+            window.Commands.ControlSelected, window.Commands.AltSelected, window.Commands.CanSendKeys, window.KeyboardCaptured,
+            window.CanCaptureKeyboard, !controller.Closing && connected, window.CanOpenFullscreenSettings, window.CanOpenConnectedEditor,
+            window.CanOpenAnyEditor, window.CanOpenDisconnectedEditor, controller.ShowsStatistics, controller.CanToggleStatistics,
+        ];
+        return string.Concat(flags.Select(f => f ? '1' : '0'));
+    }
+
     public static void Fill(IList<MenuFlyoutItemBase> items, ConnectionWindow window)
     {
         var controller = window.Controller;
@@ -278,25 +299,56 @@ internal static class ConnectionMenu
         items.Clear();
         items.Add(Item("app.disconnect", "desktop.disconnect", !controller.Closing && !controller.Busy && connected, controller.Disconnect));
         items.Add(new MenuFlyoutSeparator());
+        var fullscreen = Item(window.IsFullscreen ? "desktop.exit.full.screen" : "desktop.enter.full.screen", "desktop.fullscreen",
+            window.CanToggleFullscreen, window.ToggleFullscreen);
+        fullscreen.KeyboardAcceleratorTextOverride = "F11";
+        items.Add(fullscreen);
+        items.Add(Item("desktop.minimize", "desktop.minimize", window.CanMinimize, window.MinimizeWindow));
+        items.Add(Item("desktop.resize.window.to.desktop", "desktop.fitWindow", window.CanFitWindow, window.FitWindow));
+        items.Add(Item("desktop.resize.remote.desktop", "desktop.resizeRemote", window.CanResizeRemote, window.OpenRemoteResize));
+        var pan = new MenuFlyoutSubItem { Text = Strings.Get("desktop.pan.desktop"), IsEnabled = connected };
+        AutomationProperties.SetAutomationId(pan, "desktop.pan");
+        foreach (var (direction, key, id) in new[]
+                 {
+                     (NativeDesktopPan.Left, "desktop.pan.left", "desktop.pan.left"), (NativeDesktopPan.Right, "desktop.pan.right", "desktop.pan.right"),
+                     (NativeDesktopPan.Up, "desktop.pan.up", "desktop.pan.up"), (NativeDesktopPan.Down, "desktop.pan.down", "desktop.pan.down"),
+                     (NativeDesktopPan.Origin, "desktop.return.to.top.left", "desktop.pan.origin"),
+                 })
+        {
+            if (direction == NativeDesktopPan.Origin) pan.Items.Add(new MenuFlyoutSeparator());
+            var target = direction;
+            pan.Items.Add(Item(key, id, window.CanPan(target), () => window.PanDesktop(target)));
+        }
+        items.Add(pan);
+        items.Add(new MenuFlyoutSeparator());
+        items.Add(Toggle("desktop.hold.control", "desktop.holdControl", window.Commands.ControlSelected, window.Commands.CanSendKeys, window.HoldControl));
+        items.Add(Toggle("desktop.hold.alt", "desktop.holdAlt", window.Commands.AltSelected, window.Commands.CanSendKeys, window.HoldAlt));
+        items.Add(window.KeyboardCaptured
+            ? Item("desktop.release.keyboard", "desktop.releaseKeyboard", true, window.ReleaseKeyboard)
+            : Item("desktop.capture.keyboard", "desktop.captureKeyboard", window.CanCaptureKeyboard, window.CaptureKeyboard));
+        items.Add(Item("desktop.send.ctrl.alt.delete", "desktop.controlAltDelete", window.Commands.CanSendKeys, window.SendControlAltDelete));
+        items.Add(new MenuFlyoutSeparator());
         items.Add(Item("desktop.refresh.desktop", "desktop.refresh", !controller.Closing && connected, controller.Refresh));
-        items.Add(Item(window.IsFullscreen ? "desktop.exit.full.screen" : "desktop.enter.full.screen", "desktop.fullscreen",
-            window.CanToggleFullscreen, window.ToggleFullscreen));
-        var statistics = new ToggleMenuFlyoutItem { Text = Strings.Get("desktop.show.connection.statistics"), IsChecked = controller.ShowsStatistics,
-            IsEnabled = controller.CanToggleStatistics };
-        AutomationProperties.SetAutomationId(statistics, "desktop.statistics");
-        statistics.Click += (_, _) => controller.ToggleStatistics();
         var settings = new MenuFlyoutSubItem { Text = Strings.Get("desktop.connection.settings") };
         AutomationProperties.SetAutomationId(settings, "desktop.connectionSettings");
+        settings.Items.Add(Item("desktop.fullscreen.displays", "desktop.fullscreenDisplays", window.CanOpenFullscreenSettings, window.OpenFullscreenSettings));
         settings.Items.Add(Item("desktop.input", "desktop.input", window.CanOpenConnectedEditor, window.OpenInput));
+        settings.Items.Add(Item("desktop.remote.resize.settings", "desktop.remoteResizeSettings", window.CanOpenAnyEditor, window.OpenResizePolicy));
         settings.Items.Add(Item("desktop.scaling", "desktop.scaling", window.CanOpenConnectedEditor, window.OpenScaling));
+        settings.Items.Add(Item("desktop.connection", "desktop.connectionOptions", window.CanOpenDisconnectedEditor, window.OpenConnectionOptions));
         settings.Items.Add(Item("desktop.security", "desktop.security", window.CanOpenDisconnectedEditor, window.OpenSecurity));
         settings.Items.Add(Item("desktop.encoding", "desktop.encoding", window.CanOpenConnectedEditor, window.OpenEncoding));
-        settings.Items.Add(Item("desktop.fullscreen.displays", "desktop.fullscreenDisplays", window.CanOpenFullscreenSettings, window.OpenFullscreenSettings));
-        settings.Items.Add(Item("desktop.connection", "desktop.connectionOptions", window.CanOpenDisconnectedEditor, window.OpenConnectionOptions));
-        settings.Items.Add(Item("desktop.remote.resize.settings", "desktop.remoteResizeSettings", window.CanOpenAnyEditor, window.OpenResizePolicy));
-        items.Add(Item("desktop.resize.remote.desktop", "desktop.resizeRemote", window.CanResizeRemote, window.OpenRemoteResize));
         items.Add(settings);
-        items.Add(statistics);
+        items.Add(Toggle("desktop.show.connection.statistics", "desktop.statistics", controller.ShowsStatistics, controller.CanToggleStatistics,
+            controller.ToggleStatistics));
+    }
+
+    private static ToggleMenuFlyoutItem Toggle(string key, string id, bool on, bool enabled, Action action)
+    {
+        var item = new ToggleMenuFlyoutItem { Text = Strings.Get(key), IsChecked = on, IsEnabled = enabled };
+        AutomationProperties.SetAutomationId(item, id);
+        item.Click += (_, _) => action();
+        return item;
     }
 
     private static MenuFlyoutItem Item(string key, string id, bool enabled, Action action)

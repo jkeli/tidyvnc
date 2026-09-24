@@ -9,7 +9,7 @@ namespace TidyVNC.Native.Desktop;
 public sealed record DesktopViewport(
     uint PixelWidth, uint PixelHeight, double LogicalWidth, double LogicalHeight, double Scale,
     string Scaling = "FixedRatio", NativeScalingFilter Filter = NativeScalingFilter.Bilinear, bool DevicePixels = false,
-    NativeCanvasViewport? Canvas = null)
+    NativeCanvasViewport? Canvas = null, double PanX = 0, double PanY = 0)
 {
     public bool IsEmpty => PixelWidth == 0 || PixelHeight == 0 || LogicalWidth <= 0 || LogicalHeight <= 0 || Scale <= 0;
 }
@@ -230,7 +230,7 @@ public sealed unsafe class DesktopRenderer : IDisposable
         }
 
         var geometry = new NativeGeometry(image.Width, image.Height, viewport.LogicalWidth, viewport.LogicalHeight, viewport.Scale, viewport.Scaling,
-                                          viewport.DevicePixels, canvas: viewport.Canvas);
+                                          viewport.DevicePixels, viewport.PanX, viewport.PanY, viewport.Canvas);
         var offsetX = (int)Math.Round(geometry.X * viewport.Scale);
         var offsetY = (int)Math.Round(geometry.Y * viewport.Scale);
         var placement = (geometry.BackingWidth, geometry.BackingHeight, offsetX, offsetY);

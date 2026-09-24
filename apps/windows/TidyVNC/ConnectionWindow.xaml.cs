@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using TidyVNC.Native;
 using TidyVNC.Native.Clipboard;
+using TidyVNC.Native.Desktop;
 using TidyVNC.Native.Platform;
 using TidyVNC.Native.Storage;
 using TidyVNC.Native.Tunnel;
@@ -32,6 +33,8 @@ public sealed partial class ConnectionWindow : Window
     private NativeWindowFrame? restoredFrame;
     private bool shown, placing, userPlaced, startupApplied, active;
     private readonly FullscreenHost fullscreen;
+    private DesktopView? commandView;
+    private string? connectionMenuState;
 
     internal NativeConnectionController Controller { get; }
     internal DesktopView Desktop => desktop;
@@ -50,8 +53,26 @@ public sealed partial class ConnectionWindow : Window
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "tidyvnc.ico"));
         WindowSizes.Apply(AppWindow, 960, 700, 640, 420);
         Handle = window;
+        // Ctrl+, (UX.md section 7). The comma key has no VirtualKey name a
+        // KeyboardAccelerator accepts, so the window handles it; the desktop
+        // view keeps every key while it has focus.
+        SettingsItem.KeyboardAcceleratorTextOverride = "Ctrl+,";
+        Root.KeyDown += (_, e) =>
+        {
+            if ((int)e.Key == 188 && Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control)
+                    .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down))
+            {
+                e.Handled = true;
+                App.Current.OpenSettings();
+            }
+        };
         desktop = new DesktopView(window);
         desktop.Command += DesktopCommand;
+        HookView(desktop);
+        // F11 outside the desktop view (M02); inside it, the viewer chord toggles full screen.
+        var fullscreenKey = new KeyboardAccelerator { Key = Windows.System.VirtualKey.F11 };
+        fullscreenKey.Invoked += (_, e) => { e.Handled = true; if (CanToggleFullscreen) ToggleFullscreen(); };
+        Root.KeyboardAccelerators.Add(fullscreenKey);
         desktop.ViewportChanged += _ => ReportViewport();
         fullscreen = new FullscreenHost(this, new NativeFullscreenState(), App.Current.Displays);
         fullscreen.State.PropertyChanged += (_, _) => Update();
@@ -108,6 +129,7 @@ public sealed partial class ConnectionWindow : Window
         session = value;
         ApplyStartupPlacement(value.InitialWindowStartupPolicy);
         fullscreen.State.Bind(value);
+        Commands.Bind(value);
         InputChanged();
         session.PropertyChanged += SessionChanged;
         App.Current.Clipboard.Register(session, notice => { ClipboardNotice = notice; Update(); });
@@ -193,7 +215,11 @@ public sealed partial class ConnectionWindow : Window
         Gateway.Visibility = controller.IsReverse ? Visibility.Collapsed : Visibility.Visible;
 
         // Toolbar and the Connection menu (the same items as the toolbar's More button).
-        ConnectionMenu.Fill(ConnectionMenuItem.Items, this);
+        if (ConnectionMenu.State(this) is var menuState && menuState != connectionMenuState)
+        {
+            connectionMenuState = menuState;
+            ConnectionMenu.Fill(ConnectionMenuItem.Items, this);
+        }
         RecentButton.Visibility = controller.History is null ? Visibility.Collapsed : Visibility.Visible;
         RecentPanel.CanSelect = editable;
         ClipboardButton.IsEnabled = defaults.IsReady && session is not null;
@@ -229,6 +255,7 @@ public sealed partial class ConnectionWindow : Window
         StatusText.Text = Strings.Resolve(NativeTexts.Status(state));
         ClipboardStatus.Text = ClipboardNotice is { } clipboard ? Strings.Resolve(NativeTexts.Clipboard(clipboard)) : "";
         ClipboardStatus.Visibility = ClipboardNotice is null ? Visibility.Collapsed : Visibility.Visible;
+        fullscreen.Refresh();
         FullscreenStatus.Text = fullscreen.State.Message is { } fullscreenNotice ? Strings.Resolve(fullscreenNotice) : "";
         FullscreenStatus.Visibility = FullscreenStatus.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         ResizeStatus.Text = controller.RemoteResize.Message is { } resizeNotice ? Strings.Resolve(resizeNotice) : "";
@@ -450,6 +477,9 @@ public sealed partial class ConnectionWindow : Window
     private void CancelClick(object sender, RoutedEventArgs e) => Controller.Cancel();
     private void NewConnectionClick(object sender, RoutedEventArgs e) => App.Current.OpenWindow();
     private void OpenFileClick(object sender, RoutedEventArgs e) => App.Current.OpenConnectionFile(this);
+    private void SettingsClick(object sender, RoutedEventArgs e) => App.Current.OpenSettings();
+    private void ListenClick(object sender, RoutedEventArgs e) => App.Current.OpenListener();
+    private void ProfilesClick(object sender, RoutedEventArgs e) => App.Current.OpenProfiles();
     private void CloseWindowClick(object sender, RoutedEventArgs e) => _ = CloseGracefully();
     private void ExitClick(object sender, RoutedEventArgs e) => App.Current.ExitApplication();
     private void ProjectLinkClick(object sender, RoutedEventArgs e) => App.OpenLink(NativeHelpLink.Project);
@@ -505,9 +535,113 @@ public sealed partial class ConnectionWindow : Window
 
     private void ActionsOpening(object? sender, object e) => ConnectionMenu.Fill(ActionsFlyout.Items, this);
 
+    // ---- Connection menu commands (UX.md section 6; PARITY M01-M14) ----------------------
+
+    /// <summary>Hold Ctrl, Hold Alt and Send Ctrl+Alt+Del for this connection.</summary>
+    internal NativeDesktopCommands Commands { get; } = new();
+
+    /// <summary>The desktop view commands act on: the one that last had keyboard focus.</summary>
+    private DesktopView ActiveView => commandView is { } view && fullscreen.Views.Contains(view) ? view : fullscreen.Views.First();
+
+    /// <summary>Every desktop view of this connection routes its focus and modifier events here.</summary>
+    internal void HookView(DesktopView view)
+    {
+        view.FocusAcquired += focused => { commandView = focused; Commands.Attach(focused); };
+        view.ModifierReleased += Commands.PhysicalModifierReleased;
+        view.InputReleased += Commands.InputReleased;
+        view.Capture.Changed += (_, _, _) => DispatcherQueue.TryEnqueue(Update);
+    }
+
+    private bool Connected => session is { IsClosing: false, Snapshot.State: NativeSessionState.Connected };
+
+    private void Run(Action command)
+    {
+        try { command(); }
+        catch (NativeError) { } // The menu is rebuilt from the current state on every opening.
+        Update();
+    }
+
+    internal void HoldControl() => Run(Commands.ToggleControl);
+    internal void HoldAlt() => Run(Commands.ToggleAlt);
+    internal void SendControlAltDelete() => Run(Commands.SendControlAltDelete);
+
+    internal bool CanPan(NativeDesktopPan direction) => Connected && ActiveView.CanPan(direction);
+    internal void PanDesktop(NativeDesktopPan direction) => ActiveView.Pan(direction);
+
+    internal bool KeyboardCaptured => fullscreen.Views.Any(v => v.Capture.IsCapturing);
+    internal bool CanCaptureKeyboard => Connected && session?.IsViewOnly == false;
+
+    internal void CaptureKeyboard()
+    {
+        var view = ActiveView;
+        if (!view.FocusForCommand()) return;
+        try { view.Capture.Capture(); }
+        catch (NativeKeyboardCaptureException) { } // The capture notice reports it.
+        Update();
+    }
+
+    internal void ReleaseKeyboard()
+    {
+        foreach (var view in fullscreen.Views) view.Capture.ReleaseForCommand();
+        Update();
+    }
+
+    internal bool CanMinimize => !closed && AppWindow.Presenter is not OverlappedPresenter { State: OverlappedPresenterState.Minimized };
+
+    /// <summary>Minimize (M03): in full screen every surface goes; restoring returns to full screen.</summary>
+    internal void MinimizeWindow()
+    {
+        foreach (var view in fullscreen.Views) view.ReleaseKeys();
+        if (fullscreen.IsFullscreen) fullscreen.Minimize();
+        else if (AppWindow.Presenter is OverlappedPresenter presenter) presenter.Minimize();
+    }
+
+    internal bool CanFitWindow => Connected && !fullscreen.IsFullscreen && desktop.DesktopSize is { Width: > 0, Height: > 0 };
+
+    /// <summary>
+    /// Resize window to desktop (M04): the window grows or shrinks so the
+    /// desktop shows at its current scaling without scrolling, within the
+    /// display's work area.
+    /// </summary>
+    internal void FitWindow()
+    {
+        if (!CanFitWindow || desktop.DesktopSize is not { } size) return;
+        if (AppWindow.Presenter is OverlappedPresenter { State: not OverlappedPresenterState.Restored } presenter) presenter.Restore();
+        var snapshot = App.Current.Displays.Snapshot;
+        if (snapshot.Find(CurrentDisplayId ?? "") is not { } display) return;
+        var (viewWidth, viewHeight) = desktop.ViewSize;
+        var scale = display.Scale;
+        var client = AppWindow.ClientSize;
+        var frame = Frame;
+        var side = Math.Max(0, (frame.Width - client.Width) / 2);
+        var borders = new NativeInsets(side, Math.Max(0, frame.Height - client.Height - side), side, side);
+        var width = client.Width + (int)Math.Round((size.Width - viewWidth) * scale);
+        var height = client.Height + (int)Math.Round((size.Height - viewHeight) * scale);
+        var work = display.WorkArea;
+        width = Math.Clamp(width, 1, Math.Max(1, (int)work.Width - borders.Left - borders.Right));
+        height = Math.Clamp(height, 1, Math.Max(1, (int)work.Height - borders.Top - borders.Bottom));
+        var target = new NativeWindowFrame(frame.X, frame.Y, width + borders.Left + borders.Right, height + borders.Top + borders.Bottom);
+        // Keep the whole window on the display.
+        var x = Math.Clamp(target.X, (int)work.X, (int)(work.X + work.Width) - target.Width);
+        var y = Math.Clamp(target.Y, (int)work.Y, (int)(work.Y + work.Height) - target.Height);
+        AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(x, y, target.Width, target.Height));
+    }
+
+    /// <summary>The Connection menu at a point in a desktop view (the viewer chord + M).</summary>
+    private void ShowContextMenu(DesktopView view)
+    {
+        var menu = new MenuFlyout();
+        ConnectionMenu.Fill(menu.Items, this);
+        var (width, height) = view.ViewSize;
+        menu.ShowAt(view, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions { Position = new Windows.Foundation.Point(width / 2, height / 2) });
+    }
+
     // ---- Full screen (DESKTOP.md section 7) ------------------------------------------
 
     internal IntPtr Handle { get; }
+
+    /// <summary>The desktop's grid; full screen on this window lays the connection bar over it.</summary>
+    internal Grid DesktopLayer => DesktopArea;
 
     /// <summary>The display holding most of this window.</summary>
     internal string? CurrentDisplayId => NativeWindowPlacements.Capture(Frame, false, App.Current.Displays.Snapshot).Display;
@@ -560,8 +694,8 @@ public sealed partial class ConnectionWindow : Window
                 try { view.Capture.Capture(); }
                 catch (NativeKeyboardCaptureException) { } // The capture notice reports it.
                 break;
-            case NativeShortcutDecision.RouteKind.ContextMenu when !fullscreen.IsFullscreen:
-                ActionsFlyout.ShowAt(desktop);
+            case NativeShortcutDecision.RouteKind.ContextMenu:
+                ShowContextMenu(view);
                 break;
         }
     }
@@ -671,6 +805,7 @@ public sealed partial class ConnectionWindow : Window
     {
         if (closed) return;
         closed = true;
+        Commands.Stop();
         fullscreen.Dispose();
         RememberPlacement();
         dialogs.Close();

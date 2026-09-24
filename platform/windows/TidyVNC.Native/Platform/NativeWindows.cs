@@ -21,4 +21,7 @@ public static class NativeWindows
     /// </summary>
     public static unsafe void SetOwner(IntPtr window, IntPtr owner) =>
         PInvoke.SetWindowLongPtr(new HWND((void*)window), WINDOW_LONG_PTR_INDEX.GWLP_HWNDPARENT, owner);
+
+    /// <summary>Minimizes a window whatever its presenter (a full-screen window has no Minimize of its own).</summary>
+    public static unsafe void Minimize(IntPtr window) => PInvoke.ShowWindow(new HWND((void*)window), SHOW_WINDOW_CMD.SW_MINIMIZE);
 }

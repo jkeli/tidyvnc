@@ -32,12 +32,26 @@
                                 <KeyboardAccelerator Modifiers="Control" Key="N" />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="ListenItem" Text="{local:Str Key=app.listen.for.connections}" Click="ListenClick"
+                                        AutomationProperties.AutomationId="menu.listen">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Modifiers="Control,Shift" Key="L" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
                         <MenuFlyoutItem x:Name="OpenFileItem" Text="{local:Str Key=app.open.connection.file.title}" Click="OpenFileClick"
                                         AutomationProperties.AutomationId="menu.openConnectionFile">
                             <MenuFlyoutItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Modifiers="Control" Key="O" />
                             </MenuFlyoutItem.KeyboardAccelerators>
                         </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="ProfilesItem" Text="{local:Str Key=app.saved.profiles}" Click="ProfilesClick"
+                                        AutomationProperties.AutomationId="menu.savedProfiles">
+                            <MenuFlyoutItem.KeyboardAccelerators>
+                                <KeyboardAccelerator Modifiers="Control,Shift" Key="P" />
+                            </MenuFlyoutItem.KeyboardAccelerators>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="SettingsItem" Text="{local:Str Key=app.menu.settings}" Click="SettingsClick"
+                                        AutomationProperties.AutomationId="menu.settings" />
                         <MenuFlyoutSeparator />
                         <MenuFlyoutItem x:Name="CloseWindowItem" Text="{local:Str Key=app.close.window}" Click="CloseWindowClick"
                                         AutomationProperties.AutomationId="menu.closeWindow">

@@ -117,7 +117,8 @@ def sentence_case(text: str) -> str:
         bare = word.strip("()…,:“”\"'")
         if i == 0 or bare in PROPER or (len(bare) > 1 and bare.isupper()) or any(c.isdigit() for c in bare[1:2]):
             out.append(word)
-        elif all(re.fullmatch(r"[A-Z][a-z’']*", part) for part in bare.split("-")):
+        elif re.fullmatch(r"[A-Z][a-z’']*", bare.split("-")[0]) and \
+                all(re.fullmatch(r"[A-Za-z][a-z’']*", part) for part in bare.split("-")[1:]):
             # Capitalized words, including hyphenated ones (Command-Line, Built-In).
             out.append(word.replace(bare, "-".join(p[:1].lower() + p[1:] for p in bare.split("-")), 1))
         else:

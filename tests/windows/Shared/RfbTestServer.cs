@@ -96,6 +96,15 @@ public sealed class RfbTestServer : IAsyncDisposable
         }
     }
 
+    /// <summary>A reverse connection: dials a listening viewer and serves it like an accepted client.</summary>
+    public async Task ConnectReverseAsync(int port)
+    {
+        var client = new TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, port, stopping.Token);
+        Interlocked.Increment(ref clientsSeen);
+        clients.Add(Task.Run(() => ServeAsync(client)));
+    }
+
     private sealed class PixelFormat
     {
         public int BitsPerPixel = 32;

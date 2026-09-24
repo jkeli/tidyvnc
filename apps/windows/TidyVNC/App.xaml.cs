@@ -23,6 +23,7 @@ namespace TidyVNC;
 public partial class App : Application
 {
     private readonly List<ConnectionWindow> windows = [];
+    private readonly List<ListenerWindow> listeners = [];
     private bool exiting;
     private EventWaitHandle? closeRequest;
     private RegisteredWaitHandle? closeWait;
@@ -142,6 +143,13 @@ public partial class App : Application
             return;
         }
         var request = NativeActivation.Classify(arguments, Environment.CurrentDirectory);
+        if (request.Kind == NativeActivationKind.Listen)
+        {
+            var launch = NativeListenerModel.Launch(invocation, Environment.CurrentDirectory);
+            // An invalid port or family was reported by vncviewer.exe; the window lets the user fix it.
+            OpenListener(launch.Invalid || launch.Document is not null ? null : launch.Options, invocation.Value("AlertOnFatalError") != "off");
+            return;
+        }
         if (request.Kind == NativeActivationKind.Document)
         {
             OpenWindow(new NativeConnectionRequest
@@ -176,8 +184,11 @@ public partial class App : Application
                 break;
             case NativeActivationKind.Document when Documents.Route([request.DocumentPath!], Environment.CurrentDirectory):
                 break;
+            case NativeActivationKind.Listen:
+                OpenListener();
+                break;
             default:
-                // NewWindow, Listen (the listener window is W5), Invalid and unroutable documents.
+                // NewWindow, Invalid and unroutable documents.
                 OpenWindow();
                 break;
         }
@@ -226,7 +237,8 @@ public partial class App : Application
     /// <summary>Jump List tasks for this app's taskbar button; each is a shell launch that reaches this primary.</summary>
     private static void PublishJumpList()
     {
-        try { NativeJumpList.Publish(NativeActivation.AppUserModelId, Environment.ProcessPath!, [new NativeJumpListTask(Strings.Get("import.defaults.new.connection"), "")]); }
+        try { NativeJumpList.Publish(NativeActivation.AppUserModelId, Environment.ProcessPath!, [new NativeJumpListTask(Strings.Get("import.defaults.new.connection"), ""),
+                                          new NativeJumpListTask(Strings.Get("listener.listen.for.connections"), "-listen")]); }
         catch (COMException error) { System.Diagnostics.Trace.TraceWarning($"Jump List not published: {error.HResult:x8}"); }
     }
 
@@ -269,8 +281,9 @@ public partial class App : Application
     {
         Documents?.Stop();
         NativeFileDialogs.CancelActive();
+        foreach (var listener in listeners.ToList()) listener.Close();
         foreach (var window in windows.ToList()) _ = window.CloseGracefully();
-        if (windows.Count == 0 && !exiting) _ = ShutdownAsync();
+        if (windows.Count == 0 && listeners.Count == 0 && !exiting) _ = ShutdownAsync();
     }
 
     /// <summary>Sign-out or restart: the same shutdown, which the session thread waits for (bounded).</summary>
@@ -328,13 +341,75 @@ public partial class App : Application
     {
         windows.Remove(window);
         WindowActivationChanged(window, false);
-        if (windows.Count > 0 || exiting) return;
+        if (windows.Count > 0 || listeners.Count > 0 || exiting) return;
         await ShutdownAsync();
+    }
+
+    /// <summary>
+    /// Listen for connections (UX.md section 6): a listener window; each
+    /// accepted connection opens its own connection window. A -listen launch
+    /// starts listening when the window first appears.
+    /// </summary>
+    internal void OpenListener(NativeListenOptions? launch = null, bool alertOnFatalError = true)
+    {
+        if (exiting) return;
+        var model = new NativeListenerModel(Runtime, request =>
+        {
+            if (exiting) return false;
+            OpenWindow(new NativeConnectionRequest { Reverse = request });
+            return true;
+        }, launch, alertOnFatalError);
+        var window = new ListenerWindow(model);
+        listeners.Add(window);
+        window.Closed += async (_, _) =>
+        {
+            listeners.Remove(window);
+            await model.CloseAsync();
+            if (windows.Count > 0 || listeners.Count > 0 || exiting) return;
+            await ShutdownAsync();
+        };
+        window.Activate();
+    }
+
+    private SettingsWindow? settings;
+    private ProfilesWindow? profiles;
+
+    /// <summary>Saved profiles: one window, brought forward when asked again.</summary>
+    internal void OpenProfiles()
+    {
+        if (exiting) return;
+        if (profiles is { } open) { open.Activate(); return; }
+        var library = new NativeProfileLibrary(Profiles, Preferences);
+        var window = new ProfilesWindow(library);
+        profiles = window;
+        window.Closed += (_, _) => { if (ReferenceEquals(profiles, window)) profiles = null; };
+        window.Activate();
+        library.Reload();
+    }
+
+    /// <summary>Settings (UX.md section 8): one window; asking again brings it forward at the given section.</summary>
+    internal void OpenSettings(string? section = null)
+    {
+        if (exiting) return;
+        if (settings is { } open)
+        {
+            if (section is not null) open.ShowSection(section);
+            open.Activate();
+            return;
+        }
+        var draft = new NativePreferencesDraft(Preferences);
+        var window = new SettingsWindow(draft, section);
+        settings = window;
+        window.Closed += (_, _) => { if (ReferenceEquals(settings, window)) settings = null; };
+        window.Activate();
+        draft.Reload();
     }
 
     private async Task ShutdownAsync()
     {
         exiting = true;
+        settings?.Close();
+        profiles?.Close();
         Documents?.Stop();
         await Clipboard.CloseAsync();
         await History.CloseAsync();

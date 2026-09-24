@@ -87,3 +87,4 @@ ShutdownBlockReasonDestroy
 MessageBeep
 GetDpiForWindow
 SetWindowLongPtr
+ShowWindow
