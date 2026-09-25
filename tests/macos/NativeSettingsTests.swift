@@ -674,6 +674,77 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   guard back.last == "address" else { throw Failure(message: "Shift-Tab never returned to the address field: \(back)") }
   print("PASS keyboard connection window Tab order address -> \(stops.joined(separator: " -> ")); Shift-Tab back in \(back.count) steps")
 }
+// Exercise live layout changes in one native window, retaining the desktop view.
+@MainActor func compactConnectionWindow(model: ConnectionModel, session: NativeSession,
+                                       displays: NativeDisplayService, directory: URL) async throws {
+  let host = NSHostingController(rootView: ConnectionContent(model:model,session:session,displays:displays,
+    importAvailability:nil,openImport:{},openHistoryImport:{}))
+  host.sizingOptions = []
+  let window = NSWindow(contentRect:NSRect(x:0,y:0,width:640,height:420),
+    styleMask:[.titled,.closable,.resizable],backing:.buffered,defer:false)
+  window.isReleasedWhenClosed = false; window.contentViewController = host
+  window.toolbarStyle = .unifiedCompact; window.setContentSize(NSSize(width:640,height:420))
+  defer { window.contentViewController = nil; window.close() }
+  func settle() async throws {
+    try await Task.sleep(for:.milliseconds(250)); host.view.layoutSubtreeIfNeeded()
+  }
+  func descendants(_ root: NSView) -> [NSView] { [root] + root.subviews.flatMap(descendants) }
+  func fields() -> [NSTextField] {
+    descendants(host.view).compactMap { $0 as? NSTextField }.filter {
+      $0.placeholderString == "Server address" || $0.placeholderString == "SSH gateway (optional)"
+    }
+  }
+  func desktop() throws -> NativeDesktopView {
+    guard let view = descendants(host.view).compactMap({ $0 as? NativeDesktopView }).first else {
+      throw Failure(message:"compact window lost its desktop")
+    }
+    return view
+  }
+  try await settle()
+  guard fields().isEmpty else { throw Failure(message:"connected window retained destination fields") }
+  guard let toolbar = window.toolbar,
+        toolbar.items.contains(where:{ $0.itemIdentifier.rawValue.contains("connection.disconnect") }) else {
+    throw Failure(message:"connected window has no native Disconnect toolbar item: \(window.toolbar?.items.map { $0.itemIdentifier.rawValue } ?? [])")
+  }
+  guard host.view.bounds.width == 640, host.view.bounds.height == 420 else {
+    throw Failure(message:"compact fixture lost its viewport: \(host.view.bounds)")
+  }
+  let retainedDesktop = try desktop(), withStatus = retainedDesktop.bounds.height
+  let connectedGeneration = session.generation
+  model.showsStatusBar = false
+  try await settle()
+  guard try desktop() === retainedDesktop, retainedDesktop.bounds.height > withStatus + 10,
+        session.generation == connectedGeneration, session.snapshot.state == .connected else {
+    throw Failure(message:"hiding status did not expand the same connected desktop")
+  }
+  // Include the native toolbar in the compact-window reference image.
+  if let frameView = window.contentView?.superview,
+     let bitmap = frameView.bitmapImageRepForCachingDisplay(in:frameView.bounds) {
+    frameView.cacheDisplay(in:frameView.bounds,to:bitmap)
+    try bitmap.representation(using:.png,properties:[:])!.write(to:directory.appendingPathComponent("connection-window-compact-toolbar.png"))
+  }
+  model.showsStatusBar = true
+  try await settle()
+  guard abs(retainedDesktop.bounds.height - withStatus) < 1 else { throw Failure(message:"status bar did not restore its height") }
+  model.showsStatusBar = false
+  model.disconnect()
+  try await waitForEncoding { !model.busy && session.snapshot.state == .closed }
+  try await settle()
+  guard fields().count == 2, !model.showsStatusBar, try desktop() === retainedDesktop else {
+    throw Failure(message:"disconnect did not restore setup or preserve window presentation state")
+  }
+  let peer = native_test_peer_create_pattern(0)!; defer { native_test_peer_destroy(peer) }
+  model.endpoint = "127.0.0.1::\(native_test_peer_port(peer))"
+  model.connect()
+  try await waitForEncoding { !model.busy && session.snapshot.state == .connected && session.hasFrame }
+  try await settle()
+  guard fields().isEmpty, !model.showsStatusBar, try desktop() === retainedDesktop else {
+    throw Failure(message:"reconnect did not collapse setup or preserve status visibility")
+  }
+  model.showsStatusBar = true
+  print("PASS compact connection window: native Disconnect toolbar, collapsed setup, status height, retained desktop and reconnect")
+}
+
 @MainActor func renderConnectionScreen(directory: URL) async throws {
   let runtime = try NativeRuntime(), preferences = NativePreferencesStore(backing:SettingsBacking())
   let historyStore = NativeProfileHistoryStore(backing:HistoryBacking()), history = NativeRecentHistory(store:historyStore)
@@ -711,6 +782,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
       .frame(width:296).fixedSize(horizontal:false,vertical:true).padding(12),
       name:"connection-overlay"+(dark ? "-dark" : ""),directory:directory,dark:dark,size:NSSize(width:320,height:300))
   }
+  try await compactConnectionWindow(model:model,session:session,displays:displays,directory:directory)
   await model.close(); await availability.close(); await history.close(); await historyStore.close()
   await preferences.close(); displays.stop(); try await runtime.shutdown()
 }

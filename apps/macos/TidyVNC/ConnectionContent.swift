@@ -15,83 +15,48 @@ struct ConnectionContent: View {
     let visibleSheet = presentedSheet
     let problem = model.connectionProblem
     VStack(spacing: 0) {
-      if !model.isReverse, session.snapshot.state == .idle, model.defaults?.profile == nil, model.defaults?.documentRequest == nil,
-         !model.busy {
-        if let importAvailability { FirstUseDefaultsImportOffer(availability:importAvailability,open:openImport) }
-        if let history = model.history { FirstUseHistoryImportOffer(history:history,open:openHistoryImport) }
-      }
-      HStack(spacing: 12) {
-        Image(systemName: "display").foregroundStyle(.secondary).accessibilityHidden(true)
-        TextField(String(localized:"profiles.server.address", defaultValue:"Server address"), text: $model.endpoint).textFieldStyle(.roundedBorder)
-          .help(model.isReverse ? String(localized:"app.source.address.of.this.incoming.connection.it.is.not.an.outbound.destination", defaultValue:"Source address of this incoming connection; it is not an outbound destination.") : String(localized:"profiles.enter.host.display.host.port.ipv6.display.or.a.unix.socket.path", defaultValue:"Enter host:display, host::port, [IPv6]:display, or a Unix socket path."))
-          .accessibilityIdentifier("connection.endpoint").disabled(!model.canEditDestination)
-          .onSubmit { model.connect() }
-        if model.busy {
-          ProgressView().controlSize(.small)
-          Button(String(localized:"action.cancel", defaultValue:"Cancel")) { model.cancel() }.accessibilityIdentifier("connection.cancel")
-        } else if session.snapshot.state == .connected {
-          Button(String(localized:"app.disconnect", defaultValue:"Disconnect")) { model.disconnect() }.accessibilityIdentifier("connection.disconnect")
-        } else if !model.isReverse {
-          Button(String(localized:"document.connect", defaultValue:"Connect")) { model.connect() }.disabled(!model.canConnect).keyboardShortcut(.defaultAction)
-            .accessibilityIdentifier("connection.connect")
+      if showsConnectionSetup {
+        if !model.isReverse, session.snapshot.state == .idle, model.defaults?.profile == nil, model.defaults?.documentRequest == nil,
+           !model.busy {
+          if let importAvailability { FirstUseDefaultsImportOffer(availability:importAvailability,open:openImport) }
+          if let history = model.history { FirstUseHistoryImportOffer(history:history,open:openHistoryImport) }
         }
-      }.padding(.horizontal,14).padding(.top,14).padding(.bottom,8)
-      HStack(spacing: 12) {
-        if let history = model.history {
-          RecentConnectionsButton(model: history, canSelect:model.canEditDestination) { model.selectDestination($0) }
-        }
-        if !model.isReverse { Button { openWindow(id: "profiles") } label: { Image(systemName: "folder") }
-          .help(String(localized:"app.saved.profiles.title", defaultValue:"Saved profiles")).accessibilityLabel(String(localized:"app.saved.profiles.title", defaultValue:"Saved profiles")).accessibilityIdentifier("connection.profiles")
-        }
-        Menu {
-          Toggle(String(localized:"settings.defaults.send.clipboard.to.server", defaultValue:"Send clipboard to server"), isOn: Binding(get: { session.clipboardSendEnabled }, set: { setClipboard(send: $0) }))
-            .accessibilityIdentifier("clipboard.send")
-          Toggle(String(localized:"settings.defaults.receive.clipboard.from.server", defaultValue:"Receive clipboard from server"), isOn: Binding(get: { session.clipboardReceiveEnabled }, set: { setClipboard(receive: $0) }))
-            .accessibilityIdentifier("clipboard.receive")
-          if let defaults = model.defaults {
-            Divider()
-            Text(String(localized:"app.clipboard.send.source", defaultValue:"Send: \(source(defaults.overrides.clipboardSend, defaults.profile?.settings.clipboardSend, defaults.inherited.clipboardSend, document:defaults.documentResolution?.fieldLines["SendClipboard"] != nil))"))
-            Text(String(localized:"app.clipboard.receive.source", defaultValue:"Receive: \(source(defaults.overrides.clipboardReceive, defaults.profile?.settings.clipboardReceive, defaults.inherited.clipboardReceive, document:defaults.documentResolution?.fieldLines["AcceptClipboard"] != nil))"))
+        HStack(spacing: 12) {
+          Image(systemName: "display").foregroundStyle(.secondary).accessibilityHidden(true)
+          TextField(String(localized:"profiles.server.address", defaultValue:"Server address"), text: $model.endpoint).textFieldStyle(.roundedBorder)
+            .help(model.isReverse ? String(localized:"app.source.address.of.this.incoming.connection.it.is.not.an.outbound.destination", defaultValue:"Source address of this incoming connection; it is not an outbound destination.") : String(localized:"profiles.enter.host.display.host.port.ipv6.display.or.a.unix.socket.path", defaultValue:"Enter host:display, host::port, [IPv6]:display, or a Unix socket path."))
+            .accessibilityIdentifier("connection.endpoint").disabled(!model.canEditDestination)
+            .onSubmit { model.connect() }
+          if model.busy {
+            ProgressView().controlSize(.small)
+            Button(String(localized:"action.cancel", defaultValue:"Cancel")) { model.cancel() }.accessibilityIdentifier("connection.cancel")
+          } else if !model.isReverse {
+            Button(String(localized:"document.connect", defaultValue:"Connect")) { model.connect() }.disabled(!model.canConnect).keyboardShortcut(.defaultAction)
+              .accessibilityIdentifier("connection.connect")
           }
-        } label: { Image(systemName: "doc.on.clipboard") }
-          .fixedSize().help(String(localized:"app.clipboard.sharing.for.this.connection", defaultValue:"Clipboard sharing for this connection")).accessibilityLabel(String(localized:"import.defaults.clipboard.sharing", defaultValue:"Clipboard sharing"))
-          .accessibilityIdentifier("clipboard.options")
-          .disabled(model.defaults?.isReady != true)
-        Menu { DesktopActions(model: model) } label: { Image(systemName: "ellipsis.circle") }
-          .fixedSize().help(String(localized:"app.connection.actions", defaultValue:"Connection actions")).accessibilityLabel(String(localized:"app.connection.actions", defaultValue:"Connection actions"))
-          .accessibilityIdentifier("connection.actions")
-        Button { model.openInput() } label: { Image(systemName: "keyboard") }
-          .disabled(!model.canOpenInput).help(String(localized:"app.input.settings.for.this.connection", defaultValue:"Input settings for this connection"))
-          .accessibilityLabel(String(localized:"app.input.settings", defaultValue:"Input settings")).accessibilityIdentifier("connection.input")
-        Button { model.openScaling() } label: { Image(systemName: "arrow.up.left.and.arrow.down.right") }
-          .disabled(!model.canOpenScaling).help(String(localized:"app.scaling.settings.for.this.connection", defaultValue:"Scaling settings for this connection"))
-          .accessibilityLabel(String(localized:"app.scaling.settings", defaultValue:"Scaling settings")).accessibilityIdentifier("connection.scaling")
-        Button { model.openEncoding() } label: { Image(systemName: "slider.horizontal.3") }
-          .disabled(!model.canOpenEncoding).help(String(localized:"app.encoding.settings.for.this.connection", defaultValue:"Encoding settings for this connection"))
-          .accessibilityLabel(String(localized:"app.encoding.settings", defaultValue:"Encoding settings")).accessibilityIdentifier("connection.encoding")
-        Spacer(minLength:0)
-      }.padding(.horizontal,14).padding(.bottom,8)
-      EndpointIssueView(issue: model.endpointIssue).padding(.horizontal, 14)
-      if !model.isReverse {
-        VStack(alignment:.leading,spacing:4) {
-          TextField(String(localized:"profiles.ssh.gateway.optional", defaultValue:"SSH gateway (optional)"),text:$model.sshGatewayText).textFieldStyle(.roundedBorder)
-            .disabled(!model.canEditDestination).accessibilityIdentifier("connection.sshGateway")
-            .help(String(localized:"profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a", defaultValue:"Enter user@host or ssh://user@host:port. Leave empty for a direct connection."))
-          if let issue = model.gatewayIssue { Text(issue).foregroundStyle(Color.nativeErrorText).font(.caption) }
-          if !model.sshGatewayText.isEmpty {
-            Text(String(localized:"profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are", defaultValue:"SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected."))
-              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-          }
-        }.padding(.horizontal,14).padding(.bottom,8)
-      }
-      if model.isReverse {
-        Text(String(localized:"app.incoming.connection.to.reconnect.ask.the.server.to.connect.to.the.listener", defaultValue:"Incoming connection. To reconnect, ask the server to connect to the listener again. Passwords, trust decisions and this temporary address are not saved."))
-          .font(.caption).foregroundStyle(.secondary).padding(.horizontal,14).padding(.bottom,8)
-          .accessibilityIdentifier("connection.reverse")
-      }
-      if let history = model.history { RecentHistoryStatus(model: history).padding(.horizontal, 14) }
-      if let profile = model.defaults?.profile {
-        Text(String(localized:"app.profile.source", defaultValue:"Settings from profile: \(profile.name)")).font(.caption).foregroundStyle(.secondary).padding(.bottom, 8)
+        }.padding(.horizontal,14).padding(.top,14).padding(.bottom,8)
+        EndpointIssueView(issue: model.endpointIssue).padding(.horizontal, 14)
+        if !model.isReverse {
+          VStack(alignment:.leading,spacing:4) {
+            TextField(String(localized:"profiles.ssh.gateway.optional", defaultValue:"SSH gateway (optional)"),text:$model.sshGatewayText).textFieldStyle(.roundedBorder)
+              .disabled(!model.canEditDestination).accessibilityIdentifier("connection.sshGateway")
+              .help(String(localized:"profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a", defaultValue:"Enter user@host or ssh://user@host:port. Leave empty for a direct connection."))
+            if let issue = model.gatewayIssue { Text(issue).foregroundStyle(Color.nativeErrorText).font(.caption) }
+            if !model.sshGatewayText.isEmpty {
+              Text(String(localized:"profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are", defaultValue:"SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected."))
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+            }
+          }.padding(.horizontal,14).padding(.bottom,8)
+        }
+        if model.isReverse {
+          Text(String(localized:"app.incoming.connection.to.reconnect.ask.the.server.to.connect.to.the.listener", defaultValue:"Incoming connection. To reconnect, ask the server to connect to the listener again. Passwords, trust decisions and this temporary address are not saved."))
+            .font(.caption).foregroundStyle(.secondary).padding(.horizontal,14).padding(.bottom,8)
+            .accessibilityIdentifier("connection.reverse")
+        }
+        if let history = model.history { RecentHistoryStatus(model: history).padding(.horizontal, 14) }
+        if let profile = model.defaults?.profile {
+          Text(String(localized:"app.profile.source", defaultValue:"Settings from profile: \(profile.name)")).font(.caption).foregroundStyle(.secondary).padding(.bottom, 8)
+        }
       }
       if let notice = model.credentials.notice {
         HStack {
@@ -120,30 +85,33 @@ struct ConnectionContent: View {
           ConnectionStatisticsOverlay(information: information).padding(12)
         }
       }.clipped()
-      Divider()
-      HStack {
-        Text(status).accessibilityIdentifier("connection.status")
-        Spacer()
-        if let message = model.fullscreen.message {
-          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("fullscreen.status")
-        }
-        if let message = model.desktopCommands.windowMessage {
-          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("window.commandStatus")
-        }
-        if model.desktopCommands.keyboardCaptured {
-          Text(String(localized:"app.keyboard.captured", defaultValue:"Keyboard captured")).accessibilityIdentifier("keyboard.captured")
-        } else if let message = model.desktopCommands.captureMessage {
-          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("keyboard.captureStatus")
-        }
-        if let message = session.remoteResize.message {
-          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("remoteResize.status")
-        }
-        if let message = model.clipboardMessage {
-          Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("clipboard.status")
-        }
-        if session.snapshot.width > 0 { Text(String(localized:"information.desktop.size", defaultValue:"\((session.snapshot.width).formatted()) × \((session.snapshot.height).formatted())")).monospacedDigit() }
-      }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 14).padding(.vertical, 8)
+      if model.showsStatusBar {
+        Divider()
+        HStack {
+          Text(status).accessibilityIdentifier("connection.status")
+          Spacer()
+          if let message = model.fullscreen.message {
+            Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("fullscreen.status")
+          }
+          if let message = model.desktopCommands.windowMessage {
+            Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("window.commandStatus")
+          }
+          if model.desktopCommands.keyboardCaptured {
+            Text(String(localized:"app.keyboard.captured", defaultValue:"Keyboard captured")).accessibilityIdentifier("keyboard.captured")
+          } else if let message = model.desktopCommands.captureMessage {
+            Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("keyboard.captureStatus")
+          }
+          if let message = session.remoteResize.message {
+            Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("remoteResize.status")
+          }
+          if let message = model.clipboardMessage {
+            Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("clipboard.status")
+          }
+          if session.snapshot.width > 0 { Text(String(localized:"information.desktop.size", defaultValue:"\((session.snapshot.width).formatted()) × \((session.snapshot.height).formatted())")).monospacedDigit() }
+        }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 14).padding(.vertical, 8)
+      }
     }
+    .toolbar { connectionToolbar }
     .sheet(item: Binding(get: { visibleSheet }, set: { value in
       // Dismiss only the editor that created this binding. A delayed dismissal
       // must not cancel a newer editor or an authentication prompt.
@@ -207,6 +175,56 @@ struct ConnectionContent: View {
       }
     } message: {
       Text(problem?.issue.message ?? model.message ?? "")
+    }
+  }
+  private var showsConnectionSetup: Bool {
+    ![.connected, .disconnecting].contains(session.snapshot.state)
+  }
+  @ToolbarContentBuilder private var connectionToolbar: some ToolbarContent {
+    ToolbarItemGroup {
+      if showsConnectionSetup, let history = model.history {
+        RecentConnectionsButton(model: history, canSelect:model.canEditDestination) { model.selectDestination($0) }
+      }
+      if showsConnectionSetup, !model.isReverse { Button { openWindow(id: "profiles") } label: { Image(systemName: "folder") }
+        .help(String(localized:"app.saved.profiles.title", defaultValue:"Saved profiles")).accessibilityLabel(String(localized:"app.saved.profiles.title", defaultValue:"Saved profiles")).accessibilityIdentifier("connection.profiles")
+      }
+      Menu {
+        Toggle(String(localized:"settings.defaults.send.clipboard.to.server", defaultValue:"Send clipboard to server"), isOn: Binding(get: { session.clipboardSendEnabled }, set: { setClipboard(send: $0) }))
+          .accessibilityIdentifier("clipboard.send")
+        Toggle(String(localized:"settings.defaults.receive.clipboard.from.server", defaultValue:"Receive clipboard from server"), isOn: Binding(get: { session.clipboardReceiveEnabled }, set: { setClipboard(receive: $0) }))
+          .accessibilityIdentifier("clipboard.receive")
+        if let defaults = model.defaults {
+          Divider()
+          Text(String(localized:"app.clipboard.send.source", defaultValue:"Send: \(source(defaults.overrides.clipboardSend, defaults.profile?.settings.clipboardSend, defaults.inherited.clipboardSend, document:defaults.documentResolution?.fieldLines["SendClipboard"] != nil))"))
+          Text(String(localized:"app.clipboard.receive.source", defaultValue:"Receive: \(source(defaults.overrides.clipboardReceive, defaults.profile?.settings.clipboardReceive, defaults.inherited.clipboardReceive, document:defaults.documentResolution?.fieldLines["AcceptClipboard"] != nil))"))
+        }
+      } label: { Image(systemName: "doc.on.clipboard") }
+        .fixedSize().help(String(localized:"app.clipboard.sharing.for.this.connection", defaultValue:"Clipboard sharing for this connection")).accessibilityLabel(String(localized:"import.defaults.clipboard.sharing", defaultValue:"Clipboard sharing"))
+        .accessibilityIdentifier("clipboard.options")
+        .disabled(model.defaults?.isReady != true)
+      Menu { DesktopActions(model: model) } label: { Image(systemName: "ellipsis.circle") }
+        .fixedSize().help(String(localized:"app.connection.actions", defaultValue:"Connection actions")).accessibilityLabel(String(localized:"app.connection.actions", defaultValue:"Connection actions"))
+        .accessibilityIdentifier("connection.actions")
+      Button { model.openInput() } label: { Image(systemName: "keyboard") }
+        .disabled(!model.canOpenInput).help(String(localized:"app.input.settings.for.this.connection", defaultValue:"Input settings for this connection"))
+        .accessibilityLabel(String(localized:"app.input.settings", defaultValue:"Input settings")).accessibilityIdentifier("connection.input")
+      Button { model.openScaling() } label: { Image(systemName: "arrow.up.left.and.arrow.down.right") }
+        .disabled(!model.canOpenScaling).help(String(localized:"app.scaling.settings.for.this.connection", defaultValue:"Scaling settings for this connection"))
+        .accessibilityLabel(String(localized:"app.scaling.settings", defaultValue:"Scaling settings")).accessibilityIdentifier("connection.scaling")
+      Button { model.openEncoding() } label: { Image(systemName: "slider.horizontal.3") }
+        .disabled(!model.canOpenEncoding).help(String(localized:"app.encoding.settings.for.this.connection", defaultValue:"Encoding settings for this connection"))
+        .accessibilityLabel(String(localized:"app.encoding.settings", defaultValue:"Encoding settings")).accessibilityIdentifier("connection.encoding")
+    }
+    ToolbarItem(id: "connection.disconnect", placement: .primaryAction) {
+      if !showsConnectionSetup {
+        Button { model.disconnect() } label: {
+          Label(String(localized:"app.disconnect", defaultValue:"Disconnect"), systemImage: "stop.circle")
+        }
+        .labelStyle(.iconOnly)
+        .help(String(localized:"app.disconnect", defaultValue:"Disconnect"))
+        .accessibilityIdentifier("connection.disconnect")
+        .disabled(model.busy || model.closing || session.snapshot.state != .connected)
+      }
     }
   }
   private enum Sheet: Identifiable {

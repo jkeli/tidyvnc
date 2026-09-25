@@ -1,6 +1,18 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "app.show.status.bar": {
+      "comment": "View menu toggle for the active connection window's status bar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Status Bar"
+          }
+        }
+      }
+    },
     "connection.issue.resolution.title": {
       "comment": "Redacted structured connection diagnostic. Do not add server-provided details, addresses or credentials.",
       "extractionState": "manual",

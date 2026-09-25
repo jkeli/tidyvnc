@@ -14,16 +14,17 @@ struct TidyVNCApp: App {
   var body: some Scene {
     WindowGroup(Text(verbatim:"TidyVNC"), id: "connection") { StartupRoot(coordinator: coordinator) }
       .defaultSize(width: 960, height: 700)
+      .windowToolbarStyle(.unifiedCompact)
       .commands { ConnectionCommands(coordinator: coordinator) }
     WindowGroup(Text(verbatim:"TidyVNC"), id: "profile-connection", for: ProfileConnectionRequest.self) { $request in
       if let request { ConnectionRoot(coordinator: coordinator, profileID: request.profileID) }
-    }.defaultSize(width: 960, height: 700)
+    }.defaultSize(width: 960, height: 700).windowToolbarStyle(.unifiedCompact)
     WindowGroup(String(localized:"app.connection.file", defaultValue:"Connection File"), id: "document-connection", for: NativeDocumentOpenRequest.self) { $request in
       if let request {
         ConnectionRoot(coordinator:coordinator,document:request)
           .navigationTitle(request.url.lastPathComponent)
       }
-    }.defaultSize(width:960,height:700)
+    }.defaultSize(width:960,height:700).windowToolbarStyle(.unifiedCompact)
     Window(String(localized:"profiles.saved.profiles", defaultValue:"Saved Profiles"), id: "profiles") {
       if let library = coordinator.profileLibrary { ProfileLibraryRoot(model: library) }
       else { Text(String(localized:"app.saved.profiles.are.unavailable", defaultValue:"Saved profiles are unavailable.")).padding(24) }
@@ -176,6 +177,7 @@ struct TidyVNCApp: App {
     }
     let window = NSWindow(contentRect:NSRect(x:0,y:0,width:960,height:700),
       styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
+    window.toolbarStyle = .unifiedCompact
     window.title = String(localized:"app.incoming.connection", defaultValue:"Incoming Connection"); window.isReleasedWhenClosed = false
     let content = NSHostingController(rootView:ConnectionRoot(coordinator:self,model:model)); content.sizingOptions = [.minSize]
     window.contentViewController = content
@@ -407,6 +409,12 @@ private struct ConnectionCommands: Commands {
       Button(String(localized:"app.saved.server.keys", defaultValue:"Saved Server Keys…")) { openWindow(id: "server-keys") }
       Button(String(localized:"app.saved.certificate.decisions", defaultValue:"Saved Certificate Decisions…")) { openWindow(id: "trust-decisions") }
       Button(String(localized:"app.saved.profiles", defaultValue:"Saved Profiles…")) { openWindow(id: "profiles") }.keyboardShortcut("p", modifiers: [.command, .shift])
+    }
+    CommandGroup(after: .toolbar) {
+      Toggle(String(localized:"app.show.status.bar", defaultValue:"Show Status Bar"), isOn: Binding(
+        get: { coordinator.active?.showsStatusBar ?? true },
+        set: { coordinator.active?.showsStatusBar = $0 }))
+        .disabled(coordinator.active == nil)
     }
     CommandMenu(String(localized:"settings.section.connection", defaultValue:"Connection")) {
       if let model = coordinator.active { DesktopActions(model: model) }

@@ -113,6 +113,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   @Published private(set) var fullscreenDraft: NativeFullscreenDraft?
   private var fullscreenObservation: AnyCancellable?
   @Published private(set) var informationID: UUID?
+  @Published var showsStatusBar = true
   @Published private(set) var showsStatistics = false { didSet { fullscreen.showsStatistics = showsStatistics } }
   private var commandsObservation: AnyCancellable?
   let documentSave = NativeDocumentSaveState()
