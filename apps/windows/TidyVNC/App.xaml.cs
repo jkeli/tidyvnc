@@ -376,6 +376,17 @@ public partial class App : Application
         return window;
     }
 
+    /// <summary>View &gt; Status bar: one choice for every connection window, kept in window-state.json.</summary>
+    internal bool StatusBarVisible
+    {
+        get => WindowPlacements.StatusBarVisible;
+        set
+        {
+            WindowPlacements.StatusBarVisible = value;
+            foreach (var window in windows) window.ApplyStatusBar();
+        }
+    }
+
     private async void WindowClosed(ConnectionWindow window)
     {
         windows.Remove(window);

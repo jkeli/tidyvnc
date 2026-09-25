@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- The connection window (plans/native-ui-winui UX.md section 3; PARITY C01-C10, V01).
-     Rows follow the macOS order: title bar with menus, address, toolbar, gateway,
-     notices, desktop (or the pre-session page) and the status bar. -->
+     Rows: the title bar with the menus and the toolbar, the address and gateway (hidden
+     while connected), notices (collapsed when none is open), the desktop (or the
+     pre-session page) and the status bar (View > Status bar). -->
 <Window
     x:Class="TidyVNC.ConnectionWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -17,8 +18,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -27,83 +26,170 @@
             <TitleBar.IconSource>
                 <ImageIconSource x:Name="TitleIcon" />
             </TitleBar.IconSource>
+            <!-- The menus, then the toolbar (the macOS toolbar row, same order), from the left. -->
             <TitleBar.Content>
-                <MenuBar x:Name="Menu" HorizontalAlignment="Left">
-                    <MenuBarItem x:Name="FileMenu" Title="{local:Str Key=app.menu.file}" AccessKey="F" AutomationProperties.AutomationId="menu.file">
-                        <MenuFlyoutItem x:Name="NewConnectionItem" Text="{local:Str Key=import.defaults.new.connection}" Click="NewConnectionClick"
-                                        AutomationProperties.AutomationId="menu.newConnection">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Modifiers="Control" Key="N" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="ListenItem" Text="{local:Str Key=app.listen.for.connections}" Click="ListenClick"
-                                        AutomationProperties.AutomationId="menu.listen">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Modifiers="Control,Shift" Key="L" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="OpenFileItem" Text="{local:Str Key=app.open.connection.file.title}" Click="OpenFileClick"
-                                        AutomationProperties.AutomationId="menu.openConnectionFile">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Modifiers="Control" Key="O" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="SaveFileItem" Text="{local:Str Key=app.save.connection.file.as}" Click="SaveFileClick"
-                                        AutomationProperties.AutomationId="menu.saveConnectionFile">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Modifiers="Control,Shift" Key="S" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem Text="{local:Str Key=app.import.connection.defaults}" Click="ImportDefaultsClick"
-                                        AutomationProperties.AutomationId="menu.importDefaults" />
-                        <MenuFlyoutItem Text="{local:Str Key=app.import.recent.connections}" Click="ImportHistoryClick"
-                                        AutomationProperties.AutomationId="menu.importHistory" />
-                        <MenuFlyoutItem Text="{local:Str Key=app.saved.server.keys}" Click="ServerKeysClick"
-                                        AutomationProperties.AutomationId="menu.savedServerKeys" />
-                        <MenuFlyoutItem Text="{local:Str Key=app.saved.certificate.decisions}" Click="CertificateDecisionsClick"
-                                        AutomationProperties.AutomationId="menu.savedCertificateDecisions" />
-                        <MenuFlyoutItem x:Name="ProfilesItem" Text="{local:Str Key=app.saved.profiles}" Click="ProfilesClick"
-                                        AutomationProperties.AutomationId="menu.savedProfiles">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Modifiers="Control,Shift" Key="P" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="SettingsItem" Text="{local:Str Key=app.menu.settings}" Click="SettingsClick"
-                                        AutomationProperties.AutomationId="menu.settings" />
-                        <MenuFlyoutSeparator />
-                        <MenuFlyoutItem x:Name="CloseWindowItem" Text="{local:Str Key=app.close.window}" Click="CloseWindowClick"
-                                        AutomationProperties.AutomationId="menu.closeWindow">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Modifiers="Control" Key="W" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="ExitItem" Text="{local:Str Key=app.quit.tidyvnc}" Click="ExitClick" AutomationProperties.AutomationId="menu.exit" />
-                    </MenuBarItem>
-                    <MenuBarItem x:Name="ConnectionMenuItem" Title="{local:Str Key=app.menu.connection}" AccessKey="C" AutomationProperties.AutomationId="menu.connection" />
-                    <MenuBarItem x:Name="HelpMenu" Title="{local:Str Key=app.menu.help}" AccessKey="H" AutomationProperties.AutomationId="menu.help">
-                        <MenuFlyoutItem Text="{local:Str Key=app.menu.help.contents}" Click="HelpClick" AutomationProperties.AutomationId="menu.helpContents">
-                            <MenuFlyoutItem.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="F1" />
-                            </MenuFlyoutItem.KeyboardAccelerators>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutSeparator />
-                        <MenuFlyoutItem Text="{local:Str Key=help.project}" Click="ProjectLinkClick" AutomationProperties.AutomationId="menu.project" />
-                        <MenuFlyoutItem Text="{local:Str Key=help.issue}" Click="IssueLinkClick" AutomationProperties.AutomationId="menu.issue" />
-                        <MenuFlyoutSeparator />
-                        <MenuFlyoutItem Text="{local:Str Key=about.action}" Click="AboutClick" AutomationProperties.AutomationId="menu.about" />
-                    </MenuBarItem>
-                </MenuBar>
+                <Grid x:Name="TitleContent" HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <MenuBar x:Name="Menu" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <MenuBarItem x:Name="FileMenu" Title="{local:Str Key=app.menu.file}" AccessKey="F" AutomationProperties.AutomationId="menu.file">
+                            <MenuFlyoutItem x:Name="NewConnectionItem" Text="{local:Str Key=import.defaults.new.connection}" Click="NewConnectionClick"
+                                            AutomationProperties.AutomationId="menu.newConnection">
+                                <MenuFlyoutItem.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control" Key="N" />
+                                </MenuFlyoutItem.KeyboardAccelerators>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem x:Name="ListenItem" Text="{local:Str Key=app.listen.for.connections}" Click="ListenClick"
+                                            AutomationProperties.AutomationId="menu.listen">
+                                <MenuFlyoutItem.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control,Shift" Key="L" />
+                                </MenuFlyoutItem.KeyboardAccelerators>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem x:Name="OpenFileItem" Text="{local:Str Key=app.open.connection.file.title}" Click="OpenFileClick"
+                                            AutomationProperties.AutomationId="menu.openConnectionFile">
+                                <MenuFlyoutItem.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control" Key="O" />
+                                </MenuFlyoutItem.KeyboardAccelerators>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem x:Name="SaveFileItem" Text="{local:Str Key=app.save.connection.file.as}" Click="SaveFileClick"
+                                            AutomationProperties.AutomationId="menu.saveConnectionFile">
+                                <MenuFlyoutItem.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control,Shift" Key="S" />
+                                </MenuFlyoutItem.KeyboardAccelerators>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="{local:Str Key=app.import.connection.defaults}" Click="ImportDefaultsClick"
+                                            AutomationProperties.AutomationId="menu.importDefaults" />
+                            <MenuFlyoutItem Text="{local:Str Key=app.import.recent.connections}" Click="ImportHistoryClick"
+                                            AutomationProperties.AutomationId="menu.importHistory" />
+                            <MenuFlyoutItem Text="{local:Str Key=app.saved.server.keys}" Click="ServerKeysClick"
+                                            AutomationProperties.AutomationId="menu.savedServerKeys" />
+                            <MenuFlyoutItem Text="{local:Str Key=app.saved.certificate.decisions}" Click="CertificateDecisionsClick"
+                                            AutomationProperties.AutomationId="menu.savedCertificateDecisions" />
+                            <MenuFlyoutItem x:Name="ProfilesItem" Text="{local:Str Key=app.saved.profiles}" Click="ProfilesClick"
+                                            AutomationProperties.AutomationId="menu.savedProfiles">
+                                <MenuFlyoutItem.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control,Shift" Key="P" />
+                                </MenuFlyoutItem.KeyboardAccelerators>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem x:Name="SettingsItem" Text="{local:Str Key=app.menu.settings}" Click="SettingsClick"
+                                            AutomationProperties.AutomationId="menu.settings" />
+                            <MenuFlyoutSeparator />
+                            <MenuFlyoutItem x:Name="CloseWindowItem" Text="{local:Str Key=app.close.window}" Click="CloseWindowClick"
+                                            AutomationProperties.AutomationId="menu.closeWindow">
+                                <MenuFlyoutItem.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control" Key="W" />
+                                </MenuFlyoutItem.KeyboardAccelerators>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem x:Name="ExitItem" Text="{local:Str Key=app.quit.tidyvnc}" Click="ExitClick" AutomationProperties.AutomationId="menu.exit" />
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="ConnectionMenuItem" Title="{local:Str Key=app.menu.connection}" AccessKey="C" AutomationProperties.AutomationId="menu.connection" />
+                        <MenuBarItem x:Name="ViewMenu" Title="{local:Str Key=app.menu.view}" AccessKey="V" AutomationProperties.AutomationId="menu.view">
+                            <ToggleMenuFlyoutItem x:Name="StatusBarItem" Text="{local:Str Key=app.status.bar}" Click="StatusBarClick"
+                                                  AutomationProperties.AutomationId="menu.statusBar" />
+                        </MenuBarItem>
+                        <MenuBarItem x:Name="HelpMenu" Title="{local:Str Key=app.menu.help}" AccessKey="H" AutomationProperties.AutomationId="menu.help">
+                            <MenuFlyoutItem Text="{local:Str Key=app.menu.help.contents}" Click="HelpClick" AutomationProperties.AutomationId="menu.helpContents">
+                                <MenuFlyoutItem.KeyboardAccelerators>
+                                    <KeyboardAccelerator Key="F1" />
+                                </MenuFlyoutItem.KeyboardAccelerators>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator />
+                            <MenuFlyoutItem Text="{local:Str Key=help.project}" Click="ProjectLinkClick" AutomationProperties.AutomationId="menu.project" />
+                            <MenuFlyoutItem Text="{local:Str Key=help.issue}" Click="IssueLinkClick" AutomationProperties.AutomationId="menu.issue" />
+                            <MenuFlyoutSeparator />
+                            <MenuFlyoutItem Text="{local:Str Key=about.action}" Click="AboutClick" AutomationProperties.AutomationId="menu.about" />
+                        </MenuBarItem>
+                    </MenuBar>
+                    <CommandBar x:Name="Toolbar" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" DefaultLabelPosition="Collapsed"
+                                IsDynamicOverflowEnabled="True" OverflowButtonVisibility="Auto" Background="Transparent" Margin="4,0,0,0">
+                    <!-- Title bar buttons: as narrow as the caption buttons' icons allow, so the toolbar fits beside the menus. -->
+                    <CommandBar.Resources>
+                        <Style TargetType="AppBarButton" BasedOn="{StaticResource DefaultAppBarButtonStyle}">
+                            <Setter Property="Width" Value="44" />
+                        </Style>
+                    </CommandBar.Resources>
+                        <AppBarButton x:Name="DisconnectButton" Label="{local:Str Key=app.disconnect}" ToolTipService.ToolTip="{local:Str Key=app.disconnect}"
+                                      Click="DisconnectClick" Visibility="Collapsed" AutomationProperties.AutomationId="connection.disconnect">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xEB55;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                        <AppBarButton x:Name="RecentButton" Label="{local:Str Key=history.recent.connections}" ToolTipService.ToolTip="{local:Str Key=history.recent.connections}"
+                                      AutomationProperties.AutomationId="connection.recent">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE81C;" />
+                            </AppBarButton.Icon>
+                            <AppBarButton.Flyout>
+                                <Flyout x:Name="RecentFlyout" Placement="BottomEdgeAlignedLeft" Opening="RecentOpening">
+                                    <local:RecentConnectionsPanel x:Name="RecentPanel" />
+                                </Flyout>
+                            </AppBarButton.Flyout>
+                        </AppBarButton>
+                        <AppBarButton x:Name="ClipboardButton" Label="{local:Str Key=import.defaults.clipboard.sharing}"
+                                      ToolTipService.ToolTip="{local:Str Key=app.clipboard.sharing.for.this.connection}" AutomationProperties.AutomationId="clipboard.options">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE77F;" />
+                            </AppBarButton.Icon>
+                            <AppBarButton.Flyout>
+                                <MenuFlyout x:Name="ClipboardFlyout" Opening="ClipboardOpening">
+                                    <ToggleMenuFlyoutItem x:Name="ClipboardSendItem" Text="{local:Str Key=settings.defaults.send.clipboard.to.server}"
+                                                          Click="ClipboardToggled" AutomationProperties.AutomationId="clipboard.send" />
+                                    <ToggleMenuFlyoutItem x:Name="ClipboardReceiveItem" Text="{local:Str Key=settings.defaults.receive.clipboard.from.server}"
+                                                          Click="ClipboardToggled" AutomationProperties.AutomationId="clipboard.receive" />
+                                    <MenuFlyoutSeparator />
+                                    <MenuFlyoutItem x:Name="ClipboardSendSource" IsEnabled="False" />
+                                    <MenuFlyoutItem x:Name="ClipboardReceiveSource" IsEnabled="False" />
+                                </MenuFlyout>
+                            </AppBarButton.Flyout>
+                        </AppBarButton>
+                        <AppBarButton x:Name="ActionsButton" Label="{local:Str Key=app.connection.actions}" ToolTipService.ToolTip="{local:Str Key=app.connection.actions}"
+                                      AutomationProperties.AutomationId="connection.actions">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE712;" />
+                            </AppBarButton.Icon>
+                            <AppBarButton.Flyout>
+                                <MenuFlyout x:Name="ActionsFlyout" Opening="ActionsOpening" />
+                            </AppBarButton.Flyout>
+                        </AppBarButton>
+                        <AppBarButton x:Name="InputButton" Label="{local:Str Key=app.input.settings}" ToolTipService.ToolTip="{local:Str Key=app.input.settings.for.this.connection}"
+                                      Click="InputClick" AutomationProperties.AutomationId="connection.input">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE765;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                        <AppBarButton x:Name="ScalingButton" Label="{local:Str Key=app.scaling.settings}" ToolTipService.ToolTip="{local:Str Key=app.scaling.settings.for.this.connection}"
+                                      Click="ScalingClick" AutomationProperties.AutomationId="connection.scaling">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE71E;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                        <AppBarButton x:Name="EncodingButton" Label="{local:Str Key=app.encoding.settings}" ToolTipService.ToolTip="{local:Str Key=app.encoding.settings.for.this.connection}"
+                                      Click="EncodingClick" AutomationProperties.AutomationId="connection.encoding">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE9E9;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                    </CommandBar>
+                </Grid>
             </TitleBar.Content>
         </TitleBar>
 
-        <!-- Address row -->
-        <Grid x:Name="AddressArea" Grid.Row="1" Padding="14,10,14,6" ColumnSpacing="12">
+        <!-- Address and gateway: hidden while connected, when Disconnect is in the toolbar -->
+        <Grid x:Name="AddressArea" Grid.Row="1" Padding="14,8,14,8" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            <!-- Margins, not RowSpacing, so collapsed rows take no space. -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <FontIcon Glyph="&#xE7F4;" VerticalAlignment="Top" Margin="0,8,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                       AutomationProperties.AccessibilityView="Raw" />
             <TextBox x:Name="Address" Grid.Column="1" PlaceholderText="{local:Str Key=profiles.server.address}"
@@ -122,86 +208,22 @@
             <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Top">
                 <Button x:Name="ConnectButton" Content="{local:Str Key=document.connect}" Style="{StaticResource AccentButtonStyle}"
                         Click="ConnectClick" AutomationProperties.AutomationId="connection.connect" />
-                <Button x:Name="DisconnectButton" Content="{local:Str Key=app.disconnect}" Click="DisconnectClick" Visibility="Collapsed"
-                        AutomationProperties.AutomationId="connection.disconnect" />
                 <Button x:Name="CancelButton" Content="{local:Str Key=action.cancel}" Click="CancelClick" Visibility="Collapsed"
                         AutomationProperties.AutomationId="connection.cancel" />
             </StackPanel>
+            <TextBox x:Name="Gateway" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" PlaceholderText="{local:Str Key=profiles.ssh.gateway.optional}"
+                     AutomationProperties.AutomationId="connection.sshGateway" AutomationProperties.Name="{local:Str Key=profiles.ssh.gateway.optional}"
+                     TextChanged="GatewayChanged" KeyDown="AddressKeyDown"
+                     ToolTipService.ToolTip="{local:Str Key=profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a}" IsSpellCheckEnabled="False" />
+            <StackPanel x:Name="GatewayDescription" Grid.Row="2" Grid.Column="1" Margin="0,4,0,0" Spacing="2" Visibility="Collapsed">
+                <TextBlock x:Name="GatewayIssue" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Visibility="Collapsed" />
+                <TextBlock x:Name="GatewayHelp" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="Collapsed"
+                           Text="{local:Str Key=profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are}" />
+            </StackPanel>
         </Grid>
 
-        <!-- Toolbar: the macOS toolbar row, same order -->
-        <CommandBar x:Name="Toolbar" Grid.Row="2" HorizontalAlignment="Left" DefaultLabelPosition="Collapsed" IsDynamicOverflowEnabled="False"
-                    OverflowButtonVisibility="Collapsed" Margin="6,0,14,0">
-            <AppBarButton x:Name="RecentButton" Label="{local:Str Key=history.recent.connections}" ToolTipService.ToolTip="{local:Str Key=history.recent.connections}"
-                          AutomationProperties.AutomationId="connection.recent">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE81C;" />
-                </AppBarButton.Icon>
-                <AppBarButton.Flyout>
-                    <Flyout x:Name="RecentFlyout" Placement="BottomEdgeAlignedLeft" Opening="RecentOpening">
-                        <local:RecentConnectionsPanel x:Name="RecentPanel" />
-                    </Flyout>
-                </AppBarButton.Flyout>
-            </AppBarButton>
-            <AppBarButton x:Name="ClipboardButton" Label="{local:Str Key=import.defaults.clipboard.sharing}"
-                          ToolTipService.ToolTip="{local:Str Key=app.clipboard.sharing.for.this.connection}" AutomationProperties.AutomationId="clipboard.options">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE77F;" />
-                </AppBarButton.Icon>
-                <AppBarButton.Flyout>
-                    <MenuFlyout x:Name="ClipboardFlyout" Opening="ClipboardOpening">
-                        <ToggleMenuFlyoutItem x:Name="ClipboardSendItem" Text="{local:Str Key=settings.defaults.send.clipboard.to.server}"
-                                              Click="ClipboardToggled" AutomationProperties.AutomationId="clipboard.send" />
-                        <ToggleMenuFlyoutItem x:Name="ClipboardReceiveItem" Text="{local:Str Key=settings.defaults.receive.clipboard.from.server}"
-                                              Click="ClipboardToggled" AutomationProperties.AutomationId="clipboard.receive" />
-                        <MenuFlyoutSeparator />
-                        <MenuFlyoutItem x:Name="ClipboardSendSource" IsEnabled="False" />
-                        <MenuFlyoutItem x:Name="ClipboardReceiveSource" IsEnabled="False" />
-                    </MenuFlyout>
-                </AppBarButton.Flyout>
-            </AppBarButton>
-            <AppBarButton x:Name="ActionsButton" Label="{local:Str Key=app.connection.actions}" ToolTipService.ToolTip="{local:Str Key=app.connection.actions}"
-                          AutomationProperties.AutomationId="connection.actions">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE712;" />
-                </AppBarButton.Icon>
-                <AppBarButton.Flyout>
-                    <MenuFlyout x:Name="ActionsFlyout" Opening="ActionsOpening" />
-                </AppBarButton.Flyout>
-            </AppBarButton>
-            <AppBarButton x:Name="InputButton" Label="{local:Str Key=app.input.settings}" ToolTipService.ToolTip="{local:Str Key=app.input.settings.for.this.connection}"
-                          Click="InputClick" AutomationProperties.AutomationId="connection.input">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE765;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Name="ScalingButton" Label="{local:Str Key=app.scaling.settings}" ToolTipService.ToolTip="{local:Str Key=app.scaling.settings.for.this.connection}"
-                          Click="ScalingClick" AutomationProperties.AutomationId="connection.scaling">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE71E;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Name="EncodingButton" Label="{local:Str Key=app.encoding.settings}" ToolTipService.ToolTip="{local:Str Key=app.encoding.settings.for.this.connection}"
-                          Click="EncodingClick" AutomationProperties.AutomationId="connection.encoding">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE9E9;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-
-        <!-- Gateway and notices -->
-        <StackPanel x:Name="NoticeArea" Grid.Row="3" Padding="14,4,14,8" Spacing="6">
-            <TextBox x:Name="Gateway" PlaceholderText="{local:Str Key=profiles.ssh.gateway.optional}" AutomationProperties.AutomationId="connection.sshGateway"
-                     AutomationProperties.Name="{local:Str Key=profiles.ssh.gateway.optional}" TextChanged="GatewayChanged" KeyDown="AddressKeyDown"
-                     ToolTipService.ToolTip="{local:Str Key=profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a}" IsSpellCheckEnabled="False">
-                <TextBox.Description>
-                    <StackPanel Spacing="2">
-                        <TextBlock x:Name="GatewayIssue" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Visibility="Collapsed" />
-                        <TextBlock x:Name="GatewayHelp" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="Collapsed"
-                                   Text="{local:Str Key=profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are}" />
-                    </StackPanel>
-                </TextBox.Description>
-            </TextBox>
+        <!-- Notices: each is collapsed while closed, and the area while none is open -->
+        <StackPanel x:Name="NoticeArea" Grid.Row="2" Padding="14,0,14,8" Spacing="6" Visibility="Collapsed">
             <InfoBar x:Name="ReverseNotice" IsOpen="False" IsClosable="False" Severity="Informational"
                      Message="{local:Str Key=app.incoming.connection.to.reconnect.ask.the.server.to.connect.to.the.listener}"
                      AutomationProperties.AutomationId="connection.reverse" />
@@ -228,7 +250,7 @@
         </StackPanel>
 
         <!-- Desktop, or the page shown before a session exists -->
-        <Grid x:Name="DesktopArea" Grid.Row="4" Grid.RowSpan="2" BorderThickness="0,1,0,1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+        <Grid x:Name="DesktopArea" Grid.Row="3" BorderThickness="0,1,0,1" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
             <Border x:Name="DesktopHost" Background="Black" />
             <StackPanel x:Name="Placeholder" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" MaxWidth="480" IsHitTestVisible="False">
                 <FontIcon x:Name="PlaceholderIcon" Glyph="&#xE7F4;" FontSize="40" Foreground="White" AutomationProperties.AccessibilityView="Raw" />
@@ -243,7 +265,7 @@
         </Grid>
 
         <!-- Status bar -->
-        <Grid Grid.Row="6" Padding="14,6,14,8" ColumnSpacing="16">
+        <Grid x:Name="StatusBar" Grid.Row="4" Padding="14,6,14,8" ColumnSpacing="16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />

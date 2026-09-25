@@ -54,6 +54,7 @@
   <data name="app_menu_help" xml:space="preserve"><value>Help</value></data>
   <data name="app_menu_help_contents" xml:space="preserve"><value>TidyVNC help</value></data>
   <data name="app_menu_settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="app_menu_view" xml:space="preserve"><value>View</value></data>
   <data name="app_no_active_connection" xml:space="preserve"><value>No active connection</value></data>
   <data name="app_ok" xml:space="preserve"><value>OK</value></data>
   <data name="app_open_connection_file" xml:space="preserve"><value>Open connection file</value></data>
@@ -78,6 +79,7 @@
   <data name="app_scaling_settings" xml:space="preserve"><value>Scaling settings</value></data>
   <data name="app_scaling_settings_for_this_connection" xml:space="preserve"><value>Scaling settings for this connection</value></data>
   <data name="app_source_address_of_this_incoming_connection_it_is_not_an_outbound_destination" xml:space="preserve"><value>Source address of this incoming connection; it is not an outbound destination.</value></data>
+  <data name="app_status_bar" xml:space="preserve"><value>Status bar</value></data>
   <data name="app_the_application_is_closing" xml:space="preserve"><value>The application is closing.</value></data>
   <data name="app_unable_to_start_a_connection" xml:space="preserve"><value>Unable to start a connection</value></data>
   <data name="app_use_built_in_defaults_for_this_connection" xml:space="preserve"><value>Use built-in defaults for this connection</value></data>

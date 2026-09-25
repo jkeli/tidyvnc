@@ -72,20 +72,31 @@ example `server.example:1 – TidyVNC`) so taskbar thumbnails can be told apart.
 
 ## 3. Connection window
 
-The layout keeps the macOS order from top to bottom:
+The layout keeps the macOS order from top to bottom, except that the toolbar
+shares the title bar row to save vertical space (owner request, 2026-09-25):
 
-1. **Title bar row.** App icon, window title, and the menu bar (§6) in the caption
-   area, like Windows 11 Notepad. Caption buttons on the right.
-2. **Address row.** Monitor glyph, *Server address* `TextBox` (Enter connects),
-   then *Connect* (accent), *Disconnect* or *Cancel*, and a `ProgressRing` while
-   connecting. Address errors appear under the box through the text box's
-   description area, with an error glyph, exactly where macOS shows them.
-3. **Toolbar row.** A `CommandBar` holding the same controls, in the same order,
-   as the macOS toolbar row:
+1. **Title bar row.** App icon, window title, then the menu bar (§6) and the
+   toolbar, left-aligned in the caption area. Caption buttons on the right; the
+   space between the toolbar and them drags the window. While connected the title
+   bar shows only the desktop name (the window title keeps `… – TidyVNC` for the
+   taskbar), leaving room for the toolbar. The window sets the click-through
+   regions of the menus and toolbar itself after every layout pass that moves
+   them: the TitleBar control updates them only when it changes size, so a
+   shorter or longer title left them behind.
+2. **Address and gateway rows.** Monitor glyph, *Server address* `TextBox`
+   (Enter connects), then *Connect* (accent) or *Cancel*, and a `ProgressRing`
+   while connecting. Address errors appear under the box through the text box's
+   description area, with an error glyph, exactly where macOS shows them. Below
+   it, the *SSH gateway (optional)* text box, with its help or problem text only
+   when there is some. Both rows are hidden while connected; *Disconnect* is then
+   in the toolbar.
+3. **Toolbar.** A `CommandBar` in the title bar with 44 px buttons, in the macOS
+   toolbar order. Buttons that do not fit move into its overflow (…) menu:
 
    | macOS item | WinUI control | Icon |
    | --- | --- | --- |
-   | Recent connections (popover) | `AppBarButton` with a `Flyout` | History |
+   | Disconnect (Windows only; while connected) | `AppBarButton` | Disconnect display (EB55) |
+   | Recent connections (popover; hidden while connected) | `AppBarButton` with a `Flyout` | History |
    | Saved profiles | `AppBarButton` | Folder |
    | Clipboard menu (Send/Receive toggles with sources) | `AppBarButton` with a `MenuFlyout` of `ToggleMenuFlyoutItem`s | Paste |
    | Connection actions (ellipsis) | `AppBarButton` with the Connection `MenuFlyout` | More |
@@ -95,18 +106,20 @@ The layout keeps the macOS order from top to bottom:
 
    Every icon button has a tooltip and an automation name with the same text as
    the macOS `.help` and accessibility label.
-4. **Gateway row.** *SSH gateway (optional)* text box with its help text.
-5. **Notices.** `InfoBar`s for what macOS shows as inline banners and notices:
+4. **Notices.** `InfoBar`s for what macOS shows as inline banners and notices:
    first-use import offers (*Review import…* / *Not now*), history errors
    (*Reload history*), *Settings from profile: X*, and the credential notice
-   (*Dismiss*). They stack in the macOS order.
-6. **Desktop area.** The remote desktop view. When idle it shows the macOS empty
+   (*Dismiss*). They stack in the macOS order. A closed notice is collapsed, and
+   the whole area is collapsed while nothing in it is showing.
+5. **Desktop area.** The remote desktop view. When idle it shows the macOS empty
    state: *Connect to a desktop* and *Enter a VNC server address to begin*, or the
    current status text. The statistics overlay sits top-right on an acrylic
    panel and ignores the pointer, as on macOS.
-7. **Status bar.** A thin bar with the connection state and the same fullscreen,
+6. **Status bar.** A thin bar with the connection state and the same fullscreen,
    window-command, keyboard-capture, remote-resize and clipboard messages and
-   desktop size. Messages are announced politely to Narrator (§10).
+   desktop size. Messages are announced politely to Narrator (§10). *View >
+   Status bar* hides it in every connection window; the choice is kept in
+   `window-state.json`.
 
 The pre-session pages (loading, command-line or file display mapping, *Review
 connection file*, retry actions, *Unable to start a connection*) replace the
@@ -207,6 +220,7 @@ ellipsis when they open a window or dialog.
 | | Connection settings ▸ Fullscreen displays…, Input…, Remote resize…, Scaling…, Connection…, Security…, Encoding… | – | – |
 | | Connection information… | – | – |
 | | Show connection statistics (toggle) | – | – |
+| View (Windows only) | Status bar (toggle, every connection window) | – | – |
 | Help | TidyVNC help | ⌘? | F1 |
 | | Project and source code | – | – |
 | | Report an issue | – | – |

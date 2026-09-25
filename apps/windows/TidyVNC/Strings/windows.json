@@ -55,6 +55,8 @@
     "app.menu.file": "File",
     "app.menu.connection": "Connection",
     "app.menu.help": "Help",
+    "app.menu.view": "View",
+    "app.status.bar": "Status bar",
     "app.close.window": "Close window",
     "document.files.tidyvnc": "TidyVNC connection files",
     "document.files.tigervnc": "TigerVNC connection files",

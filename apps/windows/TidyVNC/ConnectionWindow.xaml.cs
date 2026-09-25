@@ -101,7 +101,13 @@ public sealed partial class ConnectionWindow : Window
         RecentPanel.Selected += destination => { Controller.SelectDestination(destination); RecentFlyout.Hide(); };
         // Built once and refreshed in place (see ConnectionMenu).
         connectionMenu = ConnectionMenu.Build(ConnectionMenuItem.Items, this);
-        GatewayHelp.Visibility = Visibility.Collapsed;
+        // After the TitleBar's own update on a resize, and whenever the menus or toolbar move.
+        AppTitleBar.SizeChanged += (_, _) => DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => UpdateTitleBarRegions(force: true));
+        TitleContent.LayoutUpdated += (_, _) => UpdateTitleBarRegions(force: false);
+        // A closed InfoBar keeps its place in the stack (and the stack's spacing): collapse it with its content.
+        foreach (var notice in NoticeArea.Children.OfType<InfoBar>())
+            notice.RegisterPropertyChangedCallback(InfoBar.IsOpenProperty, (_, _) => UpdateNotices());
+        ApplyStatusBar();
         if (NativeSshConfiguration.ClientPath is null)
         {
             // C09: without the Windows OpenSSH Client the gateway cannot work; say how to add it.
@@ -214,11 +220,13 @@ public sealed partial class ConnectionWindow : Window
         var connected = state == NativeSessionState.Connected;
 
         // Title: the server first so taskbar thumbnails can be told apart (UX.md section 2).
+        var server = connected ? (session!.Information?.DesktopName is { Length: > 0 } name ? name : controller.Endpoint) : null;
         var title = controller.IsReverse ? Strings.Get("app.incoming.connection")
             : defaults.DocumentRequest is { } document && session is null ? Path.GetFileName(document.Path)
-            : connected ? (session!.Information?.DesktopName is { Length: > 0 } name ? name : controller.Endpoint) + " – TidyVNC" : "TidyVNC";
+            : server is not null ? server + " – TidyVNC" : "TidyVNC";
         Title = title;
-        AppTitleBar.Title = title;
+        // The title bar already shows the app icon; leaving out the app name keeps room for the toolbar.
+        AppTitleBar.Title = server is not null && !controller.IsReverse ? server : title;
 
         // Address row.
         var editable = controller.CanEditDestination;
@@ -230,11 +238,15 @@ public sealed partial class ConnectionWindow : Window
         var issue = NativeTexts.Endpoint(controller.EndpointIssue);
         AddressIssue.Text = issue is null ? "" : Strings.Resolve(issue);
         AddressIssuePanel.Visibility = issue is null ? Visibility.Collapsed : Visibility.Visible;
+        // An empty description still takes a line under the box.
+        Address.Description = issue is null ? null : AddressIssuePanel;
         BusyRing.IsActive = controller.Busy;
         CancelButton.Visibility = controller.Busy ? Visibility.Visible : Visibility.Collapsed;
         DisconnectButton.Visibility = !controller.Busy && connected ? Visibility.Visible : Visibility.Collapsed;
         ConnectButton.Visibility = !controller.Busy && !connected && !controller.IsReverse ? Visibility.Visible : Visibility.Collapsed;
         ConnectButton.IsEnabled = controller.CanConnect;
+        // While connected the address and gateway only take space: Disconnect is in the toolbar.
+        SetChrome(AddressArea, connected && !controller.Busy ? Visibility.Collapsed : Visibility.Visible);
 
         // Gateway.
         if (NativeSshConfiguration.ClientPath is not null)
@@ -244,10 +256,13 @@ public sealed partial class ConnectionWindow : Window
         }
         GatewayHelp.Visibility = controller.SshGatewayText.Length != 0 ? Visibility.Visible : Visibility.Collapsed;
         Gateway.Visibility = controller.IsReverse ? Visibility.Collapsed : Visibility.Visible;
+        GatewayDescription.Visibility = !controller.IsReverse && (GatewayIssue.Visibility == Visibility.Visible || GatewayHelp.Visibility == Visibility.Visible)
+            ? Visibility.Visible : Visibility.Collapsed;
 
         // Toolbar and the Connection menu (the same items as the toolbar's More button).
         connectionMenu.Refresh();
-        RecentButton.Visibility = controller.History is null ? Visibility.Collapsed : Visibility.Visible;
+        // Recent connections fill the address row, which is hidden while connected.
+        RecentButton.Visibility = controller.History is null || (connected && !controller.Busy) ? Visibility.Collapsed : Visibility.Visible;
         RecentPanel.CanSelect = editable;
         ClipboardButton.IsEnabled = defaults.IsReady && session is not null;
         EncodingButton.IsEnabled = InputButton.IsEnabled = ScalingButton.IsEnabled = CanOpenConnectedEditor;
@@ -270,6 +285,7 @@ public sealed partial class ConnectionWindow : Window
         else CredentialNotice.IsOpen = false;
         ProfileSource.Text = defaults.Profile is { } profile ? Strings.Format("app.profile.source", profile.Name) : "";
         ProfileSource.Visibility = defaults.Profile is null ? Visibility.Collapsed : Visibility.Visible;
+        UpdateNotices();
 
         // Desktop, placeholder and pre-session pages.
         UpdateSetupPage();
@@ -356,6 +372,56 @@ public sealed partial class ConnectionWindow : Window
                 _ => Controller.DismissMessage());
         return null;
     }
+
+    private Windows.Graphics.RectInt32[] titleBarRegions = [];
+
+    /// <summary>
+    /// The menu bar and toolbar take clicks; the rest of the title bar drags the window. The
+    /// TitleBar control updates its content's click region only when the title bar changes size,
+    /// so after the title text changed length the menus moved but their region did not (a click
+    /// on the left of File dragged the window). This follows every layout pass that moves them.
+    /// </summary>
+    private void UpdateTitleBarRegions(bool force)
+    {
+        if (closed || Content?.XamlRoot is not { } root || AppTitleBar.Visibility != Visibility.Visible) return;
+        var scale = root.RasterizationScale;
+        var regions = new FrameworkElement[] { Menu, Toolbar }.Where(e => e.ActualWidth > 0 && e.ActualHeight > 0).Select(e =>
+        {
+            var box = e.TransformToVisual(null).TransformBounds(new Windows.Foundation.Rect(0, 0, e.ActualWidth, e.ActualHeight));
+            return new Windows.Graphics.RectInt32((int)Math.Floor(box.X * scale), (int)Math.Floor(box.Y * scale),
+                (int)Math.Ceiling(box.Width * scale), (int)Math.Ceiling(box.Height * scale));
+        }).ToArray();
+        if (!force && regions.SequenceEqual(titleBarRegions)) return;
+        titleBarRegions = regions;
+        Microsoft.UI.Input.InputNonClientPointerSource.GetForWindowId(AppWindow.Id)
+            .SetRegionRects(Microsoft.UI.Input.NonClientRegionKind.Passthrough, regions);
+    }
+
+    /// <summary>Collapses closed notices, and the notice area when nothing in it is showing.</summary>
+    private void UpdateNotices()
+    {
+        if (closed) return;
+        var any = false;
+        foreach (var child in NoticeArea.Children)
+        {
+            if (child is InfoBar notice) notice.Visibility = notice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
+            any |= child.Visibility == Visibility.Visible;
+        }
+        SetChrome(NoticeArea, any ? Visibility.Visible : Visibility.Collapsed);
+    }
+
+    // ---- Status bar (View > Status bar) -----------------------------------------------
+
+    /// <summary>Shows or hides the status bar as App.Current.StatusBarVisible says; every connection window follows it.</summary>
+    internal void ApplyStatusBar()
+    {
+        if (closed) return;
+        var visible = App.Current.StatusBarVisible;
+        StatusBarItem.IsChecked = visible;
+        SetChrome(StatusBar, visible ? Visibility.Visible : Visibility.Collapsed);
+    }
+
+    private void StatusBarClick(object sender, RoutedEventArgs e) => App.Current.StatusBarVisible = StatusBarItem.IsChecked;
 
     private void ShowFatal(NativeText text) => Controller.ReportFatal(text);
 
@@ -860,10 +926,23 @@ public sealed partial class ConnectionWindow : Window
     internal string? CurrentDisplayId => NativeWindowPlacements.Capture(Frame, false, App.Current.Displays.Snapshot).Display;
 
     private readonly Dictionary<UIElement, Visibility> chrome = [];
+    private bool chromeHidden;
+
+    /// <summary>
+    /// Sets a chrome row's visibility; in full screen, the visibility it gets back
+    /// when full screen ends.
+    /// </summary>
+    private void SetChrome(UIElement element, Visibility visibility)
+    {
+        if (chromeHidden) chrome[element] = visibility;
+        else element.Visibility = visibility;
+    }
 
     /// <summary>Full screen on the current display: only the desktop remains, edge to edge.</summary>
     internal void SetFullscreenChrome(bool fullscreenChrome)
     {
+        if (fullscreenChrome == chromeHidden) return;
+        chromeHidden = fullscreenChrome;
         if (fullscreenChrome)
         {
             chrome.Clear();
@@ -880,8 +959,8 @@ public sealed partial class ConnectionWindow : Window
         {
             foreach (var (child, visibility) in chrome) child.Visibility = visibility;
             chrome.Clear();
-            Grid.SetRow(DesktopArea, 4);
-            Grid.SetRowSpan(DesktopArea, 2);
+            Grid.SetRow(DesktopArea, 3);
+            Grid.SetRowSpan(DesktopArea, 1);
             DesktopArea.BorderThickness = new Thickness(0, 1, 0, 1);
         }
     }
