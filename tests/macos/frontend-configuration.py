@@ -32,8 +32,12 @@ def main():
 
         def reject(name, source, options, message, developer=None, generator="Ninja"):
             nonlocal checks
+            # Match build.py's explicit SDK selection. Otherwise CMake can pick
+            # the Command Line Tools SDK while DEVELOPER_DIR selects a different
+            # Xcode linker, failing compiler probes before the intended check.
+            sdk = [f"-DCMAKE_OSX_SYSROOT={cache['CMAKE_OSX_SYSROOT']}"]
             result = subprocess.run(["cmake", "-S", str(source), "-B", str(directory / name),
-                                     "-G", generator, *options], text=True,
+                                     "-G", generator, *sdk, *options], text=True,
                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                     env=dict(env, DEVELOPER_DIR=developer or args.developer_dir))
             if result.returncode == 0 or message not in " ".join(result.stdout.split()):
@@ -43,7 +47,9 @@ def main():
 
         native = ["-DTIDYVNC_UI=SWIFTUI", "-DBUILD_VIEWER=ON", "-DBUILD_PLATFORM_APPS=OFF"]
         reject("invalid-selector", ROOT, ["-DTIDYVNC_UI=invalid"],
-               "TIDYVNC_UI must be FLTK or SWIFTUI")
+               "TIDYVNC_UI must be FLTK, SWIFTUI or WINUI")
+        reject("windows-selector", ROOT, ["-DTIDYVNC_UI=WINUI"],
+               "TIDYVNC_UI=WINUI requires Windows")
         reject("unsupported-generator", ROOT, native,
                "requires the single-configuration Ninja generator", generator="Unix Makefiles")
         reject("unsupported-configuration", ROOT, native + ["-DCMAKE_BUILD_TYPE=RelWithDebInfo"],

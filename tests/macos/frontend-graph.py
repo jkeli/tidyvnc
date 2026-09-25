@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit configured SwiftUI core/app graphs for accidental FLTK dependencies.
+"""Audit SwiftUI core/app graphs for FLTK dependencies and Windows-only targets.
 
 Before configuring each directory, create .cmake/api/v1/query/codemodel-v2.
 This checks generated targets/compile/link inputs, not CMake source spelling.
@@ -25,7 +25,7 @@ def inspect(build, required, forbidden):
         if required - names:
             raise RuntimeError(f"Missing targets in {build}: {sorted(required - names)}")
         if forbidden & names:
-            raise RuntimeError(f"FLTK targets in {build}: {sorted(forbidden & names)}")
+            raise RuntimeError(f"Incompatible targets in {build}: {sorted(forbidden & names)}")
         for ref in refs:
             target = json.loads((reply / ref["jsonFile"]).read_text())
             for field in ("compileGroups", "link", "sources"):
@@ -34,7 +34,7 @@ def inspect(build, required, forbidden):
             if ref["name"] == "vncviewer" and target["type"] != "UTILITY":
                 raise RuntimeError("Native vncviewer must delegate app construction to Xcode")
         counts.append(f"{configuration['name']}: {len(refs)} targets")
-    print(f"No FLTK targets/compile/link inputs: {build} ({', '.join(counts)})")
+    print(f"No incompatible targets or FLTK compile/link inputs: {build} ({', '.join(counts)})")
 
 
 def main():
@@ -44,7 +44,7 @@ def main():
     args = parser.parse_args()
     inspect(args.core, {"vncviewer", "macapp", "native-package", "dmg", "tidyvnc_macos_bridge", "tidyvnc_viewer_c",
                         "viewer-core-smoke", "viewer-c-abi-smoke"},
-            {"surface", "viewerstate", "fbperf"})
+            {"surface", "viewerstate", "fbperf", "utf8paths", "tidyvnc_viewer_shared", "tidyvnc_windows"})
     inspect(args.app, {"TidyVNC"}, {"vncviewer", "surface", "viewerstate", "fbperf"})
 
 
