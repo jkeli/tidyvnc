@@ -100,6 +100,16 @@ struct ConnectionProblem: Identifiable, Equatable {
   private var alertOnFatalError: Bool { session?.alertOnFatalError ?? startupAlertOnFatalError }
   var isReverse: Bool { reverse != nil }
   var session: NativeSession? { defaults?.session }
+  var windowTitle: String {
+    if let session, [.connected, .disconnecting].contains(session.snapshot.state) {
+      // Preserve the logical VNC destination, including for SSH connections.
+      // A supplied hostname remains a hostname; numeric addresses need no DNS lookup.
+      let address = attemptEndpoint ?? endpoint
+      if !address.isEmpty { return address }
+    }
+    return isReverse ? String(localized:"app.incoming.connection", defaultValue:"Incoming Connection")
+      : defaults?.documentRequest?.url.lastPathComponent ?? "TidyVNC"
+  }
   let defaults: NativeSessionDefaults?
   let history: NativeRecentHistory?
   private weak var displays: NativeDisplayService?

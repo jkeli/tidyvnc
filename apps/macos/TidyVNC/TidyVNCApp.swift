@@ -22,7 +22,6 @@ struct TidyVNCApp: App {
     WindowGroup(String(localized:"app.connection.file", defaultValue:"Connection File"), id: "document-connection", for: NativeDocumentOpenRequest.self) { $request in
       if let request {
         ConnectionRoot(coordinator:coordinator,document:request)
-          .navigationTitle(request.url.lastPathComponent)
       }
     }.defaultSize(width:960,height:700).windowToolbarStyle(.unifiedCompact)
     Window(String(localized:"profiles.saved.profiles", defaultValue:"Saved Profiles"), id: "profiles") {
@@ -481,7 +480,7 @@ private struct ConnectionRoot: View {
       }
     }
     .frame(minWidth: 640, minHeight: 420)
-    .navigationTitle(model.isReverse ? String(localized:"app.incoming.connection", defaultValue:"Incoming Connection") : model.defaults?.documentRequest?.url.lastPathComponent ?? "TidyVNC")
+    .navigationTitle(model.windowTitle)
     .onAppear {
       guard !model.isReverse else { return }
       // Capture only the scene action, not this root or its connection model.
