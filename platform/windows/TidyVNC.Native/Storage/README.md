@@ -61,13 +61,16 @@ command line.
 - `credentialReference`: names a Credential Manager entry (W4.2). It never holds
   a secret.
 
-## window-state.json (schema 1)
+## window-state.json (schema 2)
 
 ```json
-{ "schema": 1, "revision": "…",
+{ "schema": 2, "revision": "…", "statusBar": false,
   "windows": { "connection": { "x": 0, "y": 0, "width": 800, "height": 600,
                                "maximized": false, "display": "<id>" } } }
 ```
 
+`statusBar` is written only when the connection windows hide their status bar
+(View > Status bar); absent means shown. Schema 1 records (placements only)
+still read, with the status bar shown, and the next save writes schema 2.
 Coordinates are physical virtual-screen pixels. Window state is kept apart from
 settings, so moving a window never conflicts with an edit to preferences.

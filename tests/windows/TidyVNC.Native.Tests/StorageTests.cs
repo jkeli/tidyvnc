@@ -205,7 +205,7 @@ public sealed class StorageTests
         Assert.AreEqual(NativeStorageError.Denied, await Failure(() => redirected.CommitAsync(new(NativeSettings.Empty, NativeImportOrigin.None), null)));
         // A directory where the record should be is not a record.
         using var store2 = new NativeWindowStateStore(Path.Combine(root, "dir"));
-        await store2.CommitAsync(System.Collections.Immutable.ImmutableSortedDictionary<string, NativeWindowPlacement>.Empty, null);
+        await store2.CommitAsync(NativeWindowState.Empty, null);
         Directory.CreateDirectory(Path.Combine(root, "dir", "preferences.json"));
         using var misplaced = new NativePreferencesStore(Path.Combine(root, "dir"));
         Assert.AreEqual(NativeStorageError.Denied, await Failure(() => misplaced.ReadAsync()));
@@ -226,10 +226,11 @@ public sealed class StorageTests
                     while (true)
                     {
                         var current = await store.ReadAsync();
-                        var count = current.Value.TryGetValue("main", out var placement) ? placement.X : 0;
+                        var count = current.Value.Windows.TryGetValue("main", out var placement) ? placement.X : 0;
                         try
                         {
-                            await store.CommitAsync(current.Value.SetItem("main", new NativeWindowPlacement(count + 1, 0, 640, 480, false, null)), current.Revision);
+                            await store.CommitAsync(current.Value with { Windows = current.Value.Windows.SetItem("main", new NativeWindowPlacement(count + 1, 0, 640, 480, false, null)) },
+                                current.Revision);
                             break;
                         }
                         catch (NativeStorageException error) when (error.Error == NativeStorageError.Conflict)
@@ -239,7 +240,7 @@ public sealed class StorageTests
                     }
                 }
             })));
-            Assert.AreEqual(writers * increments, (await stores[0].ReadAsync()).Value["main"].X);
+            Assert.AreEqual(writers * increments, (await stores[0].ReadAsync()).Value.Windows["main"].X);
             Assert.IsFalse(Directory.EnumerateFiles(State, "*.tidyvnc-tmp").Any());
         }
         finally
@@ -348,11 +349,29 @@ public sealed class StorageTests
     public async Task WindowStateRoundTripsSeparatelyFromSettings()
     {
         using var store = new NativeWindowStateStore(State);
-        var value = (await store.ReadAsync()).Value
+        var windows = (await store.ReadAsync()).Value.Windows
             .SetItem("connection", new NativeWindowPlacement(-1200, 40, 800, 600, false, "00ff"))
             .SetItem("desktop", new NativeWindowPlacement(0, 0, 1920, 1080, true, null));
-        await store.CommitAsync(value, null);
-        CollectionAssert.AreEqual(value.ToList(), (await store.ReadAsync()).Value.ToList());
+        var stored = await store.CommitAsync(new NativeWindowState(windows, StatusBarHidden: true), null);
+        var read = (await store.ReadAsync()).Value;
+        CollectionAssert.AreEqual(windows.ToList(), read.Windows.ToList());
+        Assert.IsTrue(read.StatusBarHidden, "the hidden status bar is kept");
+        using (var written = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(State, "window-state.json"))))
+        {
+            Assert.AreEqual(2, written.RootElement.GetProperty("schema").GetInt32());
+            Assert.IsFalse(written.RootElement.GetProperty("statusBar").GetBoolean(), "written as statusBar: false");
+        }
+        await store.CommitAsync(read with { StatusBarHidden = false }, stored.Revision);
+        Assert.IsFalse(File.ReadAllText(Path.Combine(State, "window-state.json")).Contains("statusBar"), "a shown status bar is the default and not written");
+        // Schema 1 records (placements only) still read, with the status bar shown; schema 1 never had a status bar field.
+        WriteRaw("window-state.json", "{\"schema\":1,\"revision\":\"" + Guid.NewGuid() + "\",\"windows\":{\"a\":{\"x\":0,\"y\":0,\"width\":5,\"height\":5,\"maximized\":false}}}");
+        read = (await store.ReadAsync()).Value;
+        Assert.AreEqual(new NativeWindowPlacement(0, 0, 5, 5, false, null), read.Windows["a"]);
+        Assert.IsFalse(read.StatusBarHidden);
+        WriteRaw("window-state.json", "{\"schema\":1,\"revision\":\"" + Guid.NewGuid() + "\",\"statusBar\":false}");
+        Assert.AreEqual(NativeStorageError.UnsupportedFields, await Failure(() => store.ReadAsync()));
+        WriteRaw("window-state.json", "{\"schema\":2,\"revision\":\"" + Guid.NewGuid() + "\",\"statusBar\":0}");
+        Assert.AreEqual(NativeStorageError.Corrupt, await Failure(() => store.ReadAsync()));
         WriteRaw("window-state.json", "{\"schema\":1,\"revision\":\"" + Guid.NewGuid() + "\",\"windows\":{\"a\":{\"x\":0,\"y\":0,\"width\":0,\"height\":5,\"maximized\":false}}}");
         Assert.AreEqual(NativeStorageError.Corrupt, await Failure(() => store.ReadAsync()));
     }

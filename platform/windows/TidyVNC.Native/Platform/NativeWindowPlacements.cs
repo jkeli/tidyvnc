@@ -98,40 +98,59 @@ public static class NativeWindowPlacements
 }
 
 /// <summary>
-/// Remembered window placements (window-state.json). Read once at startup;
-/// saves are serialized and merge with other processes' entries. A record
-/// that cannot be read (corrupt or a newer schema) is left alone and nothing
-/// is saved over it. UI thread only.
+/// Remembered window state (window-state.json): placements and whether the
+/// connection windows show their status bar. Read once at startup; saves are
+/// serialized and merge with other processes' changes. A record that cannot
+/// be read (corrupt or a newer schema) is left alone and nothing is saved over
+/// it. UI thread only.
 /// </summary>
 public sealed class NativeWindowPlacementMemory
 {
     private readonly NativeWindowStateStore store;
-    private ImmutableSortedDictionary<string, NativeWindowPlacement> values;
+    private NativeWindowState state;
     private readonly bool writable;
     private Task saving = Task.CompletedTask;
 
-    private NativeWindowPlacementMemory(NativeWindowStateStore store, ImmutableSortedDictionary<string, NativeWindowPlacement> values, bool writable)
+    private NativeWindowPlacementMemory(NativeWindowStateStore store, NativeWindowState state, bool writable)
     {
-        this.store = store; this.values = values; this.writable = writable;
+        this.store = store; this.state = state; this.writable = writable;
     }
 
     public static async Task<NativeWindowPlacementMemory> LoadAsync(NativeWindowStateStore store)
     {
         try { return new(store, (await store.ReadAsync().ConfigureAwait(false)).Value, true); }
-        catch (NativeStorageException) { return new(store, ImmutableSortedDictionary.Create<string, NativeWindowPlacement>(StringComparer.Ordinal), false); }
+        catch (NativeStorageException) { return new(store, NativeWindowState.Empty, false); }
     }
 
-    public NativeWindowPlacement? Get(string key) => values.GetValueOrDefault(key);
+    public NativeWindowPlacement? Get(string key) => state.Windows.GetValueOrDefault(key);
 
     public void Remember(string key, NativeWindowPlacement placement)
     {
-        if (!writable || values.GetValueOrDefault(key) == placement) return;
-        values = values.SetItem(key, placement);
-        var previous = saving;
-        saving = Save(previous, key, placement);
+        if (state.Windows.GetValueOrDefault(key) == placement) return;
+        Change(value => value with { Windows = value.Windows.SetItem(key, placement) });
     }
 
-    private async Task Save(Task previous, string key, NativeWindowPlacement placement)
+    /// <summary>Whether connection windows show their status bar (View &gt; Status bar).</summary>
+    public bool StatusBarVisible
+    {
+        get => !state.StatusBarHidden;
+        set
+        {
+            if (value == StatusBarVisible) return;
+            Change(current => current with { StatusBarHidden = !value });
+        }
+    }
+
+    /// <summary>Applies the change here, then to the stored record as it is now (another process may have changed it).</summary>
+    private void Change(Func<NativeWindowState, NativeWindowState> change)
+    {
+        state = change(state);
+        if (!writable) return;
+        var previous = saving;
+        saving = Save(previous, change);
+    }
+
+    private async Task Save(Task previous, Func<NativeWindowState, NativeWindowState> change)
     {
         await previous.ConfigureAwait(false);
         for (var attempt = 0; attempt < 3; attempt++)
@@ -139,13 +158,13 @@ public sealed class NativeWindowPlacementMemory
             try
             {
                 var current = await store.ReadAsync().ConfigureAwait(false);
-                await store.CommitAsync(current.Value.SetItem(key, placement), current.Revision).ConfigureAwait(false);
+                await store.CommitAsync(change(current.Value), current.Revision).ConfigureAwait(false);
                 return;
             }
             catch (NativeStorageException error) when (error.Error == NativeStorageError.Conflict) { }
             catch (NativeStorageException error)
             {
-                System.Diagnostics.Trace.TraceWarning($"Window placement not saved: {error.Error}");
+                System.Diagnostics.Trace.TraceWarning($"Window state not saved: {error.Error}");
                 return;
             }
         }

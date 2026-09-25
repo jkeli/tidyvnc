@@ -282,21 +282,31 @@ public sealed class NativeProfileHistoryStore(string directory) : NativeRecordSt
 /// <summary>A window's last placement in physical virtual-screen pixels, and the display it was on.</summary>
 public sealed record NativeWindowPlacement(int X, int Y, int Width, int Height, bool Maximized, string? Display);
 
-/// <summary>window-state.json: window placement only, kept apart from settings. Schema 1.</summary>
-public sealed class NativeWindowStateStore(string directory)
-    : NativeRecordStore<ImmutableSortedDictionary<string, NativeWindowPlacement>>(directory, "window-state.json")
+/// <summary>
+/// window-state.json: window placement and the connection window's chrome, kept apart from settings.
+/// Schema 2 adds <see cref="NativeWindowState.StatusBarHidden"/>; schema 1 records read as a visible status bar.
+/// </summary>
+public sealed record NativeWindowState(ImmutableSortedDictionary<string, NativeWindowPlacement> Windows, bool StatusBarHidden = false)
+{
+    public static NativeWindowState Empty { get; } = new(ImmutableSortedDictionary.Create<string, NativeWindowPlacement>(StringComparer.Ordinal));
+}
+
+public sealed class NativeWindowStateStore(string directory) : NativeRecordStore<NativeWindowState>(directory, "window-state.json")
 {
     public NativeWindowStateStore() : this(NativeStateRoot.Directory) { }
-    protected override int Schema => 1;
+    protected override int Schema => 2;
     protected override int MaximumBytes => 256 * 1024;
-    protected override ImmutableSortedDictionary<string, NativeWindowPlacement> Empty =>
-        ImmutableSortedDictionary.Create<string, NativeWindowPlacement>(StringComparer.Ordinal);
+    protected override NativeWindowState Empty => NativeWindowState.Empty;
 
-    protected override ImmutableSortedDictionary<string, NativeWindowPlacement> Decode(JsonElement record, int schema)
+    protected override NativeWindowState Decode(JsonElement record, int schema)
     {
-        RequireOnly(record, "windows");
+        if (schema >= 2) RequireOnly(record, "windows", "statusBar");
+        else RequireOnly(record, "windows");
+        var hidden = false;
+        if (record.TryGetProperty("statusBar", out var statusBar))
+            hidden = statusBar.ValueKind is JsonValueKind.True or JsonValueKind.False ? !statusBar.GetBoolean() : throw Corrupt();
         var builder = ImmutableSortedDictionary.CreateBuilder<string, NativeWindowPlacement>(StringComparer.Ordinal);
-        if (!record.TryGetProperty("windows", out var windows)) return builder.ToImmutable();
+        if (!record.TryGetProperty("windows", out var windows)) return new(builder.ToImmutable(), hidden);
         if (windows.ValueKind != JsonValueKind.Object) throw Corrupt();
         foreach (var window in windows.EnumerateObject())
         {
@@ -314,13 +324,14 @@ public sealed class NativeWindowStateStore(string directory)
                 display = id.ValueKind == JsonValueKind.String && id.GetString() is { Length: > 0 and <= 64 } text ? text : throw Corrupt();
             builder[window.Name] = new NativeWindowPlacement(Number("x"), Number("y"), width, height, maximized, display);
         }
-        return builder.ToImmutable();
+        return new(builder.ToImmutable(), hidden);
     }
 
-    protected override void Encode(Utf8JsonWriter writer, ImmutableSortedDictionary<string, NativeWindowPlacement> value)
+    protected override void Encode(Utf8JsonWriter writer, NativeWindowState value)
     {
+        if (value.StatusBarHidden) writer.WriteBoolean("statusBar", false);
         writer.WriteStartObject("windows");
-        foreach (var (key, placement) in value)
+        foreach (var (key, placement) in value.Windows)
         {
             writer.WriteStartObject(key);
             writer.WriteNumber("x", placement.X); writer.WriteNumber("y", placement.Y);

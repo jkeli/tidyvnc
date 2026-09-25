@@ -80,15 +80,25 @@ public sealed class PlacementTests
                 memory.Remember("connection", saved);
                 memory.Remember("connection", saved with { Maximized = true });
                 await memory.FlushAsync();
-                Assert.AreEqual(saved with { Maximized = true }, (await store.ReadAsync()).Value["connection"]);
+                Assert.AreEqual(saved with { Maximized = true }, (await store.ReadAsync()).Value.Windows["connection"]);
 
                 // Another process's entry survives this process's save.
                 var current = await store.ReadAsync();
-                await store.CommitAsync(current.Value.SetItem("listener", saved), current.Revision);
+                await store.CommitAsync(current.Value with { Windows = current.Value.Windows.SetItem("listener", saved) }, current.Revision);
                 memory.Remember("connection", saved);
                 await memory.FlushAsync();
                 var both = (await store.ReadAsync()).Value;
-                CollectionAssert.AreEqual(new[] { "connection", "listener" }, both.Keys.ToArray());
+                CollectionAssert.AreEqual(new[] { "connection", "listener" }, both.Windows.Keys.ToArray());
+
+                // The status bar choice merges the same way and keeps the placements.
+                Assert.IsTrue(memory.StatusBarVisible, "shown by default");
+                memory.StatusBarVisible = false;
+                await memory.FlushAsync();
+                var hidden = (await store.ReadAsync()).Value;
+                Assert.IsTrue(hidden.StatusBarHidden);
+                CollectionAssert.AreEqual(new[] { "connection", "listener" }, hidden.Windows.Keys.ToArray());
+                using var other = new NativeWindowStateStore(root);
+                Assert.IsFalse((await NativeWindowPlacementMemory.LoadAsync(other)).StatusBarVisible, "read back at the next start");
             }
 
             File.WriteAllText(Path.Combine(root, "window-state.json"), "{\"schema\":1,\"revision\":\"x\"}");

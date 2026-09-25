@@ -30,7 +30,7 @@ compared file by file.
   profiles-history.json     saved profiles and recent connections
   trust\certificates.json   X.509 decisions   (macOS: native-trust x509-spki)
   trust\server-keys.json    RSA-AES server keys (macOS: native-trust rsa-aes)
-  window-state.json         window placement only, separate from settings
+  window-state.json         window placement and status bar visibility, separate from settings
   *.lock                    writer lock files
 ```
 
