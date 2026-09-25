@@ -36,7 +36,7 @@ public sealed partial class ConnectionWindow : Window
     private bool shown, placing, userPlaced, startupApplied, active;
     private readonly FullscreenHost fullscreen;
     private DesktopView? commandView;
-    private string? connectionMenuState;
+    private readonly ConnectionMenu connectionMenu;
 
     internal NativeConnectionController Controller { get; }
     internal DesktopView Desktop => desktop;
@@ -99,6 +99,8 @@ public sealed partial class ConnectionWindow : Window
         DesktopHost.FlowDirection = FlowDirection.LeftToRight;
         dialogs = new DialogPresenter(() => Content?.XamlRoot, DesiredDialog);
         RecentPanel.Selected += destination => { Controller.SelectDestination(destination); RecentFlyout.Hide(); };
+        // Built once and refreshed in place (see ConnectionMenu).
+        connectionMenu = ConnectionMenu.Build(ConnectionMenuItem.Items, this);
         GatewayHelp.Visibility = Visibility.Collapsed;
         if (NativeSshConfiguration.ClientPath is null)
         {
@@ -244,11 +246,7 @@ public sealed partial class ConnectionWindow : Window
         Gateway.Visibility = controller.IsReverse ? Visibility.Collapsed : Visibility.Visible;
 
         // Toolbar and the Connection menu (the same items as the toolbar's More button).
-        if (ConnectionMenu.State(this) is var menuState && menuState != connectionMenuState)
-        {
-            connectionMenuState = menuState;
-            ConnectionMenu.Fill(ConnectionMenuItem.Items, this);
-        }
+        connectionMenu.Refresh();
         RecentButton.Visibility = controller.History is null ? Visibility.Collapsed : Visibility.Visible;
         RecentPanel.CanSelect = editable;
         ClipboardButton.IsEnabled = defaults.IsReady && session is not null;
