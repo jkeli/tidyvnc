@@ -39,7 +39,7 @@ and MSYS2 is approved, so the first step is installing them and recording
 versions. Then run spikes W0.2 (WinUI/.NET interop) and W0.3 (MSVC core build),
 because every later phase depends on them.
 
-The owner rule that hosted CI stays off and nothing is pushed applies here too.
+Hosted CI runs the Windows workflows (D25); nothing is pushed without the owner.
 Record every result in TODO.md's evidence log. When work starts, add a
 `RESUME.md` here, as the macOS folder has, holding the current checkpoint and
 exact commands.

@@ -1,0 +1,168 @@
+name: Release
+
+# Pushing a tag vX.Y.Z builds, tests, signs and packages that commit, then
+# creates a draft GitHub release. Publishing the draft is done by hand.
+# RELEASING.md describes the process and the one-time Azure and GitHub setup.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check the tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: version
+        name: Match the tag to the version and to master
+        run: |
+          version=$(sed -n 's/^set(VERSION \([0-9]*\.[0-9]*\.[0-9]*\))\r\?$/\1/p' CMakeLists.txt)
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match CMakeLists.txt VERSION ${version:-(none)}"
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
+            echo "::error::Tag $GITHUB_REF_NAME is not on master"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  ci:
+    name: CI
+    needs: check
+    uses: ./.github/workflows/windows-winui.yml
+
+  sign:
+    name: Build and sign x64
+    needs: [check, ci]
+    runs-on: windows-2025
+    timeout-minutes: 90
+    # Required reviewers on this environment approve each release before this
+    # job starts, and the Azure federated credential trusts only this environment.
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARTIFACT_SIGNING_CLIENT: 1.0.128
+      OUTPUT: build/winui/signed
+    steps:
+      - name: Check the signing configuration
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARTIFACT_SIGNING_ENDPOINT: ${{ secrets.ARTIFACT_SIGNING_ENDPOINT }}
+          ARTIFACT_SIGNING_ACCOUNT: ${{ secrets.ARTIFACT_SIGNING_ACCOUNT }}
+          ARTIFACT_SIGNING_PROFILE: ${{ secrets.ARTIFACT_SIGNING_PROFILE }}
+        run: |
+          $missing = 'AZURE_CLIENT_ID', 'AZURE_TENANT_ID', 'ARTIFACT_SIGNING_ENDPOINT', 'ARTIFACT_SIGNING_ACCOUNT', 'ARTIFACT_SIGNING_PROFILE' |
+            Where-Object { -not [Environment]::GetEnvironmentVariable($_) }
+          if ($missing) { throw "Set these secrets on the 'release' environment: $($missing -join ', ')" }
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/winui-setup
+        with:
+          arch: x64
+          wix: 'true'
+      - name: Install the .NET 8 runtime for the signing dlib
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+      - name: Build the core and publish the app
+        run: python apps/windows/build.py --configuration Release --stages core,app --parallel 4
+      - name: Install the Artifact Signing client
+        id: client
+        env:
+          ARTIFACT_SIGNING_ENDPOINT: ${{ secrets.ARTIFACT_SIGNING_ENDPOINT }}
+          ARTIFACT_SIGNING_ACCOUNT: ${{ secrets.ARTIFACT_SIGNING_ACCOUNT }}
+          ARTIFACT_SIGNING_PROFILE: ${{ secrets.ARTIFACT_SIGNING_PROFILE }}
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP artifact-signing
+          $package = "$dir.nupkg"
+          $id = 'microsoft.artifactsigning.client'
+          Invoke-WebRequest "https://api.nuget.org/v3-flatcontainer/$id/$env:ARTIFACT_SIGNING_CLIENT/$id.$env:ARTIFACT_SIGNING_CLIENT.nupkg" -OutFile $package
+          Expand-Archive $package $dir
+          $dlib = Join-Path $dir 'bin\x64\Azure.CodeSigning.Dlib.dll'
+          if ((Get-AuthenticodeSignature $dlib).Status -ne 'Valid') { throw "$dlib is not validly signed" }
+          # Only the Azure CLI login from the next step; skip the other credential sources.
+          $metadata = Join-Path $env:RUNNER_TEMP artifact-signing.json
+          @{
+            Endpoint = $env:ARTIFACT_SIGNING_ENDPOINT
+            CodeSigningAccountName = $env:ARTIFACT_SIGNING_ACCOUNT
+            CertificateProfileName = $env:ARTIFACT_SIGNING_PROFILE
+            CorrelationId = "$env:GITHUB_REPOSITORY $env:GITHUB_REF_NAME run $env:GITHUB_RUN_ID"
+            ExcludeCredentials = @('EnvironmentCredential', 'WorkloadIdentityCredential', 'ManagedIdentityCredential',
+              'SharedTokenCacheCredential', 'VisualStudioCredential', 'VisualStudioCodeCredential',
+              'AzurePowerShellCredential', 'AzureDeveloperCliCredential', 'InteractiveBrowserCredential')
+          } | ConvertTo-Json | Set-Content $metadata -Encoding utf8
+          Add-Content $env:GITHUB_OUTPUT "dlib=$dlib"
+          Add-Content $env:GITHUB_OUTPUT "metadata=$metadata"
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      # The GitHub OIDC assertion behind the login expires after about five
+      # minutes. Getting the signing token now caches it for the signing step.
+      - name: Get the signing token
+        run: az account get-access-token --resource https://codesigning.azure.net --output none
+      - name: Package and sign
+        run: >-
+          python apps/windows/build.py --configuration Release --stages core,app,package --parallel 4
+          --sign-dlib "${{ steps.client.outputs.dlib }}" --sign-metadata "${{ steps.client.outputs.metadata }}"
+          --output $env:OUTPUT
+      - name: Check the signed package
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          $report = Get-Content "$env:OUTPUT\package-report.json" | ConvertFrom-Json
+          if (-not $report.signed -or $report.version -ne $env:VERSION) { throw "Unexpected report: signed=$($report.signed) version=$($report.version)" }
+          $msi = Get-Item "$env:OUTPUT\TidyVNC-$env:VERSION-x64.msi"
+          $signature = Get-AuthenticodeSignature $msi
+          if ($signature.Status -ne 'Valid') { throw "$($msi.Name): $($signature.Status) $($signature.StatusMessage)" }
+          "Signed by: $($signature.SignerCertificate.Subject)"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-x64
+          path: ${{ env.OUTPUT }}/
+          if-no-files-found: error
+
+  publish:
+    name: Create the draft release
+    needs: [check, sign]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-x64
+          path: dist
+      - name: Write checksums
+        working-directory: dist
+        run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            dist/*.msi
+            dist/*-symbols.zip
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check.outputs.version }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" dist/*
+          --repo "$GITHUB_REPOSITORY" --verify-tag --draft
+          --title "TidyVNC $VERSION" --generate-notes

@@ -539,6 +539,16 @@ signing identity. The packaging pipeline still has a signing step (PACKAGING.md
 When signing is added, the owner chooses the Authenticode identity (for example
 an Azure Artifact Signing account or an OV certificate) and where its keys live.
 
+**Update (2026-09-26, owner).** Releases are signed with Azure Artifact Signing.
+`release.yml` signs only for a `vX.Y.Z` tag on `master` that matches the CMake
+`VERSION`, after the CI jobs pass and a reviewer approves the `release`
+environment. The Azure federated credential trusts only that environment. The
+package stage signs the project's binaries and every shipped binary nobody else
+signed (the MSYS2 DLLs), checks that every binary in the payload is signed, then
+signs the MSI (`build.py --sign-dlib`). Builds from pushes, pull requests and
+local machines stay unsigned. RELEASING.md has the process and setup. W7.4's
+signed-app evidence is recorded after the first signed release.
+
 ## D24 — Windows App SDK 2.x *(owner-decided)*
 
 **Decision (2026-09-24).** Move from Windows App SDK 1.8 (1.8.260804001) to the 2.x line, pinned at
@@ -569,3 +579,21 @@ side-by-side release, is a new decision.
 (its display-dependent tests still need the display on), the scaling, security, tunnel, invocation and
 console smokes, the package audit and MSI build, and the W6.11 leak tests pass. The title-bar leak is
 measured and recorded.
+
+## D25 — Hosted CI for the Windows viewer *(owner-decided)*
+
+**Decision (2026-09-26).** GitHub-hosted runners build and check the WinUI viewer on every push and pull
+request (`.github/workflows/windows-winui.yml`). This replaces the earlier rule that hosted CI stays off.
+Pushing is still the owner's call.
+
+- **Test (x64 Debug):** the string audit, then the core and ABI suites and the .NET suites. Debug is
+  used because the suites cover the Debug-only state-root override. UI automation and desktop tests stay
+  gated by `TIDYVNC_UI_TESTS=1` and report inconclusive on the runner.
+- **Package (x64 Release):** the unsigned package with its payload audit, relocation check and validated
+  MSI. The result is kept as a short-lived workflow artifact, never as a release.
+- **ARM64:** cross-built core and app. Its tests and package checks run ARM64 code, so they still need
+  ARM64 hardware.
+- `release.yml` calls the same workflow before it signs (D23).
+
+MSYS2 packages come from the current MSYS2 repositories when the job runs, so CI can pick up newer
+library versions than a local build. The package report records the versions each build used.

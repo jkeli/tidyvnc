@@ -93,7 +93,7 @@ failures since the planning checkpoint.
 
 ## Rules that stay in force
 
-- Never push; hosted CI stays off.
+- Never push without the owner. Hosted CI runs `windows-winui.yml`; signing happens only in `release.yml` (D23, D25).
 - Commits end with the Co-Authored-By line.
 - Tests never touch real user data. They use `TIDYVNC_STATE_ROOT` in Debug builds, disposable
   `HKCU\Software\TidyVNC-test-*` keys and test Credential Manager prefixes, and they restore the

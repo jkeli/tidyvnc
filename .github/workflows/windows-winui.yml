@@ -1,0 +1,64 @@
+name: Windows native viewer
+
+# The WinUI 3 viewer (BUILD-WINDOWS.md). Also called by release.yml, so a
+# release is only signed after these jobs pass on the tagged commit.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test x64 (Debug)
+    runs-on: windows-2025
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/winui-setup
+        with:
+          arch: x64
+          tests: 'true'
+      - name: Check the Windows string catalog
+        run: python apps/windows/strings.py audit
+      # Debug, because the .NET suites cover the Debug-only state-root override.
+      # UI automation and desktop tests report inconclusive without TIDYVNC_UI_TESTS=1.
+      - name: Build and run the core and .NET suites
+        run: python apps/windows/build.py --configuration Debug --stages core,app --test --parallel 4
+
+  package:
+    name: Package x64 (Release, unsigned)
+    runs-on: windows-2025
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/winui-setup
+        with:
+          arch: x64
+          wix: 'true'
+      - name: Build, audit and package
+        run: python apps/windows/build.py --configuration Release --stages core,app,package --parallel 4 --output build/winui/ci-package
+      - name: Upload the unsigned package (not a release)
+        uses: actions/upload-artifact@v7
+        with:
+          name: winui-x64-unsigned
+          path: build/winui/ci-package/
+          retention-days: 14
+
+  arm64:
+    # ARM64 is cross-built on the x64 runner. Its tests and package checks run
+    # ARM64 code, so they need ARM64 hardware.
+    name: Build ARM64 (Release)
+    runs-on: windows-2025
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/winui-setup
+        with:
+          arch: arm64
+      - name: Cross-build the core and publish the app
+        run: python apps/windows/build.py --arch arm64 --configuration Release --stages core,app --parallel 4

@@ -1,0 +1,82 @@
+name: Set up the WinUI viewer build
+description: >
+  Toolchain and dependencies for apps/windows/build.py on a hosted Windows
+  runner (BUILD-WINDOWS.md): Python, the .NET SDK from global.json, the MSYS2
+  CLANG64/CLANGARM64 C libraries staged by apps/windows/deps.py, and optionally
+  vcpkg's GoogleTest and the WiX Toolset.
+
+inputs:
+  arch:
+    description: x64 or arm64
+    default: x64
+  tests:
+    description: "'true' to install GoogleTest through vcpkg for build.py --test"
+    default: 'false'
+  wix:
+    description: "'true' to install the WiX Toolset for the package stage"
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.13'
+
+    - uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v6
+      with:
+        path: ~/.nuget/packages
+        key: nuget-${{ runner.os }}-${{ hashFiles('global.json', 'Directory.Packages.props', '**/*.csproj') }}
+        restore-keys: nuget-${{ runner.os }}-
+
+    - name: Choose the MSYS2 packages
+      id: packages
+      shell: pwsh
+      run: |
+        # deps.py takes x64 libraries from CLANG64 and ARM64 ones from CLANGARM64 (D3 revised).
+        $prefix = if ('${{ inputs.arch }}' -eq 'arm64') { 'mingw-w64-clang-aarch64' } else { 'mingw-w64-clang-x86_64' }
+        $names = 'gnutls', 'nettle', 'gmp', 'pixman', 'libjpeg-turbo', 'zlib'
+        Add-Content $env:GITHUB_OUTPUT "list=$(($names | ForEach-Object { "$prefix-$_" }) -join ' ')"
+
+    - name: Install MSYS2 C libraries
+      id: msys2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: CLANG64
+        update: false
+        install: ${{ steps.packages.outputs.list }}
+
+    - name: Stage the C libraries for MSVC
+      shell: pwsh
+      run: python apps/windows/deps.py --arch ${{ inputs.arch }} --msys-root "${{ steps.msys2.outputs.msys2-location }}"
+
+    - name: Cache GoogleTest
+      if: inputs.tests == 'true'
+      id: gtest
+      uses: actions/cache@v6
+      with:
+        path: build/vcpkg_installed
+        key: vcpkg-${{ runner.os }}-${{ inputs.arch }}-${{ hashFiles('vcpkg.json') }}
+
+    - name: Update vcpkg to the manifest baseline
+      if: inputs.tests == 'true' && steps.gtest.outputs.cache-hit != 'true'
+      shell: pwsh
+      # The runner image's vcpkg clone can predate the builtin-baseline commit.
+      run: git -C "$env:VCPKG_INSTALLATION_ROOT" fetch --quiet origin
+
+    - name: Point build.py at vcpkg
+      if: inputs.tests == 'true'
+      shell: pwsh
+      run: Add-Content $env:GITHUB_ENV "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT"
+
+    - name: Install the WiX Toolset
+      if: inputs.wix == 'true'
+      shell: pwsh
+      run: |
+        dotnet tool install --global wix --version 5.0.2
+        Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.dotnet\tools"

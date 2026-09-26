@@ -57,14 +57,14 @@ Scope rules carried over from the macOS plan:
 - `.tidyvnc` and legacy `.tigervnc` files, option meanings, security checks,
   client scaling and capabilities are preserved. A new look cannot silently drop
   an advanced feature or change wire behaviour.
-- Owner policy recorded in the macOS [RESUME](../native-ui/RESUME.md): hosted
-  GitHub CI is not enabled and nothing is pushed. Windows validation runs locally,
-  on this machine and on VMs, through scripts. A CI workflow can be written but
-  stays disabled.
+- Hosted CI (D25, 2026-09-26): `.github/workflows/windows-winui.yml` builds,
+  tests and packages the viewer on hosted runners, and `release.yml` signs tagged
+  releases. UI automation, ARM64 tests and VM checks still run locally through
+  scripts. Nothing is pushed without the owner.
 
 Out of scope: Microsoft Store submission, cloud settings sync, audio (the macOS
-app has none; owner decision D19), Windows 10 support (D6), code signing and an
-automatic updater for now (D23, D22; both may be added later), new VNC features,
+app has none; owner decision D19), Windows 10 support (D6), an automatic
+updater for now (D22; may be added later), new VNC features,
 and any change to the Windows VNC server under `win/`.
 
 Owner decisions recorded on 2026-09-23: Windows 11 only, no audio, per-user
@@ -415,8 +415,8 @@ macOS are stated.
 | Credential Manager isolation is weaker than Keychain | Documented threat model; opaque target names; no plaintext fallback (D15) |
 | Nested modal loops (file dialogs) reentering delivery | Delivery code is reentrancy-safe; quit waits for dialogs to close (SERVICES.md §4) |
 | Two frontends drifting apart | Core extraction (W2), conformance tests, shared automation IDs and parity rows |
-| No hosted CI | Scripted local runs with recorded evidence; ARM64 and a second Windows 11 release on VMs or separate hardware |
-| Unsigned builds blocked or warned about by Windows | Documented in Help and the README; the pipeline is ready for signing; signing-dependent checks stay open (D23) |
+| Hosted runners have no interactive desktop or ARM64 hardware | CI covers builds, non-UI suites and the package (D25); UI automation, ARM64 and a second Windows 11 release run locally, on VMs or separate hardware |
+| A new signing identity has no SmartScreen reputation; own builds are unsigned | Releases are signed with Artifact Signing (D23); Help and the README explain the early warnings and unsigned builds |
 | No audio compared with the FLTK Windows viewer | Accepted by the owner (D19); the `Audio` parameter is reported unavailable, never shown as working |
 
 ## 15. References

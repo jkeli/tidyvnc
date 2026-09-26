@@ -6,10 +6,11 @@ local desktop scaling and high-density display support. Project and support:
 https://github.com/jkeli/tidyvnc and https://github.com/jkeli/tidyvnc/issues.
 
 Build the current macOS application using BUILD-MACOS.md, and the Windows 11
-viewer (WinUI) and its per-user MSI using BUILD-WINDOWS.md. The Windows
-installer is not yet code-signed: Windows SmartScreen warns about a downloaded
-MSI (More info, then Run anyway), and Smart App Control, where it is on, blocks
-the app until it is signed. Uninstalling keeps %LOCALAPPDATA%\TidyVNC and the
+viewer (WinUI) and its per-user MSI using BUILD-WINDOWS.md. Windows installers
+from the project's GitHub releases are code-signed (RELEASING.md). The signing
+identity is new, so SmartScreen may still warn about a downloaded MSI for a
+while (More info, then Run anyway). Builds you make yourself are unsigned, and
+Smart App Control, where it is on, blocks them. Uninstalling keeps %LOCALAPPDATA%\TidyVNC and the
 TidyVNC entries in Credential Manager; delete them to remove your data. Rebrand status and
 validation gaps are tracked in plans/rebrand/TODO.md. TidyVNC is native only;
 the Java viewer has been removed. Windows and Linux/server rebranding remain
