@@ -142,7 +142,8 @@ jobs:
         env:
           VERSION: ${{ needs.check.outputs.version }}
         run: |
-          $report = Get-Content "$env:OUTPUT\package-report.json" | ConvertFrom-Json
+          # A hashtable, because the report's import lists name some DLLs in two casings (kernel32.dll, KERNEL32.dll).
+          $report = Get-Content "$env:OUTPUT\package-report.json" -Raw | ConvertFrom-Json -AsHashtable
           if (-not $report.signed -or $report.version -ne $env:VERSION) { throw "Unexpected report: signed=$($report.signed) version=$($report.version)" }
           $msi = Get-Item "$env:OUTPUT\TidyVNC-$env:VERSION-x64.msi"
           $signature = Get-AuthenticodeSignature $msi
