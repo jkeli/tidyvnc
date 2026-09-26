@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -81,6 +82,12 @@ class Verification:
         except OSError as error:
             stage.update(status="failed", error=str(error))
         self.save()
+        if stage["status"] == "failed" and log.exists():
+            # Echo the failure so it reaches CI logs and annotations, not only the report.
+            lines = log.read_text(errors="replace").splitlines()
+            failures = [line for line in lines if re.search(r"\*\*\*Failed|\(Failed\)|^FAIL|error:|Failure\(", line)]
+            print(f"FAILED stage {name} (exit {stage.get('exitCode')}):", *failures[-20:], "--- end of log:",
+                  *lines[-30:], sep="\n", flush=True)
         return stage
 
     def suite(self, name, directory):

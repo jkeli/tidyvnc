@@ -80,34 +80,34 @@ jobs:
       - name: Build, verify and package
         run: |
           set -o pipefail
-          python3 apps/macos/build.py --build-dir build/native-ci \
+          python3 .github/scripts/annotate-failure.py python3 apps/macos/build.py --build-dir build/native-ci \
             --developer-dir "$DEVELOPER_DIR" --prefix "$(brew --prefix)" \
             --configuration "$NATIVE_CONFIGURATION" --parallel 2 --test --package \
             2>&1 | tee build/native-ci/build.log
       - name: Run the full native protocol baseline
         run: |
           set -o pipefail
-          python3 tests/integration/macos-scaling-smoke.py \
+          python3 .github/scripts/annotate-failure.py python3 tests/integration/macos-scaling-smoke.py \
             "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app/Contents/MacOS/vncviewer" \
             --frontend swiftui --report-dir build/native-ci/protocol \
             2>&1 | tee build/native-ci/protocol.log
       - name: Run actual-app VNC authentication cases
         run: |
           set -o pipefail
-          python3 tests/integration/macos-auth-smoke.py \
+          python3 .github/scripts/annotate-failure.py python3 tests/integration/macos-auth-smoke.py \
             "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
             2>&1 | tee build/native-ci/auth.log
       - name: Run actual-app security handshakes against the project's server side
         run: |
           set -o pipefail
-          python3 tests/integration/macos-security-smoke.py \
+          python3 .github/scripts/annotate-failure.py python3 tests/integration/macos-security-smoke.py \
             "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
             --peer build/native-ci/core/tests/macos/native-security-peer \
             2>&1 | tee build/native-ci/security.log
       - name: Run actual-app SSH tunnel through a loopback sshd
         run: |
           set -o pipefail
-          python3 tests/integration/macos-tunnel-smoke.py \
+          python3 .github/scripts/annotate-failure.py python3 tests/integration/macos-tunnel-smoke.py \
             "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
             --peer build/native-ci/core/tests/macos/native-security-peer \
             2>&1 | tee build/native-ci/tunnel.log
@@ -115,7 +115,7 @@ jobs:
         run: |
           set -o pipefail
           package="build/native-ci/package/$NATIVE_CONFIGURATION"
-          python3 tests/macos/package-inspect.py --dmg "$package"/*.dmg \
+          python3 .github/scripts/annotate-failure.py python3 tests/macos/package-inspect.py --dmg "$package"/*.dmg \
             --source-app "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
             --report "$package/package-report.json" 2>&1 | tee build/native-ci/package-inspection.log
       - name: Preserve development bundle for inspection
