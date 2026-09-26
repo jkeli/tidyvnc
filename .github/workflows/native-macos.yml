@@ -58,6 +58,10 @@ jobs:
           xcodebuild -version
           echo "xcode=$(xcodebuild -version | shasum -a 256 | cut -c1-16)" >> "$GITHUB_OUTPUT"
           brew install cmake ninja pkgconf meson googletest
+      # The key-view loop tests cover buttons, which join the loop only with
+      # keyboard navigation on; runners have the macOS default, off.
+      - name: Turn on keyboard navigation
+        run: defaults write -g AppleKeyboardUIMode -int 2
       - name: Record actual host, toolchain and dependencies
         run: |
           mkdir -p build/native-ci

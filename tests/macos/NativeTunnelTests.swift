@@ -544,9 +544,12 @@ func failuresAndCancellation(executable: String) async throws {
   try expect(descriptorResult == .exited(0),"spawn closes inherited descriptors and creates its own group")
   let request = try NativeSSHTunnelRequest(endpoint:"remote.invalid",gateway:"gateway.invalid")
   for (behavior,expected) in [("exit",NativeTunnelError.startupFailed),("no-ready",.timedOut),("ignore-term",.timedOut),("temp-control",.timedOut),("fail-forward",.startupFailed),("hang-forward",.timedOut)] {
-    let paths = Paths(), tunnel = fixture(request,executable:executable,behavior:behavior,timeout:.milliseconds(180),paths:paths)
+    // Only the cases expected to time out need the short limit; a failing
+    // fixture must not lose the race to it on a slow machine.
+    let limit: Duration = expected == .timedOut ? .milliseconds(180) : .seconds(10)
+    let paths = Paths(), tunnel = fixture(request,executable:executable,behavior:behavior,timeout:limit,paths:paths)
     do { _ = try await tunnel.start(); throw Failure(description:"failed fixture started") }
-    catch let error as NativeTunnelError { try expect(error == expected,"typed startup failure for \(behavior)") }
+    catch let error as NativeTunnelError { try expect(error == expected,"typed startup failure for \(behavior): \(error)") }
     await tunnel.close(); try gone(paths)
   }
   let missingPaths = Paths(), missing = fixture(request,executable:"/no/such/tidyvnc-fixture",paths:missingPaths)

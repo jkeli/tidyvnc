@@ -497,6 +497,9 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     }
     print("PASS keyboard \(name)")
   }
+  // Buttons and pop-ups join the key-view loop only with keyboard navigation on
+  // (System Settings > Keyboard, off by default); without it only text fields do.
+  let fullKeyboardAccess = NSApp.isFullKeyboardAccessEnabled
   // Password sheet key-view loop: every enabled control, in visual order, closing at Password.
   do {
     let (window, sheet) = try await presentForKeys(AuthenticationSheet(model: model, session: session, request: credentials,
@@ -506,7 +509,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     // Six stops: Password, lifetime pop-up, Use/Forget Saved Password, Cancel, Authenticate,
     // visited in reading order (AppKit frames: larger maxY is higher on screen).
     let reading = stops.sorted { abs($0.frame.midY - $1.frame.midY) > 4 ? $0.frame.midY > $1.frame.midY : $0.frame.minX < $1.frame.minX }
-    guard stops.count == 6, stops.first?.name == "Password", stops.map(\.frame) == reading.map(\.frame) else {
+    guard stops.count == (fullKeyboardAccess ? 6 : 1), stops.first?.name == "Password", stops.map(\.frame) == reading.map(\.frame) else {
       throw Failure(message: "password sheet key loop \(stops.map { "\($0.name)@\($0.frame.integral)" })")
     }
     print("PASS keyboard password sheet key loop of \(stops.count) stops in reading order, starting at Password")
@@ -525,6 +528,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     ("encoding", AnyView(SessionEncodingSheet(model: encodingDraft, dismiss: {}))),
   ]
   for (name, content) in sheets {
+    guard fullKeyboardAccess else { print("SKIP keyboard \(name) sheet key loop: needs keyboard navigation turned on"); continue }
     let (window, sheet) = try await presentForKeys(content)
     let stops = try await keyLoop(sheet)
     dismissKeyboard(window)
