@@ -25,11 +25,6 @@ jobs:
             arch: arm64
             xcode: /Applications/Xcode_26.6.app/Contents/Developer
             configuration: Debug
-          - id: current-intel
-            os: macos-26-intel
-            arch: x86_64
-            xcode: /Applications/Xcode_26.6.app/Contents/Developer
-            configuration: Debug
           - id: release-arm64
             os: macos-26
             arch: arm64
@@ -48,11 +43,15 @@ jobs:
       EXPECTED_ARCHITECTURE: ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v6
-      - name: Verify runner and install protocol/test dependencies
+      # Homebrew supplies build tools and GoogleTest only; the app's libraries
+      # come from apps/macos/deps.py.
+      - name: Verify runner and install build tools
+        id: runner
         run: |
           test "$(uname -m)" = "$EXPECTED_ARCHITECTURE"
           xcodebuild -version
-          brew install cmake ninja pixman jpeg-turbo gnutls nettle googletest
+          echo "xcode=$(xcodebuild -version | shasum -a 256 | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          brew install cmake ninja pkgconf meson googletest
       - name: Record actual host, toolchain and dependencies
         run: |
           mkdir -p build/native-ci
@@ -61,14 +60,22 @@ jobs:
           xcodebuild -version > build/native-ci/toolchain.txt
           xcrun swift --version >> build/native-ci/toolchain.txt
           cmake --version >> build/native-ci/toolchain.txt
-          brew info --json=v2 cmake ninja pixman jpeg-turbo gnutls nettle googletest > build/native-ci/dependencies.json
-      - name: Build, verify and package for the actual runner OS
+          brew info --json=v2 cmake ninja pkgconf meson googletest > build/native-ci/dependencies.json
+      - name: Cache the static dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            build/native-deps/sources
+            build/native-deps/arm64
+          key: native-deps-${{ matrix.os }}-${{ steps.runner.outputs.xcode }}-${{ hashFiles('apps/macos/deps.py') }}
+      - name: Build and test the static dependencies
+        run: python3 apps/macos/deps.py --check
+      - name: Build, verify and package
         run: |
           set -o pipefail
           python3 apps/macos/build.py --build-dir build/native-ci \
             --developer-dir "$DEVELOPER_DIR" --prefix "$(brew --prefix)" \
             --configuration "$NATIVE_CONFIGURATION" --parallel 2 --test --package \
-            --package-minimum-os "$(sw_vers -productVersion)" \
             2>&1 | tee build/native-ci/build.log
       - name: Run the full native protocol baseline
         run: |
@@ -121,6 +128,8 @@ jobs:
             build/native-ci/host.txt
             build/native-ci/toolchain.txt
             build/native-ci/dependencies.json
+            build/native-deps/arm64/deps.json
+            build/native-deps/work/*.log
             build/native-ci/build.log
             build/native-ci/NativeDevelopmentApp.zip
             build/native-ci/package-inspection.log

@@ -4,11 +4,33 @@
 
 `TIDYVNC_UI=FLTK|SWIFTUI` selects the viewer frontend. **FLTK remains the
 default** until the [native acceptance gates](plans/native-ui/TODO.md) pass.
-SwiftUI requires macOS, full Xcode with Swift 6, CMake 3.29+, Ninja, Python 3
-and the protocol libraries below. Command Line Tools alone can build the native
+SwiftUI requires macOS, full Xcode with Swift 6, CMake 3.29+, Ninja, Python 3,
+pkg-config and Meson. Command Line Tools alone can build the native
 bridge/tests, but cannot build the Xcode application. Bridge-only builds also
 require Python for completed-build localization receipts. The initial deployment
-target is 14.0; this is not proof that current Homebrew dependencies run on macOS 14.
+target is 14.0.
+
+### Dependencies
+
+The app links GMP, Nettle, libidn2, GnuTLS, pixman and libjpeg-turbo
+statically. `apps/macos/deps.py` builds them from upstream release archives with
+pinned SHA-256 hashes, for Apple silicon and macOS 13.0, into
+`build/native-deps/arm64`; `build.py` runs it first and it returns at once
+while the prefix matches its recipe. Homebrew supplies only build tools and, for
+`--test`, GoogleTest:
+
+```sh
+brew install cmake ninja pkgconf meson googletest
+python3 apps/macos/deps.py --check
+```
+
+`--check` also runs the GMP, Nettle and libjpeg-turbo test suites. The build is
+isolated from Homebrew libraries, and the script fails if any library object
+requires a newer macOS than the target. GnuTLS reads the macOS Keychain as its
+system trust store and is built without p11-kit, TPM or certificate compression.
+`deps.json` in the prefix records each package's version, source and hash, and
+`share/licenses` holds their licence texts. Update a package by changing its
+entry in `PACKAGES`, after checking the new archive's upstream signature.
 
 The convenience command configures one CMake core and uses its `vncviewer` target
 to configure/build the separate Xcode app, then checks compiler localization
@@ -34,18 +56,20 @@ do not establish interactive keyboard/VoiceOver, physical-display, installed
 privacy/Keychain or distribution acceptance.
 
 Output: `build/native-app/app/Debug/TidyVNC.app`. Use `--configuration Release`,
-`--build-dir`, `--developer-dir`, `--prefix` or `--deployment-target` to select
-another configuration, directory, Xcode, dependency prefix or deployment floor.
+`--build-dir`, `--developer-dir`, `--deps`, `--prefix` or `--deployment-target` to
+select another configuration, directory, Xcode, dependency prefix, GoogleTest
+prefix or deployment floor.
 The script retains its existing output layout. Core and app share the SDK,
 architecture and deployment target; the Xcode project offers only the core's
 configuration, preventing a Release app from linking a Debug core.
 
-For direct CMake use:
+For direct CMake use, after `deps.py` (pkg-config must see only its prefix):
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+PKG_CONFIG_LIBDIR=$PWD/build/native-deps/arm64/lib/pkgconfig \
 cmake -S . -B build/native-selected -G Ninja \
-  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/homebrew \
+  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$PWD/build/native-deps/arm64 \
   -DTIDYVNC_UI=SWIFTUI -DBUILD_VIEWER=ON -DBUILD_PLATFORM_APPS=OFF \
   -DENABLE_NLS=OFF -DENABLE_AUDIO=OFF -DENABLE_H264=OFF \
   -DENABLE_GNUTLS=ON -DENABLE_NETTLE=ON \
@@ -69,7 +93,7 @@ The FLTK surface/viewer-state tests and `fbperf` are enabled only for the FLTK
 frontend. Portable unit tests, protocol benchmarks and smoke consumers remain
 available without FLTK. Neither core-only nor SwiftUI builds discover FLTK.
 
-These are ad hoc signed development bundles with Homebrew dependencies. Installed
+These are ad hoc signed development bundles. Installed
 privacy/Keychain behavior, minimum-OS and architecture coverage, production signing,
 notarization, interactive parity and cutover remain open.
 See [native build validation](plans/native-ui/BUILD.md) for reproducible checks.
@@ -104,23 +128,19 @@ guide is [doc/macos-native-viewer.md](doc/macos-native-viewer.md).
 ### Native package and DMG
 
 Add `--package` to the convenience build to assemble and verify a self-contained
-app and DMG after the requested tests. Dependencies are copied recursively and
-their load paths rewritten; the input app and dependency installations remain
+app and DMG after the requested tests. With the static dependencies the app links
+only libraries and frameworks macOS provides; any other dynamic dependency would
+be copied into the bundle with its load paths rewritten. The input app remains
 unchanged. Output defaults to `build-dir/package/configuration` and must not
-already exist. `--package-output` selects another fresh directory.
-
-The package checks every binary's architecture and minimum macOS version. Current
-Homebrew libraries on this host require macOS 26/27, so packaging them with the
-default 14.0 declaration fails. For local inspection only, explicitly select:
+already exist. `--package-output` selects another fresh directory:
 
 ```sh
-python3 apps/macos/build.py --build-dir build/native-ui-frontend \
-  --parallel 2 --test --package --package-minimum-os 27.0 \
-  --package-output build/native-package-pipeline
+python3 apps/macos/build.py --configuration Release --parallel 2 --test --package
 ```
 
-The resulting package declares macOS 27; it is not a macOS 14 artifact. Build the
-dependencies for the selected minimum before claiming older-OS support. Ad hoc
+The package checks every binary's architecture and minimum macOS version, so it
+declares the app's deployment target. Running on that macOS version is not yet
+verified. Ad hoc
 signing is the default; `--sign-identity` selects a configured signing identity.
 No notarization or publication occurs. The [packaging contract and inspection
 commands](plans/native-ui/PACKAGING.md) document root CMake targets, dependency

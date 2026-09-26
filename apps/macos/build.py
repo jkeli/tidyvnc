@@ -13,7 +13,8 @@ def main():
     parser.add_argument("--build-dir", type=Path, default=Path("build/native-app"))
     parser.add_argument("--configuration", choices=("Debug", "Release"), default="Debug")
     parser.add_argument("--developer-dir", default="/Applications/Xcode.app/Contents/Developer")
-    parser.add_argument("--prefix", default="/opt/homebrew")
+    parser.add_argument("--deps", type=Path, help="Static dependency prefix from deps.py (default: build/native-deps/<arch>)")
+    parser.add_argument("--prefix", default="/opt/homebrew", help="GoogleTest prefix for --test (default: /opt/homebrew)")
     parser.add_argument("--deployment-target", default="14.0")
     parser.add_argument("--parallel", type=int, default=4, help="Maximum concurrent build jobs (default: 4)")
     parser.add_argument("--test", action="store_true",
@@ -30,6 +31,13 @@ def main():
     core, app = build / "core", build / "app"
     env = dict(os.environ, DEVELOPER_DIR=args.developer_dir)
     env["CLANG_MODULE_CACHE_PATH"] = str(build / "ModuleCache")
+    # The core links only the pinned static libraries; deps.py rebuilds them
+    # when its recipe changes and otherwise returns at once.
+    deps = (args.deps or source / "build/native-deps" / platform.machine()).resolve()
+    subprocess.run([sys.executable, source / "apps/macos/deps.py", "--out", deps], check=True, env=env)
+    env.pop("PKG_CONFIG_PATH", None)
+    env["PKG_CONFIG_LIBDIR"] = str(deps / "lib/pkgconfig")
+    prefixes = [str(deps)] + ([args.prefix] if args.test else [])
 
     def run(*command):
         subprocess.run([str(x) for x in command], check=True, env=env)
@@ -43,8 +51,12 @@ def main():
             query.mkdir(parents=True, exist_ok=True)
             (query / "codemodel-v2").touch()
         common.append("-DCMAKE_REQUIRE_FIND_PACKAGE_GTest=TRUE")
-    run("cmake", "-S", source, "-B", core, "-G", "Ninja", *common,
-        f"-DCMAKE_BUILD_TYPE={args.configuration}", f"-DCMAKE_PREFIX_PATH={args.prefix}",
+    # Libraries found through a different prefix stay in the cache; start afresh.
+    cache = core / "CMakeCache.txt"
+    fresh = ["--fresh"] if cache.exists() and f"CMAKE_PREFIX_PATH:UNINITIALIZED={';'.join(prefixes)}\n" \
+        not in cache.read_text() else []
+    run("cmake", *fresh, "-S", source, "-B", core, "-G", "Ninja", *common,
+        f"-DCMAKE_BUILD_TYPE={args.configuration}", f"-DCMAKE_PREFIX_PATH={';'.join(prefixes)}",
         "-DBUILD_VIEWER=ON", "-DTIDYVNC_UI=SWIFTUI", "-DBUILD_PLATFORM_APPS=OFF",
         f"-DTIDYVNC_NATIVE_APP_BUILD_DIR={app}",
         "-DENABLE_NLS=OFF", "-DENABLE_AUDIO=OFF", "-DENABLE_H264=OFF",
