@@ -61,23 +61,25 @@ re-export/upward dependencies, deduplicates canonical paths and handles loader,
 executable and inherited runpaths. It rejects missing/ambiguous resolutions,
 destination collisions, escaping bundle symlinks, FLTK dependencies, mismatched
 architectures and deployment floors. System libraries remain OS-owned; they may
-exist only in the dyld shared cache. External standalone dylibs are copied into
-`Contents/Frameworks`. Third-party frameworks and fat binaries are rejected;
-the native build currently supports one architecture per build directory.
+exist only in the dyld shared cache. Third-party libraries are linked statically
+(`apps/macos/deps.py`), so any dynamic library outside the app is rejected, as is
+a `Contents/Frameworks` directory in the final package. Fat binaries are
+rejected; the native build supports one architecture per build directory.
 
-All non-system loads become explicit `@loader_path` paths inside the app. Original
-runpaths are removed, library IDs are rewritten, and a separate final audit
-requires a closed in-bundle dependency graph. Source/final binary hashes, declared
+Loads between the app's own binaries become explicit `@loader_path` paths.
+Original runpaths are removed, library IDs are rewritten, and a separate final
+audit requires a closed in-bundle dependency graph. Source/final binary hashes, declared
 minimums, architecture, dependency edges and signing mode are recorded. No claim
 is made that inspecting load commands validates optional runtime plugins or every
 TLS/authentication path; native protocol acceptance is still N6.5/N6.6.
 
-Installed upstream licence/notice files from each Homebrew keg are included under
-`Contents/Resources/ThirdParty`. Other dependency installations require
-`--dependency-notices` naming a directory of licence/notice texts. Missing licence
-text is an error. This preserves available notices; release review must still
-address source/relinking and any other obligations for the selected dependencies.
-No release publication occurs here.
+`--deps` names the `deps.py` prefix. Its `deps.json` must match the prefix's
+libraries, architecture and a floor no newer than the package's. Each package's
+upstream licence texts are copied to `Contents/Resources/ThirdParty/<package>`,
+with a `README.txt` naming every library's version, source archive URL and
+SHA-256; the report records the same with the notice hashes. Missing licence
+text is an error. Distributing the corresponding source archives with releases
+remains a release-workflow task. No release publication occurs here.
 
 Nested binaries are signed individually before the final app seal; verification
 uses `codesign --verify --deep --strict`, never deep signing. Ad hoc signing is
@@ -109,17 +111,19 @@ checks the image's README/licence/Applications link and detaches in a `finally`
 block. `--app` performs the same bundle checks without mounting an image. These
 are terminal checks, not Finder-launched Local Network or Keychain acceptance.
 
-Thirteen policy regressions cover malformed/unsupported Mach-O metadata, weak and
+Sixteen policy regressions cover malformed/unsupported Mach-O metadata, weak and
 re-export loads, transitive cycles/aliases, inherited runpaths, ambiguity, missing
 libraries, name collisions, architecture/floor/FLTK rejection, escaping symlinks,
-system-path normalization, final relocation audit, required notices, input
-immutability, failed-stage cleanup and exclusive publication. They are registered
-as `NativePackage.DependencyClosureAndPolicy` (native suite now 89 tests).
+system-path normalization, final relocation audit, rejected dynamic third-party
+libraries and `Contents/Frameworks`, the dependency manifest checks, recorded
+notices and sources, input immutability, failed-stage cleanup and exclusive
+publication. They are registered
+as `NativePackage.DependencyClosureAndPolicy`.
 
-The native CI definition runs build/test/package and mounted-image inspection,
-using an explicitly recorded package floor equal to the runner's actual OS.
-Artifacts include the DMG/report and inspection log. This validates host-specific
-packages; it does not let a current-OS runner stand in for a minimum-OS runner.
+The native CI definition runs build/test/package and mounted-image inspection;
+the package declares the app's deployment floor. Artifacts include the
+DMG/report and inspection log. A current-OS runner does not stand in for a
+minimum-OS runner.
 Hosted execution remains unverified. See RESUME/TODO for final local run evidence.
 
 ## Local checkpoint

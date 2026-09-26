@@ -39,8 +39,13 @@ def check(app, source, report):
     for key, value in manifest.items():
         if saved.get(key) != value:
             raise pkg.PackageError(f"Sealed package manifest mismatch: {key}")
+    third_party = app / "Contents/Resources/ThirdParty"
+    if saved["dependencies"] and not (third_party / "README.txt").is_file():
+        raise pkg.PackageError("Missing third-party README")
     for dependency in saved["dependencies"]:
-        directory = app / "Contents/Resources/ThirdParty" / Path(dependency["path"]).name
+        directory = third_party / dependency["name"]
+        if dependency["linkage"] != "static" or not dependency["notices"]:
+            raise pkg.PackageError(f"Dependency {dependency['name']} is not static or has no licence text")
         for name, expected_hash in dependency["notices"].items():
             if pkg.digest(directory / name) != expected_hash:
                 raise pkg.PackageError(f"Dependency notice changed: {name}")
@@ -54,7 +59,7 @@ def check(app, source, report):
         if any(marker in symbols for marker in ("_fltk", "_ZN2Fl", "_ZN9Fl_Window", "_fl_open_display")):
             raise pkg.PackageError(f"FLTK symbol in {record['path']}")
     subprocess.run([sys.executable, str(root / "tests/macos/invocation-terminal.py"), "--app", str(app)], check=True)
-    print(f"PASS native package: {len(actual)} binaries, {len(saved['dependencies'])} bundled libraries; "
+    print(f"PASS native package: {len(actual)} binaries, {len(saved['dependencies'])} static libraries with notices; "
           "closed dependencies, resources/notices, identity, signature, symbols and CLI")
 
 

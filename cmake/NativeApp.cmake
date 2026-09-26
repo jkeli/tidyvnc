@@ -34,12 +34,15 @@ set(TIDYVNC_NATIVE_PACKAGE_OUTPUT "${CMAKE_BINARY_DIR}/release/native-${CMAKE_BU
 set(TIDYVNC_NATIVE_PACKAGE_MINIMUM_OS "${CMAKE_OSX_DEPLOYMENT_TARGET}" CACHE STRING
   "Declared package minimum; every bundled library must support this version")
 set(TIDYVNC_NATIVE_PACKAGE_SIGN_IDENTITY "-" CACHE STRING "Native package signing identity; - means ad hoc")
+# The package records the licences of the static libraries from apps/macos/deps.py.
+find_path(TIDYVNC_NATIVE_DEPS deps.json PATHS ${CMAKE_PREFIX_PATH} NO_DEFAULT_PATH
+  DOC "Static dependency prefix from apps/macos/deps.py")
 add_custom_target(native-package
   COMMAND ${CMAKE_COMMAND} -E env "DEVELOPER_DIR=${native_developer_dir}"
     ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/apps/macos/package.py"
     --app "${native_app_build}/${CMAKE_BUILD_TYPE}/TidyVNC.app"
     --output "${TIDYVNC_NATIVE_PACKAGE_OUTPUT}"
-    --minimum-os "${TIDYVNC_NATIVE_PACKAGE_MINIMUM_OS}"
+    --minimum-os "${TIDYVNC_NATIVE_PACKAGE_MINIMUM_OS}" --deps "${TIDYVNC_NATIVE_DEPS}"
     --sign-identity "${TIDYVNC_NATIVE_PACKAGE_SIGN_IDENTITY}" --dmg
   DEPENDS vncviewer USES_TERMINAL VERBATIM)
 add_custom_target(dmg DEPENDS native-package)

@@ -72,7 +72,7 @@ def main():
     if args.package:
         command = [sys.executable, source / "apps/macos/package.py", "--app", bundle,
                    "--output", args.package_output or build / "package" / args.configuration,
-                   "--sign-identity", args.sign_identity, "--dmg"]
+                   "--deps", deps, "--sign-identity", args.sign_identity, "--dmg"]
         if args.package_minimum_os:
             command += ["--minimum-os", args.package_minimum_os]
         run(*command)

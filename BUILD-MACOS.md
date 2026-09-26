@@ -128,9 +128,10 @@ guide is [doc/macos-native-viewer.md](doc/macos-native-viewer.md).
 ### Native package and DMG
 
 Add `--package` to the convenience build to assemble and verify a self-contained
-app and DMG after the requested tests. With the static dependencies the app links
-only libraries and frameworks macOS provides; any other dynamic dependency would
-be copied into the bundle with its load paths rewritten. The input app remains
+app and DMG after the requested tests. The app may link only libraries and
+frameworks macOS provides; packaging fails on any other dynamic library. The
+licence texts of the static dependencies go to `Contents/Resources/ThirdParty`
+with a README naming each one's source archive. The input app remains
 unchanged. Output defaults to `build-dir/package/configuration` and must not
 already exist. `--package-output` selects another fresh directory:
 

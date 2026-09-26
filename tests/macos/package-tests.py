@@ -2,6 +2,7 @@
 """Dependency and failure-policy regressions without touching installed code."""
 import argparse
 import importlib.util
+import json
 from pathlib import Path
 import plistlib
 import struct
@@ -40,6 +41,21 @@ class PackageTests(unittest.TestCase):
         self.app = self.root / "TidyVNC.app"
         self.exe = self.app / "Contents/MacOS/vncviewer"
         binary(self.exe, kind=2)
+        self.deps = self.root / "deps-prefix"
+        library = self.deps / "lib/libx.a"
+        library.parent.mkdir(parents=True)
+        library.write_bytes(b"!<arch>\n")
+        licences = self.deps / "share/licenses/x"
+        licences.mkdir(parents=True)
+        (licences / "COPYING").write_text("Fixture licence")
+        self.manifest = {"architecture": "arm64", "deploymentTarget": "13.0",
+                         "libraries": {"libx.a": {"sha256": pkg.digest(library)}},
+                         "packages": {"x": {"version": "1.0", "url": "https://example.org/x-1.0.tar.gz",
+                                            "sha256": "ab" * 32, "licence_dir": "share/licenses/x"}}}
+        self.write_manifest()
+
+    def write_manifest(self):
+        (self.deps / "deps.json").write_text(json.dumps(self.manifest))
 
     def graph(self, minimum="14.0"):
         return pkg.dependency_graph(self.app, self.exe, minimum)
@@ -131,8 +147,8 @@ class PackageTests(unittest.TestCase):
             self.assertFalse(pkg.system_path(path))
 
     def test_audit_requires_closed_relative_graph(self):
-        dependency = binary(self.app / "Contents/Frameworks/liba.dylib", loads=["/usr/lib/libSystem.B.dylib"])
-        binary(self.exe, loads=["@loader_path/../Frameworks/liba.dylib"], kind=2)
+        dependency = binary(self.app / "Contents/MacOS/liba.dylib", loads=["/usr/lib/libSystem.B.dylib"])
+        binary(self.exe, loads=["@loader_path/liba.dylib"], kind=2)
         self.assertEqual(len(pkg.audit(self.app, "14.0", "arm64")), 2)
         for load in (str(dependency), "@rpath/liba.dylib", "@loader_path/../../../absent.dylib"):
             binary(self.exe, loads=[load], kind=2)
@@ -142,25 +158,57 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(pkg.PackageError, "runpath"):
             pkg.audit(self.app, "14.0", "arm64")
 
-    def test_dependency_licence_required_and_copied(self):
-        dependency = binary(self.root / "keg/lib/liba.dylib")
-        (self.root / "keg/INSTALL_RECEIPT.json").write_text("{}")
-        target = self.root / "notices"
-        with self.assertRaisesRegex(pkg.PackageError, "licence"):
-            pkg.copy_notices(dependency, target, None)
-        (self.root / "keg/LICENSE").write_text("Fixture licence")
-        result = pkg.copy_notices(dependency, target, None)
-        self.assertEqual((target / "LICENSE").read_text(), "Fixture licence")
-        self.assertEqual(result["LICENSE"], pkg.digest(target / "LICENSE"))
+    def test_audit_rejects_frameworks(self):
+        binary(self.app / "Contents/Frameworks/liba.dylib")
+        with self.assertRaisesRegex(pkg.PackageError, "Frameworks"):
+            pkg.audit(self.app, "14.0", "arm64")
 
-    def test_failed_package_does_not_publish_or_mutate_input(self):
+    def test_static_dependency_manifest_matches_prefix(self):
+        self.assertEqual(pkg.static_dependencies(self.deps, "arm64", "13.0"), self.manifest)
+        with self.assertRaisesRegex(pkg.PackageError, "x86_64"):
+            pkg.static_dependencies(self.deps, "x86_64", "13.0")
+        with self.assertRaisesRegex(pkg.PackageError, "above package minimum"):
+            pkg.static_dependencies(self.deps, "arm64", "12.0")
+        (self.deps / "lib/libx.a").write_bytes(b"changed")
+        with self.assertRaisesRegex(pkg.PackageError, "differs"):
+            pkg.static_dependencies(self.deps, "arm64", "13.0")
+        (self.deps / "deps.json").unlink()
+        with self.assertRaisesRegex(pkg.PackageError, "deps.py"):
+            pkg.static_dependencies(self.deps, "arm64", "13.0")
+
+    def test_dependency_licences_and_sources_recorded(self):
+        target = self.root / "ThirdParty"
+        records = pkg.copy_notices(self.deps, self.manifest, target)
+        self.assertEqual((target / "x/COPYING").read_text(), "Fixture licence")
+        self.assertEqual(records, [{"name": "x", "version": "1.0", "linkage": "static",
+                                    "source": "https://example.org/x-1.0.tar.gz", "sourceSHA256": "ab" * 32,
+                                    "notices": {"COPYING": pkg.digest(target / "x/COPYING")}}])
+        self.assertIn("https://example.org/x-1.0.tar.gz", (target / "README.txt").read_text())
+        (self.deps / "share/licenses/x/COPYING").unlink()
+        with self.assertRaisesRegex(pkg.PackageError, "licence"):
+            pkg.copy_notices(self.deps, self.manifest, self.root / "empty")
+        self.manifest["packages"]["x"]["licence_dir"] = "../../escape"
+        with self.assertRaisesRegex(pkg.PackageError, "licence"):
+            pkg.copy_notices(self.deps, self.manifest, self.root / "escape")
+
+    def package_args(self, output):
         info = {"CFBundleIdentifier": "io.github.jkeli.tidyvnc", "CFBundleExecutable": "vncviewer",
                 "CFBundleShortVersionString": "1.0", "LSMinimumSystemVersion": "14.0"}
         (self.app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
-        source = self.exe.read_bytes()
+        return argparse.Namespace(app=self.app, output=output, minimum_os=None,
+                                  sign_identity="-", deps=self.deps, dmg=False)
+
+    def test_dynamic_third_party_library_rejected(self):
+        binary(self.exe, loads=[str(binary(self.root / "keg/lib/liba.dylib"))], kind=2)
         output = self.root / "package"
-        args = argparse.Namespace(app=self.app, output=output, minimum_os=None,
-                                  sign_identity="-", dependency_notices=None, dmg=False)
+        with self.assertRaisesRegex(pkg.PackageError, "statically"):
+            pkg.package(self.package_args(output))
+        self.assertFalse(output.exists())
+
+    def test_failed_package_does_not_publish_or_mutate_input(self):
+        output = self.root / "package"
+        args = self.package_args(output)
+        source = self.exe.read_bytes()
         with patch.object(pkg, "run", side_effect=OSError("Injected copy failure")):
             with self.assertRaisesRegex(OSError, "Injected"):
                 pkg.package(args)

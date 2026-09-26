@@ -2,8 +2,10 @@
 """Assemble a relocatable native macOS app and optional disk image.
 
 Works on a private copy, never edits the Xcode bundle or dependency installation.
-The selected deployment floor is enforced for every executable and dylib. Signing
-and local packaging do not establish notarization or installed-app acceptance.
+The selected deployment floor is enforced for every executable and dylib.
+Third-party libraries are linked statically from the apps/macos/deps.py prefix:
+the package carries their licence texts and rejects any other dynamic library.
+Signing and local packaging do not establish notarization or installed-app acceptance.
 """
 import argparse
 import ctypes
@@ -187,27 +189,50 @@ def publish(source, destination):
         raise OSError(error, os.strerror(error), str(destination))
 
 
-def copy_notices(source, target, supplied):
-    # Homebrew keeps the upstream licence files alongside INSTALL_RECEIPT.json.
-    # Other dependency builds must supply a directory of notices explicitly.
-    root = next((p for p in source.parents if (p / "INSTALL_RECEIPT.json").is_file()), None)
-    if supplied is not None:
-        root = supplied
-    if root is None:
-        raise PackageError(f"No dependency notices found for {source}; provide --dependency-notices")
-    files = [p for p in sorted(root.iterdir()) if p.is_file() and
-             p.name.upper().startswith(("COPYING", "LICENSE", "LICENCE", "AUTHORS", "NOTICE", "COPYRIGHT"))]
-    if not any(p.name.upper().startswith(("COPYING", "LICENSE", "LICENCE", "COPYRIGHT")) for p in files):
-        raise PackageError(f"No licence text in {root} for {source}")
-    target.mkdir(parents=True)
-    for path in files:
-        shutil.copyfile(path, target / path.name)
-    return {p.name: digest(p) for p in files}
+def static_dependencies(prefix, architecture, minimum):
+    """The deps.py manifest, checked against the libraries still in its prefix."""
+    try:
+        manifest = json.loads((prefix / "deps.json").read_text())
+    except (OSError, ValueError) as error:
+        raise PackageError(f"No dependency manifest in {prefix}; run apps/macos/deps.py: {error}")
+    if manifest.get("architecture") != architecture:
+        raise PackageError(f"Dependencies are for {manifest.get('architecture')}, the app for {architecture}")
+    if version(manifest["deploymentTarget"]) > version(minimum):
+        raise PackageError(f"Dependencies target macOS {manifest['deploymentTarget']}, above package minimum {minimum}")
+    for name, record in manifest["libraries"].items():
+        path = prefix / "lib" / name
+        if not path.is_file() or digest(path) != record["sha256"]:
+            raise PackageError(f"{path} differs from {prefix / 'deps.json'}; rebuild with apps/macos/deps.py")
+    return manifest
+
+
+def copy_notices(prefix, manifest, target):
+    """Each package's licence texts, and a README naming the source it was built from."""
+    records = []
+    lines = ["TidyVNC links the libraries below statically. Each directory holds the",
+             "licence texts from the release archive the library was built from.", ""]
+    for name, package in manifest["packages"].items():
+        source = (prefix / package["licence_dir"]).resolve()
+        files = sorted(p for p in source.iterdir() if p.is_file()) if source.is_dir() else []
+        if not source.is_relative_to(prefix.resolve()) or not files:
+            raise PackageError(f"No licence text for {name} in {source}")
+        (target / name).mkdir(parents=True)
+        for path in files:
+            shutil.copyfile(path, target / name / path.name)
+        records.append({"name": name, "version": package["version"], "linkage": "static",
+                        "source": package["url"], "sourceSHA256": package["sha256"],
+                        "notices": {p.name: digest(p) for p in files}})
+        lines += [f"{name} {package['version']}", f"  Source:   {package['url']}",
+                  f"  SHA-256:  {package['sha256']}", f"  Licences: {name}/", ""]
+    (target / "README.txt").write_text("\n".join(lines))
+    return records
 
 
 def audit(app, minimum, architecture):
     """Require closed in-bundle links; never use host fallback to prove closure."""
     app = app.resolve()
+    if (app / "Contents/Frameworks").exists():
+        raise PackageError("Contents/Frameworks in the package; third-party libraries are linked statically")
     executable = app / "Contents/MacOS/vncviewer"
     records = []
     for path in binaries(app):
@@ -244,6 +269,12 @@ def package(args):
     if version(minimum) < version(original_minimum):
         raise PackageError("Package minimum cannot be below the app's declared minimum")
     nodes, architecture = dependency_graph(app, app / "Contents/MacOS/vncviewer", minimum)
+    dynamic = sorted(str(source) for source in nodes if not source.is_relative_to(app))
+    if dynamic:
+        raise PackageError("Third-party libraries must be linked statically (apps/macos/deps.py); "
+                           f"the app loads {', '.join(dynamic)}")
+    deps = args.deps.resolve()
+    dependencies = static_dependencies(deps, architecture, minimum)
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".tidyvnc-package-", dir=output.parent) as tmp:
         work = Path(tmp)
@@ -252,16 +283,10 @@ def package(args):
         manifest = {"schemaVersion": 1, "version": plist["CFBundleShortVersionString"],
                     "architecture": architecture, "buildMinimumOS": original_minimum,
                     "packageMinimumOS": minimum, "signingIdentity": args.sign_identity,
-                    "notarized": False, "dependencies": []}
+                    "notarized": False, "dependencies": copy_notices(
+                        deps, dependencies, staged / "Contents/Resources/ThirdParty")}
         for source, node in nodes.items():
             target = staged / node["target"]
-            if not source.is_relative_to(app):
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, target)
-                notices = copy_notices(source, staged / "Contents/Resources/ThirdParty" / source.name,
-                                       args.dependency_notices)
-                manifest["dependencies"].append({"source": str(source), "path": str(node["target"]),
-                    "sourceSHA256": digest(source), "minimumOS": node["info"]["minimumOS"], "notices": notices})
             target.chmod(target.stat().st_mode | 0o200)
             command = ["/usr/bin/install_name_tool"]
             for old, dependency in node["edges"].items():
@@ -328,7 +353,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True, help="New output directory; never overwritten")
     parser.add_argument("--minimum-os", help="Explicit package floor, at least the app and every dependency minimum")
     parser.add_argument("--sign-identity", default="-", help="Code-signing identity; default ad hoc")
-    parser.add_argument("--dependency-notices", type=Path, help="Directory of licence/notice files for non-Homebrew dependencies")
+    parser.add_argument("--deps", type=Path, required=True, help="Static dependency prefix from apps/macos/deps.py")
     parser.add_argument("--dmg", action="store_true")
     args = parser.parse_args()
     try:
