@@ -7,15 +7,15 @@ for everything shipped, exclusive publication of outputs, and no claim that a
 package works until it has been installed and used.
 
 Owner decisions that shape this document (2026-09-23): per-user install (D5),
-Windows 11 only (D6), unsigned builds for now with signing added later (D23), and
+Windows 11 only (D6), releases signed with Artifact Signing (D23, updated 2026-09-26), and
 no automatic updater yet (D22).
 
 ## 1. Deliverables
 
 | Artifact | Contents |
 | --- | --- |
-| `TidyVNC-<version>-x64.msi` | Per-user installer for x64 (unsigned for now) |
-| `TidyVNC-<version>-arm64.msi` | Per-user installer for ARM64 (unsigned for now) |
+| `TidyVNC-<version>-x64.msi` | Per-user installer for x64 (signed for releases) |
+| `TidyVNC-<version>-arm64.msi` | Per-user installer for ARM64 (not released yet; needs an ARM64 packaging host) |
 | `TidyVNC-<version>-<arch>-symbols.zip` | PDBs for the app, helper and core DLLs (not installed) |
 | `package-report.json` | Versions, hashes, dependency edges, signing state, notices, toolchain |
 
@@ -28,7 +28,7 @@ association or Start menu entry, and users have to manage updates themselves.
 `apps/windows/build.py`, modelled on `apps/macos/build.py`:
 
 1. **Check the environment.** MSVC toolset and Windows SDK versions, .NET SDK,
-   the vcpkg baseline, WiX, and `signtool` only when `--sign` is given. Missing
+   the vcpkg baseline, WiX, and `signtool` only when signing. Missing
    tools fail with a clear message.
 2. **Core.** `cmake -S . -B <build>/core -G Ninja -DTIDYVNC_UI=WINUI` with the
    vcpkg toolchain and the target architecture, build the core DLL and helper
@@ -131,32 +131,36 @@ Before publication, as on macOS:
   state-root override, so this runs in a dedicated test Windows account or VM,
   never the owner's own account.
 
-## 7. Signing (deferred)
+## 7. Signing
 
-Builds are unsigned for now (DECISIONS.md D23). The pipeline is built so that
-adding signing later is configuration only:
+Releases are signed with Azure Artifact Signing (DECISIONS.md D23); every other
+build is unsigned. The step is configuration only:
 
-- `build.py --sign <identity>` enables the step. Without it the step is skipped,
-  the report records `signed: false`, and nothing else changes.
-- When enabled: sign every EXE and DLL built by the project, and any unsigned
-  third-party DLL shipped, with
-  `signtool sign /fd SHA256 /tr <RFC 3161 timestamp URL> /td SHA256`; keep the
-  signatures on Microsoft-signed runtime files; sign the MSI last; verify every
-  file with `signtool verify /pa /all`.
-- The owner chooses the identity when signing is added (for example an Azure
-  Artifact Signing account or an OV certificate).
+- `build.py --sign-dlib <Azure.CodeSigning.Dlib.dll> --sign-metadata <json>`
+  signs through Artifact Signing. `--sign <thumbprint>` signs with a certificate
+  from the store instead. Without either, the step is skipped and the report
+  records `signed: false`.
+- When enabled: sign every EXE and DLL built by the project, and every shipped
+  binary nobody else signed (the MSYS2 DLLs), with the newest Windows SDK
+  `signtool sign /fd SHA256 /tr <RFC 3161 timestamp URL> /td SHA256`. Microsoft's
+  runtime files keep their own signatures. Verify with `signtool verify /pa /all`,
+  run the payload audit again, and fail if any binary is unsigned. The MSI is
+  signed last and verified the same way. The report records the method and the
+  timestamp server.
+- `.github/workflows/release.yml` runs this for `vX.Y.Z` tags only, after CI and
+  an approval on the `release` environment (RELEASING.md).
 
-While builds are unsigned:
+For unsigned builds, and for signed ones while the identity is new:
 
 - Downloaded MSIs show the SmartScreen "Windows protected your PC" warning; users
-  continue with *More info* > *Run anyway*.
+  continue with *More info* > *Run anyway*. A new signing identity starts with no
+  SmartScreen reputation, so signed releases may get the warning for a while.
+  That is expected and recorded, not worked around.
 - Smart App Control, where turned on, blocks unsigned apps with no per-app
-  override, so TidyVNC cannot run on those machines until it is signed.
+  override.
 - The README and Help explain both. Unsigned results are never used as evidence
-  for signed-app behaviour; those W7.4 checks stay open.
-- A new signing identity later also starts with no SmartScreen reputation, so
-  warnings may continue for a while after signing begins. That is expected and
-  recorded, not worked around.
+  for signed-app behaviour; those W7.4 checks stay open until the first signed
+  release.
 
 ## 8. MSI behaviour
 

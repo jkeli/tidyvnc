@@ -10,7 +10,9 @@ From the published app directory (the `app` stage) and the core build:
    the payload or to Windows, no debug CRT, MinGW runtime or FLTK, no native
    DLL that nothing loads, the core's exports equal to tidyvnc.h, and a licence
    text for every shipped binary. The result is package-report.json.
-3. Signing runs only with --sign (D23); otherwise the report says unsigned.
+3. Signing runs only with --sign or --sign-dlib (D23); otherwise the report
+   says unsigned. It covers the project's binaries and every shipped binary
+   that nobody else signed, then the audit runs again on the signed files.
 4. Relocation check (section 6): the payload copied to a path with spaces and
    non-ASCII characters runs `vncviewer --version` and `--help` with a
    minimal environment.
@@ -365,14 +367,37 @@ def audit(staging, app, arch, owners):
 
 # ---- Signing (D23) ---------------------------------------------------------------------
 
-def sign(staging, args, files):
-    signtool = next(Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")).glob(
-        "Windows Kits/10/bin/*/x64/signtool.exe"), None)
-    if signtool is None:
+def signing(args):
+    """How the package is signed, for the report; None when it is not."""
+    if getattr(args, "sign_dlib", None):
+        return {"method": "dlib", "dlib": Path(args.sign_dlib).name, "timestamp": args.timestamp_url}
+    if getattr(args, "sign", None):
+        return {"method": "certificate", "thumbprint": args.sign, "timestamp": args.timestamp_url}
+    return None
+
+
+def signtool():
+    """The newest Windows SDK SignTool; Artifact Signing's dlib does not work with old ones."""
+    kits = Path(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")) / "Windows Kits/10/bin"
+    found = sorted(kits.glob("10.*/x64/signtool.exe"), key=lambda p: [int(x) for x in p.parent.parent.name.split(".")])
+    if not found:
         raise PackageError("signtool.exe was not found in the Windows SDK")
-    command = [signtool, "sign", "/fd", "SHA256", "/sha1", args.sign, "/tr", args.timestamp_url, "/td", "SHA256"]
-    subprocess.run([str(c) for c in command + files], check=True)
-    subprocess.run([str(c) for c in [signtool, "verify", "/pa", "/all", *files]], check=True)
+    return found[-1]
+
+
+def sign(folder, args, files):
+    """Sign files (paths relative to folder) and verify their signatures chain to a trusted root."""
+    tool = signtool()
+    if getattr(args, "sign_dlib", None):
+        identity = ["/dlib", Path(args.sign_dlib).resolve(), "/dmdf", Path(args.sign_metadata).resolve()]
+    else:
+        identity = ["/sha1", args.sign]
+    files = [str(Path(f)) for f in files]
+    for step in ([tool, "sign", "/fd", "SHA256", *identity, "/tr", args.timestamp_url, "/td", "SHA256", *files],
+                 [tool, "verify", "/pa", "/all", *files]):
+        print("+ " + " ".join(str(c) for c in step), flush=True)
+        if subprocess.run([str(c) for c in step], cwd=folder).returncode != 0:
+            raise PackageError(f"signtool {step[1]} failed; its output is above")
 
 
 # ---- Relocation check (section 6) ------------------------------------------------------
@@ -554,10 +579,15 @@ def build(args, core, app):
         problems, records, exports = audit(staging, Path(app), arch, owners)
         if problems:
             raise PackageError("Package audit failed:\n  " + "\n  ".join(problems))
-        signed = False
-        if getattr(args, "sign", None):
-            sign(staging, args, [r["path"] for r in records if r["component"] == "TidyVNC"])
-            signed = True
+        signed = signing(args)
+        if signed:
+            # The project's binaries and every shipped binary nobody else signed (PACKAGING.md section 7);
+            # Microsoft's runtime files keep their own signatures.
+            sign(staging, args, [r["path"] for r in records if r["component"] == "TidyVNC" or not r["signed"]])
+            problems, records, exports = audit(staging, Path(app), arch, owners)
+            problems += [f"{r['path']}: not signed" for r in records if not r["signed"]]
+            if problems:
+                raise PackageError("Package audit after signing failed:\n  " + "\n  ".join(problems))
         relocation = relocation_check(staging, work)
         msi = build_msi(staging, work, arch, product_version) if not getattr(args, "no_msi", False) else None
         if signed and msi:
@@ -568,7 +598,7 @@ def build(args, core, app):
                 archive.write(pdb, pdb.name)
         report = {"schemaVersion": 1, "product": PRODUCT, "version": product_version, "architecture": arch,
                   "configuration": args.configuration, "created": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-                  "signed": signed, "upgradeCode": UPGRADE_CODES[arch], "toolchain": toolchain.describe(),
+                  "signed": bool(signed), "signing": signed, "upgradeCode": UPGRADE_CODES[arch], "toolchain": toolchain.describe(),
                   "msi": {"path": msi.name, "sha256": digest(msi), "validation": "passed"} if msi else None,
                   "relocation": relocation, "coreExports": exports, "components": components,
                   "payload": {"files": sum(1 for p in staging.rglob("*") if p.is_file()),
