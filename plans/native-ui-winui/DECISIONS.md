@@ -545,8 +545,11 @@ an Azure Artifact Signing account or an OV certificate) and where its keys live.
 environment. The Azure federated credential trusts only that environment. The
 package stage signs the project's binaries and every shipped binary nobody else
 signed (the MSYS2 DLLs), checks that every binary in the payload is signed, then
-signs the MSI (`build.py --sign-dlib`). Builds from pushes, pull requests and
-local machines stay unsigned. RELEASING.md has the process and setup. W7.4's
+signs the MSI (`build.py --sign-dlib`). A manually started run on `master` is a
+signing dry run: the same approval and signing, but it keeps only the package
+report and creates no release, so no signed build of unreleased code is
+distributed. Builds from pushes, pull requests and local machines stay
+unsigned. RELEASING.md has the process and setup. W7.4's
 signed-app evidence is recorded after the first signed release.
 
 ## D24 — Windows App SDK 2.x *(owner-decided)*

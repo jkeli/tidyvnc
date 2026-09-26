@@ -11,8 +11,8 @@ that signs anything. `.github/workflows/release.yml` then:
 5. creates a **draft** GitHub release with the MSI, the symbols ZIP,
    `package-report.json`, `SHA256SUMS.txt` and a build provenance attestation.
 
-A person publishes the draft. Nothing else is signed: builds from pushes,
-pull requests and local machines are unsigned.
+A person publishes the draft. Apart from signing dry runs (below), nothing else
+is signed: builds from pushes, pull requests and local machines are unsigned.
 
 ## Rules
 
@@ -55,6 +55,21 @@ To check a downloaded MSI, look at *Properties* > *Digital Signatures*, or run:
 gh attestation verify TidyVNC-2.0.0-x64.msi --repo jkeli/tidyvnc
 ```
 
+## Signing dry run
+
+A dry run tests the signing setup without making a release. Use it after the
+one-time setup, and after any change to the Azure or GitHub configuration.
+
+1. In *Actions* > **Release**, choose *Run workflow* on `master`. Other branches
+   are refused.
+2. Approve the deployment to `release` when asked.
+
+The run builds, signs and checks the package exactly as a release does. It
+keeps only `package-report.json`, as the `dry-run-package-report` artifact for
+seven days. It creates no release and keeps no signed binaries, so signed
+builds of unreleased code are never distributed. Each dry run uses signatures
+from the account's monthly quota: about 30.
+
 ## One-time setup
 
 ### Azure Artifact Signing
@@ -92,7 +107,8 @@ gh attestation verify TidyVNC-2.0.0-x64.msi --repo jkeli/tidyvnc
 
 1. In *Settings* > *Environments*, create `release`:
    - **Required reviewers:** yourself.
-   - **Deployment branches and tags:** *Selected*, with a tag rule `v*`.
+   - **Deployment branches and tags:** *Selected branches and tags*, with a
+     tag rule `v*` for releases and a branch rule `master` for dry runs.
    - **Environment secrets:**
 
      | Secret | Value |

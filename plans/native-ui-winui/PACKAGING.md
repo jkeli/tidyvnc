@@ -147,8 +147,9 @@ build is unsigned. The step is configuration only:
   run the payload audit again, and fail if any binary is unsigned. The MSI is
   signed last and verified the same way. The report records the method and the
   timestamp server.
-- `.github/workflows/release.yml` runs this for `vX.Y.Z` tags only, after CI and
-  an approval on the `release` environment (RELEASING.md).
+- `.github/workflows/release.yml` runs this for `vX.Y.Z` tags, after CI and an
+  approval on the `release` environment. A manually started run on `master` is a
+  dry run that keeps only the package report (RELEASING.md).
 
 For unsigned builds, and for signed ones while the identity is new:
 
