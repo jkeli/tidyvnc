@@ -1,6 +1,13 @@
 name: Native macOS viewer
 
-on: [push, pull_request, workflow_dispatch]
+# Also called by release.yml, so a release is only signed after these jobs
+# pass on the tagged commit.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

@@ -1,10 +1,11 @@
 name: Release
 
-# Pushing a tag vX.Y.Z builds, tests, signs and packages that commit, then
-# creates a draft GitHub release. Publishing the draft is done by hand.
-# Running the workflow by hand on master is a dry run: the same approval and
-# signing, but it keeps only the package report and creates no release.
-# RELEASING.md describes the process and the one-time Azure and GitHub setup.
+# Pushing a tag vX.Y.Z builds, tests, signs and packages that commit for
+# Windows x64 and macOS arm64 (notarized), then creates a draft GitHub release.
+# Publishing the draft is done by hand. Running the workflow by hand on master
+# is a dry run: the same approval, signing and notarization, but it keeps only
+# the package reports and creates no release.
+# RELEASING.md describes the process and the one-time Apple, Azure and GitHub setup.
 run-name: ${{ github.event_name == 'workflow_dispatch' && format('Signing dry run on {0}', github.ref_name) || format('Release {0}', github.ref_name) }}
 
 on:
@@ -59,6 +60,11 @@ jobs:
     name: CI
     needs: check
     uses: ./.github/workflows/windows-winui.yml
+
+  ci-macos:
+    name: macOS CI
+    needs: check
+    uses: ./.github/workflows/native-macos.yml
 
   sign:
     name: Build and sign x64
@@ -165,9 +171,149 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  sign-macos:
+    name: Build, sign and notarize macOS arm64
+    needs: [check, ci-macos]
+    runs-on: macos-26
+    timeout-minutes: 120
+    # The same approval as the Windows job. Apple has no federated credentials,
+    # so the certificate and API key are secrets on this environment.
+    environment: release
+    permissions:
+      contents: read
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      OUTPUT: build/native-release/package
+      VERSION: ${{ needs.check.outputs.version }}
+      # Apple's Developer ID intermediate (G2), which runner images may lack.
+      DEVELOPER_ID_CA: https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+      DEVELOPER_ID_CA_SHA256: f16cd3c54c7f83cea4bf1a3e6a0819c8aaa8e4a1528fd144715f350643d2df3a
+    steps:
+      - name: Check the signing configuration
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_PROVISIONING_PROFILE: ${{ secrets.MACOS_PROVISIONING_PROFILE }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER }}
+        run: |
+          missing=""
+          for name in MACOS_CERTIFICATE MACOS_CERTIFICATE_PASSWORD MACOS_PROVISIONING_PROFILE \
+                      NOTARY_KEY NOTARY_KEY_ID NOTARY_ISSUER; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Set these secrets on the 'release' environment:$missing"
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+      - name: Install build tools
+        id: tools
+        run: |
+          xcodebuild -version
+          echo "xcode=$(xcodebuild -version | shasum -a 256 | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          brew install cmake ninja pkgconf meson
+      # The key matches CI's release-arm64 job, whose cache a tag can restore.
+      - name: Cache the static dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            build/native-deps/sources
+            build/native-deps/arm64
+          key: native-deps-macos-26-${{ steps.tools.outputs.xcode }}-${{ hashFiles('apps/macos/deps.py') }}
+      - name: Build and test the static dependencies
+        run: python3 .github/scripts/annotate-failure.py python3 apps/macos/deps.py --check
+      - name: Install the signing certificate, profile and API key
+        id: signing
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_PROVISIONING_PROFILE: ${{ secrets.MACOS_PROVISIONING_PROFILE }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+        run: |
+          set -euo pipefail
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password=$(uuidgen)
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          curl -fsSL -o "$RUNNER_TEMP/developer-id-ca.cer" "$DEVELOPER_ID_CA"
+          echo "$DEVELOPER_ID_CA_SHA256  $RUNNER_TEMP/developer-id-ca.cer" | shasum -a 256 -c -
+          security import "$RUNNER_TEMP/developer-id-ca.cer" -k "$keychain"
+          umask 077
+          printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -f pkcs12 \
+            -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          identity=$(security find-identity -v -p codesigning "$keychain" |
+            awk '/"Developer ID Application: /{print $2; exit}')
+          if [ -z "$identity" ]; then
+            echo "::error::MACOS_CERTIFICATE holds no valid Developer ID Application identity"
+            exit 1
+          fi
+          printf '%s' "$MACOS_PROVISIONING_PROFILE" | base64 --decode > "$RUNNER_TEMP/TidyVNC.provisionprofile"
+          printf '%s\n' "$NOTARY_KEY" > "$RUNNER_TEMP/notary.p8"
+          echo "identity=$identity" >> "$GITHUB_OUTPUT"
+          echo "keychain=$keychain" >> "$GITHUB_OUTPUT"
+      - name: Build, sign and notarize
+        env:
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER }}
+        run: >-
+          python3 .github/scripts/annotate-failure.py python3 apps/macos/build.py
+          --build-dir build/native-release --developer-dir "$DEVELOPER_DIR" --configuration Release
+          --parallel 3 --package --package-output "$OUTPUT"
+          --sign-identity "${{ steps.signing.outputs.identity }}"
+          --provisioning-profile "$RUNNER_TEMP/TidyVNC.provisionprofile"
+          --notary-key "$RUNNER_TEMP/notary.p8" --notary-key-id "$NOTARY_KEY_ID" --notary-issuer "$NOTARY_ISSUER"
+      - name: Check the signed package
+        run: |
+          set -euo pipefail
+          python3 tests/macos/package-inspect.py --dmg "$OUTPUT/TidyVNC-$VERSION-arm64.dmg" \
+            --source-app build/native-release/app/Release/TidyVNC.app --report "$OUTPUT/package-report.json"
+          python3 - <<'CHECK'
+          import json, os
+          report = json.load(open(os.path.join(os.environ["OUTPUT"], "package-report.json")))
+          if not report["notarized"] or report["version"] != os.environ["VERSION"]:
+              raise SystemExit(f"Unexpected report: notarized={report['notarized']} version={report['version']}")
+          print("Notarized:", report["notarization"], report["gatekeeper"])
+          CHECK
+      # The source archives of the statically linked libraries go with each
+      # release (GPL); build/native-deps/arm64/deps.json names them.
+      - name: Collect the release files
+        run: |
+          mkdir dist
+          cp "$OUTPUT/TidyVNC-$VERSION-arm64.dmg" dist/
+          cp "$OUTPUT/package-report.json" "dist/TidyVNC-$VERSION-arm64-package-report.json"
+          tar -cf "dist/TidyVNC-$VERSION-macos-third-party-sources.tar" -C build/native-deps sources arm64/deps.json
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'push'
+        with:
+          name: release-macos-arm64
+          path: dist/
+          if-no-files-found: error
+      # As on Windows, a dry run keeps no signed binaries.
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: dry-run-macos-package-report
+          path: ${{ env.OUTPUT }}/package-report.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove the signing keychain, profile and API key
+        if: always()
+        run: |
+          if [ -n "${{ steps.signing.outputs.keychain }}" ]; then
+            security delete-keychain "${{ steps.signing.outputs.keychain }}"
+          fi
+          rm -f "$RUNNER_TEMP/certificate.p12" "$RUNNER_TEMP/TidyVNC.provisionprofile" "$RUNNER_TEMP/notary.p8"
+
   publish:
     name: Create the draft release
-    needs: [check, sign]
+    needs: [check, sign, sign-macos]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -177,7 +323,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: release-x64
+          pattern: release-*
+          merge-multiple: true
           path: dist
       - name: Write checksums
         working-directory: dist
@@ -187,6 +334,7 @@ jobs:
           subject-path: |
             dist/*.msi
             dist/*-symbols.zip
+            dist/*.dmg
       - name: Create the draft release
         env:
           GH_TOKEN: ${{ github.token }}
