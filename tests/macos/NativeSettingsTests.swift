@@ -379,7 +379,11 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     guard let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
       windowNumber: sheet.windowNumber, context: nil, characters: characters, charactersIgnoringModifiers: characters,
       isARepeat: false, keyCode: keyCode) else { throw Failure(message: "no key event") }
-    if type == .keyUp || !sheet.performKeyEquivalent(with: event) { sheet.sendEvent(event) }
+    let handled = type == .keyDown && sheet.performKeyEquivalent(with: event)
+    // Escape must not depend on keyboard focus: with keyboard navigation off (the
+    // default) a sheet without text fields has no focused control to receive it.
+    if type == .keyDown && keyCode == 53 && !handled { throw Failure(message: "Escape is not a key equivalent in this sheet") }
+    if !handled { sheet.sendEvent(event) }
   }
   try await Task.sleep(for: .milliseconds(200))
 }
