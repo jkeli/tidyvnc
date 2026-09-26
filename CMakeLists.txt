@@ -209,6 +209,14 @@ if(BUILD_MACOS_NATIVE)
   if(CMAKE_Swift_COMPILER_VERSION VERSION_LESS 6.0)
     message(FATAL_ERROR "BUILD_MACOS_NATIVE requires Swift 6 or later")
   endif()
+  # swiftc links through clang without the SDK, so executables record the
+  # deployment target as their SDK version and macOS applies that SDK's
+  # compatibility behavior (for example, no toolbar bridging from hosting
+  # controllers before SDK 14). Xcode passes the SDK for the app itself; this
+  # is a directory option so the exported targets do not carry it there.
+  if(IS_ABSOLUTE "${CMAKE_OSX_SYSROOT}")
+    add_link_options("$<$<LINK_LANGUAGE:Swift>:SHELL:-Xclang-linker -isysroot -Xclang-linker \"${CMAKE_OSX_SYSROOT}\">")
+  endif()
 endif()
 
 # X11 stuff. It's in a if() so that we can say REQUIRED
