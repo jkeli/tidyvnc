@@ -48,7 +48,10 @@ runs:
       uses: msys2/setup-msys2@v2
       with:
         msystem: CLANG64
-        update: false
+        # Without an update, pacman installs from the package lists bundled with
+        # setup-msys2's base image, which can be months old (for example nettle
+        # 3.x, whose DLL names deps.py does not expect).
+        update: true
         install: ${{ steps.packages.outputs.list }}
 
     - name: Stage the C libraries for MSVC

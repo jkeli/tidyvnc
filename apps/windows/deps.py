@@ -91,6 +91,11 @@ def main():
     prefix = args.msys_root / env_dir
     if not (prefix / "bin" / LINKED["gnutls"]).exists():
         raise SystemExit(f"{prefix} has no GnuTLS; install {package_prefix}-gnutls with pacman")
+    missing = [dll for dll in LINKED.values() if not (prefix / "bin" / dll).exists()]
+    if missing:
+        # A different DLL name means a different library version from the one the core was built against.
+        raise SystemExit(f"{prefix / 'bin'} lacks {', '.join(missing)}; update MSYS2 (pacman -Syu) or, "
+                         "if a library's DLL name changed, update LINKED in deps.py")
     if out.exists():
         shutil.rmtree(out)
     for sub in ("include", "lib", "bin", "share/licenses", "def"):
