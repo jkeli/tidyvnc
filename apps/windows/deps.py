@@ -154,7 +154,7 @@ def main():
 
     report = {"architecture": args.arch, "msys_environment": env_dir,
               "packages": packages, "linked": LINKED, "missing_licences": missing,
-              "toolchain": toolchain.describe()}
+              "toolchain": toolchain.describe(arch=args.arch)}
     (out / "deps.json").write_text(json.dumps(report, indent=2) + "\n")
     print(f"Staged {len(closure)} DLLs from {env_dir} into {out}")
     if missing:

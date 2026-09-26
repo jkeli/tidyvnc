@@ -598,7 +598,7 @@ def build(args, core, app):
                 archive.write(pdb, pdb.name)
         report = {"schemaVersion": 1, "product": PRODUCT, "version": product_version, "architecture": arch,
                   "configuration": args.configuration, "created": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-                  "signed": bool(signed), "signing": signed, "upgradeCode": UPGRADE_CODES[arch], "toolchain": toolchain.describe(),
+                  "signed": bool(signed), "signing": signed, "upgradeCode": UPGRADE_CODES[arch], "toolchain": toolchain.describe(arch=arch),
                   "msi": {"path": msi.name, "sha256": digest(msi), "validation": "passed"} if msi else None,
                   "relocation": relocation, "coreExports": exports, "components": components,
                   "payload": {"files": sum(1 for p in staging.rglob("*") if p.is_file()),
