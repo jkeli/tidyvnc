@@ -96,7 +96,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Build the core and publish the app
-        run: python apps/windows/build.py --configuration Release --stages core,app --parallel 4
+        run: python .github/scripts/annotate-failure.py python apps/windows/build.py --configuration Release --stages core,app --parallel 4
       - name: Install the Artifact Signing client
         id: client
         env:
@@ -135,7 +135,7 @@ jobs:
         run: az account get-access-token --resource https://codesigning.azure.net --output none
       - name: Package and sign
         run: >-
-          python apps/windows/build.py --configuration Release --stages core,app,package --parallel 4
+          python .github/scripts/annotate-failure.py python apps/windows/build.py --configuration Release --stages core,app,package --parallel 4
           --sign-dlib "${{ steps.client.outputs.dlib }}" --sign-metadata "${{ steps.client.outputs.metadata }}"
           --output $env:OUTPUT
       - name: Check the signed package

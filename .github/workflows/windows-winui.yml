@@ -28,7 +28,7 @@ jobs:
       # Debug, because the .NET suites cover the Debug-only state-root override.
       # UI automation and desktop tests report inconclusive without TIDYVNC_UI_TESTS=1.
       - name: Build and run the core and .NET suites
-        run: python apps/windows/build.py --configuration Debug --stages core,app --test --parallel 4
+        run: python .github/scripts/annotate-failure.py python apps/windows/build.py --configuration Debug --stages core,app --test --parallel 4
 
   package:
     name: Package x64 (Release, unsigned)
@@ -41,7 +41,7 @@ jobs:
           arch: x64
           wix: 'true'
       - name: Build, audit and package
-        run: python apps/windows/build.py --configuration Release --stages core,app,package --parallel 4 --output build/winui/ci-package
+        run: python .github/scripts/annotate-failure.py python apps/windows/build.py --configuration Release --stages core,app,package --parallel 4 --output build/winui/ci-package
       - name: Upload the unsigned package (not a release)
         uses: actions/upload-artifact@v7
         with:
@@ -61,4 +61,4 @@ jobs:
         with:
           arch: arm64
       - name: Cross-build the core and publish the app
-        run: python apps/windows/build.py --arch arm64 --configuration Release --stages core,app --parallel 4
+        run: python .github/scripts/annotate-failure.py python apps/windows/build.py --arch arm64 --configuration Release --stages core,app --parallel 4
