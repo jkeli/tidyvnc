@@ -11,7 +11,7 @@
     <FileVersion>$(TidyVncVersion).0</FileVersion>
     <Company>TidyVNC contributors</Company>
     <Product>TidyVNC</Product>
-    <Copyright>Copyright TidyVNC contributors. Licensed under GPL-2.0-or-later.</Copyright>
+    <Copyright>Copyright (C) 2026 Kyle Eli and TidyVNC contributors. Licensed under GPL-2.0-or-later.</Copyright>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

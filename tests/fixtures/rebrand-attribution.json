@@ -1711,9 +1711,9 @@
   },
   "release/Info.plist.in": {
     "copyright_lines": [
-      "\t<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>",
+      "\t<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst); Copyright (C) 2026 Kyle Eli</string>",
       "\t<key>NSHumanReadableCopyright</key>",
-      "\t<string>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>"
+      "\t<string>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)"
     ]
   },
   "tests/integration/macos-scaling-smoke.py": {

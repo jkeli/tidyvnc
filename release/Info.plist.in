@@ -13,7 +13,7 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>CFBundleGetInfoString</key>
-	<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>
+	<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst); Copyright (C) 2026 Kyle Eli</string>
 	<key>CFBundleIconFile</key>
 	<string>tidyvnc.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -33,7 +33,8 @@
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>
+	<string>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)
+Copyright (C) 2026 Kyle Eli</string>
 	<key>CFBundleDocumentTypes</key>
 	<array><dict>
 		<key>CFBundleTypeName</key><string>TidyVNC connection</string>

@@ -54,6 +54,7 @@ Incomplete and generally out of date copyright list::
         Copyright (C) 2009-2011 Pierre Ossman for Cendio AB
         Copyright (C) 2004, 2009-2011 Red Hat, Inc.
         Copyright (C) 2009-2026 TigerVNC team
+        Copyright (C) 2026 Kyle Eli
         All Rights Reserved.
 
 This software is distributed under the GNU General Public Licence as published
