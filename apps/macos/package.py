@@ -402,6 +402,7 @@ def package(args):
             (work / "entitlements.plist").write_bytes(plistlib.dumps(entitlements))
             main += ["--entitlements", work / "entitlements.plist"]
         run(*main, staged)
+        (work / "entitlements.plist").unlink(missing_ok=True)  # recorded in the report instead
         run("/usr/bin/codesign", "--verify", "--deep", "--strict", staged)
         records = audit(staged, minimum, architecture)
         # Relocation is verified by loading from a path with spaces, using an
