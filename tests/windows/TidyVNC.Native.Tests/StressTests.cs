@@ -47,7 +47,7 @@ public sealed class StressTests
         var cycles = int.TryParse(Environment.GetEnvironmentVariable("TIDYVNC_STRESS_CYCLES"), out var requested) && requested > 40 ? requested : 120;
         const int warmUp = 15;
         using var ui = new SingleThreadDispatcher();
-        Usage? baseline = null, midpoint = null;
+        Usage? baseline = null, midpoint = null, threeQuarters = null;
         var result = await ui.InvokeAsync(async () =>
         {
             var runtime = new NativeRuntime(ui);
@@ -81,6 +81,7 @@ public sealed class StressTests
                     }
                     if (cycle == warmUp - 1) baseline = Measure();
                     if (cycle == warmUp - 1 + (cycles - warmUp) / 2) midpoint = Measure();
+                    if (cycle == warmUp - 1 + (cycles - warmUp) * 3 / 4) threeQuarters = Measure();
                     if (cycles > 200 && cycle % 250 == 249)
                     {
                         var sample = Measure();
@@ -98,6 +99,7 @@ public sealed class StressTests
         });
         var before = baseline!.Value;
         var middle = midpoint!.Value;
+        var late = threeQuarters!.Value;
         TestContext.WriteLine($"{cycles} cycles: handles {before.Handles} -> {result.Handles}, threads {before.Threads} -> {result.Threads}, " +
                               $"managed {before.Managed / 1024} KiB -> {result.Managed / 1024} KiB, private {before.Private / 1048576} MiB -> {result.Private / 1048576} MiB");
         // A leak grows with every cycle; the thread pool adding a few workers (with their handles) and the
@@ -107,9 +109,13 @@ public sealed class StressTests
         bool Bounded(long growth, long allowance, double perCycle) => growth <= allowance || growth <= perCycle * measured;
         // Handles also take one-off steps when a Windows component starts its own thread pool the first time
         // it is used (about +110: semaphores, ETW registrations, registry keys, one worker factory; seen after
-        // the warm-up when the whole suite runs first, the same at 60 and 200 cycles). So the second half of
-        // the run must hold the handle count, and the whole run may take one such step.
-        Assert.IsTrue(Bounded(result.Handles - middle.Handles, 40, 0.25), $"handles grew {middle.Handles} -> {result.Handles} in the second half");
+        // the warm-up when the whole suite runs first, the same at 60 and 200 cycles). The whole run may take
+        // one such step, and it can land anywhere: a CI runner took +79 in the second half. A leak grows in
+        // every stretch, so one of the last two quarters must hold the handle count.
+        var quarter = measured / 4;
+        bool Flat(long growth) => growth <= 20 || growth <= 0.25 * quarter;
+        Assert.IsTrue(Flat(late.Handles - middle.Handles) || Flat(result.Handles - late.Handles),
+                      $"handles grew in both late quarters: {middle.Handles} -> {late.Handles} -> {result.Handles}");
         Assert.IsTrue(result.Handles - before.Handles <= 200, $"handles grew {before.Handles} -> {result.Handles}");
         Assert.IsTrue(result.Threads - before.Threads <= 16, $"threads grew {before.Threads} -> {result.Threads}");
         Assert.IsTrue(Bounded(result.Managed - before.Managed, 8L << 20, 2048), $"managed memory grew {before.Managed} -> {result.Managed}");
