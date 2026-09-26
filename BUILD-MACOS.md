@@ -141,9 +141,11 @@ python3 apps/macos/build.py --configuration Release --parallel 2 --test --packag
 
 The package checks every binary's architecture and minimum macOS version, so it
 declares the app's deployment target. Running on that macOS version is not yet
-verified. Ad hoc
-signing is the default; `--sign-identity` selects a configured signing identity.
-No notarization or publication occurs. The [packaging contract and inspection
+verified. Every binary is signed with the hardened runtime, ad hoc by default.
+`--sign-identity` selects a Developer ID identity and then requires
+`--provisioning-profile`; `--notary-key`, `--notary-key-id` and
+`--notary-issuer` also notarize and staple the app and DMG. Releases do this in
+CI; see [RELEASING.md](RELEASING.md). The [packaging contract and inspection
 commands](plans/native-ui/PACKAGING.md) document root CMake targets, dependency
 notices, failure behavior, mounted-DMG checks and remaining installed-app gates.
 

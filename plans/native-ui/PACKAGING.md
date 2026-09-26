@@ -82,16 +82,29 @@ text is an error. Distributing the corresponding source archives with releases
 remains a release-workflow task. No release publication occurs here.
 
 Nested binaries are signed individually before the final app seal; verification
-uses `codesign --verify --deep --strict`, never deep signing. Ad hoc signing is
-the default. `--sign-identity` selects an available identity, hardened runtime and
-secure timestamp for non-ad-hoc packaging. No bypass entitlements are introduced.
-Only ad hoc signing has been exercised on this host. Real identity/provisioning,
-Keychain access groups, privacy persistence and upgrade behavior remain open.
+uses `codesign --verify --deep --strict`, never deep signing. Every binary gets
+the hardened runtime; no runtime exceptions are needed, since nothing is loaded
+dynamically. Ad hoc signing is the default. `--sign-identity` selects a real
+identity with a secure timestamp and requires `--provisioning-profile`: the
+profile must be a macOS profile for `io.github.jkeli.tidyvnc` that includes the
+signing certificate and has not expired. It is embedded, and the main executable
+alone gets its application and team identifiers, which the Data Protection
+Keychain needs. The disk image is signed too.
+
+With `--notary-key`, `--notary-key-id` and `--notary-issuer`, the app is
+notarized (as a zip) and stapled before the DMG is made, so it opens offline
+once copied out, then the DMG is notarized and stapled. Gatekeeper must accept
+both as notarized; where its assessments are disabled, `codesign
+--check-notarization` checks the notarized requirement instead. The report
+records the entitlements, submission IDs and verdicts. Only ad hoc signing has
+been exercised locally; the Developer ID path runs in `release.yml`. Keychain
+access, privacy persistence and upgrade behavior of a signed app remain open.
 
 Before publication, the app is copied to a second path containing spaces. Its
 help command must execute with an isolated HOME/XDG environment and no dependency
 search overrides. A DMG includes the app, README, licence and Applications link;
-`hdiutil verify` must pass. The sealed app records `notarized: false`.
+`hdiutil verify` must pass. Notarization status is in the report, not the
+sealed app, whose manifest is written before signing.
 
 ## Inspection and regression coverage
 

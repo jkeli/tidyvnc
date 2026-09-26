@@ -5,6 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import plistlib
+import re
 import subprocess
 import sys
 import tempfile
@@ -53,6 +54,15 @@ def check(app, source, report):
     signature = pkg.run("/usr/bin/codesign", "-dvv", app).stderr
     if "Identifier=io.github.jkeli.tidyvnc" not in signature or "Sealed Resources=none" in signature:
         raise pkg.PackageError("Missing bundle signing identity or resource seal")
+    flags = re.search(r"flags=0x[0-9a-f]+\(([^)]*)\)", signature)
+    if not flags or "runtime" not in flags.group(1).split(","):
+        raise pkg.PackageError("The app is not signed with the hardened runtime")
+    signed = pkg.run("/usr/bin/codesign", "-d", "--entitlements", "-", "--xml", app).stdout
+    if (plistlib.loads(signed.encode()) if signed.strip() else {}) != saved["entitlements"]:
+        raise pkg.PackageError("Signed entitlements differ from the verified assembly report")
+    if saved["notarized"]:
+        pkg.run("/usr/bin/xcrun", "stapler", "validate", app)
+        pkg.gatekeeper("--type", "execute", app)
     # Symbol check supplements the build graph and dependency-name checks.
     for record in actual:
         symbols = pkg.run("/usr/bin/nm", "-u", app / record["path"]).stdout
@@ -78,6 +88,9 @@ if __name__ == "__main__":
         if pkg.digest(args.dmg) != saved["diskImage"]["sha256"]:
             raise pkg.PackageError("Disk image differs from the verified assembly report")
         pkg.run("/usr/bin/hdiutil", "verify", args.dmg)
+        if saved["notarized"]:
+            pkg.run("/usr/bin/xcrun", "stapler", "validate", args.dmg)
+            pkg.gatekeeper("--type", "open", "--context", "context:primary-signature", args.dmg)
         with tempfile.TemporaryDirectory(prefix="tidyvnc-dmg-inspect-") as temporary:
             mount = Path(temporary) / "mounted"
             mount.mkdir()

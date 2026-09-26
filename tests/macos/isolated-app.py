@@ -65,8 +65,9 @@ def launch(source, state, arguments, extra_env=None, home_files=None, state_file
     subprocess.run(['/usr/bin/ditto', str(source), str(copied)], check=True)
     info['CFBundleIdentifier'] = domain
     (copied / 'Contents/Info.plist').write_bytes(plistlib.dumps(info))
+    # Keep the source's code-signing flags, so a packaged app keeps its hardened runtime.
     subprocess.run(['/usr/bin/codesign', '--force', '--sign', '-', '--identifier', domain,
-                    '--timestamp=none', str(copied)], check=True)
+                    '--preserve-metadata=flags', '--timestamp=none', str(copied)], check=True)
     subprocess.run(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(copied)], check=True)
     (state / 'fixture.json').write_text(json.dumps({'domain': domain, 'app': str(copied)}))
     env = environment(state)

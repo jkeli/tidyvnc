@@ -5,10 +5,16 @@ Works on a private copy, never edits the Xcode bundle or dependency installation
 The selected deployment floor is enforced for every executable and dylib.
 Third-party libraries are linked statically from the apps/macos/deps.py prefix:
 the package carries their licence texts and rejects any other dynamic library.
-Signing and local packaging do not establish notarization or installed-app acceptance.
+
+Every binary is signed with the hardened runtime, ad hoc by default. A real
+identity also needs the app's provisioning profile: the main executable gets
+the application identifier it provisions, which the Data Protection Keychain
+requires. With App Store Connect API key credentials the app and then the disk
+image are notarized, stapled and checked with Gatekeeper.
 """
 import argparse
 import ctypes
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -23,6 +29,9 @@ import tempfile
 
 class PackageError(RuntimeError):
     pass
+
+
+BUNDLE_ID = "io.github.jkeli.tidyvnc"
 
 
 MAGICS = {b"\xcf\xfa\xed\xfe", b"\xfe\xed\xfa\xcf", b"\xce\xfa\xed\xfe", b"\xfe\xed\xfa\xce",
@@ -254,6 +263,74 @@ def audit(app, minimum, architecture):
     return records
 
 
+def identity_hash(identity):
+    """The SHA-1 of a code-signing identity's certificate, given its hash or name."""
+    if re.fullmatch(r"[0-9A-Fa-f]{40}", identity):
+        return identity.upper()
+    listing = run("/usr/bin/security", "find-identity", "-v", "-p", "codesigning").stdout
+    matches = {h for h, name in re.findall(r'\)\s+([0-9A-F]{40})\s+"([^"]+)"', listing) if name == identity}
+    if len(matches) != 1:
+        raise PackageError(f"{identity!r} does not name exactly one valid code-signing identity")
+    return matches.pop()
+
+
+def check_profile(profile, certificate, now):
+    """The entitlements a provisioning profile grants the app, if it fits the signing certificate."""
+    team = (profile.get("TeamIdentifier") or [""])[0]
+    granted = profile.get("Entitlements", {})
+    application = f"{team}.{BUNDLE_ID}"
+    if not team or granted.get("com.apple.application-identifier") != application:
+        raise PackageError(f"The provisioning profile is not for {BUNDLE_ID}")
+    if granted.get("com.apple.developer.team-identifier") != team or "OSX" not in profile.get("Platform", []):
+        raise PackageError("The provisioning profile is not a macOS profile for its team")
+    if profile.get("ExpirationDate", now) <= now:
+        raise PackageError(f"The provisioning profile expired on {profile.get('ExpirationDate')}")
+    if certificate not in {hashlib.sha1(c).hexdigest().upper() for c in profile.get("DeveloperCertificates", [])}:
+        raise PackageError("The provisioning profile does not include the signing certificate")
+    return {"com.apple.application-identifier": application, "com.apple.developer.team-identifier": team}
+
+
+def provisioning(path, identity):
+    decoded = subprocess.run(["/usr/bin/security", "cms", "-D", "-i", str(path)], check=True, capture_output=True).stdout
+    now = datetime.now(timezone.utc).replace(tzinfo=None)  # plistlib dates are naive UTC
+    return check_profile(plistlib.loads(decoded), identity_hash(identity), now)
+
+
+def notarize(path, args, submission=None):
+    """Submit path (or an archive of it) to Apple's notary service, wait, then
+    staple the ticket to path. Returns the submission ID."""
+    submission = submission or path
+    credentials = ["--key", str(args.notary_key), "--key-id", args.notary_key_id, "--issuer", args.notary_issuer]
+    submitted = subprocess.run(["/usr/bin/xcrun", "notarytool", "submit", str(submission), *credentials,
+                                "--wait", "--timeout", "1h", "--output-format", "json"], capture_output=True, text=True)
+    try:
+        result = json.loads(submitted.stdout)
+    except ValueError:
+        raise PackageError(f"notarytool could not submit {path.name}: {submitted.stderr.strip()}")
+    if result.get("status") != "Accepted":
+        log = subprocess.run(["/usr/bin/xcrun", "notarytool", "log", result.get("id", ""), *credentials],
+                             capture_output=True, text=True).stdout if result.get("id") else ""
+        raise PackageError(f"Notarization of {path.name} ended {result.get('status')}: {result.get('message', '')}\n{log}")
+    run("/usr/bin/xcrun", "stapler", "staple", path)
+    run("/usr/bin/xcrun", "stapler", "validate", path)
+    return result["id"]
+
+
+def gatekeeper(*command):
+    """Gatekeeper's verdict on a notarized item. Where assessments are disabled,
+    as on some CI hosts, codesign checks the notarization requirement instead."""
+    result = subprocess.run(["/usr/sbin/spctl", "--assess", "-vv", *map(str, command)], capture_output=True, text=True)
+    if not result.returncode and "source=Notarized Developer ID" in result.stderr:
+        return "spctl: accepted, Notarized Developer ID"
+    if "assessments disabled" in result.stderr:
+        checked = subprocess.run(["/usr/bin/codesign", "--verify", "-R=notarized", "--check-notarization",
+                                  str(command[-1])], capture_output=True, text=True)
+        if not checked.returncode:
+            return "codesign: satisfies the notarized requirement (Gatekeeper assessments disabled)"
+        result = checked
+    raise PackageError(f"Gatekeeper does not accept {command[-1]}: {result.stderr.strip()}")
+
+
 def package(args):
     app = args.app.resolve()
     output = args.output.parent.resolve() / args.output.name
@@ -262,7 +339,7 @@ def package(args):
     if output.is_relative_to(app) or app.is_relative_to(output):
         raise PackageError("Package output must be separate from the input app")
     plist = plistlib.loads((app / "Contents/Info.plist").read_bytes())
-    if plist.get("CFBundleIdentifier") != "io.github.jkeli.tidyvnc" or plist.get("CFBundleExecutable") != "vncviewer":
+    if plist.get("CFBundleIdentifier") != BUNDLE_ID or plist.get("CFBundleExecutable") != "vncviewer":
         raise PackageError("Input is not the expected TidyVNC application")
     original_minimum = plist["LSMinimumSystemVersion"]
     minimum = args.minimum_os or original_minimum
@@ -275,6 +352,16 @@ def package(args):
                            f"the app loads {', '.join(dynamic)}")
     deps = args.deps.resolve()
     dependencies = static_dependencies(deps, architecture, minimum)
+    distribution = args.sign_identity != "-"
+    notary = (args.notary_key, args.notary_key_id, args.notary_issuer)
+    if any(notary) and not all(notary):
+        raise PackageError("Notarization needs --notary-key, --notary-key-id and --notary-issuer")
+    if all(notary) and not distribution:
+        raise PackageError("Notarization needs a Developer ID signing identity")
+    if distribution and not args.provisioning_profile:
+        raise PackageError("A signing identity needs --provisioning-profile; Keychain access requires "
+                           "the provisioned application identifier")
+    entitlements = provisioning(args.provisioning_profile, args.sign_identity) if distribution else None
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".tidyvnc-package-", dir=output.parent) as tmp:
         work = Path(tmp)
@@ -283,7 +370,7 @@ def package(args):
         manifest = {"schemaVersion": 1, "version": plist["CFBundleShortVersionString"],
                     "architecture": architecture, "buildMinimumOS": original_minimum,
                     "packageMinimumOS": minimum, "signingIdentity": args.sign_identity,
-                    "notarized": False, "dependencies": copy_notices(
+                    "entitlements": entitlements or {}, "dependencies": copy_notices(
                         deps, dependencies, staged / "Contents/Resources/ThirdParty")}
         for source, node in nodes.items():
             target = staged / node["target"]
@@ -302,13 +389,19 @@ def package(args):
         plist["LSMinimumSystemVersion"] = minimum
         (staged / "Contents/Info.plist").write_bytes(plistlib.dumps(plist))
         (staged / "Contents/Resources/NativePackage.json").write_text(json.dumps(manifest, indent=2) + "\n")
-        # Nested code first; no --deep signing or entitlement inheritance.
-        signing = ["/usr/bin/codesign", "--force", "--sign", args.sign_identity]
-        signing += ["--timestamp=none"] if args.sign_identity == "-" else ["--options", "runtime", "--timestamp"]
+        # Nested code first; no --deep signing or entitlement inheritance. Only
+        # the main executable gets entitlements, and only the provisioned ones.
+        signing = ["/usr/bin/codesign", "--force", "--sign", args.sign_identity, "--options", "runtime",
+                   "--timestamp" if distribution else "--timestamp=none"]
         for path in binaries(staged):
             if path != staged / "Contents/MacOS/vncviewer":
                 run(*signing, path)
-        run(*signing, "--identifier", plist["CFBundleIdentifier"], staged)
+        main = [*signing, "--identifier", BUNDLE_ID]
+        if entitlements:
+            shutil.copyfile(args.provisioning_profile, staged / "Contents/embedded.provisionprofile")
+            (work / "entitlements.plist").write_bytes(plistlib.dumps(entitlements))
+            main += ["--entitlements", work / "entitlements.plist"]
+        run(*main, staged)
         run("/usr/bin/codesign", "--verify", "--deep", "--strict", staged)
         records = audit(staged, minimum, architecture)
         # Relocation is verified by loading from a path with spaces, using an
@@ -326,7 +419,15 @@ def package(args):
             raise PackageError(f"Relocated executable help failed ({launch.returncode}): {launch.stderr}")
         shutil.rmtree(relocated.parent)
         shutil.rmtree(home)
-        report = dict(manifest, binaries=records, relocatedHelp="passed", strictSignature="passed")
+        report = dict(manifest, binaries=records, relocatedHelp="passed", strictSignature="passed",
+                      notarized=all(notary))
+        if all(notary):
+            # The app gets its own ticket, so it opens offline once copied out of the image.
+            archive = work / "notarization.zip"
+            run("/usr/bin/ditto", "-c", "-k", "--keepParent", staged, archive)
+            report["notarization"] = {"app": notarize(staged, args, archive)}
+            archive.unlink()
+            report["gatekeeper"] = {"app": gatekeeper("--type", "execute", staged)}
         if args.dmg:
             image_root = work / "image"
             image_root.mkdir()
@@ -337,6 +438,13 @@ def package(args):
             image = work / f"TidyVNC-{plist['CFBundleShortVersionString']}-{architecture}.dmg"
             run("/usr/bin/hdiutil", "create", "-fs", "HFS+", "-format", "UDZO", "-volname", "TidyVNC", "-srcfolder", image_root, image)
             run("/usr/bin/hdiutil", "verify", image)
+            if distribution:
+                run("/usr/bin/codesign", "--sign", args.sign_identity, "--timestamp", image)
+                run("/usr/bin/codesign", "--verify", "--strict", image)
+            if all(notary):
+                report["notarization"]["diskImage"] = notarize(image, args)
+                report["gatekeeper"]["diskImage"] = gatekeeper(
+                    "--type", "open", "--context", "context:primary-signature", image)
             report["diskImage"] = {"path": image.name, "sha256": digest(image), "verification": "passed"}
             shutil.rmtree(image_root)
         (work / "package-report.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -354,6 +462,11 @@ def main():
     parser.add_argument("--minimum-os", help="Explicit package floor, at least the app and every dependency minimum")
     parser.add_argument("--sign-identity", default="-", help="Code-signing identity; default ad hoc")
     parser.add_argument("--deps", type=Path, required=True, help="Static dependency prefix from apps/macos/deps.py")
+    parser.add_argument("--provisioning-profile", type=Path,
+                        help="The app's provisioning profile; required with a signing identity")
+    parser.add_argument("--notary-key", type=Path, help="App Store Connect API key (.p8) for notarization")
+    parser.add_argument("--notary-key-id", help="The API key's ID")
+    parser.add_argument("--notary-issuer", help="The API key's issuer ID")
     parser.add_argument("--dmg", action="store_true")
     args = parser.parse_args()
     try:

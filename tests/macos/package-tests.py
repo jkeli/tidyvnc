@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Dependency and failure-policy regressions without touching installed code."""
 import argparse
+from datetime import datetime
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -195,8 +197,42 @@ class PackageTests(unittest.TestCase):
         info = {"CFBundleIdentifier": "io.github.jkeli.tidyvnc", "CFBundleExecutable": "vncviewer",
                 "CFBundleShortVersionString": "1.0", "LSMinimumSystemVersion": "14.0"}
         (self.app / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
-        return argparse.Namespace(app=self.app, output=output, minimum_os=None,
-                                  sign_identity="-", deps=self.deps, dmg=False)
+        return argparse.Namespace(app=self.app, output=output, minimum_os=None, sign_identity="-",
+                                  deps=self.deps, provisioning_profile=None, notary_key=None,
+                                  notary_key_id=None, notary_issuer=None, dmg=False)
+
+    def test_signing_and_notarization_options_checked(self):
+        args = self.package_args(self.root / "package")
+        for changes, message in [({"notary_key": self.root / "key.p8"}, "--notary-key-id"),
+                                 ({"notary_key": self.root / "key.p8", "notary_key_id": "K", "notary_issuer": "I"},
+                                  "Developer ID"),
+                                 ({"sign_identity": "Developer ID Application: Fixture (TEAM123456)"},
+                                  "--provisioning-profile")]:
+            with self.subTest(changes=changes):
+                with self.assertRaisesRegex(pkg.PackageError, message):
+                    pkg.package(argparse.Namespace(**{**vars(args), **changes}))
+        self.assertFalse((self.root / "package").exists())
+
+    def test_provisioning_profile_must_fit_app_team_and_certificate(self):
+        now = datetime(2026, 9, 26)
+        certificate = b"fixture certificate"
+        profile = {"TeamIdentifier": ["TEAM123456"], "Platform": ["OSX"],
+                   "ExpirationDate": datetime(2027, 9, 26), "DeveloperCertificates": [certificate],
+                   "Entitlements": {"com.apple.application-identifier": "TEAM123456.io.github.jkeli.tidyvnc",
+                                    "com.apple.developer.team-identifier": "TEAM123456",
+                                    "keychain-access-groups": ["TEAM123456.*"]}}
+        signer = hashlib.sha1(certificate).hexdigest().upper()
+        self.assertEqual(pkg.check_profile(profile, signer, now),
+                         {"com.apple.application-identifier": "TEAM123456.io.github.jkeli.tidyvnc",
+                          "com.apple.developer.team-identifier": "TEAM123456"})
+        other_app = {**profile["Entitlements"], "com.apple.application-identifier": "TEAM123456.org.example"}
+        for changes, message in [({"Entitlements": other_app}, "not for"),
+                                 ({"Platform": ["iOS"]}, "macOS profile"),
+                                 ({"ExpirationDate": datetime(2026, 9, 1)}, "expired"),
+                                 ({"DeveloperCertificates": [b"another certificate"]}, "signing certificate")]:
+            with self.subTest(changes=changes):
+                with self.assertRaisesRegex(pkg.PackageError, message):
+                    pkg.check_profile({**profile, **changes}, signer, now)
 
     def test_dynamic_third_party_library_rejected(self):
         binary(self.exe, loads=[str(binary(self.root / "keg/lib/liba.dylib"))], kind=2)

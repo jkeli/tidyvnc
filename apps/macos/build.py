@@ -23,6 +23,10 @@ def main():
     parser.add_argument("--package-output", type=Path, help="New package directory (default: build-dir/package/configuration)")
     parser.add_argument("--package-minimum-os", help="Explicit package minimum; dependencies above this floor fail packaging")
     parser.add_argument("--sign-identity", default="-", help="Package signing identity (default: ad hoc)")
+    parser.add_argument("--provisioning-profile", type=Path, help="The app's provisioning profile, for a signing identity")
+    parser.add_argument("--notary-key", type=Path, help="App Store Connect API key (.p8); notarizes the package")
+    parser.add_argument("--notary-key-id", help="The API key's ID")
+    parser.add_argument("--notary-issuer", help="The API key's issuer ID")
     args = parser.parse_args()
     if args.parallel < 1:
         parser.error("--parallel must be positive")
@@ -75,6 +79,9 @@ def main():
                    "--deps", deps, "--sign-identity", args.sign_identity, "--dmg"]
         if args.package_minimum_os:
             command += ["--minimum-os", args.package_minimum_os]
+        for option in ("provisioning_profile", "notary_key", "notary_key_id", "notary_issuer"):
+            if getattr(args, option):
+                command += ["--" + option.replace("_", "-"), getattr(args, option)]
         run(*command)
 
 
