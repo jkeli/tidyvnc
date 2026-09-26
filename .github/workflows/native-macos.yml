@@ -18,15 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Users only get what release-arm64's toolchain builds, so there is no
+        # older-Xcode build. Running on older macOS (the floor is 13.0, which has
+        # no hosted runner) is checked outside CI.
         include:
-          # The oldest hosted Apple silicon image. The app's floor is macOS 13,
-          # which has no hosted runner; it is checked in a local VM. macOS 14
-          # images retire 2026-11-02; move this job to the oldest remaining one.
-          - id: minimum-arm64
-            os: macos-14
-            arch: arm64
-            xcode: /Applications/Xcode_16.2.app/Contents/Developer
-            configuration: Debug
           - id: current-arm64
             os: macos-26
             arch: arm64
@@ -37,12 +32,16 @@ jobs:
             arch: arm64
             xcode: /Applications/Xcode_26.6.app/Contents/Developer
             configuration: Release
+          # Early warning for the next Xcode; its failures never fail the run
+          # or block a release.
           - id: preview-arm64
             os: xcode-27
             arch: arm64
             xcode: /Applications/Xcode.app/Contents/Developer
             configuration: Debug
+            preview: true
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.preview == true }}
     timeout-minutes: 60
     env:
       DEVELOPER_DIR: ${{ matrix.xcode }}

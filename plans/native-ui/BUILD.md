@@ -138,33 +138,37 @@ remain unchecked in TODO. These development results do not waive those gates.
 
 ## Native CI definition
 
-`.github/workflows/native-macos.yml` runs the same `build.py --test` path with two
-build jobs. It preserves the existing Windows/Linux/macOS FLTK and headless
-workflows. The new matrix is:
+`.github/workflows/native-macos.yml` runs the same `build.py --test` path. It is
+also called by `release.yml`. The matrix (updated 2026-09-26) is:
 
 | Role | Runner | Architecture | Xcode | Configuration |
 | --- | --- | --- | --- | --- |
-| Provisional minimum OS | macos-14 | arm64 | 16.2 | Debug |
 | Current stable OS | macos-26 | arm64 | 26.6 | Debug |
-| Current stable Intel | macos-26-intel | x86_64 | 26.6 | Debug |
-| Optimized app/core | macos-26 | arm64 | 26.6 | Release |
-| Next toolchain/OS preview | xcode-27 | arm64 | image default | Debug |
+| Optimized app/core, the release toolchain | macos-26 | arm64 | 26.6 | Release |
+| Next toolchain/OS preview (non-blocking) | xcode-27 | arm64 | image default | Debug |
+
+Releases are Apple silicon only, so there is no Intel job. There is also no
+older-Xcode job: users only get what the release toolchain builds, and the
+macOS 14 image, the oldest hosted one, could only run Xcode 16, so that job
+tested an old compiler rather than an old OS. It was removed on 2026-09-26 (by
+decision, not to make CI green). Running on the macOS 13.0 floor (N0.6) is
+checked outside CI, for example in a macOS 13 VM with binaries from the release
+toolchain. The preview job uses `continue-on-error`, so its failures show in
+the run without failing it or blocking a release.
 
 Runner labels and architecture follow GitHub's [hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
-Xcode paths were checked against the official [macOS 14 ARM](https://github.com/actions/runner-images/blob/main/images/macos/macos-14-arm64-Readme.md),
+Xcode paths were checked against the official
 [macOS 26 ARM](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md)
-and [macOS 26 Intel](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md)
-image inventories. The [Xcode 27 image](https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md)
+image inventory. The [Xcode 27 image](https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md)
 is a preview and follows its default toolchain. These pages were checked on
 2026-09-22; actual toolchain, host and installed dependency versions are saved per
-run. The macOS 14 inventory announces retirement on 2026-11-02. Before retirement,
-provide a suitable minimum-OS runner; do not remove the gate to make CI green.
+run.
 
 The workflow checks the actual architecture, requires all suites, retains failure
 logs/JUnit/summary/rendered fixtures, and archives the development bundle when one
 exists. That ZIP retains the original development bundle for inspection, including failed
-runs. The packaging follow-up also assembles a DMG with bundled dependencies,
-using the runner OS as its explicit package floor, and inspects its mounted app.
+runs. The packaging follow-up also assembles a DMG, with the static dependencies
+and the app's deployment floor, and inspects its mounted app.
 The DMG/report/inspection log are uploaded too. No deployment, publication,
 signing credential or secret is required; these remain ad hoc inspection artifacts.
 
