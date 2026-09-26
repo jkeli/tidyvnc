@@ -53,17 +53,11 @@ RandomStream::RandomStream(Source source)
 {
 #ifdef RFB_HAVE_WINCRYPT
   provider = 0;
+  // Random data needs no key container. Opening the user's default one
+  // failed on a fresh profile when two streams raced to create it.
   if (!CryptAcquireContext(&provider, nullptr, nullptr,
-                           PROV_RSA_FULL, 0)) {
-    if (GetLastError() == (DWORD)NTE_BAD_KEYSET) {
-      if (!CryptAcquireContext(&provider, nullptr, nullptr,
-                               PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
-        provider = 0;
-      }
-    } else {
-      provider = 0;
-    }
-  }
+                           PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+    provider = 0;
   if (!provider) {
 #else
 #ifndef WIN32
