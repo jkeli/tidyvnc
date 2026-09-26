@@ -32,6 +32,31 @@ public static class NativePrivateFiles
         }
     }
 
+    /// <summary>
+    /// The owner Windows gives new objects this process creates without an explicit
+    /// owner: the user, or the Administrators group for an elevated administrator.
+    /// </summary>
+    private static SecurityIdentifier? DefaultOwner
+    {
+        get
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            return identity.Owner;
+        }
+    }
+
+    /// <summary>Owned by the user, with a protected DACL granting only the user and SYSTEM full control.</summary>
+    private static FileSecurity PrivateFileSecurity()
+    {
+        var user = CurrentUser;
+        var security = new FileSecurity();
+        security.SetAccessRuleProtection(true, false);
+        security.SetOwner(user);
+        foreach (var sid in new[] { user, System })
+            security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl, AccessControlType.Allow));
+        return security;
+    }
+
     /// <summary>Retries: attempts and base delay, overridable by tests.</summary>
     public static int RetryAttempts { get; set; } = 8;
     public static TimeSpan RetryDelay { get; set; } = TimeSpan.FromMilliseconds(25);
@@ -61,7 +86,10 @@ public static class NativePrivateFiles
     /// <summary>
     /// A file or directory is private when it is not a reparse point, the
     /// current user owns it, and its DACL is protected with allow entries for
-    /// only the user and SYSTEM. Anything else is Denied, never trusted.
+    /// only the user and SYSTEM. Anything else is Denied, never trusted. The
+    /// process's default owner also counts as the user: for an elevated
+    /// administrator that is the Administrators group, which files written by
+    /// the same elevated user (another tool, an editor) carry.
     /// </summary>
     public static void CheckPrivate(FileSystemInfo info)
     {
@@ -79,7 +107,7 @@ public static class NativePrivateFiles
         catch (UnauthorizedAccessException error) { throw new NativeStorageException(NativeStorageError.Denied, error.HResult); }
         catch (IOException error) { throw new NativeStorageException(NativeStorageError.IOFailure, error.HResult); }
         var user = CurrentUser;
-        if (security.GetOwner(typeof(SecurityIdentifier)) is not SecurityIdentifier owner || owner != user)
+        if (security.GetOwner(typeof(SecurityIdentifier)) is not SecurityIdentifier owner || (owner != user && owner != DefaultOwner))
             throw new NativeStorageException(NativeStorageError.Denied);
         foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
         {
@@ -124,10 +152,9 @@ public static class NativePrivateFiles
         FileStream? handle = null;
         try
         {
-            handle = Retry(() => new FileStream(lockPath, new FileStreamOptions
-            {
-                Mode = FileMode.OpenOrCreate, Access = FileAccess.ReadWrite, Share = FileShare.ReadWrite | FileShare.Delete,
-            }));
+            // An explicit owner, because an elevated process would otherwise make the Administrators group the owner.
+            handle = Retry(() => new FileInfo(lockPath).Create(FileMode.OpenOrCreate, FileSystemRights.Read | FileSystemRights.Write | FileSystemRights.Synchronize,
+                FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.None, PrivateFileSecurity()));
             CheckPrivate(new FileInfo(lockPath));
             while (true)
             {
@@ -163,10 +190,8 @@ public static class NativePrivateFiles
         var temporary = path + "." + Guid.NewGuid().ToString("N") + TemporarySuffix;
         try
         {
-            using (var stream = new FileStream(temporary, new FileStreamOptions
-            {
-                Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None, Options = FileOptions.WriteThrough,
-            }))
+            using (var stream = new FileInfo(temporary).Create(FileMode.CreateNew, FileSystemRights.Write | FileSystemRights.Synchronize, FileShare.None, 4096,
+                FileOptions.WriteThrough, PrivateFileSecurity()))
             {
                 stream.Write(data);
                 stream.Flush(flushToDisk: true);

@@ -62,6 +62,11 @@ granting full control to the current user and SYSTEM only, the Windows
 counterpart of macOS 0700/0600. The store checks the DACL and owner when opening
 and reports `Denied` if another user could write the file, rather than trusting
 it. Reparse points (symbolic links, junctions) inside the store are refused.
+Files and directories are created with the user as their explicit owner. An
+elevated administrator's process would otherwise give them to the
+Administrators group, and a later normal run would refuse them. The owner check
+also accepts the process's default owner, which for an elevated administrator
+is that group: files the same elevated user wrote with other tools.
 
 **Recovery.** A corrupt record is not treated as absent: the UI shows the
 recovery choices the macOS app shows (retry, use built-in defaults for this
