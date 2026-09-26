@@ -16,6 +16,11 @@ endif()
 
 enable_testing()
 
+# Tests labelled "workstation" exercise real loopback sockets and threads against
+# wall-clock deadlines, so their outcome depends on the host's speed. CI skips
+# the label (apps/macos/build.py --ci, apps/windows/build.py --ci); run them on
+# a workstation.
+
 include_directories(${CMAKE_SOURCE_DIR}/vncviewer)
 
 add_executable(logging logging.cxx)
@@ -125,7 +130,7 @@ gtest_discover_tests(protocolsession)
 
 add_executable(promptauthentication promptauthentication.cxx)
 target_link_libraries(promptauthentication tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-gtest_discover_tests(promptauthentication PROPERTIES TIMEOUT 30)
+gtest_discover_tests(promptauthentication PROPERTIES TIMEOUT 30 LABELS workstation)
 
 add_executable(sessioninput sessioninput.cxx)
 target_link_libraries(sessioninput tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
@@ -158,7 +163,7 @@ if(GNUTLS_FOUND AND (NOT WIN32 OR MSVC))
     add_executable(authenticationsocket authenticationsocket.cxx)
     target_include_directories(authenticationsocket SYSTEM PRIVATE ${GNUTLS_INCLUDE_DIR})
     target_link_libraries(authenticationsocket tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-    gtest_discover_tests(authenticationsocket PROPERTIES TIMEOUT 30)
+    gtest_discover_tests(authenticationsocket PROPERTIES TIMEOUT 30 LABELS workstation)
   endif()
 endif()
 
@@ -196,11 +201,11 @@ gtest_discover_tests(sessionscheduler PROPERTIES TIMEOUT 30)
 
 add_executable(sessionworker sessionworker.cxx)
 target_link_libraries(sessionworker tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-gtest_discover_tests(sessionworker PROPERTIES TIMEOUT 30)
+gtest_discover_tests(sessionworker PROPERTIES TIMEOUT 30 LABELS workstation)
 
 add_executable(listenerworker listenerworker.cxx)
 target_link_libraries(listenerworker tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-gtest_discover_tests(listenerworker PROPERTIES TIMEOUT 30)
+gtest_discover_tests(listenerworker PROPERTIES TIMEOUT 30 LABELS workstation)
 
 if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_executable(privatefilelogger privatefilelogger.cxx)
@@ -224,16 +229,16 @@ if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
   add_executable(socketlistener socketlistener.cxx)
   target_link_libraries(socketlistener tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-  gtest_discover_tests(socketlistener PROPERTIES TIMEOUT 30)
+  gtest_discover_tests(socketlistener PROPERTIES TIMEOUT 30 LABELS workstation)
   add_executable(socketconnector socketconnector.cxx)
   target_link_libraries(socketconnector tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-  gtest_discover_tests(socketconnector PROPERTIES TIMEOUT 30)
+  gtest_discover_tests(socketconnector PROPERTIES TIMEOUT 30 LABELS workstation)
   # Manual stalled-resolver check; built but intentionally not a CTest case.
   add_executable(stalledlookup stalledlookup.cxx)
   target_link_libraries(stalledlookup tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
   add_executable(sessiontransport sessiontransport.cxx)
   target_link_libraries(sessiontransport tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-  gtest_discover_tests(sessiontransport PROPERTIES TIMEOUT 30)
+  gtest_discover_tests(sessiontransport PROPERTIES TIMEOUT 30 LABELS workstation)
 endif()
 
 # Windows platform adapters (viewer/platform/windows, plans/native-ui-winui
@@ -242,7 +247,11 @@ if(WIN32 AND MSVC)
   foreach(name sessiontransport socketconnector privatefilelogger)
     add_executable(${name} windows/${name}.cxx)
     target_link_libraries(${name} tidyvnc_viewer_core GTest::gtest_main Threads::Threads ws2_32 advapi32)
-    gtest_discover_tests(${name} DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 60)
+    set(labels "")
+    if(NOT name STREQUAL "privatefilelogger")
+      set(labels LABELS workstation)
+    endif()
+    gtest_discover_tests(${name} DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 60 ${labels})
   endforeach()
   if(GNUTLS_FOUND)
     add_executable(utf8paths windows/utf8paths.cxx windows/utf8.manifest)
@@ -268,7 +277,7 @@ if(WIN32 AND MSVC)
   endif()
   add_executable(socketlistener socketlistener.cxx)
   target_link_libraries(socketlistener tidyvnc_viewer_core GTest::gtest_main Threads::Threads ws2_32)
-  gtest_discover_tests(socketlistener PROPERTIES TIMEOUT 30)
+  gtest_discover_tests(socketlistener PROPERTIES TIMEOUT 30 LABELS workstation)
   if(BUILD_WINUI_VIEWER)
     # The retained vncviewer/KeyboardWin32 against the helper DLL's extracted
     # translator, with a stub FL/Fl.H in place of FLTK (TODO W3.4).
@@ -295,10 +304,10 @@ endif()
 if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux" OR MSVC)
   add_executable(viewerabi viewerabi.cxx ../viewer/c-abi-test-support.cxx)
   target_link_libraries(viewerabi tidyvnc_viewer_c tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-  gtest_discover_tests(viewerabi DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 30)
+  gtest_discover_tests(viewerabi DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 30 LABELS workstation)
   add_executable(listenerabi listenerabi.cxx ../viewer/c-abi-test-support.cxx)
   target_link_libraries(listenerabi tidyvnc_viewer_c tidyvnc_viewer_core GTest::gtest_main Threads::Threads)
-  gtest_discover_tests(listenerabi DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 30)
+  gtest_discover_tests(listenerabi DISCOVERY_TIMEOUT 30 PROPERTIES TIMEOUT 30 LABELS workstation)
 endif()
 
 add_executable(nativeerrorcategory nativeerrorcategory.cxx)

@@ -19,6 +19,8 @@ def main():
     parser.add_argument("--parallel", type=int, default=4, help="Maximum concurrent build jobs (default: 4)")
     parser.add_argument("--test", action="store_true",
                         help="Require GoogleTest, build all tests, and verify every automated suite and the bundle")
+    parser.add_argument("--ci", action="store_true",
+                        help="With --test, skip tests labelled workstation: they drive the UI, OpenSSH or wall-clock deadlines")
     parser.add_argument("--package", action="store_true", help="Assemble a verified relocatable app and DMG after building/testing")
     parser.add_argument("--package-output", type=Path, help="New package directory (default: build-dir/package/configuration)")
     parser.add_argument("--package-minimum-os", help="Explicit package minimum; dependencies above this floor fail packaging")
@@ -72,7 +74,8 @@ def main():
     print(f"Native app: {bundle}", flush=True)
     if args.test:
         run(sys.executable, source / "tests/macos/verify-build.py", "--core", core,
-            "--app", bundle, "--reports", build / "verification")
+            "--app", bundle, "--reports", build / "verification",
+            *(["--exclude-label", "workstation"] if args.ci else []))
     if args.package:
         command = [sys.executable, source / "apps/macos/package.py", "--app", bundle,
                    "--output", args.package_output or build / "package" / args.configuration,

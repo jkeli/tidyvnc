@@ -164,7 +164,10 @@ is a preview and follows its default toolchain. These pages were checked on
 2026-09-22; actual toolchain, host and installed dependency versions are saved per
 run.
 
-The workflow checks the actual architecture, requires all suites, retains failure
+The workflow runs `build.py --test --ci`: tests labelled `workstation` (UI,
+OpenSSH, pasteboard or wall-clock deadlines; 40 of 90 macOS tests and 196 of 791
+C++ unit tests on 2026-09-26) and the actual-app checks in `tests/integration`
+run on workstations only. It checks the actual architecture, requires all selected tests, retains failure
 logs/JUnit/summary/rendered fixtures, and archives the development bundle when one
 exists. That ZIP retains the original development bundle for inspection, including failed
 runs. The packaging follow-up also assembles a DMG, with the static dependencies

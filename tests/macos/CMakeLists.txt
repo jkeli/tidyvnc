@@ -826,3 +826,33 @@ if(Python3_Interpreter_FOUND)
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/package-tests.py)
   set_tests_properties(NativePackage.DependencyClosureAndPolicy PROPERTIES TIMEOUT 15)
 endif()
+
+# Workstation-only tests: they drive AppKit/SwiftUI windows, keyboard and mouse
+# events, fullscreen or displays, use the pasteboard service or real OpenSSH, or
+# assert results within fixed wall-clock times. Their outcome depends on the
+# host's configuration and speed, so CI skips the label (build.py --ci); run
+# them on a workstation with build.py --test.
+set(workstation_tests
+  NativeDesktop.AccessiblePanning NativeBridge.OwnershipAndLoopback NativeDesktop.RenderingAndInput
+  NativeClipboard.PasteboardAndRouting NativeDisplay.TopologyAndSelection NativeSettings.DraftRendering
+  NativeScaling.DraftGeometryAndIsolation NativePresentation.CompositionDamageAndDrain
+  NativeCursor.PresentationAndDrain NativeInput.DraftRoutingAndRelease NativeCommands.RoutingAndModifierLifetime
+  NativeShortcuts.AppKitDispatchAndCaptureLifetime NativeRemoteResize.PolicyAndViewport
+  NativeDesktop.CanvasGeometryAndPresentation NativeDesktop.SurfaceFocusAndCommands
+  NativeDesktop.SharedCanvasCoordination NativeDesktop.FullscreenOwnershipAndTransitions
+  NativeDesktop.FullscreenComparisonHarness NativeFullscreen.ConnectionAndPresentation
+  NativeFullscreen.AutomaticRemoteLayout NativeFullscreen.StatisticsAndInputIsolation
+  NativeDocuments.SwiftUIWindowActionLifetime NativeDocuments.AtomicSaveAndReviewLifecycle
+  NativeImport.NativePresentationAndFirstUse NativeImport.HistoryPresentationAndFirstUse
+  NativeDocuments.DisplayMappingRecovery NativeDocuments.ExportMappingAndSheetLifetime
+  NativeImport.DefaultsMappingRecovery NativeInvocation.SwiftUIFirstWindowOwnership
+  NativeInvocation.SwiftUIFileReviewOwnership NativeInvocation.InitialWindowPlacement
+  NativeListener.PresentationAndConnectionRouting NativeTunnel.ProcessOwnershipAndForwarding
+  NativeTunnel.IsolatedOpenSSH NativeTunnel.ConnectionControllerLifecycle
+  NativeTunnel.ConnectionControllerOpenSSH NativeTunnel.AskpassTransportAndInteraction
+  NativeTunnel.AskpassOpenSSH NativeTunnel.HostKey-rsa NativeTunnel.HostKey-ecdsa)
+foreach(test IN LISTS workstation_tests)
+  if(TEST ${test})
+    set_tests_properties(${test} PROPERTIES LABELS workstation)
+  endif()
+endforeach()

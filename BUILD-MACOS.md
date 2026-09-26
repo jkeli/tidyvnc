@@ -50,7 +50,14 @@ python3 apps/macos/build.py --configuration Debug --parallel 2 --test
 
 Each invocation saves a fresh `build/native-app/verification/run-*/summary.json`,
 JUnit reports and logs. Every registered test must run and pass; skipped tests
-fail this verification rather than silently satisfying coverage. Failed stages
+fail this verification rather than silently satisfying coverage.
+
+Tests labelled `workstation` drive AppKit/SwiftUI windows, keyboard and mouse
+events, fullscreen or displays, use the pasteboard service or real OpenSSH, or
+assert results against wall-clock deadlines (including the C++ loopback socket
+tests), so their outcome depends on the machine. `--ci` leaves that label out of
+both the run and the required inventory; CI uses it, and the actual-app checks
+below are workstation-only too. Run the full set locally before a release. Failed stages
 do not prevent collection of the remaining test and bundle evidence. These checks
 do not establish interactive keyboard/VoiceOver, physical-display, installed
 privacy/Keychain or distribution acceptance.
