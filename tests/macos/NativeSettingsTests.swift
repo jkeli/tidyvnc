@@ -620,10 +620,14 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   print("PASS rendered \(name): proposed and actual \(size)")
 }
 
-// View-tree helpers live at file scope: Swift 6.0 (Xcode 16) treats recursive
-// local functions inside async throwing tests as throwing.
-func textFields(in root: NSView) -> [NSTextField] { (root as? NSTextField).map { [$0] } ?? [] + root.subviews.flatMap { textFields(in: $0) } }
-func descendantViews(_ root: NSView) -> [NSView] { [root] + root.subviews.flatMap(descendantViews) }
+// A view and all its descendants, depth first. Iterative and at file scope:
+// Swift 6.0 (Xcode 16) rejects recursive local functions in async throwing tests.
+@MainActor func descendantViews(_ root: NSView) -> [NSView] {
+  var views: [NSView] = [], pending = [root]
+  while let view = pending.popLast() { views.append(view); pending.append(contentsOf: view.subviews.reversed()) }
+  return views
+}
+@MainActor func textFields(in root: NSView) -> [NSTextField] { descendantViews(root).compactMap { $0 as? NSTextField } }
 // Tab moves keyboard focus from the server address to the SSH gateway field and
 // Shift-Tab back, independent of the system Keyboard Navigation setting (which
 // only adds buttons and other controls to the loop).
