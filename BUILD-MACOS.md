@@ -152,7 +152,7 @@ cmake --build build/tidyvnc-release --target dmg
 
 `macapp` stages `build/tidyvnc-release/TidyVNC.app` without making a disk image.
 `dmg` stages the same app and creates
-`build/tidyvnc-release/release/TidyVNC-1.16.80.dmg`. Both targets build required
+`build/tidyvnc-release/release/TidyVNC-2.0.0.dmg`. Both targets build required
 catalogs first; no separate translation build or manual copy step is needed.
 Use `TIDYVNC_FLTK_SHARED=ON` for shared FLTK; the old option remains a deprecated
 alias and conflicting values are rejected. Repeat with `build/tidyvnc-debug` and

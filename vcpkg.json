@@ -1,7 +1,7 @@
 {
   "$comment": "GoogleTest for the MSVC unit tests (plans/native-ui-winui CORE.md section 3). Every C dependency of the core comes from MSYS2 CLANG64/CLANGARM64 DLLs through apps/windows/deps.py (DECISIONS.md D3, revised).",
   "name": "tidyvnc",
-  "version-string": "1.16.80",
+  "version-string": "2.0.0",
   "builtin-baseline": "48483a35f9e6f32572bc7c9382f14436cc7106a8",
   "dependencies": [
     "gtest"

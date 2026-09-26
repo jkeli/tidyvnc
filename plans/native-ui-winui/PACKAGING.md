@@ -53,7 +53,7 @@ association or Start menu entry, and users have to manage updates themselves.
 
 Direct CMake users get equivalent targets (`winui-app`, `msi`), but packaging is
 never part of an ordinary build. Versions come from the one CMake `VERSION`
-(currently 1.16.80): assembly and file versions, the MSI `ProductVersion`, the
+(currently 2.0.0): assembly and file versions, the MSI `ProductVersion`, the
 About window and `--version` all read it, so there is no second version source.
 
 ## 3. Installed layout
