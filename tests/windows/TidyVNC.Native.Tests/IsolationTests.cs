@@ -48,6 +48,7 @@ public sealed class IsolationTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public void IsolatedCredentialsAndImportsUseTheirOwnPlaces()
     {
         var root = Path.Combine(Path.GetTempPath(), "tidyvnc-root-" + Guid.NewGuid().ToString("N"));

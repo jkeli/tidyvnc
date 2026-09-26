@@ -56,6 +56,12 @@ the same configuration.
   tests take over the desktop, so they run only with `TIDYVNC_UI_TESTS=1`, and
   only when nobody has used the desktop for a minute. Some need a display that
   is switched on.
+- Workstation tests: C++ tests labelled `workstation` and .NET tests in
+  `[TestCategory("Workstation")]` depend on the machine: UI, displays,
+  Direct3D, OpenSSH, the machine's own Credential Manager, clipboard or shell
+  state, or wall-clock deadlines. `build.py --test --ci` skips them (and the UI
+  automation project); CI uses it. Run the full set on a workstation before a
+  release.
 - Strings: `python apps\windows\strings.py audit` checks the generated catalog
   against the macOS catalog and the sources. `generate` rewrites
   `Strings\en-US\Resources.resw` from `Strings\windows.json`. `pseudo` writes

@@ -123,6 +123,7 @@ public sealed class DisplayTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public async Task ChangeNotificationsRefreshOnTheUiThread()
     {
         using var ui = new SingleThreadDispatcher();
@@ -145,6 +146,7 @@ public sealed class DisplayTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public async Task TheRealTopologyIsValidOrTypedUnavailable()
     {
         using var ui = new SingleThreadDispatcher();

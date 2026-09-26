@@ -257,6 +257,7 @@ public sealed class ConnectionTests
     /// attempt with their own typed problem, each with its message, and Retry where reconnecting helps.
     /// </summary>
     [TestMethod]
+    [TestCategory("Workstation")]
     public async Task NameFailuresAndVanishingServersAreTypedProblems()
     {
         await using var f = await Create();

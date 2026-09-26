@@ -156,6 +156,7 @@ public sealed partial class KeyboardCaptureTests
     private static partial bool DestroyWindow(nint window);
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public void TheLowLevelHookStartsAndStopsForAWindow()
     {
         Exception? failure = null;

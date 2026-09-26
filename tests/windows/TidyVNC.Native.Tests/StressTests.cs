@@ -13,6 +13,7 @@ namespace TidyVNC.Native.Tests;
 /// bounded. TIDYVNC_STRESS_CYCLES raises the cycle count for a soak run.
 /// </summary>
 [TestClass]
+[TestCategory("Workstation")]
 public sealed class StressTests
 {
     public TestContext TestContext { get; set; } = null!;

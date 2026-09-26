@@ -71,6 +71,7 @@ public sealed partial class CredentialTests
     private static partial void CredFree(IntPtr buffer);
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public void CredentialManagerEntriesFollowTheDocumentedShape()
     {
         var backing = new NativeCredentialManagerBacking(Prefix);

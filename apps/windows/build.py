@@ -92,8 +92,10 @@ def build_core(args):
         if args.arch != "x64":
             print("ARM64 binaries are cross-built; run their tests on ARM64 hardware.", flush=True)
         else:
-            run(["ctest", "--test-dir", build / "tests/viewer", "--output-on-failure", "--no-tests=error"], env=env)
-            run(["ctest", "--test-dir", build / "tests/unit", "-j", str(args.parallel), "--timeout", "180",
+            # --ci leaves out tests labelled workstation (tests/unit/CMakeLists.txt).
+            select = ["-LE", "^workstation$"] if args.ci else []
+            run(["ctest", "--test-dir", build / "tests/viewer", *select, "--output-on-failure", "--no-tests=error"], env=env)
+            run(["ctest", "--test-dir", build / "tests/unit", *select, "-j", str(args.parallel), "--timeout", "180",
                  "--output-on-failure", "--no-tests=error"], env=env)
     return build
 
@@ -105,6 +107,8 @@ def main():
     parser.add_argument("--build-dir", type=Path, help="Core build directory (default build/winui/<arch>-<config>, where the .NET projects look)")
     parser.add_argument("--parallel", type=int, default=8)
     parser.add_argument("--test", action="store_true", help="Build and run the core and ABI test suites")
+    parser.add_argument("--ci", action="store_true",
+                        help="With --test, skip Workstation tests: UI, displays, OpenSSH, system state or wall-clock deadlines")
     parser.add_argument("--asan", action="store_true", help="AddressSanitizer build of the core and tests")
     parser.add_argument("--stages", default="core", help="Comma-separated: core, app, package")
     parser.add_argument("--output", type=Path, help="package: new output directory (default build/winui/release/TidyVNC-<version>-<arch>); never replaced")

@@ -295,7 +295,7 @@ if(WIN32 AND MSVC)
     gtest_discover_tests(touchgestures PROPERTIES TIMEOUT 60)
     add_executable(windowshelper windows/windowshelper.cxx)
     target_link_libraries(windowshelper tidyvnc_windows GTest::gtest_main)
-    gtest_discover_tests(windowshelper PROPERTIES TIMEOUT 60)
+    gtest_discover_tests(windowshelper PROPERTIES TIMEOUT 60 LABELS workstation)
   endif()
 endif()
 

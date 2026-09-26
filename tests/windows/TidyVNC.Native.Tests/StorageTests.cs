@@ -152,6 +152,7 @@ public sealed class StorageTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public async Task ForeignAccessAndOwnershipAreDenied()
     {
         using var store = new NativePreferencesStore(State);
@@ -263,6 +264,7 @@ public sealed class StorageTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public async Task SharingViolationsAreRetriedThenReported()
     {
         using var store = new NativePreferencesStore(State);

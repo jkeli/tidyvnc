@@ -31,6 +31,7 @@ public sealed class LifecycleTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public void SignOutNeverVetoesAndWaitsBoundedlyForTheDrain()
     {
         var drained = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

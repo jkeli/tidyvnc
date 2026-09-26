@@ -26,9 +26,11 @@ jobs:
       - name: Check the Windows string catalog
         run: python apps/windows/strings.py audit
       # Debug, because the .NET suites cover the Debug-only state-root override.
-      # UI automation and desktop tests report inconclusive without TIDYVNC_UI_TESTS=1.
+      # --ci skips Workstation tests (UI, displays, Direct3D, OpenSSH, the
+      # runner's own system state or wall-clock deadlines); they run on a
+      # workstation. UI automation also needs TIDYVNC_UI_TESTS=1 there.
       - name: Build and run the core and .NET suites
-        run: python .github/scripts/annotate-failure.py python apps/windows/build.py --configuration Debug --stages core,app --test --parallel 4
+        run: python .github/scripts/annotate-failure.py python apps/windows/build.py --configuration Debug --stages core,app --test --ci --parallel 4
 
   package:
     name: Package x64 (Release, unsigned)

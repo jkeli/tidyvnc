@@ -11,6 +11,7 @@ namespace TidyVNC.Native.Tests;
 /// desktop idle for a minute.
 /// </summary>
 [TestClass]
+[TestCategory("Workstation")]
 public sealed unsafe partial class FileDialogTests
 {
     [LibraryImport("user32.dll")]
