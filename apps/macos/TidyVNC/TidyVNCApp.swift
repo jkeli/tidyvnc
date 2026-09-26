@@ -466,7 +466,7 @@ private struct ConnectionRoot: View {
           } else { ProgressView(String(localized:"app.loading.connection.defaults", defaultValue:"Loading connection defaults…")) }
         }.padding(24)
       }
-      else { ContentUnavailableView(String(localized:"app.unable.to.start.a.connection", defaultValue:"Unable to start a connection"), systemImage: "exclamationmark.triangle", description: Text(model.message ?? String(localized:"app.please.try.again", defaultValue:"Please try again."))) }
+      else { UnavailableContent(String(localized:"app.unable.to.start.a.connection", defaultValue:"Unable to start a connection"), systemImage: "exclamationmark.triangle", description: Text(model.message ?? String(localized:"app.please.try.again", defaultValue:"Please try again."))) }
     }
     .sheet(item:Binding(get:{ model.documentSave.presentation },set:{ value in
       if value == nil, let id = model.documentSave.presentation?.id { model.documentSave.cancelPresentation(id) }

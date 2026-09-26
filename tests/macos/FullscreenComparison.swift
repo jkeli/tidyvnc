@@ -260,7 +260,10 @@ import TidyVNCNative
     }
   }
   func applicationDidFinishLaunching(_ notification: Notification) {
-    if !verify { window.makeKeyAndOrderFront(nil); NSApp.activate() }
+    if !verify {
+      window.makeKeyAndOrderFront(nil)
+      if #available(macOS 14, *) { NSApp.activate() } else { NSApp.activate(ignoringOtherApps: true) }
+    }
     restartDesktop()
   }
   @objc private func restartDesktop() {

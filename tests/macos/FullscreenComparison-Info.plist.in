@@ -9,6 +9,6 @@
 <key>CFBundleVersion</key><string>1</string>
 <key>CFBundleShortVersionString</key><string>0.1</string>
 <key>NSHighResolutionCapable</key><true/>
-<key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>LSMinimumSystemVersion</key><string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
 <key>NSLocalNetworkUsageDescription</key><string>Runs a local test desktop to compare fullscreen display behavior.</string>
 </dict></plist>

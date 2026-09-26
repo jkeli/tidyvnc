@@ -12,8 +12,8 @@ From the repository root, with Ninja, CMake 3.29 or later and the existing core 
 
 ```sh
 DEVELOPER_DIR=/Library/Developer/CommandLineTools cmake -S . -B build/native-ui-swift -GNinja \
-  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/homebrew \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 \
+  -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=$PWD/build/native-deps/arm64 \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
   -DBUILD_MACOS_NATIVE=ON -DBUILD_VIEWER=OFF -DBUILD_PLATFORM_APPS=OFF \
   -DENABLE_NLS=OFF -DENABLE_AUDIO=OFF -DENABLE_H264=OFF \
   -DENABLE_GNUTLS=ON -DENABLE_NETTLE=ON \
@@ -37,10 +37,10 @@ the native target. The current native CMake path accepts one architecture per
 build directory and propagates an explicit deployment target to Swift and C++.
 
 The current verified host is arm64 macOS 27, Apple Swift 6.4 / AppleClang 21 and
-SDK 27. Compilation targeting macOS 14 checks source/API availability only. The
-installed Homebrew dependency dylibs target newer OS versions; their linker
-warnings are retained. Compatible dependency builds, minimum-OS execution,
-Intel/universal builds, signing and distributable packaging remain N6 gates.
+SDK 27. Compilation targeting macOS 13 checks source/API availability only. The
+static dependencies from `apps/macos/deps.py` (run it first, and set
+`PKG_CONFIG_LIBDIR` to its `lib/pkgconfig`) target macOS 13. Minimum-OS execution,
+signing and distributable packaging remain N6 gates.
 
 ## Xcode application
 

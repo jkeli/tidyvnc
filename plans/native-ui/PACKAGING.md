@@ -16,9 +16,9 @@ python3 apps/macos/build.py --build-dir build/native-release \
 ```
 
 This command requires every dependency to support the declared deployment floor
-(14.0 by default). Supply dependencies built for that floor using `--prefix`.
-Packaging fails if any Mach-O binary requires a newer OS; a successful compile
-with `CMAKE_OSX_DEPLOYMENT_TARGET=14.0` cannot prove dependency compatibility.
+(13.0 by default). `apps/macos/deps.py` builds the static dependencies for that
+floor and checks every object in them; packaging fails if any Mach-O binary
+requires a newer OS. Neither check proves the app runs on the floor.
 The package floor can be raised explicitly with `--package-minimum-os`, which
 changes the staged app's `LSMinimumSystemVersion` and records both build and
 package floors. It cannot be lowered below the input app's declaration.

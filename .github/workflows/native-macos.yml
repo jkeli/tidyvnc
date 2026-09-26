@@ -12,9 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # The provisional floor remains required while this image is available.
-          # macOS 14 hosted images retire 2026-11-02; replace with a suitable
-          # minimum-OS runner before then, rather than removing the floor check.
+          # The oldest hosted Apple silicon image. The app's floor is macOS 13,
+          # which has no hosted runner; it is checked in a local VM. macOS 14
+          # images retire 2026-11-02; move this job to the oldest remaining one.
           - id: minimum-arm64
             os: macos-14
             arch: arm64

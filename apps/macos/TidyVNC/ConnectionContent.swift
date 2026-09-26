@@ -73,7 +73,7 @@ struct ConnectionContent: View {
         }) { model.message = $0 }
         if !session.hasFrame {
           ViewThatFits(in: .vertical) {
-            ContentUnavailableView(placeholderTitle, systemImage: "display", description: Text(placeholderDescription))
+            UnavailableContent(placeholderTitle, systemImage: "display", description: Text(placeholderDescription))
             VStack(spacing: 4) {
               Text(placeholderTitle).font(.headline)
               if !placeholderDescription.isEmpty { Text(placeholderDescription).font(.caption) }
@@ -291,3 +291,23 @@ struct ConnectionContent: View {
   }
 }
 
+/// ContentUnavailableView where available (macOS 14); the same layout on macOS 13.
+struct UnavailableContent: View {
+  let title: String
+  let systemImage: String
+  let description: Text
+  init(_ title: String, systemImage: String, description: Text) {
+    self.title = title; self.systemImage = systemImage; self.description = description
+  }
+  var body: some View {
+    // Not a view builder: #available there needs buildLimitedAvailability.
+    if #available(macOS 14, *) {
+      return AnyView(ContentUnavailableView(title, systemImage: systemImage, description: description))
+    }
+    return AnyView(VStack(spacing: 8) {
+      Image(systemName: systemImage).font(.system(size: 40)).foregroundStyle(.secondary).padding(.bottom, 4)
+      Text(title).font(.title2.bold())
+      description.foregroundStyle(.secondary)
+    }.multilineTextAlignment(.center).padding().frame(maxWidth: .infinity, maxHeight: .infinity))
+  }
+}

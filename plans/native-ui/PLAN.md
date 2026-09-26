@@ -199,9 +199,9 @@ Decisions for this plan:
 - Preserve `.tidyvnc` and legacy `.tigervnc` import, option meanings, security
   checks, client scaling and connection capabilities. A visual redesign cannot
   silently remove advanced features or change VNC wire behavior.
-- Provisional macOS deployment floor: macOS 14. Validate it, Swift/toolchain
-  versions and dependency targets in N0 before committing implementation to new
-  SDK-only APIs. The current macOS 27 build is not evidence of older-OS support.
+- Provisional macOS deployment floor: macOS 13 (Apple silicon). The app, tests
+  and static dependencies build for it; running on macOS 13 is not yet verified.
+  Gate APIs newer than macOS 13 with `#available` and keep a macOS 13 path.
 - No App Store/sandbox conversion, cloud settings sync, new audio backend,
   transport rewrite, new VNC encodings, GPU-only renderer or full Windows port.
   Signing/packaging work needed for the macOS app is in scope; publishing is not.
@@ -867,7 +867,7 @@ frontend completion is implied.
 | SwiftUI/AppKit fullscreen semantics | Prototype mixed-display/Spaces behavior, then document the chosen window strategy |
 | Defaults migration and CLI coexistence | Define authoritative writers, explicit import/export and rollback before enabling native stores |
 | Keychain implementation/signing | Select supported SecItem backend/access policy and record signing prerequisites; test packaged upgrade |
-| Toolchain/deployment floor | Pin compatible Xcode/Swift/C++ settings and dependency targets; validate provisional macOS 14 floor |
+| Toolchain/deployment floor | Pin compatible Xcode/Swift/C++ settings and dependency targets; validate provisional macOS 13 floor |
 | Current optional features | Inventory actual compiled capabilities; unsupported audio/H.264 is explicit rather than a nonfunctional control |
 | Windows portability | Review public contracts for Foundation/POSIX/widget leakage and prove with a mock non-Apple host; no WinUI implementation now |
 

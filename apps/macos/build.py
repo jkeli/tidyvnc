@@ -15,7 +15,7 @@ def main():
     parser.add_argument("--developer-dir", default="/Applications/Xcode.app/Contents/Developer")
     parser.add_argument("--deps", type=Path, help="Static dependency prefix from deps.py (default: build/native-deps/<arch>)")
     parser.add_argument("--prefix", default="/opt/homebrew", help="GoogleTest prefix for --test (default: /opt/homebrew)")
-    parser.add_argument("--deployment-target", default="14.0")
+    parser.add_argument("--deployment-target", default="13.0")
     parser.add_argument("--parallel", type=int, default=4, help="Maximum concurrent build jobs (default: 4)")
     parser.add_argument("--test", action="store_true",
                         help="Require GoogleTest, build all tests, and verify every automated suite and the bundle")

@@ -7,8 +7,8 @@ default** until the [native acceptance gates](plans/native-ui/TODO.md) pass.
 SwiftUI requires macOS, full Xcode with Swift 6, CMake 3.29+, Ninja, Python 3,
 pkg-config and Meson. Command Line Tools alone can build the native
 bridge/tests, but cannot build the Xcode application. Bridge-only builds also
-require Python for completed-build localization receipts. The initial deployment
-target is 14.0.
+require Python for completed-build localization receipts. The deployment target
+is macOS 13.0 on Apple silicon; the app has not yet been run on macOS 13.
 
 ### Dependencies
 
