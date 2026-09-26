@@ -261,7 +261,7 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
             string user;
             try { user = new UTF8Encoding(false, true).GetString(username); }
             catch (DecoderFallbackException) { throw new NativeIdentityFailure(NativeIdentityFailure.Problem.InvalidText); }
-            if (retention is NativeCredentialRetention.Remember or NativeCredentialRetention.ReplaceRemembered && store is null)
+            if (retention == NativeCredentialRetention.Remember && store is null)
                 throw new NativeCredentialException(NativeCredentialError.Unavailable);
             var key = Key(request, user);
             var secret = NativeCredentialSecret.Consume(password);
@@ -407,10 +407,17 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
                 {
                     try
                     {
-                        // Admitted saves complete even if the window starts closing.
-                        await credentials.SaveAsync(candidate.Key, candidate.Secret,
-                            candidate.Retention == NativeCredentialRetention.ReplaceRemembered ? NativeCredentialSaveMode.Replace : NativeCredentialSaveMode.Create,
-                            CancellationToken.None);
+                        // Admitted saves complete even if the window starts closing. The
+                        // password has just authenticated, so remembering it replaces any
+                        // password saved for this server, method and username.
+                        try
+                        {
+                            await credentials.SaveAsync(candidate.Key, candidate.Secret, NativeCredentialSaveMode.Create, CancellationToken.None);
+                        }
+                        catch (NativeCredentialException duplicate) when (duplicate.Error == NativeCredentialError.Duplicate)
+                        {
+                            await credentials.SaveAsync(candidate.Key, candidate.Secret, NativeCredentialSaveMode.Replace, CancellationToken.None);
+                        }
                         if (epoch == ticket && !stopped) Notice = new(NativeCredentialNoticeKind.Saved);
                     }
                     catch (NativeCredentialException error)

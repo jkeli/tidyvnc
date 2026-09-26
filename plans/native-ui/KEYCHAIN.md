@@ -51,7 +51,7 @@ in a VNC server or authorize sending the credential.
 
 Lookup reads one exact account. Create reports Duplicate without replacing an
 existing item; replace reports NotFound without adding an item. Neither performs
-an upsert retry. Delete targets the exact class/service/account and reports its
+an upsert retry itself; *Remember on this Mac* combines them (below). Delete targets the exact class/service/account and reports its
 actual result. Metadata reads request attributes only, never password data.
 Listing requests at most the selected limit plus one (limit 1–256), returns a
 bounded first page and signals `hasMore`; it does not promise a complete list
@@ -99,8 +99,9 @@ negotiated method and entered username. Manual cancel/disconnect, authentication
 rejection and window close clear the owned value. A changed endpoint clears it
 before a new attempt. No retained password is published or placed in profiles.
 
-Remember/explicit replacement saves only after the matching generation reaches
-Connected. A failure reports a separate notice without failing the live connection;
+Remember saves only after the matching generation reaches Connected: it creates
+the item and, if one already exists, replaces it, since the new password has
+just authenticated. There is no separate replace choice. A failure reports a separate notice without failing the live connection;
 uncertain OS results are described as unconfirmed, not rolled back. Background
 post-success save forbids interaction. Explicit Use Saved Password and Forget
 allow OS interaction, one outstanding operation per window. A late lookup is

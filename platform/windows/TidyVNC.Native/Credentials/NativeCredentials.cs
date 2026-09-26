@@ -18,7 +18,7 @@ public sealed class NativeCredentialException(NativeCredentialError error, int n
 }
 
 /// <summary>How long an entered password is kept (the authentication dialog's choices).</summary>
-public enum NativeCredentialRetention { UseOnce, Session, Remember, ReplaceRemembered }
+public enum NativeCredentialRetention { UseOnce, Session, Remember }
 
 public enum NativeCredentialSaveMode { Create, Replace }
 

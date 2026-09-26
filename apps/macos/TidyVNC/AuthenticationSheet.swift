@@ -13,7 +13,6 @@ struct AuthenticationSheet: View {
   @ObservedObject var trustModel: NativeCertificateTrust
   @ObservedObject var credentials: NativeAuthenticationCredentials
   @AuthenticationFieldState<NativeCredentialRetention> private var retention = .useOnce
-  @AuthenticationFieldState<Bool> private var replaceRemembered = false
   init(model: ConnectionModel, session: NativeSession, request: NativePrompt, retention: NativeCredentialRetention = .useOnce, trustModel: NativeCertificateTrust? = nil) {
     self.model = model; self.session = session; self.request = request; self.credentials = model.credentials; self.trustModel = trustModel ?? model.trust
     _retention = AuthenticationFieldState(wrappedValue: retention)
@@ -52,8 +51,7 @@ struct AuthenticationSheet: View {
             .font(.caption).foregroundStyle(.secondary)
         }
         if retention == .remember {
-          Toggle(String(localized:"authentication.replace.an.existing.saved.password", defaultValue:"Replace an existing saved password"), isOn: $replaceRemembered)
-          Text(String(localized:"authentication.save.only.after.successful.authentication.replacement.must", defaultValue:"Save only after successful authentication. Replacement must be explicitly selected.")).font(.caption).foregroundStyle(.secondary)
+          Text(String(localized:"authentication.saved.once.the.server.accepts.it.replacing.any.password", defaultValue:"Saved once the server accepts it, replacing any password saved for this server.")).font(.caption).foregroundStyle(.secondary)
         }
         VStack(alignment: .leading, spacing: 8) {
           if credentials.hasSessionCredential {
@@ -120,7 +118,7 @@ struct AuthenticationSheet: View {
   private func submit() {
     var user = Array(username.utf8), secret = Array(password.utf8); password = ""
     do { try credentials.submit(request, username: &user, password: &secret,
-      retention: model.isReverse ? .useOnce : retention == .remember && replaceRemembered ? .replaceRemembered : retention) }
+      retention: model.isReverse ? .useOnce : retention) }
     catch { problem = NativeConnectionIssue(error: error)?.message ?? String(localized:"authentication.this.authentication.request.is.no.longer.active", defaultValue:"This authentication request is no longer active. Cancel and connect again.") }
   }
   private func useSession() {

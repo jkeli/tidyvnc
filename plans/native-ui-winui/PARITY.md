@@ -46,7 +46,7 @@ pseudo-localized expansion and mirroring, minimum window size and scrolling.
 | A05 | *Authenticate* / *Cancel* | Enter submits once; Escape cancels; closing the window cancels |
 | A06 | *Use session password* | Two windows keep separate session passwords |
 | A07 | *Use saved password* / *Forget saved password* | Credential Manager NotFound/Unavailable handling; forget deletes only that target |
-| A08 | *Replace an existing saved password* toggle | Save failure leaves authentication recoverable |
+| A08 | *Remember* replaces an existing saved password | Save failure leaves authentication recoverable |
 | A09 | `SSHAuthenticationDialog` | Askpass over the named pipe; multiwindow prompt routing |
 | T01 | Trust dialog with `TrustDetailsView` | Details scroll inside the dialog; fingerprints selectable |
 | T02 | Expected/received identities | Same |

@@ -105,8 +105,8 @@ no locked state while the user is signed in.
 
 **Behaviour matching macOS.** The authentication dialog offers *Use once*,
 *Retain for this session's reconnect* and *Remember on this PC*. Nothing is saved
-until authentication succeeds with the "remember" choice. Replacing needs the
-explicit *Replace an existing saved password* toggle. A rejected saved password
+until authentication succeeds with the "remember" choice, which then replaces any
+password already saved for that server, method and username. A rejected saved password
 is never retried or deleted automatically. A save failure is a notice, not a
 connection failure, and never falls back to a file. Reverse connections never
 offer "remember". The macOS app has no credential-management window; neither does

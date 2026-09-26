@@ -20,7 +20,7 @@ func secret() throws -> NativeCredentialSecret {
 }
 final class Client: NativeSecItemClient, @unchecked Sendable {
   let lock = NSLock()
-  var status: OSStatus = errSecSuccess
+  var status: OSStatus = errSecSuccess, statuses: [OSStatus] = []
   var returned: CFTypeRef?
   var calls = 0, wasMain = false
   var interactionNotAllowed: Bool?
@@ -29,6 +29,8 @@ final class Client: NativeSecItemClient, @unchecked Sendable {
   // Payload bytes as seen during the call, and the object itself for later checks.
   var payloadAtCall: [UInt8]?, payloadObject: NSData?
   func configure(_ status: OSStatus, result: CFTypeRef? = nil) { lock.withLock { self.status = status; returned = result } }
+  // Statuses for the next calls, in order, before falling back to status.
+  func sequence(_ values: [OSStatus]) { lock.withLock { statuses = values } }
   func record(_ query: [String:Any], attributes: [String:Any] = [:]) -> OSStatus {
     lock.withLock {
       calls += 1; wasMain = Thread.isMainThread
@@ -36,7 +38,8 @@ final class Client: NativeSecItemClient, @unchecked Sendable {
       interactionNotAllowed = context?.interactionNotAllowed; localizedReason = context?.localizedReason
       let payload = (query[kSecValueData as String] ?? attributes[kSecValueData as String]) as? NSData
       payloadObject = payload; payloadAtCall = payload.map { Array(Data(referencing: $0)) }
-      self.query = query; self.attributes = attributes; return status
+      self.query = query; self.attributes = attributes
+      return statuses.isEmpty ? status : statuses.removeFirst()
     }
   }
   func copy(_ query: [String:Any]) -> (OSStatus,CFTypeRef?) {
@@ -91,6 +94,17 @@ func backend() throws {
   try expect(.notFound) { try backend.save(key,secret: secret,mode: .replace,interaction: .forbid) }
   try check(client.calls == beforeReplace+1, "missing replacement never adds implicitly")
   client.configure(errSecSuccess)
+  let beforeRemember = client.calls
+  try backend.save(key,secret: secret,mode: .createOrReplace,interaction: .forbid)
+  try check(client.calls == beforeRemember+1 && client.query[kSecValueData as String] != nil, "createOrReplace adds a new item")
+  client.sequence([errSecDuplicateItem, errSecSuccess])
+  try backend.save(key,secret: secret,mode: .createOrReplace,interaction: .forbid)
+  try client.policy(key,interaction: false)
+  try check(client.calls == beforeRemember+3 && client.query[kSecValueData as String] == nil && client.payloadAtCall == [1,2,3],
+            "createOrReplace updates an existing item")
+  try check(client.payloadObject.map { Array(Data(referencing: $0)) } == [0,0,0], "the payload is wiped after replacing")
+  client.sequence([errSecDuplicateItem, errSecItemNotFound])
+  try expect(.notFound) { try backend.save(key,secret: secret,mode: .createOrReplace,interaction: .forbid) }
   try backend.delete(key,interaction: .forbid); try client.policy(key,interaction: false)
   try check(client.query[kSecValueData as String] == nil, "delete is exact and secret-free")
   client.configure(errSecSuccess,result: metadataFields(key) as CFDictionary)

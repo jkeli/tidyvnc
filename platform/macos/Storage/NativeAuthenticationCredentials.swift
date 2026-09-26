@@ -3,7 +3,7 @@ import Combine
 import Foundation
 import Darwin
 
-public enum NativeCredentialRetention: Sendable { case useOnce, session, remember, replaceRemembered }
+public enum NativeCredentialRetention: Sendable { case useOnce, session, remember }
 
 // One controller per connection window. Secrets never enter published state.
 // Reuse is explicit at a current credential prompt, after protocol trust callbacks.
@@ -144,7 +144,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     defer { Self.wipe(&username); Self.wipe(&password) }
     guard !isWorking else { throw NativeCredentialStoreIssue.busy }
     guard username.count <= 4096, let user = String(bytes: username, encoding: .utf8) else { throw NativeCredentialKeyIssue.invalidText }
-    if retention == .remember || retention == .replaceRemembered {
+    if retention == .remember {
       guard store != nil else { throw NativeCredentialStoreIssue.unavailable }
     }
     let key = try key(request, username: user)
@@ -230,8 +230,9 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
         work = Task { [weak self] in
           defer { candidate.secret.clear(); self?.finishWork() }
           do {
-            try await store.save(candidate.key, secret: candidate.secret,
-              mode: candidate.retention == .replaceRemembered ? .replace : .create, interaction: .forbid)
+            // The password has just authenticated, so remembering it replaces
+            // any password saved for this server, method and username.
+            try await store.save(candidate.key, secret: candidate.secret, mode: .createOrReplace, interaction: .forbid)
             if let self, self.epoch == ticket, !self.stopped { self.notice = String(localized:"credentials.password.saved.on.this.mac", defaultValue:"Password saved on this Mac.") }
           } catch {
             if let self, self.epoch == ticket, !self.stopped {
@@ -268,7 +269,6 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     case .interactionRequired: return String(localized:"credentials.keychain.access.requires.interaction.use.the.saved.password.control.to.try.again", defaultValue:"Keychain access requires interaction. Use the saved-password control to try again.")
     case .cancelled: return String(localized:"credentials.keychain.access.was.cancelled", defaultValue:"Keychain access was cancelled.")
     case .missingEntitlement: return String(localized:"credentials.this.app.build.lacks.the.signing.identity.required.for.keychain.access", defaultValue:"This app build lacks the signing identity required for Keychain access.")
-    case .duplicate: return String(localized:"credentials.a.saved.password.already.exists.choose.explicit.replacement.on.a.subsequent.authentication", defaultValue:"A saved password already exists. Choose explicit replacement on a subsequent authentication.")
     case .corrupt: return String(localized:"credentials.the.saved.credential.could.not.be.read.it.has.not.been.changed", defaultValue:"The saved credential could not be read. It has not been changed.")
     default: return String(localized:"credentials.the.keychain.operation.failed.no.plaintext.copy.was.saved", defaultValue:"The Keychain operation failed. No plaintext copy was saved.")
     }

@@ -81,17 +81,22 @@ public final class NativeKeychainBacking: NativeCredentialBacking, Sendable {
     // The Keychain service keeps its own copies.
     let data = bytes.withUnsafeBytes { NSMutableData(bytes: $0.baseAddress, length: $0.count) }
     defer { _ = memset_s(data.mutableBytes, data.length, 0, data.length) }
-    var attributes: [String: Any] = [
+    let attributes: [String: Any] = [
       kSecValueData as String: data,
       kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
     ]
+    func add() -> OSStatus {
+      var item = attributes.merging(query(key, context: context)) { _,new in new }
+      item[kSecAttrLabel as String] = String(localized:"credentials.keychain.item.label", defaultValue:"TidyVNC credential")
+      return client.add(item)
+    }
+    func update() -> OSStatus { client.update(query(key, context: context),attributes: attributes) }
     switch mode {
-    case .create:
-      attributes.merge(query(key, context: context)) { _,new in new }
-      attributes[kSecAttrLabel as String] = String(localized:"credentials.keychain.item.label", defaultValue:"TidyVNC credential")
-      try Self.check(client.add(attributes))
-    case .replace:
-      try Self.check(client.update(query(key, context: context),attributes: attributes))
+    case .create: try Self.check(add())
+    case .replace: try Self.check(update())
+    case .createOrReplace:
+      let added = add()
+      try Self.check(added == errSecDuplicateItem ? update() : added)
     }
   }
   public func delete(_ key: NativeCredentialKey, interaction: NativeCredentialInteraction) throws {

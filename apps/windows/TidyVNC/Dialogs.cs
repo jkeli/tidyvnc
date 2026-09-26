@@ -150,20 +150,14 @@ internal static class AuthenticationDialog
         retention.Items.Add(Strings.Get("authentication.retain.for.this.session.s.reconnect"));
         if (credentials.SupportsRemembering) retention.Items.Add(Strings.Get("authentication.remember.on.this.mac"));
         retention.SelectedIndex = 0;
-        var replace = new CheckBox { Content = Strings.Get("authentication.replace.an.existing.saved.password"), Visibility = Visibility.Collapsed };
-        AutomationProperties.SetAutomationId(replace, "authentication.replace");
-        var replaceHelp = Ui.Caption(Strings.Get("authentication.save.only.after.successful.authentication.replacement.must"));
-        replaceHelp.Visibility = Visibility.Collapsed;
+        var rememberHelp = Ui.Caption(Strings.Get("authentication.saved.once.the.server.accepts.it.replacing.any.password"));
+        rememberHelp.Visibility = Visibility.Collapsed;
         retention.SelectionChanged += (_, _) =>
-        {
-            var remember = retention.SelectedIndex == 2;
-            replace.Visibility = replaceHelp.Visibility = remember ? Visibility.Visible : Visibility.Collapsed;
-        };
+            rememberHelp.Visibility = retention.SelectedIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
         if (!controller.IsReverse)
         {
             panel.Children.Add(retention);
-            panel.Children.Add(replace);
-            panel.Children.Add(replaceHelp);
+            panel.Children.Add(rememberHelp);
         }
         else panel.Children.Add(Ui.Caption(Strings.Get("authentication.this.incoming.connection.uses.the.password.once")));
 
@@ -211,7 +205,7 @@ internal static class AuthenticationDialog
         NativeCredentialRetention Retention() => controller.IsReverse ? NativeCredentialRetention.UseOnce : retention.SelectedIndex switch
         {
             1 => NativeCredentialRetention.Session,
-            2 => replace.IsChecked == true ? NativeCredentialRetention.ReplaceRemembered : NativeCredentialRetention.Remember,
+            2 => NativeCredentialRetention.Remember,
             _ => NativeCredentialRetention.UseOnce,
         };
         useSession.Click += (_, _) =>

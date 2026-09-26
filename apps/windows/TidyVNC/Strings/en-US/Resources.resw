@@ -101,7 +101,6 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="authentication_protection_unassured" xml:space="preserve"><value>The negotiated authentication method may not adequately protect your credentials.</value></data>
   <data name="authentication_reload_saved_decisions" xml:space="preserve"><value>Reload saved decisions</value></data>
   <data name="authentication_remember_on_this_mac" xml:space="preserve"><value>Remember on this PC</value></data>
-  <data name="authentication_replace_an_existing_saved_password" xml:space="preserve"><value>Replace an existing saved password</value></data>
   <data name="authentication_replace_and_connect" xml:space="preserve"><value>Replace and connect</value></data>
   <data name="authentication_replace_saved_key_and_connect" xml:space="preserve"><value>Replace saved key and connect…</value></data>
   <data name="authentication_replace_the_saved_key" xml:space="preserve"><value>Replace the saved key?</value></data>
@@ -109,10 +108,10 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="authentication_review_decision" xml:space="preserve"><value>Review decision…</value></data>
   <data name="authentication_save_and_connect" xml:space="preserve"><value>Save and connect</value></data>
   <data name="authentication_save_exception_and_connect" xml:space="preserve"><value>Save exception and connect…</value></data>
-  <data name="authentication_save_only_after_successful_authentication_replacement_must" xml:space="preserve"><value>Save only after successful authentication. Replacement must be explicitly selected.</value></data>
   <data name="authentication_save_server_key_and_connect" xml:space="preserve"><value>Save server key and connect…</value></data>
   <data name="authentication_save_this_certificate_exception" xml:space="preserve"><value>Save this certificate exception?</value></data>
   <data name="authentication_save_this_server_key" xml:space="preserve"><value>Save this server key?</value></data>
+  <data name="authentication_saved_once_the_server_accepts_it_replacing_any_password" xml:space="preserve"><value>Saved once the server accepts it, replacing any password saved for this server.</value></data>
   <data name="authentication_the_session_password_is_no_longer_available" xml:space="preserve"><value>The session password is no longer available. Enter a password to continue.</value></data>
   <data name="authentication_this_assessment_describes_credential_protection_not_encryption" xml:space="preserve"><value>This assessment describes credential protection, not encryption of all desktop traffic.</value></data>
   <data name="authentication_this_authentication_request_is_no_longer_active" xml:space="preserve"><value>This authentication request is no longer active. Cancel and connect again.</value></data>
@@ -177,7 +176,6 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="connection_recovery_the_ssh_tunnel_closed_check_the_gateway_and_connect_again" xml:space="preserve"><value>The SSH tunnel closed. Check the gateway and connect again.</value></data>
   <data name="connection_recovery_this_desktop_command_is_unavailable_focus_the_connected_desktop_and_try_again" xml:space="preserve"><value>This desktop command is unavailable. Focus the connected desktop and try again.</value></data>
   <data name="connection_recovery_this_incoming_connection_is_no_longer_available_ask_the_server_to_make" xml:space="preserve"><value>This incoming connection is no longer available. Ask the server to make a new connection to the listener.</value></data>
-  <data name="credentials_a_saved_password_already_exists_choose_explicit_replacement_on_a_subsequent_authentication" xml:space="preserve"><value>A saved password already exists. Choose explicit replacement on a subsequent authentication.</value></data>
   <data name="credentials_file_reading_the_password_file_was_cancelled" xml:space="preserve"><value>Reading the password file was cancelled.</value></data>
   <data name="credentials_file_the_password_file_changed_while_being_read_retry_with_its_current_contents" xml:space="preserve"><value>The password file changed while being read. Retry with its current contents.</value></data>
   <data name="credentials_file_the_password_file_could_not_be_read_check_its_location_and_access" xml:space="preserve"><value>The password file could not be read. Check its location and access, then retry.</value></data>

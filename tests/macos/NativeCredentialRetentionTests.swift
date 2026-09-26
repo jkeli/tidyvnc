@@ -38,7 +38,7 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
     let blocked = lock.withLock { let value = blockSave; blockSave = false; return value }
     if blocked { saveEntered.signal(); saveRelease.wait() }
     try lock.withLock {
-      operations.append(mode == .create ? "create" : "replace")
+      operations.append("\(mode)")
       try check(interaction == .forbid && !Thread.isMainThread, "post-auth save forbids prompts off MainActor")
       if let failure { throw failure }
       if mode == .create && entries[key] != nil { throw NativeCredentialStoreIssue.duplicate }
@@ -110,13 +110,13 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
   try await Task.sleep(for: .milliseconds(40))
   try check(vault.calls.isEmpty && model.session?.snapshot.state != .connected, "nothing saved while server authentication result is pending")
   native_test_peer_hold_authentication(peer,0); try await connected()
-  try check(vault.calls == ["create"] && model.credentials.notice == "Password saved on this Mac.", "exactly one save after authenticated connection")
+  try check(vault.calls == ["createOrReplace"] && model.credentials.notice == "Password saved on this Mac.", "exactly one save after authenticated connection")
   try await disconnect()
 
   let savedPrompt = try await start(); model.credentials.useSaved(savedPrompt, username: "")
   model.credentials.useSaved(savedPrompt, username: "") // A repeated button cannot enqueue another lookup.
   try await connected()
-  try check(vault.calls == ["create","lookup"] && !model.credentials.hasSessionCredential, "explicit stored lookup submits once without resaving or static cache")
+  try check(vault.calls == ["createOrReplace","lookup"] && !model.credentials.hasSessionCredential, "explicit stored lookup submits once without resaving or static cache")
   try await disconnect()
 
   let savedForSession = try await start()
@@ -128,11 +128,14 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
   let savedReconnect = try await start()
   try model.credentials.useSession(savedReconnect, username: ""); try await connected(); try await disconnect()
 
+  vault.seed(key,password: "stale")
   _ = try await start(); try submit(model, .remember); try await connected()
-  try check(model.credentials.notice?.contains("already exists") == true, "duplicate create leaves live session connected and requests explicit replacement")
+  try check(vault.calls.last == "createOrReplace" && model.credentials.notice == "Password saved on this Mac.",
+            "remembering replaces an existing saved password after success")
   try await disconnect()
-  _ = try await start(); try submit(model, .replaceRemembered); try await connected()
-  try check(vault.calls.last == "replace", "explicit replacement saves after success")
+  let replaced = try await start(); model.credentials.useSaved(replaced, username: "")
+  try await connected()
+  try check(vault.calls.last == "lookup", "the replacement is the saved password that authenticates")
   try await disconnect()
 
   vault.fail(.missingEntitlement)
@@ -176,16 +179,16 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
   // Closing a window must join an already running save without clearing its
   // buffer under the backend or falsely reporting that a committed write rolled back.
   other.endpoint = endpoint; other.connect(); try await until { other.session?.prompt != nil }
-  vault.blockNextSave(); try submit(other, .replaceRemembered)
+  vault.blockNextSave(); try submit(other, .remember)
   try await until { vault.saveEntered.wait(timeout: .now()) == .success }
   var closed = false
   let closing = Task { await other.close(); closed = true }
   try await Task.sleep(for: .milliseconds(20))
   try check(!closed && other.closing, "window close waits asynchronously for running save")
   vault.saveRelease.signal(); await closing.value
-  try check(closed && !other.credentials.isWorking && other.credentials.notice == nil && vault.calls.last == "replace", "close drains committed save without resurrecting UI")
+  try check(closed && !other.credentials.isWorking && other.credentials.notice == nil && vault.calls.last == "createOrReplace", "close drains committed save without resurrecting UI")
   await store.close(); await preferences.close(); try await runtime.shutdown()
-  print("PASS use-once/session/remember, post-success save, explicit reuse/replace/forget, rejection, cancellation, isolation and joined shutdown")
+  print("PASS use-once/session/remember, post-success save, explicit reuse/forget, replacing remember, rejection, cancellation, isolation and joined shutdown")
 }
 @main struct NativeCredentialRetentionTests {
   @MainActor static func main() async {

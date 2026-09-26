@@ -81,7 +81,6 @@ public static class NativeTexts
         NativeCredentialError.Unavailable => "credentials.the.keychain.is.unavailable.enter.a.password.to.continue",
         NativeCredentialError.Denied => "credentials.keychain.access.was.denied",
         NativeCredentialError.Cancelled => "credentials.keychain.access.was.cancelled",
-        NativeCredentialError.Duplicate => "credentials.a.saved.password.already.exists.choose.explicit.replacement.on.a.subsequent.authentication",
         NativeCredentialError.Corrupt => "credentials.the.saved.credential.could.not.be.read.it.has.not.been.changed",
         _ => "credentials.the.keychain.operation.failed.no.plaintext.copy.was.saved",
     });

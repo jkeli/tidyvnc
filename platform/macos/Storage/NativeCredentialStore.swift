@@ -8,7 +8,9 @@ public enum NativeCredentialStoreIssue: Error, Sendable, Equatable {
   case failed(Int32)
 }
 public enum NativeCredentialInteraction: Sendable { case forbid, allow }
-public enum NativeCredentialSaveMode: Sendable { case create, replace }
+// createOrReplace adds the item, or updates it if one exists, in one store
+// operation, so a closing window cannot cancel it between the two steps.
+public enum NativeCredentialSaveMode: Sendable { case create, replace, createOrReplace }
 
 // Own one mutable allocation. OS, Foundation and caller copies are outside this
 // buffer's control; do not claim that clearing it zeroizes every runtime copy.

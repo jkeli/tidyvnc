@@ -453,15 +453,12 @@ public sealed partial class CredentialTests
         Assert.IsFalse(s.Credentials.HasSessionCredential);
         await s.Disconnect();
 
-        // A second remember does not overwrite without the explicit replace choice.
-        await s.Attempt(p => s.Credentials.Submit(p, [], Utf8("password"), NativeCredentialRetention.Remember));
-        await Until(() => s.Credentials.Notice?.Kind == NativeCredentialNoticeKind.SaveUnconfirmed);
-        Assert.AreEqual(NativeCredentialError.Duplicate, s.Credentials.Notice!.StoreError);
-        await s.Disconnect();
+        // Remembering again replaces a saved password; the new one has just authenticated.
         s.Memory.Entries[s.Key] = "stale";
-        await s.Attempt(p => s.Credentials.Submit(p, [], Utf8("password"), NativeCredentialRetention.ReplaceRemembered));
-        await Until(() => s.Credentials.Notice?.Kind == NativeCredentialNoticeKind.Saved);
-        Assert.AreEqual("password", s.Memory.Entries[s.Key]);
+        await s.Attempt(p => s.Credentials.Submit(p, [], Utf8("password"), NativeCredentialRetention.Remember));
+        await Until(() => s.Memory.Entries[s.Key] == "password");
+        await s.Credentials.Work;
+        Assert.AreEqual(NativeCredentialNoticeKind.Saved, s.Credentials.Notice?.Kind);
     });
 
     [TestMethod]
