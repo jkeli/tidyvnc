@@ -353,13 +353,6 @@
       "count": 1
     },
     {
-      "path": ".github/workflows/build.yml",
-      "text": "        run: docker build -t tigervnc/$DOCKER .github/containers/$DOCKER",
-      "action": "replace",
-      "reason": "Active product identity; implement in owning phase",
-      "count": 1
-    },
-    {
       "path": "BUILD-MACOS.md",
       "text": "## Historical TigerVNC build evidence",
       "count": 1,
