@@ -620,6 +620,10 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   print("PASS rendered \(name): proposed and actual \(size)")
 }
 
+// View-tree helpers live at file scope: Swift 6.0 (Xcode 16) treats recursive
+// local functions inside async throwing tests as throwing.
+func textFields(in root: NSView) -> [NSTextField] { (root as? NSTextField).map { [$0] } ?? [] + root.subviews.flatMap { textFields(in: $0) } }
+func descendantViews(_ root: NSView) -> [NSView] { [root] + root.subviews.flatMap(descendantViews) }
 // Tab moves keyboard focus from the server address to the SSH gateway field and
 // Shift-Tab back, independent of the system Keyboard Navigation setting (which
 // only adds buttons and other controls to the loop).
@@ -632,8 +636,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   defer { window.contentView = nil; window.orderOut(nil); window.close() }
   try await Task.sleep(for: .milliseconds(300)); view.layoutSubtreeIfNeeded()
   // SwiftUI keeps accessibility identifiers off the backing NSTextField; use the placeholders.
-  func all(_ root: NSView) -> [NSTextField] { (root as? NSTextField).map { [$0] } ?? [] + root.subviews.flatMap(all) }
-  func field(_ placeholder: String) -> NSTextField? { all(view).first { $0.placeholderString == placeholder && $0.isEditable } }
+  func field(_ placeholder: String) -> NSTextField? { textFields(in: view).first { $0.placeholderString == placeholder && $0.isEditable } }
   guard let address = field("Server address"), let gateway = field("SSH gateway (optional)") else {
     throw Failure(message: "connection window text fields not found")
   }
@@ -692,14 +695,13 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   func settle() async throws {
     try await Task.sleep(for:.milliseconds(250)); host.view.layoutSubtreeIfNeeded()
   }
-  func descendants(_ root: NSView) -> [NSView] { [root] + root.subviews.flatMap(descendants) }
   func fields() -> [NSTextField] {
-    descendants(host.view).compactMap { $0 as? NSTextField }.filter {
+    descendantViews(host.view).compactMap { $0 as? NSTextField }.filter {
       $0.placeholderString == "Server address" || $0.placeholderString == "SSH gateway (optional)"
     }
   }
   func desktop() throws -> NativeDesktopView {
-    guard let view = descendants(host.view).compactMap({ $0 as? NativeDesktopView }).first else {
+    guard let view = descendantViews(host.view).compactMap({ $0 as? NativeDesktopView }).first else {
       throw Failure(message:"compact window lost its desktop")
     }
     return view
