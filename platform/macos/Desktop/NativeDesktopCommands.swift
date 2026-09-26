@@ -146,7 +146,8 @@ public enum NativeDesktopCommandIssue: Error, Sendable, Equatable { case unavail
     if let next = remaining.first(where:{ $0.commandWindow?.isKeyWindow == true }) ?? remaining.first {
       self.host = next
     }
-    keyboardCaptured = false; captureMessage = nil
+    if keyboardCaptured { keyboardCaptured = false }
+    if captureMessage != nil { captureMessage = nil }
     scheduleRecovery()
   }
   func isActiveHost(_ host: any NativeDesktopCommandHost) -> Bool { self.host === host }
@@ -275,7 +276,7 @@ public enum NativeDesktopCommandIssue: Error, Sendable, Equatable { case unavail
   }
   private func cancelMinimize() {
     minimizeDeadline?.cancel(); minimizeDeadline = nil; minimizeID = UUID()
-    minimizeWindow = nil; minimizePhase = nil; isMinimizing = false
+    minimizeWindow = nil; minimizePhase = nil; if isMinimizing { isMinimizing = false }
   }
   private func restoreModifiers() throws {
     guard connected, !isMinimizing, session?.isFocused == true, session?.isViewOnly == false, host != nil else { return }
