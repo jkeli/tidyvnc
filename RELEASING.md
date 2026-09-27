@@ -13,8 +13,9 @@ that signs anything. `.github/workflows/release.yml` then:
    certificate and provisioning profile, and has Apple notarize the app and the
    disk image, stapling both tickets;
 6. creates a **draft** GitHub release with the MSI, the symbols ZIP, the DMG,
-   both package reports, the source archives of the libraries the macOS app
-   links statically, `SHA256SUMS.txt` and a build provenance attestation.
+   both package reports, the source of the third-party libraries each app
+   ships, `SHA256SUMS.txt` and a build provenance attestation. GitHub adds the
+   source of TidyVNC itself as the tag's source code archives.
 
 A person publishes the draft. Apart from signing dry runs (below), nothing else
 is signed: builds from pushes, pull requests and local machines are unsigned.
@@ -201,6 +202,12 @@ python3 apps/macos/build.py --configuration Release --package --sign-identity "D
   (`apps/macos/deps.py`). Each release carries those archives in
   `TidyVNC-X.Y.Z-macos-third-party-sources.tar`. Update the pins for security
   fixes like any other dependency.
+- The Windows app ships MSYS2's DLLs from the day of the release build.
+  `apps/windows/sources.py` downloads MSYS2's source package for each of them
+  (upstream archive, patches and PKGBUILD), checks its signature against
+  pacman's keyring, and the release carries them in
+  `TidyVNC-X.Y.Z-windows-x64-third-party-sources.tar`. A dry run collects them
+  too, so a missing source package shows up before a release.
 
 - The workflow pins the Artifact Signing client (`ARTIFACT_SIGNING_CLIENT` in
   `release.yml`) and checks its Authenticode signature. Update the pin when

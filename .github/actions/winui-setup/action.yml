@@ -16,6 +16,11 @@ inputs:
     description: "'true' to install the WiX Toolset for the package stage"
     default: 'false'
 
+outputs:
+  msys2-location:
+    description: The MSYS2 installation the C libraries came from
+    value: ${{ steps.msys2.outputs.msys2-location }}
+
 runs:
   using: composite
   steps:

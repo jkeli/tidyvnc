@@ -14,6 +14,11 @@ this directory keeps the texts the upstream distribution names
 (`ThirdParty/<package>/`, with a README.txt saying where each came from);
 `deps.py` copies them instead.
 
+Source: each release carries MSYS2's source package of every library below
+(the upstream archive, MSYS2's patches and the PKGBUILD that built the DLL) in
+`TidyVNC-<version>-windows-x64-third-party-sources.tar`, collected by
+`apps/windows/sources.py`.
+
 ## Native libraries (MSYS2, dynamically linked by `tidyvnc_viewer.dll`)
 
 | Component | Version (x64) | Binaries | Licence | Text |

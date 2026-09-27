@@ -94,9 +94,20 @@ jobs:
           if ($missing) { throw "Set these secrets on the 'release' environment: $($missing -join ', ')" }
       - uses: actions/checkout@v7
       - uses: ./.github/actions/winui-setup
+        id: setup
         with:
           arch: x64
           wix: 'true'
+      # The source packages of the shipped MSYS2 libraries go with each release
+      # (GPL); build/winui/deps/x64/deps.json names them. Collected before
+      # signing, so a missing or badly signed source package costs no signatures.
+      - name: Collect the third-party sources
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: >-
+          python .github/scripts/annotate-failure.py python apps/windows/sources.py --arch x64
+          --msys-root "${{ steps.setup.outputs.msys2-location }}"
+          --output "build/winui/TidyVNC-$env:VERSION-windows-x64-third-party-sources.tar"
       - name: Install the .NET 8 runtime for the signing dlib
         uses: actions/setup-dotnet@v6
         with:
@@ -155,6 +166,11 @@ jobs:
           $signature = Get-AuthenticodeSignature $msi
           if ($signature.Status -ne 'Valid') { throw "$($msi.Name): $($signature.Status) $($signature.StatusMessage)" }
           "Signed by: $($signature.SignerCertificate.Subject)"
+      - name: Add the third-party sources to the release files
+        if: github.event_name == 'push'
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: Move-Item "build/winui/TidyVNC-$env:VERSION-windows-x64-third-party-sources.tar" $env:OUTPUT
       - uses: actions/upload-artifact@v7
         if: github.event_name == 'push'
         with:
