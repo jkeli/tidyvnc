@@ -29,14 +29,26 @@ public sealed record NativeCredentialNotice(NativeCredentialNoticeKind Kind, Nat
 /// macOS; SERVICES.md section 3, CREDENTIAL-INPUTS.md). Owns the retention
 /// choice for an entered password (use once, keep for this session's
 /// reconnects, remember on this PC, replace the remembered one), explicit
-/// use/forget of a saved password, and launch credentials. Nothing is saved
-/// until authentication succeeds with a remember choice; a rejected saved
-/// password is never retried or deleted automatically; a save failure is a
-/// notice. Secrets never enter observable state. UI thread only.
+/// use/forget of a saved password, automatic reuse of an approved saved
+/// password, and launch credentials. Nothing is saved until authentication
+/// succeeds with a remember choice; a rejected saved password is never retried
+/// or deleted automatically; a save failure is a notice. Secrets never enter
+/// observable state. UI thread only.
 /// </summary>
+/// <remarks>
+/// A successful authentication whose password matches the saved one (used
+/// explicitly, typed by hand or just remembered) records an approval for the
+/// prompt's scope: destination, route and method, with the username and the
+/// credential-protection assessment. The next matching prompt then submits the
+/// saved password once, without showing the dialog, after the trust prompts
+/// that precede it. A missing approval, a changed assessment or a store
+/// failure falls back to the dialog. A rejection revokes the approval but keeps
+/// the password; Forget removes both. Launch credentials never create one.
+/// </remarks>
 public sealed partial class NativeAuthenticationCredentials : ObservableObject
 {
-    private sealed record Candidate(NativeCredentialKey Key, NativeCredentialSecret Secret, ulong Generation, NativeCredentialRetention Retention);
+    private sealed record Candidate(NativeCredentialKey Key, NativeCredentialSecret Secret, ulong Generation, NativeCredentialRetention Retention,
+                                    NativeCredentialApproval? Approval = null, NativeCredentialKey? Scope = null);
 
     private readonly IUiDispatcher dispatcher;
     private readonly NativeCredentialStore? store;
@@ -46,15 +58,18 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
     private string routeIdentity = "";
     private bool stopped;
     private ulong epoch;
-    private Task? work;
+    private Task? work, revocation;
     private CancellationTokenSource? workCancel;
     private Candidate? pending, retained;
     private ulong? savedSubmission;
     private NativeLaunchCredentialPayload? launch;
     private string? launchEndpoint, launchRouteIdentity, launchEffectiveRouteIdentity;
-    private NativePrompt? automaticPrompt;
+    private NativePrompt? automaticPrompt, attemptedSavedPrompt;
+    private (NativeCredentialKey Key, ulong Generation)? submissionScope;
 
     [ObservableProperty] public partial NativeCredentialNotice? Notice { get; private set; }
+    /// <summary>The prompt an approved saved password is being looked up and submitted for; its dialog stays hidden.</summary>
+    [ObservableProperty] public partial NativePrompt? SavedLookupPrompt { get; private set; }
     [ObservableProperty] public partial bool IsWorking { get; private set; }
     [ObservableProperty] public partial bool HasSessionCredential { get; private set; }
 
@@ -69,6 +84,11 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
     }
 
     public bool SupportsRemembering => store is not null;
+
+    /// <summary>An approved saved password is answering this prompt: the window does not show its dialog.</summary>
+    public bool IsAutomaticallyAuthenticating(NativePrompt request) => SavedLookupPrompt is { } prompt && Same(prompt, request);
+
+    private static bool Same(NativePrompt a, NativePrompt b) => a.Id == b.Id && a.Generation == b.Generation;
     /// <summary>The pending work (tests and window close await it).</summary>
     public Task Work => work ?? Task.CompletedTask;
 
@@ -150,10 +170,16 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         if (request is null || request.Kind != NativePrompt.PromptKind.Credentials)
         {
             if (automaticPrompt is not null) { ++epoch; CancelAutomatic(); }
+            if (SavedLookupPrompt is not null) { ++epoch; workCancel?.Cancel(); SavedLookupPrompt = null; }
             return;
         }
-        if (stopped || IsWorking || launch is not { } source ||
-            !(source.HasEnvironment(request.UsernameRequired) || (!request.UsernameRequired && source.File is not null))) return;
+        if (stopped || IsWorking) return;
+        if (launch is not { } source ||
+            !(source.HasEnvironment(request.UsernameRequired) || (!request.UsernameRequired && source.File is not null)))
+        {
+            InspectSaved(request);
+            return;
+        }
         var ticket = epoch;
         automaticPrompt = request;
         Notice = null;
@@ -173,6 +199,41 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
             {
                 if (epoch != ticket || !IsCurrent(request) || token.IsCancellationRequested) return;
                 Notice = new(NativeCredentialNoticeKind.LaunchFailure, FileError: (error as NativePasswordFileException)?.Error);
+            }
+        });
+    }
+
+    /// <summary>Submits the approved saved password once per prompt, with the dialog hidden meanwhile.</summary>
+    private void InspectSaved(NativePrompt request)
+    {
+        if (store is not { SupportsAutomaticUse: true } credentials || (attemptedSavedPrompt is { } attempted && Same(attempted, request))) return;
+        attemptedSavedPrompt = request;
+        SavedLookupPrompt = request;
+        var ticket = epoch;
+        Notice = null;
+        Start(async token =>
+        {
+            try
+            {
+                if (epoch != ticket || !IsCurrent(request) || token.IsCancellationRequested) return;
+                var scope = Key(request, "");
+                if (await credentials.LookupAutomaticAsync(scope, request.Secure, token) is not { } saved) return;
+                using (saved.Secret)
+                {
+                    // The exact credential is checked again: the approval names it, the prompt must still match it.
+                    if (epoch != ticket || !IsCurrent(request) || token.IsCancellationRequested ||
+                        !Key(request, saved.Approval.Username).Equals(saved.Approval.Key)) return;
+                    // Replying withdraws the prompt; that is this lookup finishing, not a cancellation.
+                    SavedLookupPrompt = null;
+                    Forward(request, saved.Approval.Username, saved.Approval.Key, saved.Secret, NativeCredentialRetention.UseOnce, approveAutomatic: false);
+                    savedSubmission = request.Generation;
+                }
+            }
+            catch (Exception error) when (error is NativeCredentialException or NativeError or NativeIdentityFailure)
+            {
+                if (epoch != ticket || !IsCurrent(request) || token.IsCancellationRequested) return;
+                if ((error as NativeCredentialException)?.Error is not NativeCredentialError.NotFound)
+                    Notice = new(NativeCredentialNoticeKind.StoreFailure, (error as NativeCredentialException)?.Error ?? NativeCredentialError.IOFailure);
             }
         });
     }
@@ -230,6 +291,8 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         pending?.Secret.Clear();
         pending = null;
         savedSubmission = null;
+        attemptedSavedPrompt = null;
+        submissionScope = null;
         this.endpoint = endpoint;
         this.routeIdentity = routeIdentity;
         Notice = null;
@@ -275,9 +338,17 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         }
     }
 
-    private void Forward(NativePrompt request, string username, NativeCredentialKey key, NativeCredentialSecret secret, NativeCredentialRetention retention)
+    /// <summary>
+    /// Replies to the prompt. With a store that keeps approvals, a successful
+    /// result may approve automatic reuse (unless this is that reuse) and a
+    /// rejection revokes it, so the secret stays pending until the result.
+    /// </summary>
+    private void Forward(NativePrompt request, string username, NativeCredentialKey key, NativeCredentialSecret secret, NativeCredentialRetention retention,
+                         bool approveAutomatic = true)
     {
         if (!IsCurrent(request) || session is not { } current) throw new NativeError(NativeStatus.Stale, "Inactive credential request");
+        var scope = store?.SupportsAutomaticUse == true ? Key(request, "") : null;
+        var approval = scope is not null && approveAutomatic ? new NativeCredentialApproval(key, username, request.Secure) : null;
         var user = request.UsernameRequired ? Encoding.UTF8.GetBytes(username) : [];
         byte[] bytes;
         try { bytes = secret.CopyBytes(); }
@@ -288,8 +359,9 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         ForgetSession();
         savedSubmission = null;
         Notice = null;
-        if (retention == NativeCredentialRetention.UseOnce) secret.Clear();
-        else pending = new Candidate(key, secret, request.Generation, retention);
+        submissionScope = scope is null ? null : (scope, request.Generation);
+        if (retention == NativeCredentialRetention.UseOnce && approval is null) secret.Clear();
+        else pending = new Candidate(key, secret, request.Generation, retention, approval, scope);
     }
 
     public bool CanUseSession(NativePrompt request, string username)
@@ -344,7 +416,7 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
                     // Existing entries are not rewritten; only the explicit session choice extends the lifetime.
                     var selected = retention == NativeCredentialRetention.Session ? NativeCredentialRetention.Session : NativeCredentialRetention.UseOnce;
                     Forward(request, username, key, secret, selected);
-                    transferred = selected == NativeCredentialRetention.Session;
+                    transferred = pending is not null;
                     savedSubmission = request.Generation;
                 }
                 finally
@@ -365,8 +437,8 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
     {
         UiThread.Require(dispatcher);
         if (IsWorking || store is not { } credentials) return;
-        NativeCredentialKey key;
-        try { key = Key(request, username); }
+        NativeCredentialKey key, scope;
+        try { key = Key(request, username); scope = Key(request, ""); }
         catch (Exception error) when (error is NativeError or NativeIdentityFailure)
         {
             Notice = new(NativeCredentialNoticeKind.RequestUnavailable);
@@ -379,6 +451,8 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         {
             try
             {
+                try { await credentials.RevokeAutomaticAsync(scope, token); }
+                catch (NativeCredentialException) { }
                 await credentials.DeleteAsync(key, token);
                 if (epoch == ticket && !stopped) Notice = new(NativeCredentialNoticeKind.Removed);
             }
@@ -389,7 +463,7 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         });
     }
 
-    /// <summary>Connected commits the pending choice; closed or failed clears it.</summary>
+    /// <summary>Connected commits the pending choice; closed or failed clears it, and a rejection revokes automatic reuse.</summary>
     private void Observe(NativeSnapshot snapshot)
     {
         if (snapshot.State == NativeSessionState.Connected && pending is { } candidate && candidate.Generation == snapshot.Generation)
@@ -400,37 +474,56 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
                 retained = candidate;
                 HasSessionCredential = true;
             }
-            else if (store is { } credentials)
+            var remember = candidate.Retention == NativeCredentialRetention.Remember;
+            // The retained session password keeps its own copy.
+            NativeCredentialSecret? secret = null;
+            if (store is not null && (remember || candidate.Approval is not null))
+            {
+                try { secret = candidate.Retention == NativeCredentialRetention.Session ? NativeCredentialSecret.Consume(candidate.Secret.CopyBytes()) : candidate.Secret; }
+                catch (NativeCredentialException) { }
+            }
+            if (store is { } credentials && secret is not null)
             {
                 var ticket = epoch;
                 Start(async _ =>
                 {
                     try
                     {
-                        // Admitted saves complete even if the window starts closing. The
-                        // password has just authenticated, so remembering it replaces any
-                        // password saved for this server, method and username.
-                        try
+                        if (remember)
                         {
-                            await credentials.SaveAsync(candidate.Key, candidate.Secret, NativeCredentialSaveMode.Create, CancellationToken.None);
+                            try
+                            {
+                                // Admitted saves complete even if the window starts closing. The
+                                // password has just authenticated, so remembering it replaces any
+                                // password saved for this server, method and username.
+                                try
+                                {
+                                    await credentials.SaveAsync(candidate.Key, secret, NativeCredentialSaveMode.Create, CancellationToken.None);
+                                }
+                                catch (NativeCredentialException duplicate) when (duplicate.Error == NativeCredentialError.Duplicate)
+                                {
+                                    await credentials.SaveAsync(candidate.Key, secret, NativeCredentialSaveMode.Replace, CancellationToken.None);
+                                }
+                                if (epoch == ticket && !stopped) Notice = new(NativeCredentialNoticeKind.Saved);
+                            }
+                            catch (NativeCredentialException error)
+                            {
+                                if (epoch == ticket && !stopped) Notice = new(NativeCredentialNoticeKind.SaveUnconfirmed, error.Error);
+                            }
                         }
-                        catch (NativeCredentialException duplicate) when (duplicate.Error == NativeCredentialError.Duplicate)
-                        {
-                            await credentials.SaveAsync(candidate.Key, candidate.Secret, NativeCredentialSaveMode.Replace, CancellationToken.None);
-                        }
-                        if (epoch == ticket && !stopped) Notice = new(NativeCredentialNoticeKind.Saved);
-                    }
-                    catch (NativeCredentialException error)
-                    {
-                        if (epoch == ticket && !stopped) Notice = new(NativeCredentialNoticeKind.SaveUnconfirmed, error.Error);
+                        if (epoch != ticket || stopped || candidate.Approval is not { } approval || candidate.Scope is not { } scope) return;
+                        // Not remembering reuse never interrupts an authenticated desktop;
+                        // the dialog simply appears again next time.
+                        try { await credentials.ApproveAutomaticAsync(scope, approval, secret); }
+                        catch (NativeCredentialException) { }
                     }
                     finally
                     {
-                        candidate.Secret.Clear();
+                        secret.Clear();
                     }
                 });
             }
-            else candidate.Secret.Clear();
+            else if (candidate.Retention != NativeCredentialRetention.Session) candidate.Secret.Clear();
         }
         if (snapshot.State is NativeSessionState.Closed or NativeSessionState.Failed)
         {
@@ -444,16 +537,27 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
             {
                 ForgetSession();
                 if (savedSubmission == snapshot.Generation) Notice = new(NativeCredentialNoticeKind.SavedPasswordRejected);
+                // The saved password stays; only its automatic use is withdrawn. This drains even if the window closes.
+                if (submissionScope is { } submitted && submitted.Generation == snapshot.Generation && store is { } credentials)
+                {
+                    submissionScope = null;
+                    revocation = Start(async _ =>
+                    {
+                        try { await credentials.RevokeAutomaticAsync(submitted.Key, CancellationToken.None); }
+                        catch (NativeCredentialException) { }
+                    });
+                }
             }
         }
     }
 
-    private void Start(Func<CancellationToken, Task> body)
+    private Task Start(Func<CancellationToken, Task> body)
     {
         var cancel = new CancellationTokenSource();
         workCancel = cancel;
         IsWorking = true;
         work = Run();
+        return work;
 
         async Task Run()
         {
@@ -467,6 +571,7 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
                 if (ReferenceEquals(workCancel, cancel))
                 {
                     automaticPrompt = null;
+                    SavedLookupPrompt = null;
                     IsWorking = false;
                     workCancel = null;
                 }
@@ -482,6 +587,7 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         ++epoch;
         workCancel?.Cancel();
         automaticPrompt = null;
+        SavedLookupPrompt = null;
         pending?.Secret.Clear();
         pending = null;
         DiscardLaunch();
@@ -501,11 +607,12 @@ public sealed partial class NativeAuthenticationCredentials : ObservableObject
         session = null;
     }
 
-    /// <summary>Window close: stops and waits for admitted work (a save in progress finishes).</summary>
+    /// <summary>Window close: stops and waits for admitted work (a save or revocation in progress finishes).</summary>
     public async Task CloseAsync()
     {
         Stop();
         await Work;
+        if (revocation is not null) await revocation;
     }
 
     public void DismissNotice() => Notice = null;

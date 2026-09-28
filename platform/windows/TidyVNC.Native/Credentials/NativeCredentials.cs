@@ -120,11 +120,105 @@ public sealed class NativeCredentialKey : IEquatable<NativeCredentialKey>
     public static NativeCredentialKey? FromDigest(string digest)
         => digest.Length == 64 && digest.All(char.IsAsciiHexDigitLower) ? new("v1:" + digest) : null;
 
+    /// <summary>A stored account ("v1:" + digest), or null when it is not one.</summary>
+    public static NativeCredentialKey? FromAccount(string account)
+        => account.StartsWith("v1:", StringComparison.Ordinal) ? FromDigest(account[3..]) : null;
+
     public bool Equals(NativeCredentialKey? other) => other is not null && string.Equals(Account, other.Account, StringComparison.Ordinal);
     public override bool Equals(object? obj) => Equals(obj as NativeCredentialKey);
     public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Account);
     public override string ToString() => "NativeCredentialKey(<redacted>)";
 }
+
+/// <summary>
+/// Approval to reuse an existing saved password without asking (macOS
+/// NativeCredentialApproval). It holds no password: the exact credential
+/// account, the username that last succeeded and the credential-protection
+/// assessment it was accepted under. It is stored apart from passwords, under
+/// the scope key (the prompt's destination, route and method with no username).
+/// </summary>
+public sealed class NativeCredentialApproval : IEquatable<NativeCredentialApproval>
+{
+    public const int Version = 1;
+
+    public NativeCredentialApproval(NativeCredentialKey key, string username, bool secure)
+    {
+        Account = key.Account;
+        Username = username;
+        Secure = secure;
+    }
+
+    private NativeCredentialApproval(string account, string username, bool secure)
+    {
+        Account = account;
+        Username = username;
+        Secure = secure;
+    }
+
+    public string Account { get; }
+    public string Username { get; }
+    public bool Secure { get; }
+
+    /// <summary>The saved password this approval reuses.</summary>
+    public NativeCredentialKey Key => NativeCredentialKey.FromAccount(Account) ?? throw new NativeCredentialException(NativeCredentialError.Corrupt);
+
+    public void Validate()
+    {
+        if (System.Text.Encoding.UTF8.GetByteCount(Username) > NativeCredentialSecret.MaximumBytes || Username.Contains('\0', StringComparison.Ordinal))
+            throw new NativeCredentialException(NativeCredentialError.Corrupt);
+        _ = Key;
+    }
+
+    /// <summary>Versioned JSON: {"version":1,"account":…,"username":…,"secure":…}.</summary>
+    public byte[] Serialize()
+    {
+        Validate();
+        using var buffer = new MemoryStream();
+        using (var writer = new System.Text.Json.Utf8JsonWriter(buffer))
+        {
+            writer.WriteStartObject();
+            writer.WriteNumber("version", Version);
+            writer.WriteString("account", Account);
+            writer.WriteString("username", Username);
+            writer.WriteBoolean("secure", Secure);
+            writer.WriteEndObject();
+        }
+        return buffer.ToArray();
+    }
+
+    /// <summary>Throws Corrupt for anything but a valid version 1 record.</summary>
+    public static NativeCredentialApproval Parse(ReadOnlySpan<byte> data)
+    {
+        try
+        {
+            var reader = new System.Text.Json.Utf8JsonReader(data);
+            using var document = System.Text.Json.JsonDocument.ParseValue(ref reader);
+            var root = document.RootElement;
+            if (root.ValueKind != System.Text.Json.JsonValueKind.Object || root.GetProperty("version").GetInt32() != Version)
+                throw new NativeCredentialException(NativeCredentialError.Corrupt);
+            static string Text(System.Text.Json.JsonElement value) => value.ValueKind == System.Text.Json.JsonValueKind.String
+                ? value.GetString()! : throw new NativeCredentialException(NativeCredentialError.Corrupt);
+            var approval = new NativeCredentialApproval(Text(root.GetProperty("account")), Text(root.GetProperty("username")),
+                root.GetProperty("secure").GetBoolean());
+            approval.Validate();
+            return approval;
+        }
+        catch (Exception error) when (error is System.Text.Json.JsonException or InvalidOperationException or KeyNotFoundException
+                                          or FormatException or ArgumentException)
+        {
+            throw new NativeCredentialException(NativeCredentialError.Corrupt);
+        }
+    }
+
+    public bool Equals(NativeCredentialApproval? other) =>
+        other is not null && Account == other.Account && Username == other.Username && Secure == other.Secure;
+    public override bool Equals(object? obj) => Equals(obj as NativeCredentialApproval);
+    public override int GetHashCode() => HashCode.Combine(Account, Username, Secure);
+    public override string ToString() => "NativeCredentialApproval(<redacted>)";
+}
+
+/// <summary>An approved saved password, ready for automatic submission; the caller owns and clears the secret.</summary>
+public sealed record NativeAutomaticCredential(NativeCredentialApproval Approval, NativeCredentialSecret Secret);
 
 public sealed record NativeCredentialMetadata(NativeCredentialKey Key, DateTimeOffset? Modified);
 

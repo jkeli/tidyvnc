@@ -185,18 +185,49 @@ public sealed partial class CredentialTests
     private sealed class MemoryBacking : INativeCredentialBacking
     {
         public ConcurrentDictionary<NativeCredentialKey, string> Entries { get; } = new();
+        public ConcurrentDictionary<NativeCredentialKey, NativeCredentialApproval> Approvals { get; } = new();
         public SemaphoreSlim? Hold { get; set; }
+        /// <summary>Keeps approvals, as Credential Manager does.</summary>
+        public bool Automatic { get; init; }
+        /// <summary>Every operation fails with this until cleared.</summary>
+        public NativeCredentialError? Fail { get; set; }
+        /// <summary>The next lookup signals LookupEntered and waits for LookupRelease.</summary>
+        public bool BlockNextLookup { get; set; }
+        public SemaphoreSlim LookupEntered { get; } = new(0);
+        public SemaphoreSlim LookupRelease { get; } = new(0);
         public int Started;
 
         private void Enter()
         {
             Interlocked.Increment(ref Started);
             Hold?.Wait();
+            if (Fail is { } failure) throw new NativeCredentialException(failure);
+        }
+
+        public bool SupportsAutomaticUse => Automatic;
+
+        public NativeCredentialApproval? Approval(NativeCredentialKey scope)
+        {
+            Enter();
+            return Approvals.GetValueOrDefault(scope);
+        }
+
+        public void SetApproval(NativeCredentialKey scope, NativeCredentialApproval? approval)
+        {
+            Enter();
+            if (approval is null) Approvals.TryRemove(scope, out _);
+            else Approvals[scope] = approval;
         }
 
         public NativeCredentialSecret Lookup(NativeCredentialKey key)
         {
             Enter();
+            if (BlockNextLookup)
+            {
+                BlockNextLookup = false;
+                LookupEntered.Release();
+                LookupRelease.Wait();
+            }
             return Entries.TryGetValue(key, out var value) ? NativeCredentialSecret.Consume(Utf8(value))
                                                            : throw new NativeCredentialException(NativeCredentialError.NotFound);
         }
@@ -586,6 +617,204 @@ public sealed partial class CredentialTests
         {
             Directory.Delete(root, recursive: true);
         }
+    }
+
+    [TestMethod]
+    [TestCategory("Workstation")]
+    public void ApprovalsAreSeparateNoninteractiveEntries()
+    {
+        var backing = new NativeCredentialManagerBacking(Prefix);
+        var scope = Key(endpoint: Guid.NewGuid().ToString("N") + ".example");
+        var approval = new NativeCredentialApproval(scope, "", secure: false);
+        var target = Prefix[..^1] + ".automatic.v1/" + scope.Digest;
+        try
+        {
+            Assert.IsTrue(backing.SupportsAutomaticUse);
+            Assert.IsNull(backing.Approval(scope), "saved passwords have no implicit approval");
+            backing.SetApproval(scope, approval);
+            Assert.AreEqual(approval, backing.Approval(scope), "an approval survives serialization and reload");
+            Assert.AreEqual(0, backing.List(10).Entries.Count, "approvals are not saved passwords");
+            Assert.AreEqual(NativeCredentialError.NotFound, Failure(() => backing.Lookup(scope)));
+            Assert.IsTrue(CredRead(target, 1, 0, out var raw), "a separate target under the approval prefix");
+            try
+            {
+                Assert.AreEqual(2, Marshal.ReadInt32(raw, IntPtr.Size == 8 ? 48 : 32)); // CRED_PERSIST_LOCAL_MACHINE
+                Assert.AreEqual(NativeCredentialManagerBacking.ApprovalComment, Marshal.PtrToStringUni(Marshal.ReadIntPtr(raw, IntPtr.Size == 8 ? 16 : 12)));
+                var size = Marshal.ReadInt32(raw, IntPtr.Size == 8 ? 32 : 24);
+                var blob = new byte[size];
+                Marshal.Copy(Marshal.ReadIntPtr(raw, IntPtr.Size == 8 ? 40 : 28), blob, 0, size);
+                var json = Encoding.UTF8.GetString(blob);
+                Assert.IsTrue(json.Contains("\"version\":1", StringComparison.Ordinal) && json.Contains(scope.Account, StringComparison.Ordinal),
+                    "versioned JSON naming the exact credential account");
+            }
+            finally { CredFree(raw); }
+
+            var replacement = new NativeCredentialApproval(scope, "", secure: true);
+            backing.SetApproval(scope, replacement);
+            Assert.AreEqual(replacement, backing.Approval(scope), "a write replaces the scope's approval");
+            Assert.AreEqual(NativeCredentialError.Invalid,
+                Failure(() => backing.SetApproval(scope, new NativeCredentialApproval(scope, new string('u', 3000), secure: false))));
+            backing.SetApproval(scope, null);
+            Assert.IsNull(backing.Approval(scope));
+            backing.SetApproval(scope, null); // Revocation is idempotent.
+        }
+        finally
+        {
+            try { backing.SetApproval(scope, null); } catch (NativeCredentialException) { }
+        }
+    }
+
+    [TestMethod]
+    public void ApprovalRecordsRejectAnythingButVersionOne()
+    {
+        var approval = new NativeCredentialApproval(Key(usernameRequired: true, user: "alice"), "alice", secure: true);
+        Assert.AreEqual(approval, NativeCredentialApproval.Parse(approval.Serialize()));
+        Assert.AreEqual(Key(usernameRequired: true, user: "alice"), approval.Key);
+        Assert.IsFalse(approval.ToString().Contains("alice", StringComparison.Ordinal));
+        foreach (var text in new[]
+                 {
+                     "{}", "[]", "not json", "{\"version\":2,\"account\":\"" + approval.Account + "\",\"username\":\"\",\"secure\":true}",
+                     "{\"version\":1,\"account\":\"v1:nothex\",\"username\":\"\",\"secure\":true}",
+                     "{\"version\":1,\"account\":\"" + approval.Account + "\",\"username\":null,\"secure\":true}",
+                     "{\"version\":1,\"account\":\"" + approval.Account + "\",\"username\":\"a\\u0000b\",\"secure\":true}",
+                     "{\"version\":1,\"account\":\"" + approval.Account + "\",\"username\":\"\",\"secure\":\"yes\"}",
+                 })
+            Assert.AreEqual(NativeCredentialError.Corrupt, Failure(() => NativeCredentialApproval.Parse(Utf8(text))), text);
+    }
+
+    /// <summary>
+    /// Automatic reuse end to end (macOS NativeCredentialRetentionTests.automaticUse): approval after a
+    /// successful saved or matching password, a hidden dialog while the lookup runs, scope and assessment
+    /// checks, fallback, cancellation, revocation on rejection, remembering and Forget.
+    /// </summary>
+    [TestMethod]
+    public async Task ApprovedSavedPasswordsAreReusedAutomatically()
+    {
+        using var ui = new SingleThreadDispatcher();
+        await using var server = new RfbTestServer(width: 32, height: 24, password: "password");
+        var memory = new MemoryBacking { Automatic = true };
+        await ui.InvokeAsync(async () =>
+        {
+            var runtime = new NativeRuntime(ui);
+            var session = runtime.CreateSession(new NativeSessionConfiguration { SecurityTypes = [2] });
+            var store = new NativeCredentialStore(memory);
+            var credentials = new NativeAuthenticationCredentials(ui, store);
+            credentials.Bind(session);
+            var s = new Scenario(ui, server, memory, store, runtime, session, credentials);
+            var key = s.Key;
+            memory.Entries[key] = "password";
+            async Task<NativePrompt> Prompted()
+            {
+                await Until(() => s.Session.Prompt is not null && !s.Credentials.IsWorking);
+                return s.Session.Prompt!;
+            }
+            async Task Cancel(Task<NativeSnapshot> attempt)
+            {
+                s.Credentials.Clear();
+                await s.Session.DisconnectAsync();
+                await attempt;
+            }
+            try
+            {
+                // A saved password without approval still asks, and explicit use approves it.
+                var attempt = s.Attempt(null);
+                var first = await Prompted();
+                Assert.IsFalse(s.Credentials.IsAutomaticallyAuthenticating(first), "no approval: the dialog shows");
+                s.Credentials.UseSaved(first, "");
+                Assert.AreEqual(NativeSessionState.Connected, (await attempt).State);
+                await s.Credentials.Work;
+                Assert.IsFalse(memory.Approvals[key].Secure, "the unassured-method warning was accepted with it");
+                await s.Disconnect();
+
+                // A new controller and store share only the durable backing.
+                await s.Credentials.CloseAsync();
+                await store.CloseAsync();
+                store = new NativeCredentialStore(memory);
+                credentials = new NativeAuthenticationCredentials(ui, store);
+                credentials.Bind(session);
+                s = new Scenario(ui, server, memory, store, runtime, session, credentials);
+                memory.BlockNextLookup = true;
+                attempt = s.Attempt(null);
+                await Until(() => memory.LookupEntered.Wait(0));
+                Assert.IsTrue(s.Credentials.IsAutomaticallyAuthenticating(s.Session.Prompt!), "the dialog stays hidden during the lookup");
+                memory.LookupRelease.Release();
+                Assert.AreEqual(NativeSessionState.Connected, (await attempt).State, "submitted without the dialog");
+                await s.Credentials.Work;
+                await s.Disconnect();
+
+                Assert.IsNull(await store.LookupAutomaticAsync(key, secure: true), "a changed protection assessment needs review");
+                foreach (var scope in new[]
+                         {
+                             NativeCredentialKey.Create("different.example::5900", "", 2, false),
+                             NativeCredentialKey.Create(server.Endpoint, NativeSshGateway.Parse("gateway.example").RouteIdentity, 2, false),
+                             NativeCredentialKey.Create(server.Endpoint, "", 30, false),
+                         })
+                    Assert.IsNull(await store.LookupAutomaticAsync(scope, secure: false), "never across host, route or method");
+
+                // A store failure shows the dialog with a notice.
+                memory.Fail = NativeCredentialError.Unavailable;
+                attempt = s.Attempt(null);
+                var locked = await Prompted();
+                Assert.IsFalse(s.Credentials.IsAutomaticallyAuthenticating(locked));
+                Assert.AreEqual(NativeCredentialError.Unavailable, s.Credentials.Notice?.StoreError);
+                memory.Fail = null;
+                await Cancel(attempt);
+
+                // A cancelled lookup cannot submit its late result.
+                memory.BlockNextLookup = true;
+                attempt = s.Attempt(null);
+                await Until(() => memory.LookupEntered.Wait(0));
+                s.Credentials.Clear();
+                await s.Session.DisconnectAsync();
+                memory.LookupRelease.Release();
+                Assert.AreNotEqual(NativeSessionState.Connected, (await attempt).State);
+                await s.Credentials.Work;
+                Assert.IsTrue(s.Session.Prompt is null && !s.Credentials.HasSessionCredential);
+
+                // A rejected automatic password loses its approval but is kept, and is not retried.
+                memory.Entries[key] = "wrong";
+                Assert.AreEqual(NativeEndReason.AuthenticationRejected, (await s.Attempt(null)).EndReason);
+                await s.Credentials.Work;
+                Assert.IsFalse(memory.Approvals.ContainsKey(key));
+                Assert.AreEqual("wrong", memory.Entries[key]);
+                Assert.AreEqual(NativeCredentialNoticeKind.SavedPasswordRejected, s.Credentials.Notice?.Kind);
+                attempt = s.Attempt(null);
+                var retry = await Prompted();
+                Assert.IsFalse(s.Credentials.IsAutomaticallyAuthenticating(retry));
+                // A different password typed by hand cannot approve the stale saved one.
+                s.Credentials.Submit(retry, [], Utf8("password"));
+                Assert.AreEqual(NativeSessionState.Connected, (await attempt).State);
+                await s.Credentials.Work;
+                Assert.IsFalse(memory.Approvals.ContainsKey(key));
+                await s.Disconnect();
+
+                // Typing the saved password by hand approves it.
+                memory.Entries[key] = "password";
+                attempt = s.Attempt(null);
+                s.Credentials.Submit(await Prompted(), [], Utf8("password"));
+                Assert.AreEqual(NativeSessionState.Connected, (await attempt).State);
+                await s.Credentials.Work;
+                Assert.IsTrue(memory.Approvals.ContainsKey(key));
+                await s.Disconnect();
+
+                // Forget removes the password and its approval.
+                memory.Fail = NativeCredentialError.Unavailable;
+                attempt = s.Attempt(null);
+                var forget = await Prompted();
+                memory.Fail = null;
+                s.Credentials.ForgetSaved(forget, "");
+                await Until(() => !s.Credentials.IsWorking);
+                Assert.IsFalse(memory.Approvals.ContainsKey(key) || memory.Entries.ContainsKey(key));
+                await Cancel(attempt);
+            }
+            finally
+            {
+                await s.Credentials.CloseAsync();
+                await store.CloseAsync();
+                await session.CloseAsync();
+                await runtime.ShutdownAsync();
+            }
+        });
     }
 
     [TestMethod]

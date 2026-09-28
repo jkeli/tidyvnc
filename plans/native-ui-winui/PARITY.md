@@ -45,7 +45,7 @@ pseudo-localized expansion and mirroring, minimum window size and scrolling.
 | A04 | Lifetime `RadioButtons`: *Use once*, *Retain for this session's reconnect*, *Remember on this PC* | "Remember" absent for reverse connections and when Credential Manager is unavailable |
 | A05 | *Authenticate* / *Cancel* | Enter submits once; Escape cancels; closing the window cancels |
 | A06 | *Use session password* | Two windows keep separate session passwords |
-| A07 | *Use saved password* / *Forget saved password* | Credential Manager NotFound/Unavailable handling; forget deletes only that target |
+| A07 | *Use saved password* / *Forget saved password*; automatic reuse of an approved saved password | Credential Manager NotFound/Unavailable handling; forget deletes only that target and its approval; the dialog stays hidden during automatic lookup and returns on any fallback |
 | A08 | *Remember* replaces an existing saved password | Save failure leaves authentication recoverable |
 | A09 | `SSHAuthenticationDialog` | Askpass over the named pipe; multiwindow prompt routing |
 | T01 | Trust dialog with `TrustDetailsView` | Details scroll inside the dialog; fingerprints selectable |

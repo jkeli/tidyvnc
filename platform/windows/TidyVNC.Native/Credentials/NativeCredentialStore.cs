@@ -1,5 +1,6 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security.Credentials;
@@ -16,6 +17,13 @@ public interface INativeCredentialBacking
     void Save(NativeCredentialKey key, NativeCredentialSecret secret, NativeCredentialSaveMode mode);
     void Delete(NativeCredentialKey key);
     NativeCredentialMetadataPage List(int limit);
+
+    /// <summary>The backing keeps automatic-use approvals (<see cref="NativeCredentialApproval"/>).</summary>
+    bool SupportsAutomaticUse => false;
+    /// <summary>The approval stored for a scope, or null.</summary>
+    NativeCredentialApproval? Approval(NativeCredentialKey scope) => null;
+    /// <summary>Replaces the scope's approval; null removes it (absent is not an error).</summary>
+    void SetApproval(NativeCredentialKey scope, NativeCredentialApproval? approval) => throw new NativeCredentialException(NativeCredentialError.Unavailable);
 }
 
 /// <summary>
@@ -24,15 +32,18 @@ public interface INativeCredentialBacking
 /// CRED_PERSIST_LOCAL_MACHINE, empty user name, UTF-8 password blob of at
 /// most 2560 bytes and a fixed comment. Credential Manager never shows UI.
 /// DPAPI protects entries from other users, not from other programs running
-/// as this user.
+/// as this user. Automatic-use approvals are separate entries under
+/// "TidyVNC/credentials.v1.automatic.v1/&lt;scope digest&gt;" with the same
+/// persistence, holding versioned JSON and never a password.
 /// </summary>
 public sealed unsafe class NativeCredentialManagerBacking : INativeCredentialBacking
 {
     public const string DefaultPrefix = "TidyVNC/credentials.v1/";
     public const string Comment = "TidyVNC saved password";
+    public const string ApprovalComment = "TidyVNC automatic authentication";
     public const int MaximumBlobBytes = (int)PInvoke.CRED_MAX_CREDENTIAL_BLOB_SIZE;
 
-    private readonly string prefix;
+    private readonly string prefix, approvalPrefix;
 
     /// <summary>
     /// Null uses the state root's prefix (DefaultPrefix, or the isolated test
@@ -43,7 +54,11 @@ public sealed unsafe class NativeCredentialManagerBacking : INativeCredentialBac
         prefix ??= TidyVNC.Native.Storage.NativeStateRoot.CredentialPrefix;
         if (prefix.Length is 0 or > 256 || prefix.Contains('*', StringComparison.Ordinal)) throw new ArgumentException("Invalid prefix", nameof(prefix));
         this.prefix = prefix;
+        // Outside the password prefix, so listing and enumeration never see approvals.
+        approvalPrefix = (prefix.EndsWith('/') ? prefix[..^1] : prefix) + ".automatic.v1/";
     }
+
+    public bool SupportsAutomaticUse => true;
 
     /// <summary>The service result for a Win32 error (SERVICES.md section 3 table).</summary>
     public static NativeCredentialError Classify(int win32) => (WIN32_ERROR)win32 switch
@@ -134,6 +149,59 @@ public sealed unsafe class NativeCredentialManagerBacking : INativeCredentialBac
             if (!PInvoke.CredDelete(target, CRED_TYPE.CRED_TYPE_GENERIC, 0)) throw Failure();
     }
 
+    private string ApprovalTarget(NativeCredentialKey scope) => approvalPrefix + scope.Digest;
+
+    public NativeCredentialApproval? Approval(NativeCredentialKey scope)
+    {
+        CREDENTIALW* credential = null;
+        fixed (char* target = ApprovalTarget(scope))
+        {
+            if (!PInvoke.CredRead(target, CRED_TYPE.CRED_TYPE_GENERIC, 0, &credential))
+            {
+                var failure = Failure();
+                return failure.Error == NativeCredentialError.NotFound ? null : throw failure;
+            }
+        }
+        try
+        {
+            var size = (int)credential->CredentialBlobSize;
+            if (size is 0 or > MaximumBlobBytes || credential->CredentialBlob is null) throw new NativeCredentialException(NativeCredentialError.Corrupt);
+            return NativeCredentialApproval.Parse(new ReadOnlySpan<byte>(credential->CredentialBlob, size));
+        }
+        finally
+        {
+            PInvoke.CredFree(credential);
+        }
+    }
+
+    /// <summary>Writes replace the scope's approval; an approval larger than a credential blob is refused (Invalid).</summary>
+    public void SetApproval(NativeCredentialKey scope, NativeCredentialApproval? approval)
+    {
+        fixed (char* target = ApprovalTarget(scope))
+        {
+            if (approval is null)
+            {
+                if (!PInvoke.CredDelete(target, CRED_TYPE.CRED_TYPE_GENERIC, 0) && Failure() is { Error: not NativeCredentialError.NotFound } failure) throw failure;
+                return;
+            }
+            var data = approval.Serialize();
+            if (data.Length > MaximumBlobBytes) throw new NativeCredentialException(NativeCredentialError.Invalid);
+            fixed (byte* blob = data) fixed (char* comment = ApprovalComment)
+            {
+                var credential = new CREDENTIALW
+                {
+                    Type = CRED_TYPE.CRED_TYPE_GENERIC,
+                    TargetName = target,
+                    Comment = comment,
+                    CredentialBlobSize = (uint)data.Length,
+                    CredentialBlob = blob,
+                    Persist = CRED_PERSIST.CRED_PERSIST_LOCAL_MACHINE,
+                };
+                if (!PInvoke.CredWrite(&credential, 0)) throw Failure();
+            }
+        }
+    }
+
     /// <summary>This app's entries in target-name order; foreign or malformed targets under the prefix are skipped.</summary>
     public NativeCredentialMetadataPage List(int limit)
     {
@@ -182,11 +250,92 @@ public sealed class NativeCredentialStore : IAsyncDisposable
     private readonly INativeCredentialBacking backing;
     private readonly SemaphoreSlim serial = new(1, 1);
     private readonly Lock gate = new();
+    private readonly HashSet<NativeCredentialKey> revokedAutomaticScopes = [];
     private readonly TaskCompletionSource drained = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private int pending;
     private bool closed;
 
-    public NativeCredentialStore(INativeCredentialBacking? backing = null) => this.backing = backing ?? new NativeCredentialManagerBacking();
+    public NativeCredentialStore(INativeCredentialBacking? backing = null)
+    {
+        this.backing = backing ?? new NativeCredentialManagerBacking();
+        SupportsAutomaticUse = this.backing.SupportsAutomaticUse;
+    }
+
+    public bool SupportsAutomaticUse { get; }
+
+    private bool Revoked(NativeCredentialKey scope)
+    {
+        lock (gate) return revokedAutomaticScopes.Contains(scope);
+    }
+
+    /// <summary>
+    /// The approved saved password for a scope, when its approval exists and was
+    /// given under the same credential-protection assessment; otherwise null.
+    /// </summary>
+    public async Task<NativeAutomaticCredential?> LookupAutomaticAsync(NativeCredentialKey scope, bool secure, CancellationToken cancellation = default)
+    {
+        if (!SupportsAutomaticUse || Revoked(scope)) return null;
+        var result = await Perform<NativeAutomaticCredential?>(b =>
+        {
+            if (b.Approval(scope) is not { } approval || approval.Secure != secure) return null;
+            approval.Validate();
+            return new NativeAutomaticCredential(approval, b.Lookup(approval.Key));
+        }, cancellation).ConfigureAwait(false);
+        // A revocation that started while this read was running wins.
+        if (result is not null && Revoked(scope))
+        {
+            result.Secret.Clear();
+            return null;
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Approves automatic reuse after a successful authentication, but only when
+    /// the saved password is the one that succeeded: a different password typed
+    /// by hand must not authorize silently resending an older saved one.
+    /// </summary>
+    public async Task ApproveAutomaticAsync(NativeCredentialKey scope, NativeCredentialApproval approval, NativeCredentialSecret successfulSecret)
+    {
+        if (!SupportsAutomaticUse) return;
+        approval.Validate();
+        var approved = await Perform(b =>
+        {
+            NativeCredentialSecret saved;
+            try { saved = b.Lookup(approval.Key); }
+            catch (NativeCredentialException missing) when (missing.Error == NativeCredentialError.NotFound)
+            {
+                b.SetApproval(scope, null);
+                return false;
+            }
+            bool matches;
+            using (saved)
+            {
+                var stored = saved.CopyBytes();
+                byte[] submitted;
+                try { submitted = successfulSecret.CopyBytes(); }
+                catch { CryptographicOperations.ZeroMemory(stored); throw; }
+                matches = CryptographicOperations.FixedTimeEquals(stored, submitted);
+                CryptographicOperations.ZeroMemory(stored);
+                CryptographicOperations.ZeroMemory(submitted);
+            }
+            b.SetApproval(scope, matches ? approval : null);
+            return matches;
+        }, CancellationToken.None).ConfigureAwait(false);
+        lock (gate)
+        {
+            if (approved) revokedAutomaticScopes.Remove(scope);
+            else revokedAutomaticScopes.Add(scope);
+        }
+    }
+
+    /// <summary>Removes a scope's approval; lookups in flight return nothing from the moment this is called.</summary>
+    public Task RevokeAutomaticAsync(NativeCredentialKey scope, CancellationToken cancellation = default)
+    {
+        if (!SupportsAutomaticUse) return Task.CompletedTask;
+        lock (gate) revokedAutomaticScopes.Add(scope);
+        return Perform(b => { b.SetApproval(scope, null); return true; }, cancellation);
+    }
 
     public Task<NativeCredentialSecret> LookupAsync(NativeCredentialKey key, CancellationToken cancellation = default)
         => Perform(b => b.Lookup(key), cancellation);

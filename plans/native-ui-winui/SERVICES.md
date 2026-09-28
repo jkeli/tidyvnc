@@ -113,6 +113,23 @@ offer "remember". The macOS app has no credential-management window; neither doe
 this one. Users can see the entries in Control Panel > Credential Manager under
 the fixed comment, and the store tolerates entries deleted there.
 
+**Automatic reuse (as on macOS, KEYCHAIN.md).** After a successful manual
+authentication with a saved password, including one typed by hand that matches
+it or one just remembered, the app records an approval for automatic reuse. It
+is a separate generic credential, `TidyVNC/credentials.v1.automatic.v1/<digest>`,
+with the same persistence and the comment `TidyVNC automatic authentication`,
+outside the password prefix so it is never listed as a password. The digest is
+the credential identity of the prompt's destination, route and negotiated method
+with an empty user name. The blob is versioned JSON naming the exact credential
+account, the last successful user name and the credential-protection
+assessment; it holds no password or hash, and one that does not fit in a blob is
+not recorded. The next matching prompt submits the saved password once, after the
+trust prompts that precede it, with the dialog hidden during the lookup. Missing
+approval, a changed assessment and store errors fall back to the dialog. A
+rejection revokes the approval but keeps the password, and is not retried;
+*Forget saved password* removes both. Approval is never inferred for passwords
+saved by earlier versions, and launch credentials never create one.
+
 **Threat model (shown in Help).** DPAPI encrypts the entries for the user, but any
 program running as that user can read them. This is the same protection the
 Remote Desktop client uses. It is weaker than a macOS Keychain item with per-app

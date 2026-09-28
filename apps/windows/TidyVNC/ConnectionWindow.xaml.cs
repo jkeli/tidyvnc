@@ -362,8 +362,12 @@ public sealed partial class ConnectionWindow : Window
         if (session?.Prompt is { } prompt)
         {
             if (prompt.Kind == NativePrompt.PromptKind.Credentials)
+            {
+                // An approved saved password is answering: the dialog appears only if that falls back.
+                if (Controller.Credentials.IsAutomaticallyAuthenticating(prompt)) return null;
                 return new DialogRequest($"auth:{prompt.Generation}:{prompt.Id}", () => AuthenticationDialog.Create(Controller, prompt),
                     result => { if (result != ContentDialogResult.Primary) Controller.Cancel(); });
+            }
             return new DialogRequest($"trust:{prompt.Generation}:{prompt.Id}", () => TrustDialog.Create(Controller, prompt),
                 result => { if (result != ContentDialogResult.Primary) Controller.Cancel(); });
         }
