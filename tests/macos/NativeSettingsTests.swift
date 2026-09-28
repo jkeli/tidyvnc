@@ -787,12 +787,41 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   await preferences.close(); displays.stop(); try await runtime.shutdown()
 }
 
+@MainActor func renderSSHAuthentication(directory: URL) async throws {
+  let executable = URL(fileURLWithPath:CommandLine.arguments[0]).deletingLastPathComponent()
+    .appendingPathComponent("native-tunnel-child").path
+  for loopback in [true,false] {
+    let runtime = try NativeRuntime(), preferences = NativePreferencesStore(backing:SettingsBacking())
+    guard let peer = native_test_peer_create(1) else { throw Failure(message:"SSH authentication peer") }
+    defer { native_test_peer_destroy(peer) }
+    let port = native_test_peer_port(peer)
+    let model = ConnectionModel(runtime:runtime,preferences:preferences,tunnelFactory: { request in
+      NativeSSHTunnel(request:request,executable:executable,timeout:.seconds(5)) { command,socket in
+        [command.rawValue,socket,"ready",String(port)]
+      }
+    }) { _,_ in }
+    try await waitForEncoding { model.defaults?.isReady == true }
+    model.selectDestination(.init(endpoint:loopback ? "127.0.0.1" : "10.0.1.59",sshGateway:try NativeSSHGateway("crashbab")))
+    model.connect()
+    try await waitForEncoding { model.session?.prompt != nil }
+    let session = model.session!, request = session.prompt!
+    for dark in [false,true] {
+      try await capture(AuthenticationSheet(model:model,session:session,request:request),
+        name:"authentication-ssh-" + (loopback ? "loopback" : "onward") + (dark ? "-dark" : ""),
+        directory:directory,dark:dark,size:NSSize(width:520,height:760)) {}
+    }
+    await model.close(); try await runtime.shutdown(); await preferences.close()
+  }
+}
+
 @main struct NativeSettingsTests {
   @MainActor static func main() async {
     _ = NSApplication.shared
     do {
       let directory = URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? NSTemporaryDirectory())
       try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+      try await renderSSHAuthentication(directory:directory)
+      if CommandLine.arguments.contains("--ssh-only") { return }
       try await keyboardActions()
       try await renderConnectionScreen(directory:directory)
       if CommandLine.arguments.contains("--connection-only") { return }

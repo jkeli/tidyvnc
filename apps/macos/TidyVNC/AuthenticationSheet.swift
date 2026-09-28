@@ -27,14 +27,25 @@ struct AuthenticationSheet: View {
     VStack(alignment: .leading, spacing: 16) {
       Text(request.kind == .credentials ? String(localized:"authentication.authentication.required", defaultValue:"Authentication required") : String(localized:"authentication.verify.server.identity", defaultValue:"Verify server identity")).font(.title2.bold())
       Text(request.serverName).font(.headline).textSelection(.enabled).lineLimit(3).help(request.serverName)
+      if model.authenticationUsesSSH(request), let status = model.sshStatus {
+        Label(status, systemImage: "lock.shield").font(.callout)
+          .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("authentication.sshStatus")
+      }
       if request.kind == .credentials {
-        Text(request.credentialProtectionMessage)
-          .foregroundStyle(request.secure ? Color.secondary : Color.nativeWarningText)
+        Text(model.credentialProtectionMessage(request))
+          .foregroundStyle(model.credentialsProtected(request) ? Color.secondary : Color.nativeWarningText)
           // Sheet sizing may round a line short; wrapped warnings must never truncate.
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityIdentifier("authentication.credentialProtection")
-        Text(String(localized:"authentication.this.assessment.describes.credential.protection.not.encryption", defaultValue:"This assessment describes credential protection, not encryption of all desktop traffic."))
-          .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        if model.authenticationUsesSSH(request) {
+          if model.activeTunnelRoute?.targetIsLoopback != true {
+            Text(String(localized:"authentication.ssh.scope", defaultValue:"If the VNC server is the gateway itself, SSH protects the network path. If the server permits loopback connections, you can use 127.0.0.1 as the VNC address to make that route explicit."))
+              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          }
+        } else {
+          Text(String(localized:"authentication.this.assessment.describes.credential.protection.not.encryption", defaultValue:"This assessment describes credential protection, not encryption of all desktop traffic."))
+            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
         if request.usernameRequired { TextField(String(localized:"authentication.username", defaultValue:"Username"), text: $username).textFieldStyle(.roundedBorder) }
         SecureField(String(localized:"authentication.password", defaultValue:"Password"), text: $password).textFieldStyle(.roundedBorder)
           .focused($passwordFocused).accessibilityIdentifier("authentication.password").onSubmit { submit() }

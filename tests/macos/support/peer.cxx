@@ -67,6 +67,7 @@ public:
   std::atomic<uint32_t> patch{0};
   std::atomic<uint32_t> cursor{0};
   std::atomic<bool> clipboardRequested{false};
+  std::atomic<bool> rejectBeforeAuthentication{false};
   std::atomic<uint32_t> bells{0};
   std::atomic<uint32_t> flood{0};
   std::vector<uint8_t> clipboardWire; // protected by mutex, including marker
@@ -136,6 +137,13 @@ private:
       int one = 1; ::setsockopt(fd,SOL_SOCKET,SO_NOSIGPIPE,&one,sizeof(one));
       send(fd,reinterpret_cast<const uint8_t*>("RFB 003.008\n"),12);
       uint8_t input[16]; read(fd,input,12);
+      if (rejectBeforeAuthentication) {
+        const char reason[] = "Sorry, loopback connections are not enabled";
+        const uint8_t refused[] = {0,0,0,0,sizeof(reason)-1};
+        send(fd,refused,sizeof(refused));
+        send(fd,reinterpret_cast<const uint8_t*>(reason),sizeof(reason)-1);
+        require(false);
+      }
       const uint8_t security[] = {1,static_cast<uint8_t>(plain ? 19 : authentication ? 2 : 1)};
       send(fd,security,2); read(fd,input,1);
       if (plain) {
@@ -254,6 +262,7 @@ void* native_test_peer_create_reverse(uint16_t port,uint32_t authentication) {
   try { if (!port) return nullptr; return new Peer(authentication != 0,true,false,4,{},false,{},{},port); } catch (...) { return nullptr; }
 }
 void native_test_peer_hold_authentication(void* peer, uint32_t hold) { static_cast<Peer*>(peer)->holdAuthentication = hold != 0; }
+void native_test_peer_reject_before_authentication(void* peer, uint32_t reject) { static_cast<Peer*>(peer)->rejectBeforeAuthentication = reject != 0; }
 void native_test_peer_disconnect(void* peer) { static_cast<Peer*>(peer)->disconnectRequested = true; }
 void* native_test_peer_create(uint32_t authentication) { try { return new Peer(authentication != 0); } catch (...) { return nullptr; } }
 void* native_test_peer_create_pattern(uint32_t authentication) { try { return new Peer(authentication != 0,true); } catch (...) { return nullptr; } }

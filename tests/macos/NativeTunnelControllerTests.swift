@@ -164,10 +164,13 @@ final class Paths: @unchecked Sendable {
     try await until("preparation entered") { h.owners.first?.preparing == true }
     try check(h.model!.session?.snapshot.state == .idle && h.owners[0].paths.all.isEmpty,
       "preparation precedes SSH and RFB admission")
+    try check(h.model!.sshState == .preparing && h.model!.activeTunnelRoute == nil &&
+      h.model!.sshStatus?.contains("gateway.invalid") == true,"show preparation without claiming an active tunnel")
     if close { h.model!.requestClose() } else { h.model!.cancel() }
     try await until("preparation cancellation joined") { h.owners[0].closed && !h.model!.busy }
     try check(h.owners[0].preparationDrained && h.owners[0].paths.all.isEmpty,
       "cancelled preparation cannot start SSH")
+    try check(h.model!.sshState == .closed && h.model!.activeTunnelRoute == nil,"cancel clears SSH protection")
     try await h.finish()
   }
 }
@@ -178,6 +181,7 @@ final class Paths: @unchecked Sendable {
       h.model!.connect()
       try await until("startup phase") { h.owners.first!.paths.all.count >= (behavior == "hang-forward" ? 3 : 1) }
       try check(!h.model!.canConnect,"no second startup")
+      try check(h.model!.sshState == .connecting && h.model!.activeTunnelRoute == nil,"startup status precedes forwarding readiness")
       if close { h.model!.requestClose(); h.model!.requestClose() }
       else { h.model!.cancel() }
       try await until("startup revoked") { h.owners.first!.closed && !h.model!.busy }
@@ -189,6 +193,8 @@ final class Paths: @unchecked Sendable {
 @MainActor func lifecycle(executable: String) async throws {
   let h = try Harness(executable:executable); try await h.prepare(); try await h.connect()
   let first = h.owners[0]
+  try check(h.model!.sshState == .active && h.model!.activeTunnelRoute?.targetIsLoopback == false,
+    "connected onward route reports active SSH without claiming full-path protection")
   try check(try h.model!.documentExport(legacyDisplays:[]).losses.contains(.sshGateway),"live export requires route-loss review")
   first.holdClose = true; h.model!.disconnect()
   try await until("transport drained before tunnel close") { first.closes == 1 }
@@ -196,6 +202,7 @@ final class Paths: @unchecked Sendable {
   h.model!.connect(); try check(h.owners.count == 1,"cleanup blocks new owner")
   first.holdClose = false
   try await until("reusable") { h.model!.canConnect }
+  try check(h.model!.sshState == .closed && h.model!.activeTunnelRoute == nil,"disconnect clears active route")
   try await h.connect(); try check(h.owners.count == 2,"reconnect gets fresh owner")
   native_test_peer_disconnect(h.peer)
   try await until("remote disconnect reaps tunnel") { h.owners[1].closed && h.model!.canConnect }
@@ -250,19 +257,29 @@ final class Paths: @unchecked Sendable {
     native_test_peer_disconnect(h.peer); try await until("remote auth close") { model.canConnect }
   }
   let first = try await prompt()
+  try check(!first.secure && model.authenticationUsesSSH(first) && model.credentialsProtected(first) &&
+    model.credentialProtectionMessage(first).contains("SSH protects"),"loopback tunnel protects an otherwise unassured VNC prompt")
   model.credentials.useSaved(first,username:"",retention:.session); try await connected(); try await remoteClose()
   let retry = try await prompt()
+  try check(!model.authenticationUsesSSH(first) && !model.credentialsProtected(first),"old prompt cannot inherit replacement tunnel protection")
   try check(model.credentials.canUseSession(retry,username:""),"controller preserves same-route retry credentials")
   try model.credentials.useSession(retry,username:""); try await connected(); try await remoteClose()
   model.sshGatewayText = "bob@gateway.invalid"
+  model.endpoint = "remote.invalid:3"
   let changed = try await prompt()
+  try check(model.authenticationUsesSSH(changed) && !model.credentialsProtected(changed) &&
+    model.credentialProtectionMessage(changed).contains("onward connection"),"onward warning explains the SSH boundary")
   try check(!model.credentials.hasSessionCredential,"controller clears retained credential on route change")
   model.credentials.useSaved(changed,username:"")
   try await until("different route lookup") { !model.credentials.isWorking }
   try check(model.session?.prompt == changed && model.credentials.notice?.contains("No saved password") == true,"different gateway cannot use saved credential")
   model.cancel(); try await until("authentication cancellation") { model.canConnect }
+  try check(!model.authenticationUsesSSH(changed),"cancelled prompt loses active transport indication")
   model.sshGatewayText = ""
+  model.endpoint = "127.0.0.1::\(native_test_peer_port(h.peer))"
   let direct = try await prompt()
+  try check(model.sshState == nil && model.sshStatus == nil && !model.credentialsProtected(direct) &&
+    model.credentialProtectionMessage(direct) == direct.credentialProtectionMessage,"direct retry retains the original VNC assessment")
   model.credentials.useSaved(direct,username:"")
   try await until("direct lookup") { !model.credentials.isWorking }
   try check(model.session?.prompt == direct && model.credentials.notice?.contains("No saved password") == true,"direct route cannot use gateway credential")
@@ -334,6 +351,8 @@ final class Paths: @unchecked Sendable {
       try await until("configured scope remote close") { model.canConnect }
     }
     let first = try await authentication()
+    try check(model.activeTunnelRoute?.gateway.host == "127.0.0.1" &&
+      model.sshStatus?.contains("127.0.0.1") == true,"active status identifies the resolved SSH gateway")
     model.credentials.useSaved(first,username:"",retention:.session)
     try await connected(); try await certificate(approved:true); try await remoteClose()
     let retry = try await authentication()
@@ -442,6 +461,37 @@ final class Paths: @unchecked Sendable {
     "final file target rejects incompatible routing before session allocation")
   await defaults.close(); try await h.finish()
 }
+@MainActor func authenticationRejections(executable: String) async throws {
+  for routed in [true,false] {
+    let h = try Harness(executable:executable,authentication:1)
+    try await h.prepare()
+    let model = h.model!
+    model.endpoint = "127.0.0.1::\(native_test_peer_port(h.peer))"
+    if !routed { model.sshGatewayText = "" }
+    // Repeat the early refusal after a password attempt: old prompts must not
+    // make a later policy refusal look like a rejected password.
+    for requestPassword in [false,true,false] {
+      native_test_peer_reject_before_authentication(h.peer,requestPassword ? 0 : 1)
+      model.connect()
+      if requestPassword {
+        try await until("password request") { model.session?.prompt != nil }
+        var username: [UInt8] = [], password = Array("wrong".utf8)
+        try model.credentials.submit(model.session!.prompt!,username:&username,password:&password)
+      }
+      try await until("rejected connection drained") { !model.busy && model.connectionProblem != nil }
+      let problem = model.connectionProblem!
+      try check(problem.issue == .authenticationRejected && problem.requestedCredentials == requestPassword &&
+        problem.usedSSH == routed,"refusal records the current attempt's prompt and SSH context")
+      try check(problem.message.contains("before requesting credentials") == !requestPassword,
+        "policy refusal does not suggest a password was rejected")
+      try check(problem.message.contains("SSH connected successfully") == routed,"SSH success survives cleanup in the error")
+      try check(model.canRetryConnection(problem),"both rejection phases remain retryable")
+      model.dismissConnectionProblem(problem.id)
+    }
+    try await h.finish()
+  }
+}
+
 @main enum NativeTunnelControllerTests {
   @MainActor static func main() async {
     do {
@@ -454,6 +504,7 @@ final class Paths: @unchecked Sendable {
       try await startup(executable:executable); try await lifecycle(executable:executable)
       try await admissionCancellation(executable:executable); try await dropped(executable:executable)
       try await credentials(executable:executable)
+      try await authenticationRejections(executable:executable)
       try await invocation(executable:executable)
       print("PASS tunnel controller startup/admission cancellation, remote/child exit, reconnect, close and dropped presentation")
     } catch { FileHandle.standardError.write(Data("FAIL: \(error)\n".utf8)); exit(1) }

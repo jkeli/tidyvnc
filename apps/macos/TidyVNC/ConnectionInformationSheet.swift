@@ -6,6 +6,7 @@ import TidyVNCNative
 struct ConnectionInformationSheet: View {
   let endpoint: String
   @ObservedObject var session: NativeSession
+  var sshStatus: String? = nil
   let copy: (String) -> Void
   let dismiss: () -> Void
   var body: some View {
@@ -14,6 +15,7 @@ struct ConnectionInformationSheet: View {
       ScrollView {
        Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 10) {
         row(String(localized:"information.server", defaultValue:"Server"), endpoint)
+        if let sshStatus { row(String(localized:"information.ssh.tunnel", defaultValue:"SSH tunnel"), sshStatus) }
         if let info = session.information {
           row(String(localized:"information.desktop.name", defaultValue:"Desktop name"), info.desktopName.isEmpty ? String(localized:"information.unnamed", defaultValue:"Unnamed") : info.desktopName + (info.nameTruncated ? "…" : ""))
           row(String(localized:"information.protocol", defaultValue:"Protocol"), "RFB \(info.protocolMajor).\(info.protocolMinor)")

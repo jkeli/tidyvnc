@@ -69,6 +69,13 @@ func gone(_ paths: Paths) throws {
   }
 }
 func requestChecks() async throws {
+  for (endpoint, loopback) in [("127.0.0.1",true),("127.4.5.6:2",true),
+      ("[::1]::5901",true),("[0:0:0:0:0:0:0:1]",true),
+      ("localhost",false),("gateway.invalid",false),("10.0.1.59",false),
+      ("127.0.0.1.example",false),("[::2]",false)] {
+    let request = try NativeSSHTunnelRequest(endpoint:endpoint,gateway:"gateway.invalid")
+    try expect(request.targetIsLoopback == loopback,"only literal remote loopback proves SSH reaches the VNC host")
+  }
   // Gateway preflight does not need a target or file read. Its serialized form
   // round-trips through validation instead of trusting a caller-supplied digest.
   for text in ["alice@GATEWAY.invalid","ssh://gateway.invalid:2222","ssh://alice@[fe80::1%en0]:22"] {

@@ -1563,3 +1563,18 @@ installed app acceptance remain open. Reported initial host-key write failures n
 abort before VNC admission with a fixed error; raw SSH diagnostics are discarded
 through a constant-space classifier. The service itself
 adds no further C ABI change; destination persistence uses schema 12 as described above.
+
+The connection window reports SSH preparation, startup, active forwarding and
+closure. Authentication and connection information also show the active gateway,
+using the effective address after SSH configuration resolution. The credential
+message accounts for the established tunnel without changing the core's VNC
+authentication assessment or credential/trust scope. A literal loopback VNC target
+(`127.0.0.1`, another 127/8 address, or `::1`) is reached on the gateway and gets a
+protected message. Other targets show the SSH protection to the gateway and, when
+needed, warn specifically about the onward leg. Aliases and matching hostnames do
+not establish that the VNC target is local to the gateway. For VNC on the SSH
+server itself, use `127.0.0.1` with the appropriate VNC display or port.
+This requires the VNC server to permit loopback clients; otherwise retain its
+network address with the SSH gateway. Rejection alerts distinguish refusal before
+a credential request from rejected authentication after a request, and retain
+whether SSH established the route even after tunnel cleanup.

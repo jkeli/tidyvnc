@@ -704,6 +704,7 @@ add_test(NAME NativeListener.PresentationAndConnectionRouting COMMAND native-lis
 set_tests_properties(NativeListener.PresentationAndConnectionRouting PROPERTIES TIMEOUT 45)
 
 add_executable(native-tunnel-child support/tunnel-child.c)
+add_dependencies(native-settings-tests native-tunnel-child)
 add_executable(native-tunnel-tests NativeTunnelTests.swift)
 set_target_properties(native-tunnel-tests PROPERTIES Swift_MODULE_NAME NativeTunnelTests)
 target_compile_options(native-tunnel-tests PRIVATE -swift-version 6 -strict-concurrency=complete

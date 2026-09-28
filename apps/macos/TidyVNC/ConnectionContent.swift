@@ -42,6 +42,10 @@ struct ConnectionContent: View {
               .disabled(!model.canEditDestination).accessibilityIdentifier("connection.sshGateway")
               .help(String(localized:"profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a", defaultValue:"Enter user@host or ssh://user@host:port. Leave empty for a direct connection."))
             if let issue = model.gatewayIssue { Text(issue).foregroundStyle(Color.nativeErrorText).font(.caption) }
+            if let status = model.sshStatus {
+              Label(status, systemImage: "network").font(.caption)
+                .fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("connection.sshStatus")
+            }
             if !model.sshGatewayText.isEmpty {
               Text(String(localized:"profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are", defaultValue:"SSH reads supported settings from ~/.ssh/config. Commands and proxy hops are unavailable. Passwords are used once; new Ed25519/RSA/ECDSA gateway keys require approval. Changed keys are rejected."))
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
@@ -89,6 +93,9 @@ struct ConnectionContent: View {
         Divider()
         HStack {
           Text(status).accessibilityIdentifier("connection.status")
+          if let sshStatus = model.sshStatus {
+            Text(sshStatus).lineLimit(1).help(sshStatus).accessibilityIdentifier("connection.sshTransport")
+          }
           Spacer()
           if let message = model.fullscreen.message {
             Text(message).foregroundStyle(Color.nativeWarningText).lineLimit(1).help(message).accessibilityIdentifier("fullscreen.status")
@@ -135,7 +142,7 @@ struct ConnectionContent: View {
       case .authentication(let request):
         AuthenticationSheet(model: model, session: session, request: request).interactiveDismissDisabled()
       case .information:
-        ConnectionInformationSheet(endpoint: model.endpoint, session: session, copy: model.copyToPasteboard, dismiss: model.closeInformation)
+        ConnectionInformationSheet(endpoint: model.endpoint, session: session, sshStatus: model.sshStatus, copy: model.copyToPasteboard, dismiss: model.closeInformation)
       case .input(let draft):
         InputSettingsSheet(model: draft, dismiss: model.closeInput)
       case .scaling(let draft):
@@ -154,7 +161,7 @@ struct ConnectionContent: View {
         SessionEncodingSheet(model: draft, dismiss: model.closeEncoding)
       }
     }
-    .alert(problem?.issue.title ?? String(localized:"app.connection.problem", defaultValue:"Connection Problem"), isPresented: Binding(
+    .alert(problem?.title ?? String(localized:"app.connection.problem", defaultValue:"Connection Problem"), isPresented: Binding(
       get: { !model.documentSave.hasPending && model.fullscreen.phase == .windowed && (problem != nil || model.message != nil) },
       set: { visible in
         if !visible {
@@ -174,7 +181,7 @@ struct ConnectionContent: View {
         Button(String(localized:"app.ok", defaultValue:"OK"), role: .cancel) { model.message = nil }.keyboardShortcut(.defaultAction)
       }
     } message: {
-      Text(problem?.issue.message ?? model.message ?? "")
+      Text(problem?.message ?? model.message ?? "")
     }
   }
   private var showsConnectionSetup: Bool {
@@ -290,4 +297,3 @@ struct ConnectionContent: View {
     }
   }
 }
-

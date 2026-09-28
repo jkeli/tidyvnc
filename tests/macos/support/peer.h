@@ -13,6 +13,7 @@ uint32_t native_resize_peer_count(void* peer);
 void* native_test_peer_create_reconnecting(uint32_t authentication);
 void* native_test_peer_create_reverse(uint16_t port,uint32_t authentication);
 void native_test_peer_hold_authentication(void* peer, uint32_t hold);
+void native_test_peer_reject_before_authentication(void* peer, uint32_t reject);
 void native_test_peer_disconnect(void* peer);
 void* native_test_peer_create(uint32_t authentication);
 /* Loopback-only VeNCrypt Plain fixture; expected byte strings bounded to 64. */

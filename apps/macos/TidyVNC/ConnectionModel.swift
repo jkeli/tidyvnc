@@ -7,6 +7,27 @@ struct ConnectionProblem: Identifiable, Equatable {
   let id = UUID()
   let generation: UInt64
   let issue: NativeConnectionIssue
+  let requestedCredentials: Bool
+  let usedSSH: Bool
+  var title: String {
+    if issue == .authenticationRejected && !requestedCredentials {
+      return String(localized:"connection.recovery.vnc.refused.title", defaultValue:"VNC Connection Rejected")
+    }
+    return issue.title
+  }
+  var message: String {
+    guard issue == .authenticationRejected else { return issue.message }
+    if !requestedCredentials {
+      if usedSSH {
+        return String(localized:"connection.recovery.ssh.vnc.refused", defaultValue:"SSH connected successfully, but the VNC server refused the connection before requesting credentials. Check the VNC server’s access rules. Some servers reject connections to their own loopback address; try the server’s network address with the same SSH gateway.")
+      }
+      return String(localized:"connection.recovery.vnc.refused", defaultValue:"The VNC server refused the connection before requesting credentials. Check the server’s access rules and authentication settings before retrying.")
+    }
+    if usedSSH {
+      return String(localized:"connection.recovery.ssh.vnc.authentication.rejected", defaultValue:"SSH connected successfully, but the VNC server rejected authentication. Retry with the VNC credentials, which may differ from your SSH credentials, and check the VNC server’s authentication settings.")
+    }
+    return issue.message
+  }
 }
 // A reverse source port is an observation, not an outbound destination or saved
 // server identity. This request stays in memory and never enters scene restoration.
@@ -42,7 +63,8 @@ struct ConnectionProblem: Identifiable, Equatable {
     guard !stopping, !identity.isEmpty else { throw NativeTunnelError.closed }
     preparedIdentity = identity; return identity
   }
-  func connect(destination: NativeConnectionDestination, onExit: @escaping @MainActor () -> Void) async throws -> NativeCompletion {
+  func connect(destination: NativeConnectionDestination, onReady: @MainActor (NativeTunnelRoute) -> Void,
+               onExit: @escaping @MainActor () -> Void) async throws -> NativeCompletion {
     let route = try await owner.start()
     try Task.checkCancellation()
     guard !stopping, route.endpoint.utf8.elementsEqual(destination.endpoint.utf8),
@@ -54,6 +76,7 @@ struct ConnectionProblem: Identifiable, Equatable {
       onExit()
     }
     admitted = true
+    onReady(route)
     return try await session.connect(endpoint:destination.endpoint,through:route.localEndpoint,routeIdentity:route.routeIdentity)
   }
   func drain() -> Task<Void,Never> {
@@ -174,6 +197,41 @@ struct ConnectionProblem: Identifiable, Equatable {
   private var tunnelAttempt: ConnectionTunnelAttempt?
   private var attemptDestination: NativeConnectionDestination?
   private var attemptEndpoint: String?
+  private var credentialPromptGeneration: UInt64?
+  enum SSHState { case preparing, connecting, active, closed, failed }
+  @Published private(set) var sshState: SSHState?
+  @Published private(set) var activeTunnelRoute: NativeTunnelRoute?
+  var sshStatus: String? {
+    guard let sshState, let gateway = activeTunnelRoute?.gateway ?? attemptDestination?.sshGateway else { return nil }
+    let address = gateway.canonicalURI
+    switch sshState {
+    case .preparing: return String(localized:"connection.ssh.preparing", defaultValue:"Preparing SSH gateway: \(address)")
+    case .connecting: return String(localized:"connection.ssh.connecting", defaultValue:"Connecting to SSH gateway: \(address)")
+    case .active: return String(localized:"connection.ssh.active", defaultValue:"SSH tunnel active via \(address)")
+    case .closed: return String(localized:"connection.ssh.closed", defaultValue:"SSH tunnel closed: \(address)")
+    case .failed: return String(localized:"connection.ssh.failed", defaultValue:"SSH connection failed: \(address)")
+    }
+  }
+  func authenticationUsesSSH(_ request: NativePrompt) -> Bool {
+    request.generation == session?.generation && activeTunnelRoute != nil && sshState == .active
+  }
+  func credentialsProtected(_ request: NativePrompt) -> Bool {
+    request.secure || (authenticationUsesSSH(request) && activeTunnelRoute?.targetIsLoopback == true)
+  }
+  func credentialProtectionMessage(_ request: NativePrompt) -> String {
+    guard authenticationUsesSSH(request) else { return request.credentialProtectionMessage }
+    if activeTunnelRoute?.targetIsLoopback == true {
+      return String(localized:"authentication.ssh.protected", defaultValue:"SSH protects your credentials and desktop traffic to the VNC server on the gateway.")
+    }
+    if request.secure {
+      return String(localized:"authentication.ssh.method.protected", defaultValue:"SSH encrypts traffic to the gateway. The VNC authentication method also protects your credentials.")
+    }
+    return String(localized:"authentication.ssh.onward.unassured", defaultValue:"SSH protects your credentials to the gateway. The VNC authentication method may not protect them on an onward connection to a separate VNC server.")
+  }
+  private func endSSH(_ state: SSHState = .closed) {
+    activeTunnelRoute = nil
+    if sshState != nil && sshState != .failed { sshState = state }
+  }
   var authenticationEndpoint: String { attemptEndpoint ?? endpoint }
   private var suppressConnectionProblem = false
   private var reportedGeneration: UInt64?
@@ -247,7 +305,10 @@ struct ConnectionProblem: Identifiable, Equatable {
         self.resizeObservation = session.remoteResize.objectWillChange.sink { [weak self] in self?.objectWillChange.send() }
         self.trust.bind(session)
         self.promptObservation = session.$prompt.sink { [weak self] prompt in
-          MainActor.assumeIsolated { self?.trust.inspect(prompt); self?.credentials.inspect(prompt) }
+          MainActor.assumeIsolated {
+            if let prompt, prompt.kind == .credentials { self?.credentialPromptGeneration = prompt.generation }
+            self?.trust.inspect(prompt); self?.credentials.inspect(prompt)
+          }
         }
         self.credentials.bind(session)
         self.input.bind(session,inactiveCursor:self.defaults?.documentResolution?.cursorType ?? self.defaults?.invocationResolution?.cursorType ?? .dot)
@@ -385,6 +446,8 @@ struct ConnectionProblem: Identifiable, Equatable {
     busy = true; message = nil; connectionProblem = nil; retryProblem = nil
     if reverse != nil { reverseAttempted = true }
     attemptDestination = destination; attemptEndpoint = address; suppressConnectionProblem = false; reportedGeneration = nil
+    activeTunnelRoute = nil; sshState = attempt == nil ? nil : .preparing
+    credentialPromptGeneration = nil
     operation = Task { [weak self] in
       var connected = false
       do {
@@ -398,7 +461,10 @@ struct ConnectionProblem: Identifiable, Equatable {
         let completion: NativeCompletion
         if let reverse { completion = try await reverse.listener.accept(reverse.peer,into:session) }
         else if let attempt {
-          completion = try await attempt.connect(destination:destination) { [weak self, weak attempt] in
+          self?.sshState = .connecting
+          completion = try await attempt.connect(destination:destination, onReady: { [weak self] route in
+            self?.activeTunnelRoute = route; self?.sshState = .active
+          }) { [weak self, weak attempt] in
             guard let self, let attempt else { return }; self.tunnelExited(attempt)
           }
         } else { completion = try await session.connect(endpoint:address) }
@@ -410,6 +476,7 @@ struct ConnectionProblem: Identifiable, Equatable {
       }
       catch is CancellationError {}
       catch {
+        self?.endSSH(error is NativeTunnelError ? .failed : .closed)
         if let failure = error as? NativeTunnelError {
           self?.reportFatalConnection(failure.description)
         } else if reverse != nil, !(error is NativeCommandFailure) {
@@ -419,6 +486,7 @@ struct ConnectionProblem: Identifiable, Equatable {
         }
       }
       if let attempt, !connected {
+        self?.endSSH()
         await attempt.drain().value
         if self?.tunnelAttempt === attempt { self?.tunnelAttempt = nil }
       }
@@ -427,6 +495,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   }
   private func tunnelExited(_ attempt: ConnectionTunnelAttempt) {
     guard !closing, tunnelAttempt === attempt, !attempt.stopping else { return }
+    endSSH(.failed)
     if !alertOnFatalError { closeAfterFailure(); return }
     suppressConnectionProblem = true; connectionProblem = nil; retryProblem = nil
     message = String(localized:"connection.recovery.the.ssh.tunnel.closed.check.the.gateway.and.connect.again", defaultValue:"The SSH tunnel closed. Check the gateway and connect again.")
@@ -436,6 +505,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   }
   private func finishTunnel(_ attempt: ConnectionTunnelAttempt) {
     guard !closing, tunnelAttempt === attempt, operation == nil else { return }
+    endSSH()
     busy = true
     operation = Task { [weak self] in
       await attempt.drain().value
@@ -444,6 +514,7 @@ struct ConnectionProblem: Identifiable, Equatable {
     }
   }
   func cancel() {
+    endSSH()
     sshInteraction.cancel()
     if let reverse { try? reverse.listener.reject(reverse.peer) }
     trust.cancel(); credentials.clear()
@@ -452,6 +523,7 @@ struct ConnectionProblem: Identifiable, Equatable {
   func disconnect() {
     guard let session, !closing else { return }
     if busy { cancel(); return }
+    endSSH()
     trust.cancel(); credentials.clear()
     suppressConnectionProblem = true; connectionProblem = nil; retryProblem = nil
     busy = true; message = nil
@@ -489,7 +561,8 @@ struct ConnectionProblem: Identifiable, Equatable {
           reportedGeneration != generation else { return }
     reportedGeneration = generation
     message = nil
-    let problem = ConnectionProblem(generation: generation, issue: issue)
+    let problem = ConnectionProblem(generation: generation, issue: issue,
+      requestedCredentials:credentialPromptGeneration == generation,usedSSH:tunnelAttempt?.admitted == true)
     if !alertOnFatalError && !offersRetryConnection(problem) { closeAfterFailure(); return }
     retryProblem = problem; connectionProblem = problem
   }
@@ -626,6 +699,7 @@ struct ConnectionProblem: Identifiable, Equatable {
     catch { message = NativePresentationIssue(error:error,context:.command).message }
   }
   func requestClose() {
+    endSSH()
     guard cleanup == nil else { return }
     if let reverse { try? reverse.listener.reject(reverse.peer) }
     documentSave.stop(); trust.stop(); credentials.stop(); sshInteraction.stop()

@@ -122,6 +122,20 @@ public struct NativeSSHTunnelRequest: Sendable {
   public var gatewayHost: String { gateway.host }
   public var gatewayUser: String? { gateway.user }
   public var gatewayPort: UInt32 { gateway.port }
+  // Literal loopback is interpreted on the SSH server. Hostname equality (or
+  // local DNS resolution) cannot prove where the gateway forwards a target.
+  var targetIsLoopback: Bool {
+    var ipv4 = in_addr(), ipv6 = in6_addr()
+    if inet_pton(AF_INET,remote.host,&ipv4) == 1 {
+      return UInt32(bigEndian:ipv4.s_addr) >> 24 == 127
+    }
+    if inet_pton(AF_INET6,remote.host,&ipv6) == 1 {
+      return withUnsafeBytes(of:ipv6) { bytes in
+        bytes.prefix(15).allSatisfy { $0 == 0 } && bytes[15] == 1
+      }
+    }
+    return false
+  }
   private let remote: TunnelEndpoint
   private let family: String
   let network: NativeNetworkPolicy
@@ -159,6 +173,8 @@ public struct NativeSSHTunnelRequest: Sendable {
 
 public struct NativeTunnelRoute: Sendable {
   public let endpoint: String, localEndpoint: String, routeIdentity: String
+  public let gateway: NativeSSHGateway
+  public let targetIsLoopback: Bool
 }
 public protocol NativeTunnelOwning: Sendable {
   func prepare() async throws -> String?
@@ -328,7 +344,9 @@ public actor NativeSSHTunnel: NativeTunnelOwning {
                   child.exit == nil, directory.ready("forward") else { throw NativeTunnelError.startupFailed }
             try Task.checkCancellation()
             guard !closed else { throw NativeTunnelError.closed }
-            let route = NativeTunnelRoute(endpoint:request.endpoint,localEndpoint:directory.socket,routeIdentity:preparation?.resolved.routeIdentity ?? request.routeIdentity)
+            let route = NativeTunnelRoute(endpoint:request.endpoint,localEndpoint:directory.socket,
+              routeIdentity:preparation?.resolved.routeIdentity ?? request.routeIdentity,
+              gateway:request.gateway,targetIsLoopback:request.targetIsLoopback)
             self.route = route; return route
           }
           try await Task.sleep(for:.milliseconds(20))

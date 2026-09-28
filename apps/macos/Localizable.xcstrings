@@ -12727,6 +12727,160 @@
           }
         }
       }
+    },
+    "connection.ssh.preparing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing SSH gateway: %@"
+          }
+        }
+      }
+    },
+    "connection.ssh.connecting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecting to SSH gateway: %@"
+          }
+        }
+      }
+    },
+    "connection.ssh.active": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH tunnel active via %@"
+          }
+        }
+      }
+    },
+    "connection.ssh.closed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH tunnel closed: %@"
+          }
+        }
+      }
+    },
+    "connection.ssh.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH connection failed: %@"
+          }
+        }
+      }
+    },
+    "authentication.ssh.protected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH protects your credentials and desktop traffic to the VNC server on the gateway."
+          }
+        }
+      }
+    },
+    "authentication.ssh.method.protected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH encrypts traffic to the gateway. The VNC authentication method also protects your credentials."
+          }
+        }
+      }
+    },
+    "authentication.ssh.onward.unassured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH protects your credentials to the gateway. The VNC authentication method may not protect them on an onward connection to a separate VNC server."
+          }
+        }
+      }
+    },
+    "authentication.ssh.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If the VNC server is the gateway itself, SSH protects the network path. If the server permits loopback connections, you can use 127.0.0.1 as the VNC address to make that route explicit."
+          }
+        }
+      }
+    },
+    "information.ssh.tunnel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH tunnel"
+          }
+        }
+      }
+    },
+    "connection.recovery.vnc.refused.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VNC Connection Rejected"
+          }
+        }
+      }
+    },
+    "connection.recovery.ssh.vnc.refused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH connected successfully, but the VNC server refused the connection before requesting credentials. Check the VNC server’s access rules. Some servers reject connections to their own loopback address; try the server’s network address with the same SSH gateway."
+          }
+        }
+      }
+    },
+    "connection.recovery.vnc.refused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The VNC server refused the connection before requesting credentials. Check the server’s access rules and authentication settings before retrying."
+          }
+        }
+      }
+    },
+    "connection.recovery.ssh.vnc.authentication.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SSH connected successfully, but the VNC server rejected authentication. Retry with the VNC credentials, which may differ from your SSH credentials, and check the VNC server’s authentication settings."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
