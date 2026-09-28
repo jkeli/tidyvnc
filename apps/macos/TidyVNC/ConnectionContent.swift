@@ -256,7 +256,10 @@ struct ConnectionContent: View {
   }
   private var presentedSheet: Sheet? {
     if let question = model.sshInteraction.question { return .ssh(question) }
-    if let prompt = session.prompt { return .authentication(prompt) }
+    if let prompt = session.prompt {
+      if model.credentials.isAutomaticallyAuthenticating(prompt) { return nil }
+      return .authentication(prompt)
+    }
     if let id = model.informationID { return .information(id) }
     if let draft = model.inputDraft { return .input(draft) }
     if let draft = model.fullscreenDraft { return .fullscreen(draft) }

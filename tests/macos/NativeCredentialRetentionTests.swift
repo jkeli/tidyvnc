@@ -4,15 +4,24 @@ import NativeTestSupport
 @testable import TidyVNCNative
 
 struct Failure: Error { let message: String }
-func check(_ condition: @autoclosure () -> Bool, _ message: String) throws {
-  if !condition() { throw Failure(message: message) }
+func check(_ condition: @autoclosure () throws -> Bool, _ message: String) throws {
+  if try !condition() { throw Failure(message: message) }
 }
 final class Preferences: NativePreferencesBacking, Sendable {
   func read() throws -> Data? { nil }
   func write(_ data: Data) throws { throw Failure(message: "Unexpected preferences write") }
 }
 final class Vault: NativeCredentialBacking, @unchecked Sendable {
+  let supportsAutomaticUse: Bool
+  init(automatic: Bool = false) { supportsAutomaticUse = automatic }
   private let lock = NSLock()
+  private var approvals: [NativeCredentialKey:NativeCredentialApproval] = [:]
+  func approval(_ scope: NativeCredentialKey) throws -> NativeCredentialApproval? {
+    try lock.withLock { if let failure { throw failure }; return approvals[scope] }
+  }
+  func setApproval(_ scope: NativeCredentialKey, approval: NativeCredentialApproval?) throws {
+    try lock.withLock { if let failure { throw failure }; approvals[scope] = approval }
+  }
   private var entries: [NativeCredentialKey: [UInt8]] = [:]
   private var operations: [String] = []
   private var failure: NativeCredentialStoreIssue?
@@ -189,9 +198,84 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
 }
 @main struct NativeCredentialRetentionTests {
   @MainActor static func main() async {
-    do { try await run(); try await routeScopes() }
+    do { try await run(); try await routeScopes(); try await automaticUse() }
     catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }
+}
+
+@MainActor func automaticUse() async throws {
+  let runtime = try NativeRuntime(), preferences = NativePreferencesStore(backing:Preferences())
+  let vault = Vault(automatic:true)
+  let peer = native_test_peer_create_reconnecting(1)!
+  defer { native_test_peer_destroy(peer) }
+  let endpoint = "127.0.0.1::\(native_test_peer_port(peer))"
+  let key = try NativeCredentialKey(endpoint:endpoint,authentication:.passwordOnly(securityType:2))
+  vault.seed(key,password:"password")
+  var store = NativeCredentialStore(backing:vault)
+  var model = ConnectionModel(runtime:runtime,preferences:preferences,credentialStore:store) { _,_ in }
+  try await until { model.defaults?.isReady == true }
+  model.endpoint = endpoint
+  func prompt() async throws -> NativePrompt {
+    model.connect()
+    try await until { model.session?.prompt != nil && !model.credentials.isWorking }
+    return model.session!.prompt!
+  }
+  func connected() async throws {
+    try await until { !model.busy && !model.credentials.isWorking && model.session?.snapshot.state == .connected }
+  }
+  func disconnect() async throws {
+    model.disconnect(); try await until { model.canConnect }
+  }
+  let first = try await prompt()
+  try check(!first.secure && !model.credentials.isAutomaticallyAuthenticating(first),"saved password without accepted warning still presents dialog")
+  model.credentials.useSaved(first,username:""); try await connected()
+  try check(try vault.approval(key)?.secure == false,"successful explicit saved use persists unassured-method approval")
+  await model.close(); await store.close()
+  // New controller AND store, sharing only durable backing: no window/session
+  // cache can explain the next automatic authentication.
+  store = NativeCredentialStore(backing:vault)
+  model = ConnectionModel(runtime:runtime,preferences:preferences,credentialStore:store) { _,_ in }
+  try await until { model.defaults?.isReady == true }
+  model.endpoint = endpoint
+  vault.blockNextLookup(); model.connect()
+  try await until { vault.lookupEntered.wait(timeout:.now()) == .success }
+  try check(model.credentials.isAutomaticallyAuthenticating(model.session!.prompt!),"saved lookup suppresses password sheet before submission")
+  vault.lookupRelease.signal(); try await connected(); try await disconnect()
+  let changedProtection = try await store.lookupAutomatic(key,secure:true)
+  try check(changedProtection == nil,"changed credential-protection assessment requires review")
+  for scope in [try NativeCredentialKey(endpoint:"different.invalid",authentication:.passwordOnly(securityType:2)),
+                try NativeCredentialKey(endpoint:endpoint,routeIdentity:"other-gateway",authentication:.passwordOnly(securityType:2)),
+                try NativeCredentialKey(endpoint:endpoint,authentication:.passwordOnly(securityType:256))] {
+    let result = try await store.lookupAutomatic(scope,secure:false)
+    try check(result == nil,"approval never crosses host, route or negotiated method")
+  }
+  vault.fail(.interactionRequired)
+  let locked = try await prompt()
+  try check(!model.credentials.isAutomaticallyAuthenticating(locked) && model.credentials.notice != nil,"Keychain failure restores manual dialog")
+  vault.fail(nil); model.cancel(); try await until { model.canConnect }
+  vault.blockNextLookup(); model.connect()
+  try await until { vault.lookupEntered.wait(timeout:.now()) == .success }
+  model.cancel(); vault.lookupRelease.signal(); try await until { model.canConnect }
+  try check(model.session?.prompt == nil && !model.credentials.hasSessionCredential,"cancelled lookup cannot submit or retain its late result")
+  vault.seed(key,password:"wrong"); model.connect()
+  try await until { model.canConnect && model.session?.snapshot.endReason == .authenticationRejected }
+  try check(try vault.approval(key) == nil && vault.contains(key),"rejected automatic password revokes approval without deleting the password")
+  let retry = try await prompt()
+  try check(!model.credentials.isAutomaticallyAuthenticating(retry),"rejected password is not automatically retried")
+  // Successful manual entry must not authorize the different saved password.
+  try submit(model,.useOnce); try await connected()
+  try check(try vault.approval(key) == nil,"different successful manual password cannot authorize stale saved password")
+  try await disconnect()
+  vault.seed(key,password:"password")
+  _ = try await prompt(); try submit(model,.useOnce); try await connected()
+  try check(try vault.approval(key) != nil,"matching manually entered password also remembers acceptance")
+  try await disconnect()
+  // Force manual fallback, then exercise the explicit Forget action.
+  vault.fail(.interactionRequired); let forget = try await prompt(); vault.fail(nil)
+  model.credentials.forgetSaved(forget,username:""); try await until { !model.credentials.isWorking }
+  try check(try vault.approval(key) == nil && !vault.contains(key),"forget removes both password and automatic approval")
+  await model.close(); await store.close(); await preferences.close(); try await runtime.shutdown()
+  print("PASS durable automatic saved authentication, warning/method/route scope, manual fallback, rejection, cancellation and forget")
 }
 
 @MainActor func routeScopes() async throws {

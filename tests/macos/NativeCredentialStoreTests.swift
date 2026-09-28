@@ -116,6 +116,29 @@ func backend() throws {
   print("PASS scoped SecItem queries, OS interaction/access policy, explicit create/replace, bounded metadata and malformed output")
 }
 func selfKey() throws -> NativeCredentialKey { try key("other.invalid") }
+func approvalBackend() throws {
+  let client = Client(), backend = NativeKeychainBacking(client:client), scope = try key()
+  let approval = NativeCredentialApproval(key:scope,username:"",secure:false)
+  client.configure(errSecItemNotFound)
+  try check(backend.approval(scope) == nil,"old saved passwords have no implicit automatic-use approval")
+  client.configure(errSecSuccess)
+  try backend.setApproval(scope,approval:approval)
+  try check(client.query[kSecAttrService as String] as? String == NativeCredentialKey.service + ".automatic.v1" &&
+    client.query[kSecAttrAccount as String] as? String == scope.account,"approval records have separate service and exact opaque scope")
+  try check(client.interactionNotAllowed == true && client.query[kSecAttrSynchronizable as String] as? Bool == false,
+    "remembering approval never opens an OS prompt or synchronizes")
+  let data = Data(client.payloadAtCall!)
+  try check(JSONDecoder().decode(NativeCredentialApproval.self,from:data) == approval,"approval stores only typed username, key and protection assessment")
+  client.configure(errSecSuccess,result:data as CFData)
+  try check(backend.approval(scope) == approval,"approval survives serialization and reload")
+  client.configure(errSecSuccess,result:Data("{}".utf8) as CFData)
+  try expect(.corrupt) { _ = try backend.approval(scope) }
+  client.configure(errSecItemNotFound)
+  try backend.setApproval(scope,approval:nil)
+  try check(client.query[kSecAttrAccount as String] as? String == scope.account && client.query[kSecValueData as String] == nil,
+    "revocation is scoped and idempotent")
+  print("PASS durable approval namespace, noninteractive policy, decoding and scoped revocation")
+}
 func failures() throws {
   for (status, issue) in [(errSecItemNotFound,NativeCredentialStoreIssue.notFound),
     (errSecNotAvailable,.unavailable),(errSecAuthFailed,.denied),(errSecInteractionNotAllowed,.interactionRequired),
@@ -208,7 +231,7 @@ final class BlockingBacking: NativeCredentialBacking, @unchecked Sendable {
 }
 @main struct NativeCredentialStoreTests {
   @MainActor static func main() async {
-    do { try backend(); try failures(); try await lifetime(); try await integrated() }
+    do { try backend(); try approvalBackend(); try failures(); try await lifetime(); try await integrated() }
     catch { FileHandle.standardError.write(Data("FAIL \(error)\n".utf8)); exit(1) }
   }
 }

@@ -12857,6 +12857,17 @@
           }
         }
       }
+    },
+    "credentials.keychain.automatic.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TidyVNC automatic authentication"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

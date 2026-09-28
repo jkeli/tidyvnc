@@ -1081,8 +1081,8 @@ AppCoordinator shares the credential store across windows. Each ConnectionModel
 owns a NativeAuthenticationCredentials controller whose pending/retained secrets
 are private, with only status and availability published. Use once is the default;
 retain-for-session values survive unexpected interruption but are cleared by manual
-cancel/disconnect, rejection or close. Reconnect submission is an explicit button
-at a matching current prompt, with username re-entry where needed. Remember saves
+cancel/disconnect, rejection or close. Unsaved session credentials use an explicit
+button at a matching current prompt, with username re-entry where needed. Remember saves
 only on a matching connected generation. Persistence errors leave the VNC session
 alive and report a fixed, redacted notice.
 
@@ -1094,6 +1094,21 @@ without rewriting it. Close cancels pending work and joins running operations;
 late results cannot restore UI state or credentials. App shutdown drains window
 controllers before closing the shared store. Real packaged Keychain/OS interaction,
 interactive keyboard/VoiceOver and dedicated trust storage remain open.
+
+After successful manual authentication with a saved password (including manual
+entry matching that saved value), a separate Keychain approval permits automatic
+reuse on the next matching connection. This also remembers acceptance of the
+unassured-credentials warning. Approval is scoped to the canonical destination,
+route, negotiated authentication type/shape, last successful username and the
+credential-protection assessment. Existing saved passwords require one successful
+manual use to establish approval; launch-provided credentials do not create it.
+Automatic lookup forbids OS interaction and hides the authentication sheet while
+checking/submitting. Missing approval, changed scope/assessment and Keychain errors
+fall back to the ordinary dialog. Password rejection revokes approval without
+deleting the password or retrying automatically; Forget removes both. Trust
+callbacks still run before credentials. Use-once input is held only through the
+authentication result and comparison with an existing saved password, then cleared;
+the approval record never saves that input as a password.
 
 
 ### Certificate policy and one-time trust presentation

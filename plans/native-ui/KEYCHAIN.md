@@ -108,13 +108,31 @@ cleared without submission if its prompt/generation or controller epoch changed.
 Once an OS mutation starts, close waits for its actual outcome. Full OS prompt
 cancellation and uncertain-mutation reconciliation remain acceptance work.
 
-Saved values are submitted only by an explicit action at the protocol's current
+Saved values can be submitted by an explicit action at the protocol's current
 credential prompt, after preceding trust callbacks. Rejected values are not
 retried or deleted automatically. Retaining an explicitly used saved value for
 session reconnect is optional and does not rewrite it. Forget targets the exact
 key; replacement is a separate checkbox and happens only after successful manual
-authentication. Automatic trust-gated reuse and dedicated trust storage remain
-separate unfinished work; this flow does not infer server trust from Keychain access.
+authentication. This flow does not infer server trust from Keychain access.
+
+Successful manual authentication now records automatic-use approval only when
+the existing saved password matches the value that succeeded. Approvals are
+versioned JSON in the separate `io.github.jkeli.tidyvnc.credentials.v1.automatic.v1`
+Keychain service, with the same local/unlocked/non-synchronizing policy. The
+opaque account identifies destination, route and authentication method/shape;
+the payload identifies the last successful username, exact credential account
+and credential-protection assessment, without a password or password hash.
+Approval writes replace a prior approval for that scope. Password writes retain
+their explicit create/replace behavior. Password-only and username/password
+prompts use the same flow, with exact credential identity rechecked before reply.
+
+Automatic reuse runs once per current prompt, after preceding trust callbacks,
+with OS interaction forbidden. The sheet stays hidden during that lookup and
+submission. Absent approval, assessment changes or unavailable credentials return
+to the ordinary prompt. Rejected authentication revokes approval; the saved
+password is preserved. Revocation drains even when the window closes. Explicit
+Forget revokes approval and removes the selected password. Approval from older
+versions is never inferred, and launch secrets do not enroll automatic reuse.
 
 Current tests inject a SecItem client and backing to verify exact query policy,
 status mapping, malformed results, secret ownership, bounds, asynchronous execution

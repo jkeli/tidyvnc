@@ -24,6 +24,7 @@ private struct SystemSecItemClient: NativeSecItemClient {
 // Immutable configuration, with per-call dictionaries and LAContexts. The store
 // serializes calls; no process-wide interaction flags or authentication cache.
 public final class NativeKeychainBacking: NativeCredentialBacking, Sendable {
+  public let supportsAutomaticUse = true
   private let client: any NativeSecItemClient
   private let service: String
   public init() { client = SystemSecItemClient(); service = NativeCredentialKey.service }
@@ -97,6 +98,38 @@ public final class NativeKeychainBacking: NativeCredentialBacking, Sendable {
   public func delete(_ key: NativeCredentialKey, interaction: NativeCredentialInteraction) throws {
     let context = context(interaction); defer { context.invalidate() }
     try Self.check(client.delete(query(key, context: context)))
+  }
+  public func approval(_ scope: NativeCredentialKey) throws -> NativeCredentialApproval? {
+    let context = context(.forbid); defer { context.invalidate() }
+    var query = query(scope,context:context)
+    query[kSecAttrService as String] = service + ".automatic.v1"
+    query[kSecReturnData as String] = true; query[kSecMatchLimit as String] = kSecMatchLimitOne
+    let (status,result) = client.copy(query)
+    if status == errSecItemNotFound { return nil }
+    try Self.check(status)
+    guard let data = result as? Data, data.count <= 32768 else { throw NativeCredentialStoreIssue.corrupt }
+    do {
+      let value = try JSONDecoder().decode(NativeCredentialApproval.self,from:data)
+      try value.validate(); return value
+    } catch { throw NativeCredentialStoreIssue.corrupt }
+  }
+  public func setApproval(_ scope: NativeCredentialKey, approval: NativeCredentialApproval?) throws {
+    let context = context(.forbid); defer { context.invalidate() }
+    var query = query(scope,context:context)
+    query[kSecAttrService as String] = service + ".automatic.v1"
+    guard let approval else {
+      let status = client.delete(query)
+      if status != errSecItemNotFound { try Self.check(status) }
+      return
+    }
+    try approval.validate()
+    let attributes: [String:Any] = [kSecValueData as String: try JSONEncoder().encode(approval),
+      kSecAttrAccessible as String:kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
+    var item = query; item.merge(attributes) { _,new in new }
+    item[kSecAttrLabel as String] = String(localized:"credentials.keychain.automatic.label", defaultValue:"TidyVNC automatic authentication")
+    let status = client.add(item)
+    if status == errSecDuplicateItem { try Self.check(client.update(query,attributes:attributes)) }
+    else { try Self.check(status) }
   }
   private func metadata(_ value: Any, expected: NativeCredentialKey? = nil) throws -> NativeCredentialMetadata {
     guard let fields = value as? [String: Any], let account = fields[kSecAttrAccount as String] as? String,

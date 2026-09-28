@@ -45,15 +45,43 @@ public struct NativeCredentialMetadataPage: Sendable, Equatable {
   public let entries: [NativeCredentialMetadata]
   public let hasMore: Bool
 }
+// This record authorizes reuse of an existing Keychain password. It contains no
+// password and is stored separately from credentials, under an opaque scope key.
+public struct NativeCredentialApproval: Codable, Sendable, Equatable {
+  let version: Int
+  let account: String
+  public let username: String
+  public let secure: Bool
+  init(key: NativeCredentialKey, username: String, secure: Bool) {
+    version = 1; account = key.account; self.username = username; self.secure = secure
+  }
+  var key: NativeCredentialKey { get throws { try NativeCredentialKey(storedAccount:account) } }
+  func validate() throws {
+    guard version == 1, username.utf8.count <= 4096, !username.utf8.contains(0) else { throw NativeCredentialStoreIssue.corrupt }
+    _ = try key
+  }
+}
+public struct NativeAutomaticCredential: Sendable {
+  public let approval: NativeCredentialApproval
+  public let secret: NativeCredentialSecret
+}
 // Backends are synchronous and invoked on the store's serial utility queue.
 // They must report committed outcomes even if cancellation arrives during IO.
 public protocol NativeCredentialBacking: Sendable {
+  var supportsAutomaticUse: Bool { get }
+  func approval(_ scope: NativeCredentialKey) throws -> NativeCredentialApproval?
+  func setApproval(_ scope: NativeCredentialKey, approval: NativeCredentialApproval?) throws
   func lookup(_ key: NativeCredentialKey, interaction: NativeCredentialInteraction) throws -> NativeCredentialSecret
   func save(_ key: NativeCredentialKey, secret: NativeCredentialSecret, mode: NativeCredentialSaveMode,
             interaction: NativeCredentialInteraction) throws
   func delete(_ key: NativeCredentialKey, interaction: NativeCredentialInteraction) throws
   func metadata(_ key: NativeCredentialKey, interaction: NativeCredentialInteraction) throws -> NativeCredentialMetadata
   func listMetadata(limit: Int, interaction: NativeCredentialInteraction) throws -> NativeCredentialMetadataPage
+}
+public extension NativeCredentialBacking {
+  var supportsAutomaticUse: Bool { false }
+  func approval(_ scope: NativeCredentialKey) throws -> NativeCredentialApproval? { nil }
+  func setApproval(_ scope: NativeCredentialKey, approval: NativeCredentialApproval?) throws { throw NativeCredentialStoreIssue.unavailable }
 }
 private final class CredentialAdmission: @unchecked Sendable {
   private let lock = NSLock()
@@ -62,13 +90,56 @@ private final class CredentialAdmission: @unchecked Sendable {
   func start() -> Bool { lock.withLock { guard !cancelled else { return false }; started = true; return true } }
 }
 public actor NativeCredentialStore {
+  public nonisolated let supportsAutomaticUse: Bool
+  private var revokedAutomaticScopes: Set<NativeCredentialKey> = []
   private let backing: any NativeCredentialBacking
   private let queue = DispatchQueue(label: "io.github.jkeli.tidyvnc.credentials", qos: .utility)
   private var pending: [UUID: CredentialAdmission] = [:]
   private var closed = false
   private var drain: CheckedContinuation<Void,Never>?
   private var closeTask: Task<Void,Never>?
-  public init(backing: any NativeCredentialBacking = NativeKeychainBacking()) { self.backing = backing }
+  public init(backing: any NativeCredentialBacking = NativeKeychainBacking()) {
+    self.backing = backing; supportsAutomaticUse = backing.supportsAutomaticUse
+  }
+  public func lookupAutomatic(_ scope: NativeCredentialKey, secure: Bool) async throws -> NativeAutomaticCredential? {
+    guard supportsAutomaticUse, !revokedAutomaticScopes.contains(scope) else { return nil }
+    let result: NativeAutomaticCredential? = try await perform { backing in
+      guard let approval = try backing.approval(scope), approval.secure == secure else { return nil }
+      try approval.validate()
+      return try NativeAutomaticCredential(approval:approval,secret:backing.lookup(approval.key,interaction:.forbid))
+    }
+    if revokedAutomaticScopes.contains(scope) { result?.secret.clear(); return nil }
+    return result
+  }
+  // Approve only after successful authentication, and only if the saved password
+  // is the one that succeeded. A manually typed replacement must not authorize
+  // silently resending an older, different saved password.
+  public func approveAutomatic(_ scope: NativeCredentialKey, approval: NativeCredentialApproval,
+                               successfulSecret: NativeCredentialSecret) async throws {
+    guard supportsAutomaticUse else { return }
+    try approval.validate()
+    let approved = try await perform { backing in
+      let saved: NativeCredentialSecret
+      do { saved = try backing.lookup(approval.key,interaction:.forbid) }
+      catch NativeCredentialStoreIssue.notFound { try backing.setApproval(scope,approval:nil); return false }
+      defer { saved.clear() }
+      var stored = try saved.copyBytes(), submitted = try successfulSecret.copyBytes()
+      defer {
+        stored.withUnsafeMutableBytes { if let base = $0.baseAddress { _ = memset_s(base,$0.count,0,$0.count) } }
+        submitted.withUnsafeMutableBytes { if let base = $0.baseAddress { _ = memset_s(base,$0.count,0,$0.count) } }
+      }
+      let matches = stored == submitted
+      try backing.setApproval(scope,approval:matches ? approval : nil)
+      return matches
+    }
+    if approved { revokedAutomaticScopes.remove(scope) }
+    else { revokedAutomaticScopes.insert(scope) }
+  }
+  public func revokeAutomatic(_ scope: NativeCredentialKey) async throws {
+    guard supportsAutomaticUse else { return }
+    revokedAutomaticScopes.insert(scope)
+    try await perform { try $0.setApproval(scope,approval:nil) }
+  }
   private func perform<T: Sendable>(_ body: @escaping @Sendable (any NativeCredentialBacking) throws -> T) async throws -> T {
     guard !closed else { throw NativeCredentialStoreIssue.closed }
     guard !Task.isCancelled else { throw NativeCredentialStoreIssue.cancelled }

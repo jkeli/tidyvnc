@@ -6,7 +6,7 @@ import Darwin
 public enum NativeCredentialRetention: Sendable { case useOnce, session, remember, replaceRemembered }
 
 // One controller per connection window. Secrets never enter published state.
-// Reuse is explicit at a current credential prompt, after protocol trust callbacks.
+// Saved reuse follows a successful scoped approval, after protocol trust callbacks.
 @MainActor public final class NativeAuthenticationCredentials: ObservableObject {
   @Published public private(set) var notice: String?
   @Published public private(set) var isWorking = false
@@ -19,11 +19,14 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   private var stopped = false
   private var epoch: UInt64 = 0
   private var work: Task<Void,Never>?
+  private var revocation: Task<Void,Never>?
   private struct Candidate {
     let key: NativeCredentialKey
     let secret: NativeCredentialSecret
     let generation: UInt64
     let retention: NativeCredentialRetention
+    let approval: NativeCredentialApproval?
+    let scope: NativeCredentialKey?
   }
   private var pending: Candidate?
   private var retained: Candidate?
@@ -34,6 +37,10 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   private var launchEffectiveRouteIdentity: String?
   private let passwordFileReader: any NativePasswordFileReading
   private var automaticPrompt: NativePrompt?
+  @Published private var savedLookupPrompt: NativePrompt?
+  private var attemptedSavedPrompt: NativePrompt?
+  private var submissionScope: (key: NativeCredentialKey, generation: UInt64)?
+  public func isAutomaticallyAuthenticating(_ request: NativePrompt) -> Bool { savedLookupPrompt == request }
   public init(store: NativeCredentialStore? = nil, launchInputs: NativeLaunchCredentialInputs? = nil,
               passwordFileReader: any NativePasswordFileReading = NativePasswordFileReader()) {
     self.store = store; launch = launchInputs?.claim(); self.passwordFileReader = passwordFileReader
@@ -63,10 +70,14 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   public func inspect(_ request: NativePrompt?) {
     guard let request, request.kind == .credentials else {
       if automaticPrompt != nil { epoch &+= 1; work?.cancel(); automaticPrompt = nil }
+      if savedLookupPrompt != nil { epoch &+= 1; work?.cancel(); savedLookupPrompt = nil }
       return
     }
-    guard !stopped, !isWorking, let source = launch,
-          source.hasEnvironment(usernameRequired:request.usernameRequired) || (!request.usernameRequired && source.file != nil) else { return }
+    guard !stopped, !isWorking else { return }
+    guard let source = launch,
+          source.hasEnvironment(usernameRequired:request.usernameRequired) || (!request.usernameRequired && source.file != nil) else {
+      inspectSaved(request); return
+    }
     let ticket = epoch, reader = passwordFileReader
     automaticPrompt = request; isWorking = true; notice = nil
     work = Task { [weak self] in
@@ -85,6 +96,31 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
         guard let self, self.epoch == ticket, self.isCurrent(request), !Task.isCancelled else { return }
         let reason = (error as? NativePasswordFileIssue)?.description ?? String(localized:"credentials.launch.unavailable", defaultValue:"The launch credentials could not be used.")
         self.notice = String(localized:"credentials.launch.failure", defaultValue:"\(reason) Enter a password or cancel this attempt.")
+      }
+    }
+  }
+  private func inspectSaved(_ request: NativePrompt) {
+    guard let store, store.supportsAutomaticUse, attemptedSavedPrompt != request else { return }
+    attemptedSavedPrompt = request; savedLookupPrompt = request
+    let ticket = epoch; isWorking = true; notice = nil
+    work = Task { [weak self] in
+      defer { self?.finishWork() }
+      do {
+        guard let self, self.epoch == ticket, self.isCurrent(request), !Task.isCancelled else { return }
+        let scope = try self.key(request,username:"")
+        guard let saved = try await store.lookupAutomatic(scope,secure:request.secure) else { return }
+        defer { saved.secret.clear() }
+        guard self.epoch == ticket, self.isCurrent(request), !Task.isCancelled,
+              try self.key(request,username:saved.approval.username) == saved.approval.key else { return }
+        // Clear the lookup marker before replying: the synchronous prompt=nil
+        // publication is our own completion, not a cancellation of the lookup.
+        self.savedLookupPrompt = nil
+        try self.forward(request,username:saved.approval.username,key:saved.approval.key,
+          secret:saved.secret,retention:.useOnce,approveAutomatic:false)
+        self.savedSubmission = request.generation
+      } catch {
+        guard let self, self.epoch == ticket, self.isCurrent(request), !Task.isCancelled else { return }
+        if error as? NativeCredentialStoreIssue != .notFound { self.notice = Self.storeMessage(error) }
       }
     }
   }
@@ -123,6 +159,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     if (self.endpoint.map({ !$0.utf8.elementsEqual(endpoint.utf8) }) ?? false) ||
        !self.routeIdentity.utf8.elementsEqual(routeIdentity.utf8) { forgetSession() }
     pending?.secret.clear(); pending = nil; savedSubmission = nil
+    attemptedSavedPrompt = nil; submissionScope = nil
     self.endpoint = endpoint; self.routeIdentity = routeIdentity; notice = nil; epoch &+= 1
   }
   private func isCurrent(_ request: NativePrompt) -> Bool {
@@ -153,15 +190,18 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
     catch { secret.clear(); throw error }
   }
   private func forward(_ request: NativePrompt, username: String, key: NativeCredentialKey,
-                       secret: NativeCredentialSecret, retention: NativeCredentialRetention) throws {
+                       secret: NativeCredentialSecret, retention: NativeCredentialRetention, approveAutomatic: Bool = true) throws {
     guard isCurrent(request), let session else { throw NativeError(.stale, "Inactive credential request") }
+    let scope = store?.supportsAutomaticUse == true ? try self.key(request,username:"") : nil
+    let approval = scope != nil && approveAutomatic ? NativeCredentialApproval(key:key,username:username,secure:request.secure) : nil
     var user = request.usernameRequired ? Array(username.utf8) : [], bytes = try secret.copyBytes()
     defer { Self.wipe(&user); Self.wipe(&bytes) }
     try session.replyCredentials(to: request, username: &user, password: &bytes)
     pending?.secret.clear(); pending = nil
     forgetSession(); savedSubmission = nil; notice = nil
-    if retention == .useOnce { secret.clear() }
-    else { pending = Candidate(key: key, secret: secret, generation: request.generation, retention: retention) }
+    submissionScope = scope.map { ($0,request.generation) }
+    if retention == .useOnce && approval == nil { secret.clear() }
+    else { pending = Candidate(key:key,secret:secret,generation:request.generation,retention:retention,approval:approval,scope:scope) }
   }
   public func canUseSession(_ request: NativePrompt, username: String) -> Bool {
     guard !isWorking, let retained, let key = try? key(request, username: username) else { return false }
@@ -194,7 +234,7 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
         // explicit session choice extends the in-memory lifetime.
         let selected: NativeCredentialRetention = retention == .session ? .session : .useOnce
         try self.forward(request, username: username, key: key, secret: secret, retention: selected)
-        transferred = selected == .session
+        transferred = self.pending != nil
         self.savedSubmission = request.generation
       } catch {
         guard let self, self.epoch == ticket, self.isCurrent(request), !Task.isCancelled else { return }
@@ -205,14 +245,15 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
   // This is an explicit UI action, never automatic recovery from rejection.
   public func forgetSaved(_ request: NativePrompt, username: String) {
     guard !isWorking, let store else { return }
-    let key: NativeCredentialKey
-    do { key = try self.key(request, username: username) }
+    let key: NativeCredentialKey, scope: NativeCredentialKey
+    do { key = try self.key(request, username: username); scope = try self.key(request,username:"") }
     catch { notice = String(localized:"credentials.this.authentication.request.is.no.longer.available", defaultValue:"This authentication request is no longer available."); return }
     forgetSession()
     let ticket = epoch; isWorking = true; notice = nil
     work = Task { [weak self] in
       defer { self?.finishWork() }
       do {
+        try? await store.revokeAutomatic(scope)
         try await store.delete(key, interaction: .allow)
         if let self, self.epoch == ticket, !self.stopped { self.notice = String(localized:"credentials.the.saved.password.was.removed.from.this.mac", defaultValue:"The saved password was removed from this Mac.") }
       } catch {
@@ -225,21 +266,37 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
       pending = nil
       if candidate.retention == .session {
         retained = candidate; hasSessionCredential = true
-      } else if let store {
+      }
+      let needsSave = candidate.retention == .remember || candidate.retention == .replaceRemembered
+      if let store, needsSave || candidate.approval != nil {
+        let secret: NativeCredentialSecret
+        do {
+          if candidate.retention == .session {
+            var bytes = try candidate.secret.copyBytes()
+            secret = try NativeCredentialSecret(consuming:&bytes)
+          } else { secret = candidate.secret }
+        } catch { return }
         let ticket = epoch; isWorking = true
         work = Task { [weak self] in
-          defer { candidate.secret.clear(); self?.finishWork() }
-          do {
-            try await store.save(candidate.key, secret: candidate.secret,
-              mode: candidate.retention == .replaceRemembered ? .replace : .create, interaction: .forbid)
-            if let self, self.epoch == ticket, !self.stopped { self.notice = String(localized:"credentials.password.saved.on.this.mac", defaultValue:"Password saved on this Mac.") }
-          } catch {
-            if let self, self.epoch == ticket, !self.stopped {
-              self.notice = String(localized:"credentials.save.unconfirmed", defaultValue:"The connection succeeded, but saving the password could not be confirmed. \(Self.storeMessage(error))")
+          defer { secret.clear(); self?.finishWork() }
+          if needsSave {
+            do {
+              try await store.save(candidate.key, secret: secret,
+                mode: candidate.retention == .replaceRemembered ? .replace : .create, interaction: .forbid)
+              if let self, self.epoch == ticket, !self.stopped { self.notice = String(localized:"credentials.password.saved.on.this.mac", defaultValue:"Password saved on this Mac.") }
+            } catch {
+              if let self, self.epoch == ticket, !self.stopped {
+                self.notice = String(localized:"credentials.save.unconfirmed", defaultValue:"The connection succeeded, but saving the password could not be confirmed. \(Self.storeMessage(error))")
+              }
             }
           }
+          guard self?.epoch == ticket, self?.stopped == false, !Task.isCancelled,
+                let approval = candidate.approval, let scope = candidate.scope else { return }
+          // Failure to remember reuse never interrupts an authenticated desktop;
+          // it simply leaves the ordinary password dialog in place next time.
+          try? await store.approveAutomatic(scope,approval:approval,successfulSecret:secret)
         }
-      } else { candidate.secret.clear() }
+      } else if candidate.retention != .session { candidate.secret.clear() }
     }
     if [.closed, .failed].contains(snapshot.state) {
       if automaticPrompt != nil { epoch &+= 1; work?.cancel(); automaticPrompt = nil }
@@ -249,16 +306,23 @@ public enum NativeCredentialRetention: Sendable { case useOnce, session, remembe
         if savedSubmission == snapshot.generation {
           notice = String(localized:"credentials.the.server.rejected.the.saved.password.retry.to.enter.a.replacement.or", defaultValue:"The server rejected the saved password. Retry to enter a replacement or explicitly forget it; the saved entry has not been deleted.")
         }
+        if let scope = submissionScope, scope.generation == snapshot.generation, let store {
+          submissionScope = nil; isWorking = true
+          revocation = Task { [weak self] in
+            defer { self?.revocation = nil; self?.finishWork() }
+            try? await store.revokeAutomatic(scope.key)
+          }
+        }
       }
     }
   }
-  private func finishWork() { automaticPrompt = nil; isWorking = false; work = nil }
+  private func finishWork() { automaticPrompt = nil; savedLookupPrompt = nil; isWorking = false; work = nil }
   public func clear() {
-    epoch &+= 1; work?.cancel(); automaticPrompt = nil; pending?.secret.clear(); pending = nil
+    epoch &+= 1; work?.cancel(); automaticPrompt = nil; savedLookupPrompt = nil; pending?.secret.clear(); pending = nil
     discardLaunch(); forgetSession(); savedSubmission = nil; notice = nil
   }
   public func stop() { stopped = true; clear(); endpoint = nil; routeIdentity = ""; session = nil }
-  public func close() async { stop(); await work?.value }
+  public func close() async { stop(); await work?.value; await revocation?.value }
   public func dismissNotice() { notice = nil }
   private static func storeMessage(_ error: Error) -> String {
     switch error as? NativeCredentialStoreIssue {
