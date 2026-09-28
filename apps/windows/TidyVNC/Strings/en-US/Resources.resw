@@ -112,6 +112,10 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="authentication_save_this_certificate_exception" xml:space="preserve"><value>Save this certificate exception?</value></data>
   <data name="authentication_save_this_server_key" xml:space="preserve"><value>Save this server key?</value></data>
   <data name="authentication_saved_once_the_server_accepts_it_replacing_any_password" xml:space="preserve"><value>Saved once the server accepts it, replacing any password saved for this server.</value></data>
+  <data name="authentication_ssh_method_protected" xml:space="preserve"><value>SSH encrypts traffic to the gateway. The VNC authentication method also protects your credentials.</value></data>
+  <data name="authentication_ssh_onward_unassured" xml:space="preserve"><value>SSH protects your credentials to the gateway. The VNC authentication method may not protect them on an onward connection to a separate VNC server.</value></data>
+  <data name="authentication_ssh_protected" xml:space="preserve"><value>SSH protects your credentials and desktop traffic to the VNC server on the gateway.</value></data>
+  <data name="authentication_ssh_scope" xml:space="preserve"><value>If the VNC server is the gateway itself, SSH protects the network path. If the server permits loopback connections, you can use 127.0.0.1 as the VNC address to make that route explicit.</value></data>
   <data name="authentication_the_session_password_is_no_longer_available" xml:space="preserve"><value>The session password is no longer available. Enter a password to continue.</value></data>
   <data name="authentication_this_assessment_describes_credential_protection_not_encryption" xml:space="preserve"><value>This assessment describes credential protection, not encryption of all desktop traffic.</value></data>
   <data name="authentication_this_authentication_request_is_no_longer_active" xml:space="preserve"><value>This authentication request is no longer active. Cancel and connect again.</value></data>
@@ -172,10 +176,19 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="connection_issue_unsupportedEndpoint_title" xml:space="preserve"><value>Unsupported connection feature</value></data>
   <data name="connection_issue_unsupported_message" xml:space="preserve"><value>This operation is not available in this build or connection.</value></data>
   <data name="connection_recovery_security_settings_are_unavailable_for_this_connection" xml:space="preserve"><value>Security settings are unavailable for this connection.</value></data>
+  <data name="connection_recovery_ssh_vnc_authentication_rejected" xml:space="preserve"><value>SSH connected successfully, but the VNC server rejected authentication. Retry with the VNC credentials, which may differ from your SSH credentials, and check the VNC server’s authentication settings.</value></data>
+  <data name="connection_recovery_ssh_vnc_refused" xml:space="preserve"><value>SSH connected successfully, but the VNC server refused the connection before requesting credentials. Check the VNC server’s access rules. Some servers reject connections to their own loopback address; try the server’s network address with the same SSH gateway.</value></data>
   <data name="connection_recovery_the_connection_settings_cannot_be_exported_review_them_and_try_again" xml:space="preserve"><value>The connection settings cannot be exported. Review them and try again.</value></data>
   <data name="connection_recovery_the_ssh_tunnel_closed_check_the_gateway_and_connect_again" xml:space="preserve"><value>The SSH tunnel closed. Check the gateway and connect again.</value></data>
   <data name="connection_recovery_this_desktop_command_is_unavailable_focus_the_connected_desktop_and_try_again" xml:space="preserve"><value>This desktop command is unavailable. Focus the connected desktop and try again.</value></data>
   <data name="connection_recovery_this_incoming_connection_is_no_longer_available_ask_the_server_to_make" xml:space="preserve"><value>This incoming connection is no longer available. Ask the server to make a new connection to the listener.</value></data>
+  <data name="connection_recovery_vnc_refused" xml:space="preserve"><value>The VNC server refused the connection before requesting credentials. Check the server’s access rules and authentication settings before retrying.</value></data>
+  <data name="connection_recovery_vnc_refused_title" xml:space="preserve"><value>VNC connection rejected</value></data>
+  <data name="connection_ssh_active" xml:space="preserve"><value>SSH tunnel active via {0}</value></data>
+  <data name="connection_ssh_closed" xml:space="preserve"><value>SSH tunnel closed: {0}</value></data>
+  <data name="connection_ssh_connecting" xml:space="preserve"><value>Connecting to SSH gateway: {0}</value></data>
+  <data name="connection_ssh_failed" xml:space="preserve"><value>SSH connection failed: {0}</value></data>
+  <data name="connection_ssh_preparing" xml:space="preserve"><value>Preparing SSH gateway: {0}</value></data>
   <data name="credentials_file_reading_the_password_file_was_cancelled" xml:space="preserve"><value>Reading the password file was cancelled.</value></data>
   <data name="credentials_file_the_password_file_changed_while_being_read_retry_with_its_current_contents" xml:space="preserve"><value>The password file changed while being read. Retry with its current contents.</value></data>
   <data name="credentials_file_the_password_file_could_not_be_read_check_its_location_and_access" xml:space="preserve"><value>The password file could not be read. Check its location and access, then retry.</value></data>
@@ -183,6 +196,7 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="credentials_file_the_password_file_must_be_a_regular_file" xml:space="preserve"><value>The password file must be a regular file.</value></data>
   <data name="credentials_keychain_access_was_cancelled" xml:space="preserve"><value>Credential Manager access was cancelled.</value></data>
   <data name="credentials_keychain_access_was_denied" xml:space="preserve"><value>Credential Manager access was denied.</value></data>
+  <data name="credentials_keychain_automatic_label" xml:space="preserve"><value>TidyVNC automatic authentication</value></data>
   <data name="credentials_launch_failure" xml:space="preserve"><value>{0} Enter a password or cancel this attempt.</value></data>
   <data name="credentials_launch_invalid_environment" xml:space="preserve"><value>A launch credential exceeds its byte limit or contains invalid data.</value></data>
   <data name="credentials_launch_unavailable" xml:space="preserve"><value>The launch credentials could not be used.</value></data>
@@ -484,7 +498,6 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="import_defaults_displays_for_imported_defaults" xml:space="preserve"><value>Displays for imported defaults</value></data>
   <data name="import_defaults_encoding_and_image_quality" xml:space="preserve"><value>Encoding and image quality</value></data>
   <data name="import_defaults_fullscreen_displays" xml:space="preserve"><value>Full-screen displays</value></data>
-  <data name="import_defaults_have_existing_tidyvnc_defaults_review_an_import_before_opening_your_next_connection" xml:space="preserve"><value>Have existing TidyVNC defaults? Review an import before opening your next connection window.</value></data>
   <data name="import_defaults_hidden_cursor_preserved_inactive_system_cursor_shape_omitted" xml:space="preserve"><value>Hidden cursor preserved; inactive System cursor shape omitted</value></data>
   <data name="import_defaults_i_reviewed_the_omissions_and_conversions" xml:space="preserve"><value>I reviewed the omissions and conversions.</value></data>
   <data name="import_defaults_import_connection_defaults" xml:space="preserve"><value>Import connection defaults</value></data>
@@ -511,7 +524,6 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="import_defaults_review_current_tidyvnc_defaults" xml:space="preserve"><value>Review current TidyVNC defaults</value></data>
   <data name="import_defaults_review_defaults" xml:space="preserve"><value>Review defaults</value></data>
   <data name="import_defaults_review_defaults_import" xml:space="preserve"><value>Review defaults import</value></data>
-  <data name="import_defaults_review_import" xml:space="preserve"><value>Review import…</value></data>
   <data name="import_defaults_review_legacy_defaults" xml:space="preserve"><value>Review legacy defaults</value></data>
   <data name="import_defaults_saving_imported_defaults" xml:space="preserve"><value>Saving imported defaults…</value></data>
   <data name="import_defaults_settings_could_not_be_imported_reload_native_settings_and_review_the_source" xml:space="preserve"><value>Settings could not be imported. Reload native settings and review the source before retrying.</value></data>
@@ -567,6 +579,7 @@ Copyright (C) 2026 Kyle Eli</value></data>
   <data name="information_send_clipboard" xml:space="preserve"><value>Send clipboard</value></data>
   <data name="information_server" xml:space="preserve"><value>Server</value></data>
   <data name="information_speed" xml:space="preserve"><value>{0} kbit/s</value></data>
+  <data name="information_ssh_tunnel" xml:space="preserve"><value>SSH tunnel</value></data>
   <data name="information_unnamed" xml:space="preserve"><value>Unnamed</value></data>
   <data name="information_use_show_connection_statistics_in_the_connection_menu_to_hide_these_statistics" xml:space="preserve"><value>Use Show connection statistics in the Connection menu to hide these statistics.</value></data>
   <data name="invocation_error_a_command_line_argument_contains_a_null_byte" xml:space="preserve"><value>A command-line argument contains a null byte.</value></data>

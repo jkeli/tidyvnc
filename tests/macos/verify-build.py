@@ -143,6 +143,9 @@ def main():
     verification.report["excludedLabel"] = args.exclude_label
     verification.command("toolchain", ["xcodebuild", "-version"])
     verification.command("swift-version", ["xcrun", "swift", "--version"])
+    # Windows resources are derived from the macOS catalog; check both when
+    # validating a macOS change so stale generated strings cannot reach a tag.
+    verification.command("windows-string-catalog", [sys.executable, ROOT / "apps/windows/strings.py", "audit"])
     for suite in ("viewer", "unit", "macos"):
         verification.suite(suite, core / "tests" / suite, args.exclude_label)
     verification.command("frontend-graph", [sys.executable, ROOT / "tests/macos/frontend-graph.py",
