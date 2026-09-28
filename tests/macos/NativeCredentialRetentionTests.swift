@@ -273,6 +273,16 @@ final class Vault: NativeCredentialBacking, @unchecked Sendable {
   _ = try await prompt(); try submit(model,.useOnce); try await connected()
   try check(try vault.approval(key) != nil,"matching manually entered password also remembers acceptance")
   try await disconnect()
+  // Remember must replace an older password and approve the newly saved value.
+  // Exercise both policies together after falling back from automatic lookup.
+  vault.fail(.interactionRequired); _ = try await prompt(); vault.fail(nil)
+  vault.seed(key,password:"stale")
+  try submit(model,.remember); try await connected()
+  let rememberedApproval = try vault.approval(key)
+  try check(vault.calls.contains("createOrReplace") && rememberedApproval != nil,
+            "remember replaces stale saved password and approves automatic reuse")
+  try await disconnect()
+  model.connect(); try await connected(); try await disconnect()
   // Force manual fallback, then exercise the explicit Forget action.
   vault.fail(.interactionRequired); let forget = try await prompt(); vault.fail(nil)
   model.credentials.forgetSaved(forget,username:""); try await until { !model.credentials.isWorking }
