@@ -74,7 +74,7 @@ This planning update adds no acceptance evidence and changes no completion boxes
     Per-publish full-frame copies are recorded as an optimisation opportunity
     ([PERFORMANCE.md](PERFORMANCE.md)).
   - [ ] Mixed displays, a second machine and sign-off budgets.
-- [ ] N0.6 Validate provisional macOS 14 deployment floor, Xcode/Swift/C++ versions, architecture matrix and dependency targets; record final supported configurations.
+- [ ] N0.6 Validate provisional macOS 13 deployment floor, Xcode/Swift/C++ versions, architecture matrix and dependency targets; record final supported configurations.
 - [x] N0.7 Confirm C ABI/module-map/Swift wrapper and CMake-to-Xcode build arrangement; decide CLI app-executable versus launcher behavior without relaying secrets in arguments. Decision (closed 2026-09-23): the app executable is the CLI (same-process bootstrap, no launcher/relaunch); secrets come only from captured `VNC_USERNAME`/`VNC_PASSWORD` or PasswordFile and never enter argv. All 47 parameters, listen and `via` have native adapters (CAPABILITIES.md), with 36 terminal cases on the development and packaged apps; one CMake core → Xcode path (BUILD.md) and the `TidyVNC` module map/Swift wrappers are in use.
   - [x] Shared stateless CLI syntax/catalog, retained lexer reuse, C ABI and Swift
     ownership wrappers. See [CLI.md](CLI.md).

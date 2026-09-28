@@ -19,7 +19,7 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tidyvnc)
-set(VERSION 1.16.80)
+set(VERSION 2.1.0)
 
 # The RC version must always be four comma-separated numbers
 string(REPLACE . , RCVERSION "${VERSION}.0")
@@ -209,6 +209,14 @@ if(BUILD_MACOS_NATIVE)
   if(CMAKE_Swift_COMPILER_VERSION VERSION_LESS 6.0)
     message(FATAL_ERROR "BUILD_MACOS_NATIVE requires Swift 6 or later")
   endif()
+  # swiftc links through clang without the SDK, so executables record the
+  # deployment target as their SDK version and macOS applies that SDK's
+  # compatibility behavior (for example, no toolbar bridging from hosting
+  # controllers before SDK 14). Xcode passes the SDK for the app itself; this
+  # is a directory option so the exported targets do not carry it there.
+  if(IS_ABSOLUTE "${CMAKE_OSX_SYSROOT}")
+    add_link_options("$<$<LINK_LANGUAGE:Swift>:SHELL:-Xclang-linker -isysroot -Xclang-linker \"${CMAKE_OSX_SYSROOT}\">")
+  endif()
 endif()
 
 # X11 stuff. It's in a if() so that we can say REQUIRED
@@ -387,6 +395,24 @@ if(ENABLE_GNUTLS)
   endif()
   if (GNUTLS_FOUND)
     set(HAVE_GNUTLS 1)
+  endif()
+  # A static GnuTLS (apps/macos/deps.py) also needs the libraries and
+  # frameworks that only its pkg-config file lists.
+  if(GNUTLS_FOUND AND APPLE AND GNUTLS_LIBRARIES MATCHES "\\.a$")
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GnuTLS_static REQUIRED QUIET gnutls)
+    set(GNUTLS_LIBRARIES "")
+    foreach(name IN LISTS GnuTLS_static_STATIC_LIBRARIES)
+      find_library(GnuTLS_static_${name} ${name}
+        PATHS ${GnuTLS_static_STATIC_LIBRARY_DIRS} NO_DEFAULT_PATH)
+      if(GnuTLS_static_${name})
+        list(APPEND GNUTLS_LIBRARIES ${GnuTLS_static_${name}})
+      else()
+        list(APPEND GNUTLS_LIBRARIES ${name})
+      endif()
+    endforeach()
+    string(REPLACE "-framework;" "-framework " gnutls_frameworks "${GnuTLS_static_STATIC_LDFLAGS_OTHER}")
+    list(APPEND GNUTLS_LIBRARIES ${gnutls_frameworks})
   endif()
 endif()
 

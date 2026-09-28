@@ -92,8 +92,10 @@ def build_core(args):
         if args.arch != "x64":
             print("ARM64 binaries are cross-built; run their tests on ARM64 hardware.", flush=True)
         else:
-            run(["ctest", "--test-dir", build / "tests/viewer", "--output-on-failure", "--no-tests=error"], env=env)
-            run(["ctest", "--test-dir", build / "tests/unit", "-j", str(args.parallel), "--timeout", "180",
+            # --ci leaves out tests labelled workstation (tests/unit/CMakeLists.txt).
+            select = ["-LE", "^workstation$"] if args.ci else []
+            run(["ctest", "--test-dir", build / "tests/viewer", *select, "--output-on-failure", "--no-tests=error"], env=env)
+            run(["ctest", "--test-dir", build / "tests/unit", *select, "-j", str(args.parallel), "--timeout", "180",
                  "--output-on-failure", "--no-tests=error"], env=env)
     return build
 
@@ -105,16 +107,26 @@ def main():
     parser.add_argument("--build-dir", type=Path, help="Core build directory (default build/winui/<arch>-<config>, where the .NET projects look)")
     parser.add_argument("--parallel", type=int, default=8)
     parser.add_argument("--test", action="store_true", help="Build and run the core and ABI test suites")
+    parser.add_argument("--ci", action="store_true",
+                        help="With --test, skip Workstation tests: UI, displays, OpenSSH, system state or wall-clock deadlines")
     parser.add_argument("--asan", action="store_true", help="AddressSanitizer build of the core and tests")
     parser.add_argument("--stages", default="core", help="Comma-separated: core, app, package")
     parser.add_argument("--output", type=Path, help="package: new output directory (default build/winui/release/TidyVNC-<version>-<arch>); never replaced")
     parser.add_argument("--no-msi", action="store_true", help="package: audit and report without building the MSI")
-    parser.add_argument("--sign", metavar="SHA1", help="package: code-signing certificate thumbprint (D23; unsigned without it)")
+    signing = parser.add_mutually_exclusive_group()
+    signing.add_argument("--sign", metavar="SHA1", help="package: sign with this certificate thumbprint from the certificate store (D23; unsigned without a signing option)")
+    signing.add_argument("--sign-dlib", type=Path, metavar="DLL",
+                         help="package: sign through this SignTool dlib, such as Artifact Signing's Azure.CodeSigning.Dlib.dll; needs --sign-metadata")
+    parser.add_argument("--sign-metadata", type=Path, metavar="JSON", help="package: the metadata file for --sign-dlib")
     parser.add_argument("--measurement", action="store_true", help="app: Release publish that honours TIDYVNC_STATE_ROOT, for timing runs; never packaged")
     parser.add_argument("--runtime", choices=("jit", "trimmed", "aot"), default="jit",
                         help="app with --measurement: publish the WinUI app trimmed or with Native AOT (D1; the shipped app is jit)")
-    parser.add_argument("--timestamp-url", default="http://timestamp.digicert.com", help="package: RFC 3161 timestamp server for --sign")
+    parser.add_argument("--timestamp-url", help="package: RFC 3161 timestamp server (default: Artifact Signing's with --sign-dlib, DigiCert's with --sign)")
     args = parser.parse_args()
+    if bool(args.sign_dlib) != bool(args.sign_metadata):
+        parser.error("--sign-dlib and --sign-metadata go together")
+    if not args.timestamp_url:
+        args.timestamp_url = "http://timestamp.acs.microsoft.com" if args.sign_dlib else "http://timestamp.digicert.com"
     stages = [stage.strip() for stage in args.stages.split(",") if stage.strip()]
     unknown = set(stages) - {"core", "app", "package"}
     if unknown:

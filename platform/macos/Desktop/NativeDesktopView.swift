@@ -858,7 +858,14 @@ public struct NativeDesktop: NSViewRepresentable {
   }
   public func makeNSView(context: Context) -> NativeDesktopView { NativeDesktopView(frame: .zero) }
   public func updateNSView(_ view: NativeDesktopView, context: Context) { view.onError = onError; view.onContextMenu = onContextMenu; view.bind(session); view.observeDisplays(displays); view.observeScaling(scaling); view.observeInput(input); view.observeCommands(commands); view.observeFullscreen(fullscreen) }
-  public static func dismantleNSView(_ view: NativeDesktopView, coordinator: ()) { view.detach() }
+  // SwiftUI dismantles views while it invalidates their graph, for example when a
+  // hosting view is deallocated. Detaching updates shared state that the
+  // connection model forwards to SwiftUI; doing that inside the invalidation
+  // re-enters the graph, which Swift's exclusivity checking stops by aborting.
+  // Detach once the current update has finished instead.
+  public static func dismantleNSView(_ view: NativeDesktopView, coordinator: ()) {
+    DispatchQueue.main.async { view.detach() }
+  }
 }
 
 

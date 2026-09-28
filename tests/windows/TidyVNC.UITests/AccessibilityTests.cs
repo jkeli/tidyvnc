@@ -17,6 +17,7 @@ namespace TidyVNC.UITests;
 /// Scanning uses UI Automation only; nothing is typed or clicked.
 /// </summary>
 [TestClass]
+[TestCategory("Workstation")]
 [DoNotParallelize]
 public sealed class AccessibilityTests
 {

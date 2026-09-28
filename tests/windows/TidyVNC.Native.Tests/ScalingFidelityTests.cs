@@ -86,6 +86,7 @@ public sealed class ScalingFidelityTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     [Timeout(600_000)]
     public async Task PresentedPixelsEqualTheSharedRendererAtFractionalScales()
     {

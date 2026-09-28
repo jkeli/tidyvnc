@@ -262,6 +262,7 @@ public sealed partial class ClipboardTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public async Task RemoteWritesCarryTheNoCloudAndProvenanceMarkers()
     {
         if (Environment.GetEnvironmentVariable("TIDYVNC_UI_TESTS") != "1")

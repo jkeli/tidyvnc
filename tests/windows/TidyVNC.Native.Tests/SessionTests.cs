@@ -316,6 +316,7 @@ public sealed class SessionTests
     /// thread; the largest interval between ticks is reported and bounded.
     /// </summary>
     [TestMethod]
+    [TestCategory("Workstation")]
     public async Task UiThreadStaysResponsiveDuringConnectFloodAndShutdown()
     {
         using var ui = new SingleThreadDispatcher();

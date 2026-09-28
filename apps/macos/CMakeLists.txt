@@ -76,8 +76,8 @@ set_target_properties(TidyVNC PROPERTIES
   XCODE_ATTRIBUTE_EXECUTABLE_NAME vncviewer
   XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "-"
   XCODE_ATTRIBUTE_CODE_SIGN_STYLE Manual
-  # Local development links Homebrew dylibs. N6 must bundle/sign dependencies
-  # before enabling hardened runtime for a distributable app.
+  # The development bundle stays ad hoc signed; apps/macos/package.py re-signs
+  # the package with the hardened runtime and, for releases, a Developer ID.
   XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME NO
   XCODE_ATTRIBUTE_CLANG_MODULE_CACHE_PATH ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache
   XCODE_ATTRIBUTE_SWIFT_MODULE_CACHE_PATH ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache)

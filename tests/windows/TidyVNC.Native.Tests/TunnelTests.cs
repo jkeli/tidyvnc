@@ -17,6 +17,7 @@ namespace TidyVNC.Native.Tests;
 /// Nothing touches the user's ssh configuration or known_hosts.
 /// </summary>
 [TestClass]
+[TestCategory("Workstation")]
 public sealed class TunnelTests
 {
     private string root = "", state = "";

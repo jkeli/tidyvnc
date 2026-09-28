@@ -11,6 +11,7 @@ namespace TidyVNC.Native.Tests;
 /// presenter is not attached to a panel; its surface is read back.
 /// </summary>
 [TestClass]
+[TestCategory("Workstation")]
 public sealed class DesktopTests
 {
     public TestContext TestContext { get; set; } = null!;

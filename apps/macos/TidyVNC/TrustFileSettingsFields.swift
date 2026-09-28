@@ -38,7 +38,7 @@ struct TrustFileSettingsFields: View {
     }
     .onAppear { selection.active = true }
     .onDisappear { selection.active = false; selection.showing = false }
-    .onChange(of: contextID) { _,_ in selection.active = false; selection.showing = false; selection.active = true; selection.context = "" }
+    .onChange(of: contextID) { _ in selection.active = false; selection.showing = false; selection.active = true; selection.context = "" }
   }
   private func file(_ title: String, _ field: Field, _ key: WritableKeyPath<NativeTrustFiles,String?>) -> some View {
     VStack(alignment: .leading, spacing: 6) {

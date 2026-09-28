@@ -8,7 +8,8 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="about_acknowledgements" xml:space="preserve"><value>Acknowledgements</value></data>
   <data name="about_action" xml:space="preserve"><value>About TidyVNC…</value></data>
-  <data name="about_copyright" xml:space="preserve"><value>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</value></data>
+  <data name="about_copyright" xml:space="preserve"><value>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)
+Copyright (C) 2026 Kyle Eli</value></data>
   <data name="about_credits" xml:space="preserve"><value>TidyVNC builds on the work of the TigerVNC, TightVNC, RealVNC and many other contributors, and on the libraries listed in the acknowledgements and third-party notices.</value></data>
   <data name="about_licences" xml:space="preserve"><value>Licence, acknowledgements and third-party notices</value></data>
   <data name="about_summary" xml:space="preserve"><value>TidyVNC is a VNC viewer derived from TigerVNC, distributed under the GNU General Public License, version 2 or later.</value></data>
@@ -78,6 +79,7 @@
   <data name="app_saved_server_keys" xml:space="preserve"><value>Saved server keys…</value></data>
   <data name="app_scaling_settings" xml:space="preserve"><value>Scaling settings</value></data>
   <data name="app_scaling_settings_for_this_connection" xml:space="preserve"><value>Scaling settings for this connection</value></data>
+  <data name="app_show_status_bar" xml:space="preserve"><value>Show status bar</value></data>
   <data name="app_source_address_of_this_incoming_connection_it_is_not_an_outbound_destination" xml:space="preserve"><value>Source address of this incoming connection; it is not an outbound destination.</value></data>
   <data name="app_status_bar" xml:space="preserve"><value>Status bar</value></data>
   <data name="app_the_application_is_closing" xml:space="preserve"><value>The application is closing.</value></data>
@@ -99,7 +101,6 @@
   <data name="authentication_protection_unassured" xml:space="preserve"><value>The negotiated authentication method may not adequately protect your credentials.</value></data>
   <data name="authentication_reload_saved_decisions" xml:space="preserve"><value>Reload saved decisions</value></data>
   <data name="authentication_remember_on_this_mac" xml:space="preserve"><value>Remember on this PC</value></data>
-  <data name="authentication_replace_an_existing_saved_password" xml:space="preserve"><value>Replace an existing saved password</value></data>
   <data name="authentication_replace_and_connect" xml:space="preserve"><value>Replace and connect</value></data>
   <data name="authentication_replace_saved_key_and_connect" xml:space="preserve"><value>Replace saved key and connect…</value></data>
   <data name="authentication_replace_the_saved_key" xml:space="preserve"><value>Replace the saved key?</value></data>
@@ -107,10 +108,10 @@
   <data name="authentication_review_decision" xml:space="preserve"><value>Review decision…</value></data>
   <data name="authentication_save_and_connect" xml:space="preserve"><value>Save and connect</value></data>
   <data name="authentication_save_exception_and_connect" xml:space="preserve"><value>Save exception and connect…</value></data>
-  <data name="authentication_save_only_after_successful_authentication_replacement_must" xml:space="preserve"><value>Save only after successful authentication. Replacement must be explicitly selected.</value></data>
   <data name="authentication_save_server_key_and_connect" xml:space="preserve"><value>Save server key and connect…</value></data>
   <data name="authentication_save_this_certificate_exception" xml:space="preserve"><value>Save this certificate exception?</value></data>
   <data name="authentication_save_this_server_key" xml:space="preserve"><value>Save this server key?</value></data>
+  <data name="authentication_saved_once_the_server_accepts_it_replacing_any_password" xml:space="preserve"><value>Saved once the server accepts it, replacing any password saved for this server.</value></data>
   <data name="authentication_the_session_password_is_no_longer_available" xml:space="preserve"><value>The session password is no longer available. Enter a password to continue.</value></data>
   <data name="authentication_this_assessment_describes_credential_protection_not_encryption" xml:space="preserve"><value>This assessment describes credential protection, not encryption of all desktop traffic.</value></data>
   <data name="authentication_this_authentication_request_is_no_longer_active" xml:space="preserve"><value>This authentication request is no longer active. Cancel and connect again.</value></data>
@@ -175,7 +176,6 @@
   <data name="connection_recovery_the_ssh_tunnel_closed_check_the_gateway_and_connect_again" xml:space="preserve"><value>The SSH tunnel closed. Check the gateway and connect again.</value></data>
   <data name="connection_recovery_this_desktop_command_is_unavailable_focus_the_connected_desktop_and_try_again" xml:space="preserve"><value>This desktop command is unavailable. Focus the connected desktop and try again.</value></data>
   <data name="connection_recovery_this_incoming_connection_is_no_longer_available_ask_the_server_to_make" xml:space="preserve"><value>This incoming connection is no longer available. Ask the server to make a new connection to the listener.</value></data>
-  <data name="credentials_a_saved_password_already_exists_choose_explicit_replacement_on_a_subsequent_authentication" xml:space="preserve"><value>A saved password already exists. Choose explicit replacement on a subsequent authentication.</value></data>
   <data name="credentials_file_reading_the_password_file_was_cancelled" xml:space="preserve"><value>Reading the password file was cancelled.</value></data>
   <data name="credentials_file_the_password_file_changed_while_being_read_retry_with_its_current_contents" xml:space="preserve"><value>The password file changed while being read. Retry with its current contents.</value></data>
   <data name="credentials_file_the_password_file_could_not_be_read_check_its_location_and_access" xml:space="preserve"><value>The password file could not be read. Check its location and access, then retry.</value></data>
@@ -388,7 +388,7 @@
   <data name="help_guide_identity_title" xml:space="preserve"><value>Verify server identity</value></data>
   <data name="help_guide_input_body" xml:space="preserve"><value>Click the remote desktop to direct keyboard and pointer input to it. View-only mode blocks remote input. The clipboard menu has independent Send and Receive controls. Input, Scaling and Encoding controls are available for a connected desktop; the Connection menu provides additional settings and desktop commands.</value></data>
   <data name="help_guide_input_title" xml:space="preserve"><value>Control and clipboard</value></data>
-  <data name="help_guide_install_body" xml:space="preserve"><value>TidyVNC installs for your Windows account only, in your local app data folder, without administrator rights. Installers are not yet code-signed: when you open a downloaded installer, Windows SmartScreen may say it protected your PC; choose More info, then Run anyway, if the installer came from the TidyVNC project. Where Smart App Control is on, Windows blocks unsigned apps, so TidyVNC cannot run there until it is signed. Uninstalling from Settings &gt; Apps keeps your settings, profiles, history and trust decisions in %LOCALAPPDATA%\TidyVNC and saved passwords in Credential Manager; delete that folder and the TidyVNC entries in Credential Manager to remove them.</value></data>
+  <data name="help_guide_install_body" xml:space="preserve"><value>TidyVNC installs for your Windows account only, in your local app data folder, without administrator rights. Installers from the TidyVNC project's GitHub releases are code-signed. The signature is new, so Windows SmartScreen may still say it protected your PC for a while; if the installer came from the TidyVNC project, choose More info, then Run anyway. Builds you make yourself are not signed, and where Smart App Control is on, Windows blocks them. Uninstalling from Settings &gt; Apps keeps your settings, profiles, history and trust decisions in %LOCALAPPDATA%\TidyVNC and saved passwords in Credential Manager; delete that folder and the TidyVNC entries in Credential Manager to remove them.</value></data>
   <data name="help_guide_install_title" xml:space="preserve"><value>Installing and removing</value></data>
   <data name="help_guide_listen_body" xml:space="preserve"><value>File &gt; Listen for connections opens a listener. Give the server this PC’s network address and the displayed listening port, then accept or reject the incoming request. The first time you listen, Windows Firewall may ask whether TidyVNC can accept connections. Closing the listener stops waiting for new connections.</value></data>
   <data name="help_guide_listen_title" xml:space="preserve"><value>Incoming connections</value></data>

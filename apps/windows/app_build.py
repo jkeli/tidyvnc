@@ -69,9 +69,15 @@ def publish(args, core):
         if args.arch != "x64":
             print("ARM64 .NET tests run on ARM64 hardware.", flush=True)
         else:
+            # --ci leaves out [TestCategory("Workstation")] tests: UI, displays,
+            # Direct3D, OpenSSH, the runner's own system state or wall-clock deadlines.
+            ci = getattr(args, "ci", False)
             run(["dotnet", "test", "--project", ROOT / "tests/windows/TidyVNC.Native.Tests/TidyVNC.Native.Tests.csproj", "-c", configuration,
-                 f"-p:Platform={platform}", f"-p:TidyVncNativeBin={native}"])
-            # UI automation takes over the desktop; it runs only with TIDYVNC_UI_TESTS=1.
-            run(["dotnet", "test", "--project", ROOT / "tests/windows/TidyVNC.UITests/TidyVNC.UITests.csproj", "-c", configuration,
-                 f"-p:Platform={platform}"])
+                 f"-p:Platform={platform}", f"-p:TidyVncNativeBin={native}",
+                 *(["--filter", "TestCategory!=Workstation"] if ci else [])])
+            # UI automation takes over the desktop; it runs only with TIDYVNC_UI_TESTS=1,
+            # and never in CI, where every one of its tests is a Workstation test.
+            if not ci:
+                run(["dotnet", "test", "--project", ROOT / "tests/windows/TidyVNC.UITests/TidyVNC.UITests.csproj", "-c", configuration,
+                     f"-p:Platform={platform}"])
     return output

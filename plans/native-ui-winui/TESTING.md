@@ -8,8 +8,9 @@ Recorded 2026-09-23. The evidence rules from the macOS plan apply unchanged:
   version) stays open with a note. It is never counted as passed.
 - Tests never read, change or clear the user's real settings, Credential Manager
   entries, registry keys, trust files or clipboard history.
-- Hosted CI is off by owner decision. Everything runs locally through scripts that
-  write a `summary.json` into a new `build/winui/verification/run-<id>/`
+- Hosted CI (D25) runs the core and .NET suites, the string audit, the unsigned
+  package and the ARM64 cross-build. Everything else runs locally through scripts
+  that write a `summary.json` into a new `build/winui/verification/run-<id>/`
   directory, and TODO.md records the run ID, commit and machine.
 
 ## 1. Test layers
@@ -119,5 +120,5 @@ fixes or as intentional differences for owner review.
 `tests/windows/verify.py` builds (or takes an existing build), runs every
 automated layer in §1 that applies to the build, and writes the summary. Options
 select Debug/Release, architecture, ASan, the protocol harness and the package
-checks. A workflow file for a future hosted runner can mirror it, but stays
-disabled while the owner's CI policy stands.
+checks. The hosted workflow (D25) runs the layers that need no interactive
+desktop.

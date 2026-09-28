@@ -9,13 +9,14 @@
 //            resampled output written for the frame and resident output tiles,
 //            damage is the invalidated area in device pixels
 //   vsync    [t]            display-link target timestamps (next refresh)
+// NSView display links need macOS 14; the app itself supports macOS 13.
 import AppKit
 import Combine
 @testable import TidyVNCNative
 
 func uptime() -> UInt64 { clock_gettime_nsec_np(CLOCK_UPTIME_RAW) }
 
-@MainActor final class Probe: NSObject {
+@available(macOS 14, *) @MainActor final class Probe: NSObject {
   private let endpoint: String, output: URL
   private let runtime: NativeRuntime, session: NativeSession
   private let windows: [NSWindow], views: [NativeDesktopView]
@@ -94,6 +95,9 @@ func uptime() -> UInt64 { clock_gettime_nsec_np(CLOCK_UPTIME_RAW) }
     guard arguments.count >= 3, (1...4).contains(count), width >= 64, height >= 64 else {
       FileHandle.standardError.write(Data(("usage: native-presentation-probe <host::port> <report.json> " +
         "[--views 1-4] [--width W] [--height H] [--scaling S]\n").utf8)); exit(2)
+    }
+    guard #available(macOS 14, *) else {
+      FileHandle.standardError.write(Data("native-presentation-probe needs macOS 14 or later\n".utf8)); exit(2)
     }
     let app = NSApplication.shared
     app.setActivationPolicy(.accessory)

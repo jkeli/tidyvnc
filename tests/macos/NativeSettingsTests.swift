@@ -379,7 +379,11 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     guard let event = NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
       windowNumber: sheet.windowNumber, context: nil, characters: characters, charactersIgnoringModifiers: characters,
       isARepeat: false, keyCode: keyCode) else { throw Failure(message: "no key event") }
-    if type == .keyUp || !sheet.performKeyEquivalent(with: event) { sheet.sendEvent(event) }
+    let handled = type == .keyDown && sheet.performKeyEquivalent(with: event)
+    // Escape must not depend on keyboard focus: with keyboard navigation off (the
+    // default) a sheet without text fields has no focused control to receive it.
+    if type == .keyDown && keyCode == 53 && !handled { throw Failure(message: "Escape is not a key equivalent in this sheet") }
+    if !handled { sheet.sendEvent(event) }
   }
   try await Task.sleep(for: .milliseconds(200))
 }
@@ -493,6 +497,9 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     }
     print("PASS keyboard \(name)")
   }
+  // Buttons and pop-ups join the key-view loop only with keyboard navigation on
+  // (System Settings > Keyboard, off by default); without it only text fields do.
+  let fullKeyboardAccess = NSApp.isFullKeyboardAccessEnabled
   // Password sheet key-view loop: every enabled control, in visual order, closing at Password.
   do {
     let (window, sheet) = try await presentForKeys(AuthenticationSheet(model: model, session: session, request: credentials,
@@ -502,7 +509,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     // Six stops: Password, lifetime pop-up, Use/Forget Saved Password, Cancel, Authenticate,
     // visited in reading order (AppKit frames: larger maxY is higher on screen).
     let reading = stops.sorted { abs($0.frame.midY - $1.frame.midY) > 4 ? $0.frame.midY > $1.frame.midY : $0.frame.minX < $1.frame.minX }
-    guard stops.count == 6, stops.first?.name == "Password", stops.map(\.frame) == reading.map(\.frame) else {
+    guard stops.count == (fullKeyboardAccess ? 6 : 1), stops.first?.name == "Password", stops.map(\.frame) == reading.map(\.frame) else {
       throw Failure(message: "password sheet key loop \(stops.map { "\($0.name)@\($0.frame.integral)" })")
     }
     print("PASS keyboard password sheet key loop of \(stops.count) stops in reading order, starting at Password")
@@ -521,6 +528,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
     ("encoding", AnyView(SessionEncodingSheet(model: encodingDraft, dismiss: {}))),
   ]
   for (name, content) in sheets {
+    guard fullKeyboardAccess else { print("SKIP keyboard \(name) sheet key loop: needs keyboard navigation turned on"); continue }
     let (window, sheet) = try await presentForKeys(content)
     let stops = try await keyLoop(sheet)
     dismissKeyboard(window)
@@ -616,6 +624,14 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   print("PASS rendered \(name): proposed and actual \(size)")
 }
 
+// A view and all its descendants, depth first. Iterative and at file scope:
+// Swift 6.0 (Xcode 16) rejects recursive local functions in async throwing tests.
+@MainActor func descendantViews(_ root: NSView) -> [NSView] {
+  var views: [NSView] = [], pending = [root]
+  while let view = pending.popLast() { views.append(view); pending.append(contentsOf: view.subviews.reversed()) }
+  return views
+}
+@MainActor func textFields(in root: NSView) -> [NSTextField] { descendantViews(root).compactMap { $0 as? NSTextField } }
 // Tab moves keyboard focus from the server address to the SSH gateway field and
 // Shift-Tab back, independent of the system Keyboard Navigation setting (which
 // only adds buttons and other controls to the loop).
@@ -628,8 +644,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   defer { window.contentView = nil; window.orderOut(nil); window.close() }
   try await Task.sleep(for: .milliseconds(300)); view.layoutSubtreeIfNeeded()
   // SwiftUI keeps accessibility identifiers off the backing NSTextField; use the placeholders.
-  func all(_ root: NSView) -> [NSTextField] { (root as? NSTextField).map { [$0] } ?? [] + root.subviews.flatMap(all) }
-  func field(_ placeholder: String) -> NSTextField? { all(view).first { $0.placeholderString == placeholder && $0.isEditable } }
+  func field(_ placeholder: String) -> NSTextField? { textFields(in: view).first { $0.placeholderString == placeholder && $0.isEditable } }
   guard let address = field("Server address"), let gateway = field("SSH gateway (optional)") else {
     throw Failure(message: "connection window text fields not found")
   }
@@ -688,14 +703,13 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   func settle() async throws {
     try await Task.sleep(for:.milliseconds(250)); host.view.layoutSubtreeIfNeeded()
   }
-  func descendants(_ root: NSView) -> [NSView] { [root] + root.subviews.flatMap(descendants) }
   func fields() -> [NSTextField] {
-    descendants(host.view).compactMap { $0 as? NSTextField }.filter {
+    descendantViews(host.view).compactMap { $0 as? NSTextField }.filter {
       $0.placeholderString == "Server address" || $0.placeholderString == "SSH gateway (optional)"
     }
   }
   func desktop() throws -> NativeDesktopView {
-    guard let view = descendants(host.view).compactMap({ $0 as? NativeDesktopView }).first else {
+    guard let view = descendantViews(host.view).compactMap({ $0 as? NativeDesktopView }).first else {
       throw Failure(message:"compact window lost its desktop")
     }
     return view

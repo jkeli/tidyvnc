@@ -9,7 +9,8 @@ with their DLL closure -- comes from the MSYS2 CLANG64 (x64) or CLANGARM64
 Universal CRT, so they share a C runtime with MSVC code. This script copies
 their headers and DLLs into a prefix CMake can use and generates MSVC import
 libraries from the DLL export tables. It records package versions and licence
-files in deps.json for the package report.
+files in deps.json for the package report, and each package's pkgbase, which
+names its MSYS2 source package for apps/windows/sources.py.
 
 The prefix layout is:
   <out>/include/{gnutls,nettle,pixman-1,gmp.h,zlib.h,zconf.h,jpeglib.h,...}
@@ -73,10 +74,19 @@ def exports(dll):
 
 
 def owner(msys, path):
+    """The installed package owning path: (name, version, pkgbase).
+
+    The pkgbase names MSYS2's source package for the build (apps/windows/sources.py).
+    """
     relative = "/" + Path(path).relative_to(msys).as_posix()
     output = subprocess.check_output([str(msys / "usr/bin/pacman.exe"), "-Qo", relative], text=True)
     match = re.search(r"is owned by (\S+) (\S+)", output)
-    return match.group(1), match.group(2)
+    package, version = match.group(1), match.group(2)
+    desc = (msys / "var/lib/pacman/local" / f"{package}-{version}" / "desc").read_text()
+    base = re.search(r"^%BASE%\n(\S+)", desc, re.M)
+    if not base:
+        raise SystemExit(f"pacman's database records no pkgbase for {package} {version}")
+    return package, version, base.group(1)
 
 
 def main():
@@ -91,6 +101,11 @@ def main():
     prefix = args.msys_root / env_dir
     if not (prefix / "bin" / LINKED["gnutls"]).exists():
         raise SystemExit(f"{prefix} has no GnuTLS; install {package_prefix}-gnutls with pacman")
+    missing = [dll for dll in LINKED.values() if not (prefix / "bin" / dll).exists()]
+    if missing:
+        # A different DLL name means a different library version from the one the core was built against.
+        raise SystemExit(f"{prefix / 'bin'} lacks {', '.join(missing)}; update MSYS2 (pacman -Syu) or, "
+                         "if a library's DLL name changed, update LINKED in deps.py")
     if out.exists():
         shutil.rmtree(out)
     for sub in ("include", "lib", "bin", "share/licenses", "def"):
@@ -110,8 +125,8 @@ def main():
     packages = {}
     for path in sorted(closure.values()):
         shutil.copy2(path, out / "bin" / path.name)
-        package, version = owner(args.msys_root, path)
-        packages.setdefault(package, {"version": version, "files": []})["files"].append(path.name)
+        package, version, base = owner(args.msys_root, path)
+        packages.setdefault(package, {"version": version, "base": base, "files": []})["files"].append(path.name)
         if package.startswith("mingw-w64-clang"):
             if re.search(r"(libgcc|libstdc\+\+|libc\+\+|libunwind|winpthread)", path.name, re.I):
                 raise SystemExit(f"Unexpected compiler runtime in the closure: {path.name}")
@@ -149,7 +164,7 @@ def main():
 
     report = {"architecture": args.arch, "msys_environment": env_dir,
               "packages": packages, "linked": LINKED, "missing_licences": missing,
-              "toolchain": toolchain.describe()}
+              "toolchain": toolchain.describe(arch=args.arch)}
     (out / "deps.json").write_text(json.dumps(report, indent=2) + "\n")
     print(f"Staged {len(closure)} DLLs from {env_dir} into {out}")
     if missing:

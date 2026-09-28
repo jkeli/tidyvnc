@@ -15,7 +15,7 @@ Rules (the macOS rules, unchanged):
 - Sub-items (`  - [ ]`) are independently verifiable parts; plain `  - ` bullets
   are notes.
 - Keep the FLTK Windows viewer (MinGW) building and the macOS native suite
-  passing throughout. Hosted CI stays off; nothing is pushed without the owner.
+  passing throughout. Hosted CI runs the Windows workflows (D25); nothing is pushed without the owner.
 
 ## W0 — Decisions, environment and spikes
 
@@ -164,7 +164,7 @@ Exit: the macOS N5 exit on Windows, including the matched performance budget.
 - [ ] W7.1 `build.py` complete: publish, assemble, report; x64 and ARM64; exclusive output publication.
 - [ ] W7.2 Dependency audit and third-party notices (PACKAGING.md §5).
 - [ ] W7.3 Per-user WiX MSI (PACKAGING.md §8), including the Windows 11 launch condition.
-- [ ] W7.4 Signing (D23). Deferred by the owner: the pipeline step exists and is skipped; unsigned SmartScreen and Smart App Control behaviour is recorded. Signed-build verification stays open until an identity is set up.
+- [ ] W7.4 Signing (D23). Releases are signed with Azure Artifact Signing in `release.yml` (`build.py --sign-dlib`); the dlib path is checked locally up to authentication. Open until the first signed release: signature verification, SmartScreen and Smart App Control observations, and the reputation state.
 - [ ] W7.5 Relocation and launch checks (PACKAGING.md §6).
 - [ ] W7.6 Installed-app acceptance (PACKAGING.md §9).
 - [ ] W7.7 OS and architecture matrix: serviced Windows 11 releases on x64 and ARM64; refusal on Windows 10 (D6).

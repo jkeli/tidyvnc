@@ -1405,26 +1405,14 @@
         }
       }
     },
-    "authentication.replace.an.existing.saved.password": {
+    "authentication.saved.once.the.server.accepts.it.replacing.any.password": {
       "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Replace an existing saved password"
-          }
-        }
-      }
-    },
-    "authentication.save.only.after.successful.authentication.replacement.must": {
-      "comment": "Authentication interface. Preserve security distinctions; placeholder values are server destinations, not translatable text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save only after successful authentication. Replacement must be explicitly selected."
+            "value": "Saved once the server accepts it, replacing any password saved for this server."
           }
         }
       }
@@ -2253,18 +2241,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "This app build lacks the signing identity required for Keychain access."
-          }
-        }
-      }
-    },
-    "credentials.a.saved.password.already.exists.choose.explicit.replacement.on.a.subsequent.authentication": {
-      "comment": "Native credential/trust storage presentation. Preserve distinctions between failures, uncertain durability and successful operations. Arguments are literal values.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A saved password already exists. Choose explicit replacement on a subsequent authentication."
           }
         }
       }

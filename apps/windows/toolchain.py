@@ -26,14 +26,20 @@ def installation():
     return Path(found[0]["installationPath"])
 
 
-def toolset(vs=None):
+def toolset(vs=None, arch="x64"):
+    """The preferred MSVC toolset when it can build for arch, otherwise the newest that can.
+
+    Visual Studio 2026 installs the 14.44 toolset as an optional component, which can be
+    present for x64 alone (as on GitHub's hosted runners); ARM64 then uses the default toolset.
+    """
     vs = vs or installation()
     versions = sorted((p for p in (vs / "VC/Tools/MSVC").iterdir() if p.is_dir()),
                       key=lambda p: [int(x) for x in p.name.split(".")])
-    for candidate in reversed(versions):
+    capable = [p for p in versions if (p / "bin/Hostx64" / arch / "cl.exe").exists()] or versions
+    for candidate in reversed(capable):
         if candidate.name.startswith(PREFERRED_TOOLSET):
             return candidate
-    return versions[-1]
+    return capable[-1]
 
 
 def tool(name, vs=None):
@@ -41,7 +47,7 @@ def tool(name, vs=None):
 
 
 def has_msvc_arm64(vs=None):
-    return (toolset(vs) / "bin/Hostx64/arm64/cl.exe").exists()
+    return (toolset(vs, "arm64") / "bin/Hostx64/arm64/cl.exe").exists()
 
 
 def environment(arch, vs=None):
@@ -49,7 +55,7 @@ def environment(arch, vs=None):
     if arch not in ARCHES:
         raise ValueError(arch)
     vs = vs or installation()
-    version = toolset(vs).name
+    version = toolset(vs, arch).name
     # x64_arm64 needs the MSVC cross tools for cl.exe, but vcvarsall still sets
     # LIB/INCLUDE for ARM64 when only the libraries are present.
     target = "x64" if arch == "x64" else "x64_arm64"
@@ -81,7 +87,7 @@ def cmake_compilers(arch, vs=None, build=None):
             "-DCMAKE_SYSTEM_NAME=Windows", "-DCMAKE_SYSTEM_PROCESSOR=ARM64"]
 
 
-def describe(vs=None):
+def describe(vs=None, arch="x64"):
     vs = vs or installation()
-    return {"visual_studio": str(vs), "msvc_toolset": toolset(vs).name,
+    return {"visual_studio": str(vs), "msvc_toolset": toolset(vs, arch).name,
             "msvc_arm64_cross": has_msvc_arm64(vs)}

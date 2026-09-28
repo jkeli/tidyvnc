@@ -353,13 +353,6 @@
       "count": 1
     },
     {
-      "path": ".github/workflows/build.yml",
-      "text": "        run: docker build -t tigervnc/$DOCKER .github/containers/$DOCKER",
-      "action": "replace",
-      "reason": "Active product identity; implement in owning phase",
-      "count": 1
-    },
-    {
       "path": "BUILD-MACOS.md",
       "text": "## Historical TigerVNC build evidence",
       "count": 1,
@@ -15901,14 +15894,14 @@
     },
     {
       "path": "release/Info.plist.in",
-      "text": "\t<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>",
+      "text": "\t<string>@VERSION@, Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst); Copyright (C) 2026 Kyle Eli</string>",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1
     },
     {
       "path": "release/Info.plist.in",
-      "text": "\t<string>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)</string>",
+      "text": "\t<string>Copyright (C) 1999-2026 TigerVNC team and many others (see README.rst)",
       "action": "preserve-attribution",
       "reason": "Original copyright or license attribution; no product-wide exemption",
       "count": 1

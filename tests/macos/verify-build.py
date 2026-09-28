@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -81,10 +82,19 @@ class Verification:
         except OSError as error:
             stage.update(status="failed", error=str(error))
         self.save()
+        if stage["status"] == "failed" and log.exists():
+            # Echo the failure so it reaches CI logs and annotations, not only the report.
+            lines = log.read_text(errors="replace").splitlines()
+            failures = [line for line in lines if re.search(r"\*\*\*Failed|\(Failed\)|^FAIL|error:|Failure\(|test failed|Subprocess aborted|Exception:|Fatal error|Simultaneous accesses", line, re.I)]
+            print(f"FAILED stage {name} (exit {stage.get('exitCode')}):", *failures[-20:], "--- end of log:",
+                  *lines[-30:], sep="\n", flush=True)
         return stage
 
-    def suite(self, name, directory):
-        inventory = self.command(f"{name}-inventory", ["ctest", "--test-dir", directory, "--show-only=json-v1"])
+    def suite(self, name, directory, exclude_label=None):
+        # An excluded label leaves those tests out of both the run and the
+        # inventory every run must match.
+        select = ["-LE", f"^{exclude_label}$"] if exclude_label else []
+        inventory = self.command(f"{name}-inventory", ["ctest", "--test-dir", directory, "--show-only=json-v1", *select])
         if inventory["status"] != "passed":
             return
         try:
@@ -98,7 +108,7 @@ class Verification:
             self.save()
             return
         junit = self.output / f"{name}.xml"
-        stage = self.command(name, ["ctest", "--test-dir", directory, "--output-on-failure",
+        stage = self.command(name, ["ctest", "--test-dir", directory, *select, "--output-on-failure",
                                    "--no-tests=error", "--parallel", "1", "--timeout", "120", "--output-junit", junit])
         stage["junit"] = junit.name
         try:
@@ -123,16 +133,18 @@ def main():
     parser.add_argument("--core", type=Path, required=True)
     parser.add_argument("--app", type=Path, required=True)
     parser.add_argument("--reports", type=Path, required=True, help="Parent directory for a fresh report per run")
+    parser.add_argument("--exclude-label", help="Skip CTest tests with this label (CI: workstation)")
     args = parser.parse_args()
     core, app = args.core.resolve(), args.app.resolve()
     args.reports.mkdir(parents=True, exist_ok=True)
     output = Path(tempfile.mkdtemp(prefix="run-", dir=args.reports.resolve()))
     # A fresh directory prevents old XML/logs from making an interrupted run green.
     verification = Verification(output, dict(os.environ))
+    verification.report["excludedLabel"] = args.exclude_label
     verification.command("toolchain", ["xcodebuild", "-version"])
     verification.command("swift-version", ["xcrun", "swift", "--version"])
     for suite in ("viewer", "unit", "macos"):
-        verification.suite(suite, core / "tests" / suite)
+        verification.suite(suite, core / "tests" / suite, args.exclude_label)
     verification.command("frontend-graph", [sys.executable, ROOT / "tests/macos/frontend-graph.py",
                                              core, app.parent.parent])
     configuration = [sys.executable, ROOT / "tests/macos/frontend-configuration.py", core]

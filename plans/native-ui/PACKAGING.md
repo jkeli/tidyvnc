@@ -16,9 +16,9 @@ python3 apps/macos/build.py --build-dir build/native-release \
 ```
 
 This command requires every dependency to support the declared deployment floor
-(14.0 by default). Supply dependencies built for that floor using `--prefix`.
-Packaging fails if any Mach-O binary requires a newer OS; a successful compile
-with `CMAKE_OSX_DEPLOYMENT_TARGET=14.0` cannot prove dependency compatibility.
+(13.0 by default). `apps/macos/deps.py` builds the static dependencies for that
+floor and checks every object in them; packaging fails if any Mach-O binary
+requires a newer OS. Neither check proves the app runs on the floor.
 The package floor can be raised explicitly with `--package-minimum-os`, which
 changes the staged app's `LSMinimumSystemVersion` and records both build and
 package floors. It cannot be lowered below the input app's declaration.
@@ -61,35 +61,50 @@ re-export/upward dependencies, deduplicates canonical paths and handles loader,
 executable and inherited runpaths. It rejects missing/ambiguous resolutions,
 destination collisions, escaping bundle symlinks, FLTK dependencies, mismatched
 architectures and deployment floors. System libraries remain OS-owned; they may
-exist only in the dyld shared cache. External standalone dylibs are copied into
-`Contents/Frameworks`. Third-party frameworks and fat binaries are rejected;
-the native build currently supports one architecture per build directory.
+exist only in the dyld shared cache. Third-party libraries are linked statically
+(`apps/macos/deps.py`), so any dynamic library outside the app is rejected, as is
+a `Contents/Frameworks` directory in the final package. Fat binaries are
+rejected; the native build supports one architecture per build directory.
 
-All non-system loads become explicit `@loader_path` paths inside the app. Original
-runpaths are removed, library IDs are rewritten, and a separate final audit
-requires a closed in-bundle dependency graph. Source/final binary hashes, declared
+Loads between the app's own binaries become explicit `@loader_path` paths.
+Original runpaths are removed, library IDs are rewritten, and a separate final
+audit requires a closed in-bundle dependency graph. Source/final binary hashes, declared
 minimums, architecture, dependency edges and signing mode are recorded. No claim
 is made that inspecting load commands validates optional runtime plugins or every
 TLS/authentication path; native protocol acceptance is still N6.5/N6.6.
 
-Installed upstream licence/notice files from each Homebrew keg are included under
-`Contents/Resources/ThirdParty`. Other dependency installations require
-`--dependency-notices` naming a directory of licence/notice texts. Missing licence
-text is an error. This preserves available notices; release review must still
-address source/relinking and any other obligations for the selected dependencies.
-No release publication occurs here.
+`--deps` names the `deps.py` prefix. Its `deps.json` must match the prefix's
+libraries, architecture and a floor no newer than the package's. Each package's
+upstream licence texts are copied to `Contents/Resources/ThirdParty/<package>`,
+with a `README.txt` naming every library's version, source archive URL and
+SHA-256; the report records the same with the notice hashes. Missing licence
+text is an error. Distributing the corresponding source archives with releases
+remains a release-workflow task. No release publication occurs here.
 
 Nested binaries are signed individually before the final app seal; verification
-uses `codesign --verify --deep --strict`, never deep signing. Ad hoc signing is
-the default. `--sign-identity` selects an available identity, hardened runtime and
-secure timestamp for non-ad-hoc packaging. No bypass entitlements are introduced.
-Only ad hoc signing has been exercised on this host. Real identity/provisioning,
-Keychain access groups, privacy persistence and upgrade behavior remain open.
+uses `codesign --verify --deep --strict`, never deep signing. Every binary gets
+the hardened runtime; no runtime exceptions are needed, since nothing is loaded
+dynamically. Ad hoc signing is the default. `--sign-identity` selects a real
+identity with a secure timestamp and requires `--provisioning-profile`: the
+profile must be a macOS profile for `io.github.jkeli.tidyvnc` that includes the
+signing certificate and has not expired. It is embedded, and the main executable
+alone gets its application and team identifiers, which the Data Protection
+Keychain needs. The disk image is signed too.
+
+With `--notary-key`, `--notary-key-id` and `--notary-issuer`, the app is
+notarized (as a zip) and stapled before the DMG is made, so it opens offline
+once copied out, then the DMG is notarized and stapled. Gatekeeper must accept
+both as notarized; where its assessments are disabled, `codesign
+--check-notarization` checks the notarized requirement instead. The report
+records the entitlements, submission IDs and verdicts. Only ad hoc signing has
+been exercised locally; the Developer ID path runs in `release.yml`. Keychain
+access, privacy persistence and upgrade behavior of a signed app remain open.
 
 Before publication, the app is copied to a second path containing spaces. Its
 help command must execute with an isolated HOME/XDG environment and no dependency
 search overrides. A DMG includes the app, README, licence and Applications link;
-`hdiutil verify` must pass. The sealed app records `notarized: false`.
+`hdiutil verify` must pass. Notarization status is in the report, not the
+sealed app, whose manifest is written before signing.
 
 ## Inspection and regression coverage
 
@@ -109,17 +124,19 @@ checks the image's README/licence/Applications link and detaches in a `finally`
 block. `--app` performs the same bundle checks without mounting an image. These
 are terminal checks, not Finder-launched Local Network or Keychain acceptance.
 
-Thirteen policy regressions cover malformed/unsupported Mach-O metadata, weak and
+Sixteen policy regressions cover malformed/unsupported Mach-O metadata, weak and
 re-export loads, transitive cycles/aliases, inherited runpaths, ambiguity, missing
 libraries, name collisions, architecture/floor/FLTK rejection, escaping symlinks,
-system-path normalization, final relocation audit, required notices, input
-immutability, failed-stage cleanup and exclusive publication. They are registered
-as `NativePackage.DependencyClosureAndPolicy` (native suite now 89 tests).
+system-path normalization, final relocation audit, rejected dynamic third-party
+libraries and `Contents/Frameworks`, the dependency manifest checks, recorded
+notices and sources, input immutability, failed-stage cleanup and exclusive
+publication. They are registered
+as `NativePackage.DependencyClosureAndPolicy`.
 
-The native CI definition runs build/test/package and mounted-image inspection,
-using an explicitly recorded package floor equal to the runner's actual OS.
-Artifacts include the DMG/report and inspection log. This validates host-specific
-packages; it does not let a current-OS runner stand in for a minimum-OS runner.
+The native CI definition runs build/test/package and mounted-image inspection;
+the package declares the app's deployment floor. Artifacts include the
+DMG/report and inspection log. A current-OS runner does not stand in for a
+minimum-OS runner.
 Hosted execution remains unverified. See RESUME/TODO for final local run evidence.
 
 ## Local checkpoint

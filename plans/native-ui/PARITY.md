@@ -111,7 +111,7 @@ undifferentiated control.
 | A05 | Auth: OK / Cancel | Authenticate / Cancel actions | AU; Return submits once, Escape cancels, generation/duplicate/close/quit safeguards |
 | A06 | Native addition use session password | AuthenticationSheet / credential coordinator | AU; explicit use, retry after wrong credential, two-session isolation |
 | A07 | Native addition use/forget saved password | AuthenticationSheet / NativeCredentialStore | AU; actual access-denied/locked/interaction policy and deletion of selected identity only |
-| A08 | Native addition replace saved password | replace toggle / remember decision | AU; explicit replacement consent, store failure leaves authentication recovery possible |
+| A08 | Native addition remember replaces saved password | remember decision (no separate replace toggle) | AU; remembering after success replaces any saved password, store failure leaves authentication recovery possible |
 | A09 | SSH password/passphrase | SSHAuthenticationSheet | SH; gateway/account/key context, secure field, Cancel/deadline/close and multiwindow prompt routing |
 | T01 | CConn: certificate identity/reason | AuthenticationSheet / TrustDetailsView / NativeTrustPresentation | TR; issuer/subject/fingerprint/validity/reasons readable and copyable where appropriate |
 | T02 | CConn: server key expected/received | TrustDetailsView / saved host-key policy | TR; changed expected/received identities remain distinct and expanded details scroll |

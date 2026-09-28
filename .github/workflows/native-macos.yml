@@ -1,6 +1,13 @@
 name: Native macOS viewer
 
-on: [push, pull_request, workflow_dispatch]
+# Also called by release.yml, so a release is only signed after these jobs
+# pass on the tagged commit.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -11,23 +18,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Users only get what release-arm64's toolchain builds, so there is no
+        # older-Xcode build. Running on older macOS (the floor is 13.0, which has
+        # no hosted runner) is checked outside CI.
         include:
-          # The provisional floor remains required while this image is available.
-          # macOS 14 hosted images retire 2026-11-02; replace with a suitable
-          # minimum-OS runner before then, rather than removing the floor check.
-          - id: minimum-arm64
-            os: macos-14
-            arch: arm64
-            xcode: /Applications/Xcode_16.2.app/Contents/Developer
-            configuration: Debug
           - id: current-arm64
             os: macos-26
             arch: arm64
-            xcode: /Applications/Xcode_26.6.app/Contents/Developer
-            configuration: Debug
-          - id: current-intel
-            os: macos-26-intel
-            arch: x86_64
             xcode: /Applications/Xcode_26.6.app/Contents/Developer
             configuration: Debug
           - id: release-arm64
@@ -35,12 +32,16 @@ jobs:
             arch: arm64
             xcode: /Applications/Xcode_26.6.app/Contents/Developer
             configuration: Release
+          # Early warning for the next Xcode; its failures never fail the run
+          # or block a release.
           - id: preview-arm64
             os: xcode-27
             arch: arm64
             xcode: /Applications/Xcode.app/Contents/Developer
             configuration: Debug
+            preview: true
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.preview == true }}
     timeout-minutes: 60
     env:
       DEVELOPER_DIR: ${{ matrix.xcode }}
@@ -48,11 +49,15 @@ jobs:
       EXPECTED_ARCHITECTURE: ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v6
-      - name: Verify runner and install protocol/test dependencies
+      # Homebrew supplies build tools and GoogleTest only; the app's libraries
+      # come from apps/macos/deps.py.
+      - name: Verify runner and install build tools
+        id: runner
         run: |
           test "$(uname -m)" = "$EXPECTED_ARCHITECTURE"
           xcodebuild -version
-          brew install cmake ninja pixman jpeg-turbo gnutls nettle googletest
+          echo "xcode=$(xcodebuild -version | shasum -a 256 | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          brew install cmake ninja pkgconf meson googletest
       - name: Record actual host, toolchain and dependencies
         run: |
           mkdir -p build/native-ci
@@ -61,47 +66,31 @@ jobs:
           xcodebuild -version > build/native-ci/toolchain.txt
           xcrun swift --version >> build/native-ci/toolchain.txt
           cmake --version >> build/native-ci/toolchain.txt
-          brew info --json=v2 cmake ninja pixman jpeg-turbo gnutls nettle googletest > build/native-ci/dependencies.json
-      - name: Build, verify and package for the actual runner OS
+          brew info --json=v2 cmake ninja pkgconf meson googletest > build/native-ci/dependencies.json
+      - name: Cache the static dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            build/native-deps/sources
+            build/native-deps/arm64
+          key: native-deps-${{ matrix.os }}-${{ steps.runner.outputs.xcode }}-${{ hashFiles('apps/macos/deps.py') }}
+      - name: Build and test the static dependencies
+        run: python3 apps/macos/deps.py --check
+      # --ci skips tests labelled workstation, and the actual-app checks in
+      # tests/integration are not run here: both drive the UI, OpenSSH or
+      # wall-clock deadlines, so they run on a workstation instead.
+      - name: Build, verify and package
         run: |
           set -o pipefail
-          python3 apps/macos/build.py --build-dir build/native-ci \
+          python3 .github/scripts/annotate-failure.py python3 apps/macos/build.py --build-dir build/native-ci \
             --developer-dir "$DEVELOPER_DIR" --prefix "$(brew --prefix)" \
-            --configuration "$NATIVE_CONFIGURATION" --parallel 2 --test --package \
-            --package-minimum-os "$(sw_vers -productVersion)" \
+            --configuration "$NATIVE_CONFIGURATION" --parallel 2 --test --ci --package \
             2>&1 | tee build/native-ci/build.log
-      - name: Run the full native protocol baseline
-        run: |
-          set -o pipefail
-          python3 tests/integration/macos-scaling-smoke.py \
-            "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app/Contents/MacOS/vncviewer" \
-            --frontend swiftui --report-dir build/native-ci/protocol \
-            2>&1 | tee build/native-ci/protocol.log
-      - name: Run actual-app VNC authentication cases
-        run: |
-          set -o pipefail
-          python3 tests/integration/macos-auth-smoke.py \
-            "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
-            2>&1 | tee build/native-ci/auth.log
-      - name: Run actual-app security handshakes against the project's server side
-        run: |
-          set -o pipefail
-          python3 tests/integration/macos-security-smoke.py \
-            "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
-            --peer build/native-ci/core/tests/macos/native-security-peer \
-            2>&1 | tee build/native-ci/security.log
-      - name: Run actual-app SSH tunnel through a loopback sshd
-        run: |
-          set -o pipefail
-          python3 tests/integration/macos-tunnel-smoke.py \
-            "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
-            --peer build/native-ci/core/tests/macos/native-security-peer \
-            2>&1 | tee build/native-ci/tunnel.log
       - name: Inspect packaged app inside the read-only disk image
         run: |
           set -o pipefail
           package="build/native-ci/package/$NATIVE_CONFIGURATION"
-          python3 tests/macos/package-inspect.py --dmg "$package"/*.dmg \
+          python3 .github/scripts/annotate-failure.py python3 tests/macos/package-inspect.py --dmg "$package"/*.dmg \
             --source-app "build/native-ci/app/$NATIVE_CONFIGURATION/TidyVNC.app" \
             --report "$package/package-report.json" 2>&1 | tee build/native-ci/package-inspection.log
       - name: Preserve development bundle for inspection
@@ -121,14 +110,11 @@ jobs:
             build/native-ci/host.txt
             build/native-ci/toolchain.txt
             build/native-ci/dependencies.json
+            build/native-deps/arm64/deps.json
+            build/native-deps/work/*.log
             build/native-ci/build.log
             build/native-ci/NativeDevelopmentApp.zip
             build/native-ci/package-inspection.log
-            build/native-ci/protocol.log
-            build/native-ci/auth.log
-            build/native-ci/security.log
-            build/native-ci/tunnel.log
-            build/native-ci/protocol/**
             build/native-ci/package/**/*.dmg
             build/native-ci/package/**/package-report.json
             build/native-ci/verification/**/summary.json

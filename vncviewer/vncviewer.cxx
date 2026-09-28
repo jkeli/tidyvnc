@@ -97,6 +97,7 @@ static const char *about_text()
            _("TidyVNC v%s\n"
              "Built on: %s\n"
              "Copyright (C) 1999-%d TigerVNC team and many others (see README.rst)\n"
+             "Copyright (C) 2026 Kyle Eli\n"
              "Based on TigerVNC.\n"
              "See https://github.com/jkeli/tidyvnc for information on TidyVNC."),
            PACKAGE_VERSION, BUILD_TIMESTAMP, 2026);

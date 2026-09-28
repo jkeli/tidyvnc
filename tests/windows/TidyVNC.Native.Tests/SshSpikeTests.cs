@@ -12,6 +12,7 @@ namespace TidyVNC.Native.Tests;
 /// against the in-process SshTestServer. Skipped when ssh.exe is absent.
 /// </summary>
 [TestClass]
+[TestCategory("Workstation")]
 public sealed class SshSpikeTests
 {
     public TestContext TestContext { get; set; } = null!;

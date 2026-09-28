@@ -56,6 +56,12 @@ the same configuration.
   tests take over the desktop, so they run only with `TIDYVNC_UI_TESTS=1`, and
   only when nobody has used the desktop for a minute. Some need a display that
   is switched on.
+- Workstation tests: C++ tests labelled `workstation` and .NET tests in
+  `[TestCategory("Workstation")]` depend on the machine: UI, displays,
+  Direct3D, OpenSSH, the machine's own Credential Manager, clipboard or shell
+  state, or wall-clock deadlines. `build.py --test --ci` skips them (and the UI
+  automation project); CI uses it. Run the full set on a workstation before a
+  release.
 - Strings: `python apps\windows\strings.py audit` checks the generated catalog
   against the macOS catalog and the sources. `generate` rewrites
   `Strings\en-US\Resources.resw` from `Strings\windows.json`. `pseudo` writes
@@ -117,8 +123,24 @@ It publishes the results to a new folder, `build\winui\release\TidyVNC-<version>
 An existing output is never replaced. Other options:
 
 - `--no-msi` skips the installer.
-- `--sign <thumbprint>` (with `--timestamp-url`) signs the project's
-  binaries and the MSI. Builds are unsigned until a signing identity exists (D23).
+- `--sign-dlib <Azure.CodeSigning.Dlib.dll> --sign-metadata <metadata.json>`
+  signs through Artifact Signing, as the release workflow does (RELEASING.md).
+  `--sign <thumbprint>` signs with a certificate from the certificate store
+  instead. Either one signs the project's binaries, every shipped binary nobody
+  else signed (the MSYS2 DLLs), and then the MSI. `--timestamp-url` overrides
+  the timestamp server. Without a signing option the build is unsigned.
+
+### Continuous integration
+
+`.github/workflows/windows-winui.yml` runs on every push and pull request:
+
+- the core and .NET suites in Debug;
+- the unsigned Release package, uploaded as a workflow artifact that is not a
+  release;
+- an ARM64 cross-build of the core and app.
+
+UI automation and desktop tests need an interactive desktop, so they run only
+locally. ARM64 tests need ARM64 hardware.
 
 ### Install
 
@@ -136,7 +158,9 @@ Upgrades install over the older version; downgrades are refused. Uninstalling
 keeps your data: `%LOCALAPPDATA%\TidyVNC` and the TidyVNC entries in
 Credential Manager.
 
-While builds are unsigned:
+Release MSIs are signed. Your own builds and CI builds are not:
 
-- Windows SmartScreen warns about a downloaded MSI (*More info* > *Run anyway*).
-- Smart App Control, where it is on, blocks the app.
+- Windows SmartScreen warns about a downloaded unsigned MSI (*More info* >
+  *Run anyway*). A signed MSI can also get this warning while the signing
+  identity is still new.
+- Smart App Control, where it is on, blocks unsigned builds.

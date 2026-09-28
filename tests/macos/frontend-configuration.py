@@ -54,8 +54,8 @@ def main():
                "requires the single-configuration Ninja generator", generator="Unix Makefiles")
         reject("unsupported-configuration", ROOT, native + ["-DCMAKE_BUILD_TYPE=RelWithDebInfo"],
                "supports CMAKE_BUILD_TYPE=Debug or Release")
-        reject("unsupported-floor", ROOT, native + ["-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0"],
-               "requires a macOS deployment target of 14.0 or later")
+        reject("unsupported-floor", ROOT, native + ["-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0"],
+               "requires a macOS deployment target of 13.0 or later")
         reject("missing-swift", ROOT, native + ["-DCMAKE_Swift_COMPILER=NOTFOUND"],
                "BUILD_MACOS_NATIVE requires a Swift 6 toolchain")
         reject("missing-xcode", ROOT, native,

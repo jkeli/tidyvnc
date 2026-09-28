@@ -57,6 +57,7 @@ public sealed class ActivationTests
     }
 
     [TestMethod]
+    [TestCategory("Workstation")]
     public void JumpListsPublishAndDeleteForAnAppId()
     {
         // A disposable AppUserModelID, so the real TidyVNC Jump List is untouched.

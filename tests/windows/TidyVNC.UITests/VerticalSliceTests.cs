@@ -17,6 +17,7 @@ namespace TidyVNC.UITests;
 /// Controls are found by AutomationId (TESTING.md section 3).
 /// </summary>
 [TestClass]
+[TestCategory("Workstation")]
 [DoNotParallelize]
 public sealed class VerticalSliceTests
 {
