@@ -33,30 +33,40 @@ is signed: builds from pushes, pull requests and local machines are unsigned.
   assets. If a release is wrong, fix it in the next patch version.
 - **Security fixes** get a patch release promptly, including fixes taken from
   upstream.
+- **Both platforms ship the same changes.** Every release builds both apps from
+  one tag, so don't make a release while a feature or fix that applies to
+  both Windows and macOS is on `master` for only one of them. Bring it to the
+  other platform first, or hold the release until it is. Only changes specific
+  to one platform (its packaging, OS integration or a bug only it has) may ship
+  on one side alone. Name any such change in the release notes.
 
 ## Making a release
 
-1. Set the version in `CMakeLists.txt`, and `version-string` in `vcpkg.json` to
+1. Check that everything since the last release that applies to both apps is
+   on both (see *Both platforms ship the same changes* above), for example with
+   `git log --oneline vX.Y.Z..master` against the previous tag. If not, stop and
+   port it first.
+2. Set the version in `CMakeLists.txt`, and `version-string` in `vcpkg.json` to
    match. Commit to `master`, push, and wait for the **Windows native viewer**
    and **Native macOS viewer** workflows to pass.
-2. Download the `winui-x64-unsigned` artifact from that run. Install it on a
+3. Download the `winui-x64-unsigned` artifact from that run. Install it on a
    clean Windows 11 machine or VM, connect to a server, upgrade over the
    previous release, and uninstall. Do the same on a Mac with the DMG in the
    `native-development-release-arm64` artifact. It is ad hoc signed, so allow it
    in *System Settings* > *Privacy & Security* the first time it opens.
-3. Write the release notes.
-4. Tag and push:
+4. Write the release notes.
+5. Tag and push:
 
    ```bash
    git tag -a v2.0.0 -m "TidyVNC 2.0.0"
    git push origin v2.0.0
    ```
 
-5. When the **Release** run reaches **Build and sign x64** and **Build, sign and
+6. When the **Release** run reaches **Build and sign x64** and **Build, sign and
    notarize macOS arm64**, review and approve the deployment to `release`.
    Notarization usually takes a few minutes per submission, occasionally much
    longer; the job waits up to an hour for each.
-6. Open the draft release, replace the generated notes with yours, and publish
+7. Open the draft release, replace the generated notes with yours, and publish
    it.
 
 To check a downloaded MSI, look at *Properties* > *Digital Signatures*, or run:
