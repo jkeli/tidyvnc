@@ -797,6 +797,22 @@ public sealed partial class CredentialTests
                 Assert.IsTrue(memory.Approvals.ContainsKey(key));
                 await s.Disconnect();
 
+                // Remember replaces an older password and approves the new one.
+                memory.Fail = NativeCredentialError.Unavailable;
+                attempt = s.Attempt(null);
+                var remembered = await Prompted();
+                memory.Fail = null;
+                memory.Entries[key] = "stale";
+                s.Credentials.Submit(remembered, [], Utf8("password"), NativeCredentialRetention.Remember);
+                Assert.AreEqual(NativeSessionState.Connected, (await attempt).State);
+                await s.Credentials.Work;
+                Assert.AreEqual(("password", NativeCredentialNoticeKind.Saved), (memory.Entries[key], s.Credentials.Notice?.Kind));
+                Assert.IsTrue(memory.Approvals.ContainsKey(key), "remembering approves automatic reuse");
+                await s.Disconnect();
+                Assert.AreEqual(NativeSessionState.Connected, (await s.Attempt(null)).State, "and the next connection uses it");
+                await s.Credentials.Work;
+                await s.Disconnect();
+
                 // Forget removes the password and its approval.
                 memory.Fail = NativeCredentialError.Unavailable;
                 attempt = s.Attempt(null);
