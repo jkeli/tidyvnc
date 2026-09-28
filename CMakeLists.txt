@@ -19,7 +19,7 @@ include(CheckCSourceRuns)
 include(CMakeMacroLibtoolFile)
 
 project(tidyvnc)
-set(VERSION 2.2.1)
+set(VERSION 2.3.0)
 
 # The RC version must always be four comma-separated numbers
 string(REPLACE . , RCVERSION "${VERSION}.0")
