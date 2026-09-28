@@ -20,8 +20,35 @@ public enum NativeEditorScope
     Any,
 }
 
-/// <summary>A connection problem shown once per attempt generation; Retry is offered only when it may repeat.</summary>
-public sealed record NativeConnectionProblem(Guid Id, ulong Generation, NativeConnectionIssue Issue);
+/// <summary>
+/// A connection problem shown once per attempt generation; Retry is offered
+/// only when it may repeat. A rejection says whether the server asked for
+/// credentials first and whether SSH had established the route, which stays
+/// true after the tunnel is cleaned up.
+/// </summary>
+public sealed record NativeConnectionProblem(Guid Id, ulong Generation, NativeConnectionIssue Issue, bool RequestedCredentials = false,
+                                             bool UsedSsh = false)
+{
+    public NativeText Title => Issue == NativeConnectionIssue.AuthenticationRejected && !RequestedCredentials
+        ? new NativeText("connection.recovery.vnc.refused.title") : Issue.Title();
+
+    public NativeText Message
+    {
+        get
+        {
+            if (Issue != NativeConnectionIssue.AuthenticationRejected) return Issue.Message();
+            if (!RequestedCredentials)
+                return new NativeText(UsedSsh ? "connection.recovery.ssh.vnc.refused" : "connection.recovery.vnc.refused");
+            return UsedSsh ? new NativeText("connection.recovery.ssh.vnc.authentication.rejected") : Issue.Message();
+        }
+    }
+}
+
+/// <summary>The SSH gateway's part of an attempt, for the status bar, authentication and information.</summary>
+public enum NativeSshState { Connecting, Active, Closed, Failed }
+
+/// <summary>An established tunnel: the effective gateway, and whether the VNC target is the gateway itself.</summary>
+public sealed record NativeSshRoute(NativeSshGateway Gateway, bool TargetIsLoopback);
 
 /// <summary>
 /// An accepted incoming connection (macOS ReverseConnectionRequest). The
@@ -67,6 +94,10 @@ public interface INativeTunnel : IAsyncDisposable
 {
     string LocalEndpoint { get; }
     string RouteIdentity { get; }
+    /// <summary>The effective gateway, for display.</summary>
+    NativeSshGateway Gateway { get; }
+    /// <summary>The VNC target is a literal loopback address on the gateway (<see cref="NativeSshTunnel.IsLoopbackTarget"/>).</summary>
+    bool TargetIsLoopback { get; }
     Task<NativeSshTunnelError?> Ended { get; }
 }
 
@@ -85,7 +116,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     private readonly bool startupAlertOnFatalError;
     private bool reverseAttempted, destinationPublished, suppressProblem, connectOnReady;
     private NativeConnectionProblem? retryProblem;
-    private ulong? reportedGeneration;
+    private ulong? reportedGeneration, credentialPromptGeneration;
     private NativeConnectionDestination? attemptDestination;
     private TunnelAttempt? tunnel;
     private Task? operation, cleanup;
@@ -121,6 +152,10 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     [ObservableProperty] public partial bool ShowsStatistics { get; private set; }
     /// <summary>The attempt's address: credential prompts name this, not a later edit.</summary>
     [ObservableProperty] public partial string? AttemptEndpoint { get; private set; }
+    /// <summary>The attempt's SSH gateway phase; null for a direct connection.</summary>
+    [ObservableProperty] public partial NativeSshState? SshState { get; private set; }
+    /// <summary>The tunnel the current attempt connected through, while it is up.</summary>
+    [ObservableProperty] public partial NativeSshRoute? ActiveSshRoute { get; private set; }
 
     /// <summary>The session is installed and its address published (the window attaches its desktop).</summary>
     public event Action<NativeSession>? SessionReady;
@@ -149,6 +184,9 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         Trust.PropertyChanged += (_, _) => OnPropertyChanged(nameof(CanConnect));
         Defaults.Load();
     }
+
+    partial void OnSshStateChanged(NativeSshState? value) => OnPropertyChanged(nameof(SshStatus));
+    partial void OnActiveSshRouteChanged(NativeSshRoute? value) => OnPropertyChanged(nameof(SshStatus));
 
     private static NativeLaunchCredentialInputs? SafeFileOnly(NativeInvocationLayer invocation)
     {
@@ -250,6 +288,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         }
         else if (change.PropertyName is nameof(NativeSession.IsClosing) or nameof(NativeSession.Prompt))
         {
+            // A rejection after this prompt rejected credentials; one without it refused the connection.
+            if (session.Prompt is { Kind: NativePrompt.PromptKind.Credentials } prompt) credentialPromptGeneration = prompt.Generation;
             OnPropertyChanged(nameof(CanConnect));
         }
     }
@@ -332,7 +372,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         suppressProblem = false;
         Busy = true; Message = null; ConnectionProblem = null; retryProblem = null;
         if (reverse is not null) reverseAttempted = true;
-        attemptDestination = destination; AttemptEndpoint = address; reportedGeneration = null;
+        attemptDestination = destination; AttemptEndpoint = address; reportedGeneration = null; credentialPromptGeneration = null;
+        ActiveSshRoute = null; SshState = gateway is null ? null : NativeSshState.Connecting;
         cancel?.Dispose();
         cancel = new CancellationTokenSource();
         operation = ConnectAsync(session, destination, address, gateway, cancel.Token);
@@ -365,6 +406,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
             else if (attempt is not null)
             {
                 attempt.Admitted = true;
+                ActiveSshRoute = new NativeSshRoute(attempt.Tunnel.Gateway, attempt.Tunnel.TargetIsLoopback);
+                SshState = NativeSshState.Active;
                 completion = await session.ConnectAsync(address, attempt.Tunnel.LocalEndpoint, attempt.Tunnel.RouteIdentity, token);
             }
             else completion = await session.ConnectAsync(address, token);
@@ -374,9 +417,14 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
                 History?.RecordSuccessful(destination);
         }
         catch (OperationCanceledException) { }
-        catch (NativeSshTunnelException failure) { ReportFatal(NativeTunnelTexts.Text(failure.Error)); }
+        catch (NativeSshTunnelException failure)
+        {
+            EndSsh(NativeSshState.Failed);
+            ReportFatal(NativeTunnelTexts.Text(failure.Error));
+        }
         catch (Exception error) when (error is NativeError or NativeCommandFailure)
         {
+            EndSsh();
             if (reverse is not null && error is not NativeCommandFailure)
                 ReportFatal(new NativeText("connection.recovery.this.incoming.connection.is.no.longer.available.ask.the.server.to.make"));
             else if (NativeConnectionIssues.From(error) is { } issue)
@@ -384,6 +432,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         }
         if (attempt is not null && !connected)
         {
+            EndSsh();
             await attempt.DrainAsync(session);
             if (ReferenceEquals(tunnel, attempt)) tunnel = null;
         }
@@ -413,6 +462,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     {
         public string LocalEndpoint => tunnel.LocalEndpoint;
         public string RouteIdentity => tunnel.RouteIdentity;
+        public NativeSshGateway Gateway => tunnel.Gateway;
+        public bool TargetIsLoopback => tunnel.TargetIsLoopback;
         public Task<NativeSshTunnelError?> Ended => tunnel.Ended;
         public ValueTask DisposeAsync() => tunnel.DisposeAsync();
     }
@@ -463,6 +514,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     {
         var result = await attempt.Tunnel.Ended;
         if (result is null || attempt.Stopping || Closing || !ReferenceEquals(tunnel, attempt)) return;
+        EndSsh(NativeSshState.Failed);
         if (!AlertOnFatalError) { CloseAfterFailure(); return; }
         suppressProblem = true; ConnectionProblem = null; retryProblem = null;
         Message = new NativeText("connection.recovery.the.ssh.tunnel.closed.check.the.gateway.and.connect.again");
@@ -474,6 +526,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     private void FinishTunnel(TunnelAttempt attempt)
     {
         if (Closing || !ReferenceEquals(tunnel, attempt) || operation is not null || Session is not { } session) return;
+        EndSsh();
         Busy = true;
         operation = Finish();
         async Task Finish()
@@ -488,6 +541,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     public void Cancel()
     {
         UiThread.Require(Dispatcher);
+        EndSsh();
         SshInteraction.Cancel();
         if (reverse is not null) { try { reverse.Listener.Reject(reverse.Peer); } catch (NativeError) { } }
         Trust.Cancel(); Credentials.Clear();
@@ -500,6 +554,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         UiThread.Require(Dispatcher);
         if (Session is not { } session || Closing) return;
         if (Busy) { Cancel(); return; }
+        EndSsh();
         Trust.Cancel(); Credentials.Clear();
         suppressProblem = true; ConnectionProblem = null; retryProblem = null;
         Busy = true; Message = null;
@@ -540,6 +595,50 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         }
     }
 
+    // ---- SSH presentation -----------------------------------------------------------------------
+
+    /// <summary>The gateway's phase and address (the effective one once connected); null without a gateway.</summary>
+    public NativeText? SshStatus
+    {
+        get
+        {
+            if (SshState is not { } state || (ActiveSshRoute?.Gateway ?? attemptDestination?.SshGateway) is not { } gateway) return null;
+            var key = state switch
+            {
+                NativeSshState.Connecting => "connection.ssh.connecting",
+                NativeSshState.Active => "connection.ssh.active",
+                NativeSshState.Closed => "connection.ssh.closed",
+                _ => "connection.ssh.failed",
+            };
+            return new NativeText(key, gateway.CanonicalUri);
+        }
+    }
+
+    /// <summary>This prompt belongs to the current attempt, which reached the server through an active tunnel.</summary>
+    public bool AuthenticationUsesSsh(NativePrompt request) =>
+        request.Generation == Session?.Generation && ActiveSshRoute is not null && SshState == NativeSshState.Active;
+
+    /// <summary>
+    /// The core's assessment, or the tunnel's when it ends on the VNC server.
+    /// Neither changes the credential or trust scope.
+    /// </summary>
+    public bool CredentialsProtected(NativePrompt request) =>
+        request.Secure || (AuthenticationUsesSsh(request) && ActiveSshRoute?.TargetIsLoopback == true);
+
+    public NativeText CredentialProtectionMessage(NativePrompt request)
+    {
+        if (!AuthenticationUsesSsh(request))
+            return new NativeText(request.Secure ? "authentication.protection.protected" : "authentication.protection.unassured");
+        if (ActiveSshRoute?.TargetIsLoopback == true) return new NativeText("authentication.ssh.protected");
+        return new NativeText(request.Secure ? "authentication.ssh.method.protected" : "authentication.ssh.onward.unassured");
+    }
+
+    private void EndSsh(NativeSshState state = NativeSshState.Closed)
+    {
+        ActiveSshRoute = null;
+        if (SshState is { } current && current != NativeSshState.Failed) SshState = state;
+    }
+
     // ---- Problems ---------------------------------------------------------------------------
 
     /// <summary>A failure that cannot offer Retry: an alert, or with AlertOnFatalError off, this window closes.</summary>
@@ -565,7 +664,8 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
         if (Closing || suppressProblem || Session?.Generation != generation || reportedGeneration == generation) return;
         reportedGeneration = generation;
         Message = null;
-        var problem = new NativeConnectionProblem(Guid.NewGuid(), generation, issue);
+        var problem = new NativeConnectionProblem(Guid.NewGuid(), generation, issue, credentialPromptGeneration == generation,
+            tunnel is { Admitted: true });
         if (!AlertOnFatalError && !OffersRetry(problem)) { CloseAfterFailure(); return; }
         retryProblem = problem; ConnectionProblem = problem;
     }
@@ -619,6 +719,7 @@ public sealed partial class NativeConnectionController : ObservableObject, IDisp
     public void RequestClose()
     {
         UiThread.Require(Dispatcher);
+        EndSsh();
         if (cleanup is not null) return;
         if (reverse is not null) { try { reverse.Listener.Reject(reverse.Peer); } catch (NativeError) { } }
         Trust.Stop(); Credentials.Stop(); SshInteraction.Stop();

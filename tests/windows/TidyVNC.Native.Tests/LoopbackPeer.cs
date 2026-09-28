@@ -18,7 +18,7 @@ public sealed class LoopbackPeer : IAsyncDisposable
     private static readonly byte[] Expected = [0xb8, 0x66, 0x92, 0x41, 0x25, 0xc8, 0xee, 0xbb, 0x9d, 0xeb, 0xc1, 0xdb, 0x61, 0xc5, 0x38, 0xe2];
 
     private readonly TcpListener? listener;
-    private readonly bool authentication;
+    private readonly bool authentication, refuse;
     private readonly ushort width, height;
     private readonly bool pattern;
     private readonly CancellationTokenSource stopping = new();
@@ -29,10 +29,11 @@ public sealed class LoopbackPeer : IAsyncDisposable
     private NetworkStream? stream;
 
     /// <param name="pattern">The first frame is a deterministic colour pattern instead of one colour (scaling checks).</param>
+    /// <param name="refuse">Offers no security types and sends a reason, as servers do for connections their access rules refuse.</param>
     public LoopbackPeer(bool authentication = false, bool delayServerInit = false, ushort width = 2, ushort height = 2, int? reversePort = null,
-                        bool pattern = false)
+                        bool pattern = false, bool refuse = false)
     {
-        this.authentication = authentication; this.pattern = pattern;
+        this.authentication = authentication; this.pattern = pattern; this.refuse = refuse;
         this.width = width; this.height = height;
         DelayServerInit = delayServerInit;
         if (reversePort is null)
@@ -226,6 +227,13 @@ public sealed class LoopbackPeer : IAsyncDisposable
             stream = client.GetStream();
             await stream.WriteAsync("RFB 003.008\n"u8.ToArray(), token);
             await ReadAsync(12, token);
+            if (refuse)
+            {
+                var reason = "Sorry, loopback connections are not enabled"u8.ToArray();
+                await stream.WriteAsync(new byte[] { 0, 0, 0, 0, (byte)reason.Length }, token);
+                await stream.WriteAsync(reason, token);
+                return null;
+            }
             await stream.WriteAsync(new byte[] { 1, (byte)(authentication ? 2 : 1) }, token);
             await ReadAsync(1, token);
             if (authentication)

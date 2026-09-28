@@ -39,7 +39,7 @@ pseudo-localized expansion and mirroring, minimum window size and scrolling.
 
 | ID | WinUI replacement | Windows-specific acceptance |
 | --- | --- | --- |
-| A01 | `AuthenticationDialog` server/security text | Warning colour meets contrast in all themes |
+| A01 | `AuthenticationDialog` server/security text, with the SSH route when a tunnel is active | Warning colour meets contrast in all themes |
 | A02 | User name `TextBox` | Focus order; Unicode input through IMEs |
 | A03 | `PasswordBox` | Copy disabled; reveal button follows the Windows default; value cleared on close (SERVICES.md §3) |
 | A04 | Lifetime `RadioButtons`: *Use once*, *Retain for this session's reconnect*, *Remember on this PC* | "Remember" absent for reverse connections and when Credential Manager is unavailable |
@@ -213,7 +213,7 @@ pseudo-localized expansion and mirroring, minimum window size and scrolling.
 | F13 | History source and review | `…\vncviewer\history` values in order |
 | F14 | History import/skip/cancel | Same |
 | E01 | DNS/refusal/routing/timeout | Winsock and `GetAddrInfoExW` codes mapped by the core (CORE.md §4) |
-| E02 | Authentication/protocol/peer disappearance | Same |
+| E02 | Authentication/protocol/peer disappearance | Same, including refusal before a credential request versus rejected credentials, with or without SSH |
 | E03 | Retry scoping | Same |
 | E04 | Local Network suspicion | Not applicable on Windows; listener firewall guidance instead |
 | E05 | Renderer/cursor/input/fullscreen failure | Direct3D device loss |

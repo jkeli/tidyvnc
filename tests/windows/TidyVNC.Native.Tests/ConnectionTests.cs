@@ -291,11 +291,13 @@ public sealed class ConnectionTests
     }
 
     /// <summary>A stand-in tunnel whose relay is a loopback peer (the routed connect accepts a loopback TCP relay).</summary>
-    private sealed class FailingTunnel(NativeSshTunnelError error, string relay) : INativeTunnel
+    private sealed class FailingTunnel(NativeSshTunnelError error, string relay, bool loopback = false) : INativeTunnel
     {
         private readonly TaskCompletionSource<NativeSshTunnelError?> ended = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public string LocalEndpoint => relay;
         public string RouteIdentity => "ssh-v2:fixture";
+        public NativeSshGateway Gateway { get; } = NativeSshGateway.Parse("ssh://bob@effective.invalid:2222");
+        public bool TargetIsLoopback => loopback;
         public Task<NativeSshTunnelError?> Ended => ended.Task;
         public bool Disposed { get; private set; }
         public void End() => ended.TrySetResult(error);
@@ -352,6 +354,125 @@ public sealed class ConnectionTests
             Assert.IsNull(ending.Session!.Prompt, "the pending prompt is withdrawn");
             Assert.IsTrue(running.Disposed, "the attempt's tunnel is always closed");
             await ending.CloseAsync();
+        });
+    }
+
+    [TestMethod]
+    public void OnlyLiteralLoopbackTargetsAreTheGatewayItself()
+    {
+        foreach (var (host, loopback) in new[]
+                 {
+                     ("127.0.0.1", true), ("127.4.5.6", true), ("::1", true), ("0:0:0:0:0:0:0:1", true),
+                     ("localhost", false), ("gateway.invalid", false), ("10.0.1.59", false), ("127.0.0.1.example", false),
+                     ("::2", false), ("127.1", false), ("2130706433", false), ("::ffff:127.0.0.1", false),
+                 })
+            Assert.AreEqual(loopback, NativeSshTunnel.IsLoopbackTarget(host), host);
+    }
+
+    [TestMethod]
+    public async Task SshStatusAndCredentialProtectionFollowTheRoute()
+    {
+        await using var f = await Create();
+        await f.Ui.InvokeAsync(async () =>
+        {
+            foreach (var loopback in new[] { true, false })
+            {
+                await using var peer = new LoopbackPeer(authentication: true);
+                FailingTunnel? running = null;
+                var starting = new TaskCompletionSource();
+                using var controller = new NativeConnectionController(f.Services(tunnels: async (_, _, _, _, _) =>
+                {
+                    await starting.Task;
+                    return running = new FailingTunnel(NativeSshTunnelError.ConnectionFailed, peer.Endpoint, loopback);
+                }));
+                await Until(() => controller.Defaults.IsReady, "defaults");
+                controller.Endpoint = loopback ? "127.0.0.1::5901" : "remote.invalid::5901";
+                controller.SshGatewayText = "alice@gateway.invalid";
+                Assert.IsNull(controller.SshStatus, "nothing to report before an attempt");
+                controller.Connect();
+                Assert.AreEqual(new NativeText("connection.ssh.connecting", NativeSshGateway.Parse("alice@gateway.invalid").CanonicalUri), controller.SshStatus,
+                    "the requested gateway while connecting");
+                Assert.IsNull(controller.ActiveSshRoute, "no protection is claimed before the tunnel forwards");
+                starting.SetResult();
+                await Until(() => controller.Session!.Prompt is not null, "authentication through the tunnel");
+                var prompt = controller.Session!.Prompt!;
+                Assert.IsFalse(prompt.Secure, "VncAuth alone does not protect credentials");
+                Assert.AreEqual(NativeSshState.Active, controller.SshState);
+                Assert.AreEqual(new NativeText("connection.ssh.active", running!.Gateway.CanonicalUri), controller.SshStatus, "the effective gateway once active");
+                Assert.IsTrue(controller.AuthenticationUsesSsh(prompt));
+                Assert.AreEqual(loopback, controller.CredentialsProtected(prompt), "only a loopback target protects the whole path");
+                Assert.AreEqual(loopback ? "authentication.ssh.protected" : "authentication.ssh.onward.unassured", controller.CredentialProtectionMessage(prompt).Key);
+
+                controller.Credentials.Submit(prompt, [], Encoding.UTF8.GetBytes("password"));
+                await Until(() => controller.Session!.Snapshot.State == NativeSessionState.Connected && !controller.Busy, "connected");
+                controller.Disconnect();
+                await Until(() => controller.CanConnect, "disconnected");
+                Assert.IsTrue(running.Disposed);
+                Assert.AreEqual(NativeSshState.Closed, controller.SshState);
+                Assert.IsNull(controller.ActiveSshRoute, "disconnect clears the route");
+                Assert.IsFalse(controller.AuthenticationUsesSsh(prompt) || controller.CredentialsProtected(prompt), "an old prompt keeps no tunnel protection");
+                Assert.AreEqual("authentication.protection.unassured", controller.CredentialProtectionMessage(prompt).Key);
+                await controller.CloseAsync();
+            }
+
+            // A direct attempt keeps the core's assessment and reports no gateway.
+            await using var direct = new LoopbackPeer(authentication: true);
+            using var plain = new NativeConnectionController(f.Services());
+            await Until(() => plain.Defaults.IsReady, "defaults");
+            plain.Endpoint = direct.Endpoint;
+            plain.Connect();
+            await Until(() => plain.Session!.Prompt is not null, "direct authentication");
+            var request = plain.Session!.Prompt!;
+            Assert.IsTrue(plain.SshState is null && plain.SshStatus is null && !plain.CredentialsProtected(request));
+            Assert.AreEqual("authentication.protection.unassured", plain.CredentialProtectionMessage(request).Key);
+            await plain.CloseAsync();
+        });
+    }
+
+    [TestMethod]
+    public async Task RejectionsSayWhetherCredentialsWereRequestedAndSshConnected()
+    {
+        await using var f = await Create();
+        await f.Ui.InvokeAsync(async () =>
+        {
+            foreach (var routed in new[] { true, false })
+            {
+                LoopbackPeer? peer = null;
+                using var controller = new NativeConnectionController(f.Services(tunnels: (_, _, _, _, _) =>
+                    Task.FromResult<INativeTunnel>(new FailingTunnel(NativeSshTunnelError.ConnectionFailed, peer!.Endpoint))));
+                await Until(() => controller.Defaults.IsReady, "defaults");
+                // Repeat the refusal after a password attempt: an old prompt must not make a
+                // later policy refusal look like a rejected password.
+                foreach (var requestPassword in new[] { false, true, false })
+                {
+                    await using var current = peer = new LoopbackPeer(authentication: true, refuse: !requestPassword);
+                    controller.Endpoint = routed ? "remote.invalid::5901" : current.Endpoint;
+                    controller.SshGatewayText = routed ? "gateway.invalid" : "";
+                    controller.Connect();
+                    if (requestPassword)
+                    {
+                        await Until(() => controller.Session!.Prompt is not null, "password request");
+                        controller.Credentials.Submit(controller.Session!.Prompt!, [], Encoding.UTF8.GetBytes("wrong"));
+                    }
+                    await Until(() => !controller.Busy && controller.ConnectionProblem is not null, "rejected connection drained");
+                    var problem = controller.ConnectionProblem!;
+                    Assert.AreEqual(NativeConnectionIssue.AuthenticationRejected, problem.Issue);
+                    Assert.AreEqual((requestPassword, routed), (problem.RequestedCredentials, problem.UsedSsh),
+                        "the attempt's own prompt and SSH route, kept after the tunnel closed");
+                    Assert.AreEqual(requestPassword ? "connection.issue.authenticationRejected.title" : "connection.recovery.vnc.refused.title", problem.Title.Key);
+                    Assert.AreEqual((requestPassword, routed) switch
+                    {
+                        (false, true) => "connection.recovery.ssh.vnc.refused",
+                        (false, false) => "connection.recovery.vnc.refused",
+                        (true, true) => "connection.recovery.ssh.vnc.authentication.rejected",
+                        _ => "connection.issue.authenticationRejected.message",
+                    }, problem.Message.Key);
+                    Assert.IsTrue(controller.OffersRetry(problem), "both rejection phases can be retried");
+                    controller.DismissProblem(problem.Id);
+                    await Until(() => controller.CanConnect, "ready again");
+                }
+                await controller.CloseAsync();
+            }
         });
     }
 

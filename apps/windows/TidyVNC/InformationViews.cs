@@ -98,7 +98,7 @@ internal sealed record ConnectionInformationRequest(Guid Id);
 /// </summary>
 internal static class ConnectionInformationDialog
 {
-    public static ContentDialog Create(NativeSession session, string endpoint)
+    public static ContentDialog Create(NativeSession session, string endpoint, Func<NativeText?> sshStatus)
     {
         var body = new ContentControl();
         var copied = Ui.Caption("");
@@ -113,6 +113,7 @@ internal static class ConnectionInformationDialog
             var snapshot = session.Snapshot;
             var info = session.Information;
             var rows = new List<(string, string)> { (Strings.Get("information.server"), endpoint) };
+            if (sshStatus() is { } ssh) rows.Add((Strings.Get("information.ssh.tunnel"), Strings.Resolve(ssh)));
             if (info is not null)
             {
                 rows.Add((Strings.Get("information.desktop.name"), info.DesktopName.Length == 0 ? Strings.Get("information.unnamed")

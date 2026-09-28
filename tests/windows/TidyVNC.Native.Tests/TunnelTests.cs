@@ -105,6 +105,8 @@ public sealed class TunnelTests
         StringAssert.StartsWith(tunnel.RouteIdentity, "ssh-v2:");
         Assert.AreEqual("tester", tunnel.Resolved.User);
         Assert.AreEqual(server.Port, tunnel.Resolved.Port);
+        Assert.IsTrue(tunnel.TargetIsLoopback, "a literal loopback target is the gateway itself");
+        Assert.AreEqual(Gateway(server).CanonicalUri, tunnel.Gateway.CanonicalUri, "the effective gateway");
         Assert.IsTrue(Running(tunnel.ProcessId));
 
         // Another process that reaches the relay first is refused; the app's own connection still works.

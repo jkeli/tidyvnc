@@ -1,5 +1,6 @@
 // Copyright 2026 TidyVNC contributors. Licensed under GPL-2.0-or-later.
 using System.Globalization;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -42,8 +43,11 @@ public sealed class NativeSshTunnel : IAsyncDisposable
     private int disposed;
 
     private NativeSshTunnel(string directory, NativeOwnedProcess process, NativeSshAskpassServer? askpass, Socket listener,
-                            StderrClassifier classifier, byte[] first, string localEndpoint, NativeSshResolvedGateway resolved)
+                            StderrClassifier classifier, byte[] first, string localEndpoint, NativeSshResolvedGateway resolved,
+                            NativeSshGateway gateway, bool targetIsLoopback)
     {
+        Gateway = gateway;
+        TargetIsLoopback = targetIsLoopback;
         this.directory = directory;
         this.process = process;
         this.askpass = askpass;
@@ -57,6 +61,10 @@ public sealed class NativeSshTunnel : IAsyncDisposable
     /// <summary>The relay socket path to pass to the session's routed connect.</summary>
     public string LocalEndpoint { get; }
     public NativeSshResolvedGateway Resolved { get; }
+    /// <summary>The effective gateway after configuration resolution, for display.</summary>
+    public NativeSshGateway Gateway { get; }
+    /// <summary>The VNC target is a literal loopback address, so it is the SSH server itself (<see cref="IsLoopbackTarget"/>).</summary>
+    public bool TargetIsLoopback { get; }
     /// <summary>The effective route (ssh-v2) that scopes credentials and trust.</summary>
     public string RouteIdentity => Resolved.RouteIdentity;
     /// <summary>Completes when the tunnel ends: null after a normal close, otherwise why ssh ended.</summary>
@@ -73,6 +81,23 @@ public sealed class NativeSshTunnel : IAsyncDisposable
         if (host.Length is 0 or > 255 || port is < 1 or > 65535 || host.Any(c => char.IsWhiteSpace(c) || char.IsControl(c) || c is '%' or '"' or '\'' or '[' or ']' or '@'))
             throw new NativeSshTunnelException(NativeSshTunnelError.ForwardingFailed);
         return (host.Contains(':', StringComparison.Ordinal) ? $"[{host}]" : host) + ":" + port.ToString(CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// A literal loopback target (127.0.0.0/8 in dotted-quad form, or ::1) is
+    /// interpreted on the SSH server, so the forward ends there. Host names,
+    /// including localhost, and local resolution cannot prove where the
+    /// gateway forwards a target.
+    /// </summary>
+    public static bool IsLoopbackTarget(string host)
+    {
+        if (host.Contains(':', StringComparison.Ordinal))
+            return !host.Contains('%', StringComparison.Ordinal) && IPAddress.TryParse(host, out var ipv6) &&
+                   ipv6.AddressFamily == AddressFamily.InterNetworkV6 && ipv6.Equals(IPAddress.IPv6Loopback);
+        // IPAddress.TryParse also takes shorthand such as "127.1"; inet_pton does not.
+        var parts = host.Split('.');
+        return parts.Length == 4 && parts.All(p => p.Length is >= 1 and <= 3 && p.All(char.IsAsciiDigit)) &&
+               IPAddress.TryParse(host, out var ipv4) && ipv4.AddressFamily == AddressFamily.InterNetwork && ipv4.GetAddressBytes()[0] == 127;
     }
 
     public static async Task<NativeSshTunnel> StartAsync(NativeSshGateway gateway, string targetHost, int targetPort, INativeSshInteraction? interaction,
@@ -144,7 +169,8 @@ public sealed class NativeSshTunnel : IAsyncDisposable
             listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
             listener.Bind(new UnixDomainSocketEndPoint(endpoint));
             listener.Listen(1);
-            var tunnel = new NativeSshTunnel(directory, process, askpass, listener, classifier, ready, endpoint, resolved);
+            var tunnel = new NativeSshTunnel(directory, process, askpass, listener, classifier, ready, endpoint, resolved,
+                resolved.Gateway(gateway), IsLoopbackTarget(targetHost));
             tunnel.relay = Task.Run(tunnel.RelayAsync, CancellationToken.None);
             return tunnel;
         }

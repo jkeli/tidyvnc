@@ -217,6 +217,9 @@
                      ToolTipService.ToolTip="{local:Str Key=profiles.enter.user.host.or.ssh.user.host.port.leave.empty.for.a}" IsSpellCheckEnabled="False" />
             <StackPanel x:Name="GatewayDescription" Grid.Row="2" Grid.Column="1" Margin="0,4,0,0" Spacing="2" Visibility="Collapsed">
                 <TextBlock x:Name="GatewayIssue" TextWrapping="Wrap" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Visibility="Collapsed" />
+                <TextBlock x:Name="GatewayStatus" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="Collapsed"
+                           AutomationProperties.AutomationId="connection.sshStatus" />
                 <TextBlock x:Name="GatewayHelp" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Visibility="Collapsed"
                            Text="{local:Str Key=profiles.ssh.reads.supported.settings.from.ssh.config.commands.and.proxy.hops.are}" />
             </StackPanel>
@@ -274,8 +277,9 @@
             <TextBlock x:Name="StatusText" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                        AutomationProperties.LiveSetting="Polite" AutomationProperties.AutomationId="connection.status" />
             <StackPanel x:Name="StatusMessages" Grid.Column="1" Orientation="Horizontal" Spacing="16" HorizontalAlignment="Right">
-                <TextBlock x:Name="TunnelStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                           TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
+                <TextBlock x:Name="TunnelStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"
+                           AutomationProperties.AutomationId="connection.sshTransport" />
                 <TextBlock x:Name="ResizeStatus" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource SystemFillColorCautionBrush}"
                            TextTrimming="CharacterEllipsis" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"
                            AutomationProperties.AutomationId="resize.status" />

@@ -291,6 +291,20 @@ arguments or environment; fixed error text; startup deadlines of 20 seconds
 without interaction and five minutes with native prompts; close waits for the
 process tree to exit.
 
+**Presentation (as on macOS).** The gateway field and the status bar report the
+SSH phase: connecting, active (with the effective gateway after configuration
+resolution), closed or failed. Windows starts and resolves in one step, so it has
+no separate "preparing" phase. Connection information shows the tunnel. The
+authentication dialog accounts for an active tunnel without changing the core's
+assessment or the credential and trust scope: a literal loopback VNC target
+(127.0.0.0/8 in dotted-quad form, or `::1`) is on the gateway and is reported as
+protected; any other target, including `localhost` or a name that matches the
+gateway, gets the protection to the gateway and, when the VNC method does not
+protect credentials, a warning about the onward leg. A rejection alert says
+whether the VNC server refused the connection before asking for credentials or
+rejected them after, and whether SSH had connected, which it keeps after the
+tunnel closes.
+
 ## 12. Activation, instances and the command line
 
 - **Primary instance** (D8). `AppInstance.FindOrRegisterForKey("primary")` at

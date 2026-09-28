@@ -54,6 +54,18 @@ public sealed record NativeSshTunnelOptions
 public sealed record NativeSshResolvedGateway(string HostName, string User, int Port, string HostKeyAlias)
 {
     public string RouteIdentity => NativeIdentity.SshResolved(HostName, User, (uint)Port, HostKeyAlias);
+
+    /// <summary>The effective address as a gateway for display, or <paramref name="requested"/> when it cannot be written as one.</summary>
+    public NativeSshGateway Gateway(NativeSshGateway requested)
+    {
+        try
+        {
+            var host = HostName.Contains(':', StringComparison.Ordinal) ? $"[{HostName}]" : HostName;
+            return NativeSshGateway.Parse($"ssh://{User}@{host}:{Port.ToString(CultureInfo.InvariantCulture)}");
+        }
+        catch (NativeError) { return requested; }
+    }
+
     public override string ToString() => "NativeSshResolvedGateway(<redacted>)";
 }
 

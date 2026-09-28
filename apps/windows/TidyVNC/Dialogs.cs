@@ -131,11 +131,24 @@ internal static class AuthenticationDialog
         server.TextTrimming = TextTrimming.CharacterEllipsis;
         ToolTipService.SetToolTip(server, prompt.ServerName);
         panel.Children.Add(server);
-        var protection = Ui.Text(Strings.Get(prompt.Secure ? "authentication.protection.protected" : "authentication.protection.unassured"),
-            "authentication.credentialProtection");
-        Ui.SetTone(protection, prompt.Secure ? Tone.Secondary : Tone.Warning);
+        var ssh = controller.AuthenticationUsesSsh(prompt);
+        if (ssh && controller.SshStatus is { } sshStatus)
+        {
+            var route = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            var icon = new FontIcon { Glyph = "\uE72E", FontSize = 14, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 3, 0, 0) };
+            AutomationProperties.SetAccessibilityView(icon, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
+            route.Children.Add(icon);
+            var status = Ui.Text(sshStatus, "authentication.sshStatus");
+            status.MaxWidth = 412;
+            route.Children.Add(status);
+            panel.Children.Add(route);
+        }
+        var protection = Ui.Text(controller.CredentialProtectionMessage(prompt), "authentication.credentialProtection");
+        Ui.SetTone(protection, controller.CredentialsProtected(prompt) ? Tone.Secondary : Tone.Warning);
         panel.Children.Add(protection);
-        panel.Children.Add(Ui.Caption(Strings.Get("authentication.this.assessment.describes.credential.protection.not.encryption")));
+        // Through SSH, the route decides what is protected; a loopback target needs no further note.
+        if (!ssh) panel.Children.Add(Ui.Caption(Strings.Get("authentication.this.assessment.describes.credential.protection.not.encryption")));
+        else if (controller.ActiveSshRoute?.TargetIsLoopback != true) panel.Children.Add(Ui.Caption(Strings.Get("authentication.ssh.scope")));
 
         var username = new TextBox { Header = Strings.Get("authentication.username"), IsSpellCheckEnabled = false };
         AutomationProperties.SetAutomationId(username, "authentication.username");
@@ -496,7 +509,7 @@ internal static class ProblemDialog
 {
     public static ContentDialog Create(NativeConnectionController controller, NativeConnectionProblem problem)
     {
-        var dialog = Ui.Dialog(Strings.Resolve(problem.Issue.Title()), Ui.Text(problem.Issue.Message(), "connection.problem.message"), 400);
+        var dialog = Ui.Dialog(Strings.Resolve(problem.Title), Ui.Text(problem.Message, "connection.problem.message"), 400);
         dialog.CloseButtonText = Strings.Get("action.cancel");
         dialog.DefaultButton = ContentDialogButton.Close;
         if (controller.OffersRetry(problem))

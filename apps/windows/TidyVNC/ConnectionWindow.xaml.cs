@@ -255,8 +255,12 @@ public sealed partial class ConnectionWindow : Window
             GatewayIssue.Visibility = controller.GatewayIssue is null ? Visibility.Collapsed : Visibility.Visible;
         }
         GatewayHelp.Visibility = controller.SshGatewayText.Length != 0 ? Visibility.Visible : Visibility.Collapsed;
+        var sshStatus = controller.SshStatus is { } ssh ? Strings.Resolve(ssh) : "";
+        GatewayStatus.Text = sshStatus;
+        GatewayStatus.Visibility = sshStatus.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         Gateway.Visibility = controller.IsReverse ? Visibility.Collapsed : Visibility.Visible;
-        GatewayDescription.Visibility = !controller.IsReverse && (GatewayIssue.Visibility == Visibility.Visible || GatewayHelp.Visibility == Visibility.Visible)
+        GatewayDescription.Visibility = !controller.IsReverse && (GatewayIssue.Visibility == Visibility.Visible || GatewayHelp.Visibility == Visibility.Visible ||
+                                                                  GatewayStatus.Visibility == Visibility.Visible)
             ? Visibility.Visible : Visibility.Collapsed;
 
         // Toolbar and the Connection menu (the same items as the toolbar's More button).
@@ -297,6 +301,9 @@ public sealed partial class ConnectionWindow : Window
 
         // Status bar.
         StatusText.Text = Strings.Resolve(NativeTexts.Status(state));
+        TunnelStatus.Text = sshStatus;
+        TunnelStatus.Visibility = GatewayStatus.Visibility;
+        ToolTipService.SetToolTip(TunnelStatus, sshStatus.Length == 0 ? null : sshStatus);
         ClipboardStatus.Text = ClipboardNotice is { } clipboard ? Strings.Resolve(NativeTexts.Clipboard(clipboard)) : "";
         ClipboardStatus.Visibility = ClipboardNotice is null ? Visibility.Collapsed : Visibility.Visible;
         fullscreen.Refresh();
@@ -472,7 +479,7 @@ public sealed partial class ConnectionWindow : Window
             NativeRemoteResizePolicyDraft policy => () => RemoteResizePolicyDialog.Create(policy),
             NativeRemoteResizeDraft resize => () => RemoteResizeDialog.Create(resize),
             NativeFullscreenDraft displays => () => FullscreenDialog.Create(displays),
-            ConnectionInformationRequest when session is { } current => () => ConnectionInformationDialog.Create(current, Controller.Endpoint),
+            ConnectionInformationRequest when session is { } current => () => ConnectionInformationDialog.Create(current, Controller.Endpoint, () => Controller.SshStatus),
             _ => null,
         };
         return create is null ? null : new DialogRequest(key, create, _ => Controller.EndEditor(editor), () => Controller.EndEditor(editor));
