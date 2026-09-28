@@ -2,8 +2,9 @@
 
 Status: defaults and history each have explicit current/legacy source choices,
 immutable review, separate consent, native precedence and transactional markers.
-Both have native review windows, File-menu actions and independent first-use
-offers. Defaults monitor assignments support manual recovery and editing.
+Both have native review windows and File-menu actions. Defaults import is also
+available in Settings; only history has a first-use offer. Defaults monitor
+assignments support manual recovery and editing.
 History success refreshes the shared recent-address list.
 This is not an automatic startup migration or a new XDG writer.
 
@@ -79,13 +80,11 @@ invalidates the preview, drains the in-flight read before another starts, and
 suppresses late delivery. Closing cancels and joins pending work. Once a write is
 accepted, shutdown does not pretend it rolled back; closed UI suppresses its
 result. Errors expose controlled messages rather than arbitrary backend values.
-The app's File menu exposes **Import Connection Defaults…**, which presents
+Settings and the app's File menu expose **Import Connection Defaults…**, which presents
 separate **Review Current TidyVNC Defaults** and **Review Legacy Defaults** choices.
-An idle ordinary connection window offers the same action while native defaults
-are absent. **Not Now** dismisses that offer for the current launch; it does not
-write a migration marker or hide the File-menu action. A native-store observer
-removes the offer after saved native state appears. Corrupt/inaccessible state is
-never eligibility for the offer, and app activation refreshes external changes.
+The Settings action is always visible across settings sections. Connection
+windows do not show a defaults-import notification or maintain an eligibility
+observer for one. Existing native state still takes precedence during import.
 No compatibility source is read until the user chooses it in the import window.
 
 ## Native import window

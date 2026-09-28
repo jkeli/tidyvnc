@@ -20,14 +20,16 @@ func preferencesMessage(_ error: NativePreferencesError) -> String {
 
 struct PreferencesSettingsView: View {
   @ObservedObject var model: NativePreferencesDraft
+  private let importDefaults: (() -> Void)?
   enum Section: Hashable { case clipboard, encoding, input, scaling, trust, security, connection, remoteResize, fullscreen }
   @MainActor private final class Selection: ObservableObject {
     @Published var section: Section
     init(_ section: Section) { self.section = section }
   }
   @StateObject private var selection: Selection
-  init(model: NativePreferencesDraft, section: Section = .clipboard) {
+  init(model: NativePreferencesDraft, section: Section = .clipboard, importDefaults: (() -> Void)? = nil) {
     self.model = model; _selection = StateObject(wrappedValue: Selection(section))
+    self.importDefaults = importDefaults
   }
   @ViewBuilder private var encodingFields: some View {
     if let options = try? (model.values.encoding ?? NativeEncodingPreferences()).resolved(),
@@ -38,7 +40,14 @@ struct PreferencesSettingsView: View {
   private let builtIn = NativeSessionConfiguration()
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text(String(localized:"settings.defaults.connection.defaults", defaultValue:"Connection Defaults")).font(.title2)
+      HStack {
+        Text(String(localized:"settings.defaults.connection.defaults", defaultValue:"Connection Defaults")).font(.title2)
+        Spacer()
+        if let importDefaults {
+          Button(String(localized:"app.import.connection.defaults", defaultValue:"Import Connection Defaults…"),action:importDefaults)
+            .disabled(model.isBusy).accessibilityIdentifier("preferences.importDefaults")
+        }
+      }
       Text(String(localized:"settings.defaults.these.defaults.apply.to.new.connection.windows.existing.connections.keep.their.own", defaultValue:"These defaults apply to new connection windows. Existing connections keep their own settings."))
         .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
       Picker(String(localized:"settings.defaults.section", defaultValue:"Section"),selection:$selection.section) {

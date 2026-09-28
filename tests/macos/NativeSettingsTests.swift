@@ -38,7 +38,7 @@ final class SettingsBacking: NativePreferencesBacking, @unchecked Sendable {
 }
 @MainActor func render(_ model: NativePreferencesDraft, name: String, directory: URL, dark: Bool,
                        section: PreferencesSettingsView.Section) async throws {
-  try await capture(PreferencesSettingsView(model: model, section: section), name: name, directory: directory, dark: dark) {
+  try await capture(PreferencesSettingsView(model: model, section: section, importDefaults: {}), name: name, directory: directory, dark: dark) {
     try await waitForDraft(model)
   }
 }
@@ -622,7 +622,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
 @MainActor func connectionTabTraversal(model: ConnectionModel, session: NativeSession, displays: NativeDisplayService) async throws {
   model.endpoint = ""; model.sshGatewayText = ""
   let view = NSHostingView(rootView: ConnectionContent(model: model, session: session, displays: displays,
-    importAvailability: nil, openImport: {}, openHistoryImport: {}))
+    openHistoryImport: {}))
   let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 600), styleMask: [.titled], backing: .buffered, defer: false)
   window.isReleasedWhenClosed = false; window.contentView = view; window.orderFront(nil)
   defer { window.contentView = nil; window.orderOut(nil); window.close() }
@@ -678,7 +678,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
 @MainActor func compactConnectionWindow(model: ConnectionModel, session: NativeSession,
                                        displays: NativeDisplayService, directory: URL) async throws {
   let host = NSHostingController(rootView: ConnectionContent(model:model,session:session,displays:displays,
-    importAvailability:nil,openImport:{},openHistoryImport:{}))
+    openHistoryImport:{}))
   host.sizingOptions = []
   let window = NSWindow(contentRect:NSRect(x:0,y:0,width:640,height:420),
     styleMask:[.titled,.closable,.resizable],backing:.buffered,defer:false)
@@ -749,20 +749,19 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   let runtime = try NativeRuntime(), preferences = NativePreferencesStore(backing:SettingsBacking())
   let historyStore = NativeProfileHistoryStore(backing:HistoryBacking()), history = NativeRecentHistory(store:historyStore)
   history.reload()
-  let availability = DefaultsImportAvailability(store:preferences)
   let source = ResizeDisplaySource()
   let bounds = NativeDisplayRectangle(x:0,y:0,width:800,height:600)
   source.values = [.init(id:.init("fixture-screen"),name:"Fixture Display",bounds:bounds,workArea:bounds,backingScale:1,isPrimary:true)]
   let displays = NativeDisplayService(source:source,notifications:NotificationCenter(),workspaceNotifications:NotificationCenter())
   let model = ConnectionModel(runtime:runtime,preferences:preferences,displays:displays,history:history) { _,_ in }
-  try await waitForEncoding { model.session != nil && availability.canOffer && history.canImportHistory }
+  try await waitForEncoding { model.session != nil && history.canImportHistory }
   let session = model.session!
   for dark in [false,true] {
     for fixture in ["first-use","gateway","idle"] {
       model.endpoint = fixture == "first-use" ? "" : "fixture.invalid::5901"
       model.sshGatewayText = fixture == "gateway" ? "ssh://user@gateway.invalid:2222" : ""
       let view = ConnectionContent(model:model,session:session,displays:displays,
-        importAvailability:fixture == "first-use" ? availability : nil,openImport:{},openHistoryImport:{})
+        openHistoryImport:{})
       try await captureViewport(view,name:"connection-window-"+fixture+(dark ? "-dark" : ""),directory:directory,dark:dark)
     }
   }
@@ -773,7 +772,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
   _ = try await session.connect(endpoint:model.endpoint)
   try await waitForEncoding { session.hasFrame && session.information != nil }
   for dark in [false,true] {
-    try await captureViewport(ConnectionContent(model:model,session:session,displays:displays,importAvailability:nil,openImport:{},openHistoryImport:{}),
+    try await captureViewport(ConnectionContent(model:model,session:session,displays:displays,openHistoryImport:{}),
       name:"connection-window-connected"+(dark ? "-dark" : ""),directory:directory,dark:dark)
     try await captureViewport(ConnectionInformationSheet(endpoint:"fixture-%@-开发.invalid::5901",session:session,copy:{ _ in },dismiss:{}),
       name:"connection-details"+(dark ? "-dark" : ""),directory:directory,dark:dark,size:NSSize(width:560,height:650))
@@ -783,7 +782,7 @@ struct TrustRenderKey: NativeCertificateKeyMaterial {
       name:"connection-overlay"+(dark ? "-dark" : ""),directory:directory,dark:dark,size:NSSize(width:320,height:300))
   }
   try await compactConnectionWindow(model:model,session:session,displays:displays,directory:directory)
-  await model.close(); await availability.close(); await history.close(); await historyStore.close()
+  await model.close(); await history.close(); await historyStore.close()
   await preferences.close(); displays.stop(); try await runtime.shutdown()
 }
 

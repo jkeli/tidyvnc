@@ -35,12 +35,25 @@ struct TidyVNCApp: App {
       if let library = coordinator.trustLibrary { TrustLibraryView(model: library) }
     }
     Settings {
-      if let settings = coordinator.settings { PreferencesSettingsView(model: settings) }
-      else { Text(String(localized:"app.saved.defaults.are.unavailable", defaultValue:"Saved defaults are unavailable.")).padding(24) }
+      SettingsRoot(coordinator:coordinator)
     }
     Window(String(localized:"help.title", defaultValue:"TidyVNC Help"),id:"help") {
       ApplicationHelpView()
     }.defaultSize(width:720,height:640)
+  }
+}
+
+private struct SettingsRoot: View {
+  @ObservedObject var coordinator: AppCoordinator
+  @Environment(\.openWindow) private var openWindow
+  var body: some View {
+    if let settings = coordinator.settings {
+      PreferencesSettingsView(model:settings,importDefaults: {
+        coordinator.showDefaultsImport { openWindow(id:"connection") }
+      })
+    } else {
+      Text(String(localized:"app.saved.defaults.are.unavailable", defaultValue:"Saved defaults are unavailable.")).padding(24)
+    }
   }
 }
 
@@ -60,7 +73,6 @@ struct TidyVNCApp: App {
   private var historyImportWindow: HistoryImportWindowController?
   private var defaultsImportService: NativeDefaultsImportService?
   private var defaultsImportWindow: DefaultsImportWindowController?
-  private(set) var importAvailability: DefaultsImportAvailability?
   private let profiles: NativeProfileHistoryStore
   let history: NativeRecentHistory
   private(set) var settings: NativePreferencesDraft?
@@ -109,7 +121,6 @@ struct TidyVNCApp: App {
       runtime = try services.makeRuntime()
       let store = NativePreferencesStore(backing: try services.makePreferencesBacking())
       preferences = store; settings = NativePreferencesDraft(store: store)
-      importAvailability = DefaultsImportAvailability(store:store)
       if let paths = importPaths {
         defaultsImportService = NativeDefaultsImportService(paths:paths,store:store)
       }
@@ -266,7 +277,7 @@ struct TidyVNCApp: App {
     sender.reply(toOpenOrPrint: documentLaunch.route(urls:urls) ? .success : .failure)
   }
   func applicationDidBecomeActive(_ notification: Notification) {
-    clipboard.setApplicationActive(true); history.reload(); importAvailability?.refresh()
+    clipboard.setApplicationActive(true); history.reload()
   }
   func applicationDidResignActive(_ notification: Notification) { clipboard.setApplicationActive(false) }
   func register(_ window: NSWindow, model: ConnectionModel) {
@@ -311,7 +322,7 @@ struct TidyVNCApp: App {
     guard !quitting else { return }
     quitting = true
     historyImportWindow?.state.stop()
-    defaultsImportWindow?.state.stop(); importAvailability?.stop()
+    defaultsImportWindow?.state.stop()
     documentLaunch.stop(); invocationStartup.stop()
     listenerWindow?.model.requestClose()
     startupListener?.requestClose()
@@ -330,7 +341,7 @@ struct TidyVNCApp: App {
       await listenerWindow?.shutdown()
       await startupListener?.close(); await startupListenerCleanup?.value
       await historyImportWindow?.shutdown()
-      await defaultsImportWindow?.shutdown(); await importAvailability?.close()
+      await defaultsImportWindow?.shutdown()
       await settings?.close()
       await profileLibrary?.close(); await trustLibrary?.close(); await hostKeyLibrary?.close()
       await preferences?.close()
@@ -431,8 +442,7 @@ private struct ConnectionRoot: View {
   var body: some View {
     Group {
       if let session = model.session {
-        ConnectionContent(model:model,session:session,displays:coordinator.displays,importAvailability:coordinator.importAvailability,
-          openImport:{ coordinator.showDefaultsImport { openWindow(id:"connection") } },
+        ConnectionContent(model:model,session:session,displays:coordinator.displays,
           openHistoryImport:{ coordinator.showHistoryImport() })
       }
       else if let defaults = model.defaults {

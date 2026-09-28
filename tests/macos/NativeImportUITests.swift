@@ -20,7 +20,6 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
   let root = FileManager.default.temporaryDirectory.appendingPathComponent("tidyvnc-import-ui-"+UUID().uuidString)
   var store: NativePreferencesStore!
   var service: NativeDefaultsImportService!
-  var availability: DefaultsImportAvailability!
   var paths: NativeImportPaths!
   var controller: DefaultsImportWindowController?
   var reversed = false, quitting = false
@@ -43,7 +42,6 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
       }
       store = NativePreferencesStore(backing:backing)
       service = NativeDefaultsImportService(paths:paths,store:store)
-      availability = DefaultsImportAvailability(store:store)
       showImport()
       NSApp.activate(ignoringOtherApps:true)
       if CommandLine.arguments.contains("--verify") {
@@ -73,14 +71,14 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     Task { @MainActor in
       await controller?.shutdown(); backing.replace(nil); reversed = false
       try? source.write(to:paths.currentDefaults)
-      availability.refresh(); showImport()
+      showImport()
     }
   }
   @objc func legacyFixture() {
     Task { @MainActor in
       await controller?.shutdown(); backing.replace(nil); reversed = false
       try? FileManager.default.removeItem(at:paths.currentDefaults)
-      availability.refresh(); showImport()
+      showImport()
     }
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
@@ -89,7 +87,6 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     report("termination requested")
     Task { @MainActor in
       await controller?.shutdown(); report("termination window drained")
-      await availability?.close(); report("termination availability drained")
       await store?.close()
       try? FileManager.default.removeItem(at:root)
       NSApp.reply(toApplicationShouldTerminate:true)
@@ -134,35 +131,9 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     guard let bytes = bitmap.representation(using:.png,properties:[:]) else { throw Failure(message:"missing PNG") }
     try bytes.write(to:directory.appendingPathComponent(name+".png"))
   }
-  func renderOffer() async throws {
-    guard let index = CommandLine.arguments.firstIndex(of:"--output"), index+1 < CommandLine.arguments.count else {
-      throw Failure(message:"missing offer render path")
-    }
-    let host = NSHostingController(rootView:FirstUseDefaultsImportOffer(availability:availability,open:{})
-      .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topLeading)
-      .background(Color(nsColor:.windowBackgroundColor)))
-    host.sizingOptions = []
-    let size = NSSize(width:592,height:160)
-    let window = NSWindow(contentRect:NSRect(origin:.zero,size:size),styleMask:[.titled],backing:.buffered,defer:false)
-    window.isReleasedWhenClosed = false; window.contentViewController = host; window.setContentSize(size)
-    defer { window.close(); window.contentViewController = nil }
-    let view = host.view
-    for dark in [false,true] {
-      window.appearance = NSAppearance(named:dark ? .darkAqua : .aqua); view.appearance = window.appearance
-      view.layoutSubtreeIfNeeded(); window.displayIfNeeded(); try await Task.sleep(for:.milliseconds(60))
-      let fitting = host.sizeThatFits(in:size)
-      try check(fitting.width <= size.width && fitting.height <= size.height,"first-use offer fits connection content width")
-      guard let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { throw Failure(message:"missing offer bitmap") }
-      view.effectiveAppearance.performAsCurrentDrawingAppearance { view.cacheDisplay(in:view.bounds,to:bitmap) }
-      let output = URL(fileURLWithPath:CommandLine.arguments[index+1]).appendingPathComponent(dark ? "first-use-dark.png" : "first-use-light.png")
-      try bitmap.representation(using:.png,properties:[:])!.write(to:output)
-    }
-  }
   func verify() async throws {
-    try await until { availability.canOffer }
     try await render("choices")
     try await render("choices-minimum",minimum:true)
-    try await renderOffer()
     let state = controller!.state
     let order = try snapshot.documentMonitorOrder()
     _ = state.begin(origin:.currentXDG,legacyDisplays:order)
@@ -187,7 +158,7 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     try await until { state.review != nil }
     let accepted = state.review!
     state.approve(accepted.id,acknowledging:Set(accepted.proposal.notices.map(\.line)),currentDisplays:order)
-    try await until { state.imported != nil && !availability.canOffer }
+    try await until { state.imported != nil }
     try check(state.imported?.values.security == nil && state.imported?.values.shared == true,"review imports ordinary values only")
     try check(try Data(contentsOf:paths.currentDefaults) == source,"original source untouched")
     try await render("success")
@@ -205,11 +176,7 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     try await render("native-state-error-minimum",minimum:true)
     await controller?.shutdown()
     report("closed second presentation")
-    backing.replace(nil); availability.refresh(); try await until { availability.canOffer }
-    backing.replace(Data("malformed-native".utf8)); availability.refresh()
-    try await until { !availability.canOffer }
-    backing.replace(nil); availability.refresh(); try await until { availability.canOffer }
-    availability.dismiss(); try check(availability.dismissed,"first-use offer can be dismissed for this launch")
+    backing.replace(nil)
     try FileManager.default.removeItem(at:paths.currentDefaults)
     showImport()
     let legacy = controller!.state
@@ -224,7 +191,7 @@ final class FixtureBacking: NativePreferencesBacking, @unchecked Sendable {
     try await until { legacy.imported != nil }
     report("legacy imported")
     try check(legacy.imported?.importedFrom == .legacy,"legacy requires its separate choice")
-    print("PASS native import presentation, first-use eligibility, immutable review, topology, source isolation and close/reopen")
+    print("PASS native import presentation, immutable review, topology, source isolation and close/reopen")
   }
 }
 @main struct NativeImportUITests {

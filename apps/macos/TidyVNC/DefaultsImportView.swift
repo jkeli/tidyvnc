@@ -3,59 +3,6 @@ import AppKit
 import SwiftUI
 import TidyVNCNative
 
-@MainActor final class DefaultsImportAvailability: ObservableObject {
-  @Published private(set) var canOffer = false
-  @Published private(set) var dismissed = false
-  private let store: NativePreferencesStore
-  private var observation: Task<Void,Never>?, refreshTask: Task<Void,Never>?
-  private var stopped = false
-  init(store: NativePreferencesStore) { self.store = store; refresh() }
-  deinit { observation?.cancel(); refreshTask?.cancel() }
-  func refresh() {
-    guard !stopped else { return }
-    let store = self.store
-    if observation == nil {
-      observation = Task { [weak self] in
-        do {
-          for await snapshot in try await store.changes() {
-            guard let self, !self.stopped, !Task.isCancelled else { break }
-            self.canOffer = !snapshot.isStored
-          }
-        } catch { if let self, !self.stopped { self.canOffer = false } }
-        self?.observation = nil
-      }
-    }
-    guard refreshTask == nil else { return }
-    refreshTask = Task { [weak self] in
-      do {
-        let snapshot = try await store.read()
-        if let self, !self.stopped, !Task.isCancelled { self.canOffer = !snapshot.isStored }
-      } catch { if let self, !self.stopped { self.canOffer = false } }
-      self?.refreshTask = nil
-    }
-  }
-  func dismiss() { dismissed = true }
-  func stop() { stopped = true; canOffer = false; observation?.cancel(); refreshTask?.cancel() }
-  func close() async { stop(); await observation?.value; await refreshTask?.value }
-}
-
-struct FirstUseDefaultsImportOffer: View {
-  @ObservedObject var availability: DefaultsImportAvailability
-  let open: () -> Void
-  var body: some View {
-    if availability.canOffer && !availability.dismissed {
-      VStack(alignment:.leading,spacing:12) {
-        Text(String(localized:"import.defaults.have.existing.tidyvnc.defaults.review.an.import.before.opening.your.next.connection", defaultValue:"Have existing TidyVNC defaults? Review an import before opening your next connection window."))
-          .font(.callout).fixedSize(horizontal:false,vertical:true)
-        HStack {
-          Button(String(localized:"import.defaults.review.import", defaultValue:"Review Import…"),action:open).accessibilityIdentifier("import.firstUse")
-          Button(String(localized:"history.import.not.now", defaultValue:"Not Now")) { availability.dismiss() }.accessibilityIdentifier("import.notNow")
-        }
-      }.padding(14).background(.quaternary)
-    }
-  }
-}
-
 struct DefaultsImportView: View {
   @ObservedObject var state: NativeDefaultsImportState
   let displays: @MainActor () -> NativeDisplaySnapshot

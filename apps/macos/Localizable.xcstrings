@@ -9612,30 +9612,6 @@
         }
       }
     },
-    "import.defaults.have.existing.tidyvnc.defaults.review.an.import.before.opening.your.next.connection": {
-      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Have existing TidyVNC defaults? Review an import before opening your next connection window."
-          }
-        }
-      }
-    },
-    "import.defaults.review.import": {
-      "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Review Import…"
-          }
-        }
-      }
-    },
     "import.defaults.connection.behavior": {
       "comment": "Native defaults-import presentation. Source names, field names and display identifiers are literal arguments; placeholders may be reordered. Import policy and protocol keys are not translated.",
       "extractionState": "manual",

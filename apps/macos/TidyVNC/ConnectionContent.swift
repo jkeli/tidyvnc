@@ -8,8 +8,6 @@ struct ConnectionContent: View {
   @ObservedObject var model: ConnectionModel
   @ObservedObject var session: NativeSession
   let displays: NativeDisplayService
-  let importAvailability: DefaultsImportAvailability?
-  let openImport: () -> Void
   let openHistoryImport: () -> Void
   var body: some View {
     let visibleSheet = presentedSheet
@@ -18,7 +16,6 @@ struct ConnectionContent: View {
       if showsConnectionSetup {
         if !model.isReverse, session.snapshot.state == .idle, model.defaults?.profile == nil, model.defaults?.documentRequest == nil,
            !model.busy {
-          if let importAvailability { FirstUseDefaultsImportOffer(availability:importAvailability,open:openImport) }
           if let history = model.history { FirstUseHistoryImportOffer(history:history,open:openHistoryImport) }
         }
         HStack(spacing: 12) {
